@@ -171,19 +171,38 @@ Stage = function() {
     this.image0.fill("#004400")
     for (var j = 0 ; j < 100 ; ++j)
         gamejs.draw.circle(this.image0, "rgba(0,0,32,0.2)", [Math.random() * 854, Math.random() * 854], 100)
-    this.image = gamejs.transform.scale(this.image0, [854, 427])
+//    this.image = gamejs.transform.scale(this.image0, [854, 427])
+    this.image = this.image0
+    this.turn()
     return this
 }
 gamejs.utils.objects.extend(Stage, Thing)
+Stage.prototype.turn = function (dalpha) {
+    this.alpha = (this.alpha || 0) + (dalpha || 0)
+    this.S = Math.sin(this.alpha)
+    this.C = Math.cos(this.alpha)
+}
 Stage.prototype.think0 = function(dt) {
     Thing.prototype.think0.call(this, dt)
     this.children.sort(function(a,b) { return a.z - b.z })
+}
+Stage.prototype.draw = function(screen) {
+    screen._context.save()
+    screen._context.scale(1, 0.5)
+    screen._context.rotate(this.alpha)
+
+    screen._context.beginPath()
+    screen._context.arc(0,0,426,0,Math.PI*2,true);  
+    screen._context.clip()
+    Thing.prototype.draw.call(this, screen)
+    gamejs.draw.circle(screen, "#FFFFFF", [0, 0], 426, 4)
+    screen._context.restore()
 }
 // Convert gamepos (gx, gy, gz) into stagepos (x, y, z)
 // TODO: handle rotation?
 Stage.prototype.stageposof = function(pos) {
     var gx = pos[0], gy = pos[1], gz = pos[2]
-    return [gx, gy/2 - 0.866*gz, gy]
+    return [gx * this.C - gy * this.S, (gy * this.C + gx * this.S)/2 - 0.866*gz, gy]
 }
 Stage.prototype.gamepos = function(pos) {
     return pos
@@ -193,8 +212,8 @@ Stage.prototype.stagepos = function(pos) {
 }
 Stage.prototype.togamepos = function(pos) {
     var wpos = this.worldpos()
-    var x = pos[0] - wpos[0], y = pos[1] - wpos[1]
-    return [x, 2*y]
+    var x = pos[0] - wpos[0], y = 2 * (pos[1] - wpos[1])
+    return [x * this.C + y * this.S, y * this.C - x * this.S]
 }
 
 
@@ -583,7 +602,9 @@ Critter = function(hp0) {
     this.image = new gamejs.Surface([60, 60])
     this.hp = this.hp0
     this.reeltimer = 0
+    this.lastmotion = [Math.random() - 0.5, Math.random() - 0.5]  // To determine facing right
     this.vz = 0
+    this.bounce = 100
     gamejs.draw.circle(this.image, "green", [30, 16], 16)
 }
 gamejs.utils.objects.extend(Critter, StagedThing)
@@ -593,6 +614,7 @@ Critter.prototype.think = function(dt) {
         this.target = null
     } else if (this.prey) {
         var dx = this.prey.gx - this.gx, dy = this.prey.gy - this.gy
+        this.logmotion(dx, dy)
         var r = this.hitradius - 20
         if (this.target) { // already pursuing the prey
             if (dx * dx + dy * dy < r * r) {
@@ -626,6 +648,7 @@ Critter.prototype.think = function(dt) {
     } else if (this.target) {
         var d = dt * this.walkspeed
         var dx = this.target[0] - this.gx, dy = this.target[1] - this.gy
+        this.logmotion(dx, dy)
         if (dx * dx + dy * dy <= d * d) {
             this.gx = this.target[0]
             this.gy = this.target[1]
@@ -636,27 +659,63 @@ Critter.prototype.think = function(dt) {
             this.gy += dy * f
         }
     }
+    if (this.gz > 0 && this.isearthbound()) {
+        this.gz += this.vz * dt - 500 * dt * dt
+        this.vz -= 1000 * dt
+        if (this.gz < 0) {
+            this.gz = 0
+            this.vz = 0
+        }
+    }
+    if (this.gz == 0 && this.bounce && this.canbounce()) {
+        this.vz = this.bounce * (Math.random() * 0.2 + 1)
+        this.gz = 0.01
+    }
     if (this.healrate > 0) {
         this.hp = Math.min(this.hp + this.healrate * dt, this.hp0)
     }
     this.hittimer = Math.max(this.hittimer - dt, 0)
     StagedThing.prototype.think.call(this, dt)
 }
+Critter.prototype.isfacingright = function () {
+    var dx = this.lastmotion[0], dy = this.lastmotion[1]
+    // FIXME: must be grandchild of stage
+    return dx * this.parent.parent.C - dy * this.parent.parent.S > 0
+}
+Critter.prototype.reelingfromright = function () {
+    var dx = this.reelfrom[0] - this.gx, dy = this.reelfrom[1] - this.gy
+    // FIXME: must be grandchild of stage
+    return dx * this.parent.parent.C - dy * this.parent.parent.S > 0
+}
+Critter.prototype.draw = function (screen) {
+    screen._context.save()
+    if (this.reeltimer) screen._context.rotate(this.reelingfromright() ? -0.5 : 0.5)
+
+    if (this.isfacingright()) screen._context.scale(-1, 1)
+    StagedThing.prototype.draw.call(this, screen)
+    screen._context.restore()
+}
+// Call whenever you move in a direction you should be facing
+Critter.prototype.logmotion = function (dx, dy) {
+    if (dx || dy) this.lastmotion = [dx, dy]
+}
 Critter.prototype.isvulnerable = function() {
     return true
+}
+Critter.prototype.isearthbound = function() {
+    return true
+}
+Critter.prototype.canbounce = function() {
+    return !this.reeltimer && this.target
 }
 // Receive a hit (of how much, and from whom)
 Critter.prototype.hit = function(dhp, who) {
     if (!this.isvulnerable()) return
     this.hp -= dhp
-    var e = (new Effect("-" + dhp + "HP", "red")).attachto(this)
+    var e = (new Effect("-" + dhp + "HP", "red")).attachto(this).setstagepos([0,0,60])
     if (!this.healthbar) {
         this.healthbar = (new HealthBar()).attachto(this).setstagepos([0,0,60])
     }
-    // TODO: can't I put this back?
-    e.gx = 0
-    e.gy = 0
-    e.gz = 30
     if (who) {
         this.reeltimer = 0.05 * Math.sqrt(dhp)
         this.reelfrom = [who.gx, who.gy]
@@ -666,7 +725,7 @@ Critter.prototype.attack = function (who) {
     if (this.parent) {
         var shot = new Shot(this, who, this.strength)
         shot.attachto(this.parent)
-        this.hittimer = this.hittime
+        this.hittimer = this.hittime * (1 + 0.1 * Math.random())
     }
 }
 Critter.prototype.localcontains = function(pos) {
@@ -690,7 +749,7 @@ Adventurer = function() {
     this.castradius = 200
     this.casttarget = null
     this.quakejump = null
-    this.image = Images.getadvimage()
+    this.image = Images.getimage("adv")
 }
 gamejs.utils.objects.extend(Adventurer, Critter)
 Adventurer.prototype.nab = function(tokens) {
@@ -821,7 +880,7 @@ Adventurer.prototype.handlequake = function(dt) {
 // What do you think?
 Monster = function(hp0) {
     Critter.apply(this, [hp0])
-    this.r = 15
+    this.r = 30
     this.hitradius = 100
     this.basespeed = 40  // walk speed when not pursuing a player
 //    this.image = new gamejs.Surface([4*this.r, 4*this.r])

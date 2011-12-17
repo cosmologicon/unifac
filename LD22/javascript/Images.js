@@ -47,6 +47,11 @@ function getadvimage(spec) {
 
 function getimage(name) {
     switch (name) {
+        case "adv": // generic adventurer
+            var img = new gamejs.Surface([600, 600])
+            img.blit(getpiece("noggin-0"))
+            img.blit(getpiece("peepers-0"))
+            return gamejs.transform.scale(img, [100, 100])
         case "lump":
             return gamejs.transform.scale(getpiece("lump-0"), [100, 100])
     }

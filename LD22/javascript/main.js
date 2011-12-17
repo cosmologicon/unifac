@@ -95,6 +95,12 @@ function handlekeydown(key, pos) {
                 selected[0].castat(state.stage.togamepos(pos), state.critters, state.indicators)
             }
             break
+        case gamejs.event.K_RIGHT:
+            state.stage.turn(0.1)
+            break
+        case gamejs.event.K_LEFT:
+            state.stage.turn(-0.1)
+            break
     }
 }
 
