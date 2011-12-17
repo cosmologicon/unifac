@@ -91,6 +91,11 @@ function handlekeydown(key, pos) {
                 applyselection(players)
             }
             break
+        case gamejs.event.K_SPACE:  // cast
+            if (selected.length == 1) {
+                selected[0].castat(stage.togamepos(pos), critters, indicators)
+            }
+            break
     }
 }
 

@@ -381,26 +381,6 @@ Shockwave.prototype.harm = function (victims) {
 }
 
 
-Bolt.prototype.think = function(dt) {
-    this.t += dt
-    if (this.t > 0.4 && this.parent) this.die()
-    StagedThing.prototype.think.call(this, dt)
-}
-Bolt.prototype.draw = function(screen) {
-    for (var j = 0 ; j < 2 ; ++j) {
-        var x = 0, y = 0
-        while (y > -500) {
-            var nx = x + Math.random() * 50 - 25 + 10, ny = y - 60
-            gamejs.draw.line(screen, "white", [x, y], [nx, ny], 2)
-            x = nx
-            y = ny
-        }
-    }
-    screen.boltage = 1 + (screen.boltage || 0)
-}
-
-
-
 Selector = function() {
     StagedThing.apply(this)
     this.z = -10000
@@ -678,6 +658,7 @@ Adventurer = function() {
     this.r = 30
     this.healrate = 0.2
     this.castradius = 200
+    this.casttarget = null
     this.image = Images.getadvimage()
 }
 gamejs.utils.objects.extend(Adventurer, Critter)
@@ -698,14 +679,32 @@ Adventurer.prototype.nab = function(tokens) {
     }
 }
 Adventurer.prototype.think = function(dt) {
+    if (this.casttarget) {
+        if (this.casttarget[0] == "bolt")
+            this.castboltat(this.casttarget[1], this.casttarget[2], this.casttarget[3])
+        this.target = this.casttarget ? this.casttarget[1] : null
+    }
     Critter.prototype.think.call(this, dt)
-//    if (Math.random() * 3 < dt) (new Spark()).attachto(this.parent).setstagepos([this.gx, this.gy, 30])
 }
 Adventurer.prototype.getcastarea = function() {
     var i = new Indicator(this, this.castradius, null, "#0000FF")
     i.z = -20000
     return i
 }
+Adventurer.prototype.castat = function(pos, critters, indicators) {
+    this.castboltat(pos, critters, indicators)
+}
+Adventurer.prototype.castboltat = function(pos, critters, indicators) {
+    // FIXME: unless we don't want to attach Adventurers
+    var dx = pos[0] - this.gx, dy = pos[1] - this.gy
+    if (dx * dx + dy * dy < this.castradius * this.castradius) {
+        var b = (new Bolt()).attachto(critters).setstagepos(pos)
+        this.casttarget = null
+    } else {
+        this.casttarget = ["bolt", pos, critters, indicators]
+    }
+}
+
 
 
 // What do you think?
