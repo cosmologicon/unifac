@@ -496,6 +496,51 @@ Spark.prototype.think = function(dt) {
     }
 }
 
+Shot = function(sender, receiver, dhp, color) {
+    StagedThing.apply(this)
+    this.color = color || "white"
+    this.dhp = dhp || 1
+    this.sender = sender
+    this.receiver = receiver
+    this.p0 = this.sender.gamepos()
+    this.p1 = this.receiver.gamepos()
+
+    var dx = this.p1[0] - this.p0[0]
+    var dy = this.p1[1] - this.p0[1]
+    var dz = this.p1[2] - this.p0[2]
+    var d = Math.sqrt(dx * dx + dy * dy + dz * dz)
+    this.tmax = 0.6 + d / 1000.
+    this.zmax = this.tmax * 50.
+    this.t = 0
+
+    this.image = new gamejs.Surface([4, 4])
+    this.image.fill(this.color)
+}
+gamejs.utils.objects.extend(Shot, StagedThing)
+Shot.prototype.think = function(dt) {
+    this.t += dt
+    if (this.t > this.tmax) {
+        if (this.receiver && this.receiver.parent) {
+            this.receiver.hit(this.dhp, this.sender)
+        }
+        this.die()
+        return
+    } else {
+        if (this.receiver && this.receiver.parent) {
+            this.p1 = this.receiver.gamepos()
+//            alert(this.p0, this.p1)
+        }
+        var f = this.t / this.tmax
+        this.gx = this.p0[0] * (1 - f) + this.p1[0] * f
+        this.gy = this.p0[1] * (1 - f) + this.p1[1] * f
+        this.gz = this.p0[2] * (1 - f) + this.p1[2] * f + 30 + this.zmax * 4 * f * (1-f)
+//        alert([f, this.t, this.tmax])
+    }
+    StagedThing.prototype.think.call(this, dt)
+}
+
+
+
 
 
 // Collectible token
@@ -536,6 +581,7 @@ Critter = function(hp0) {
     this.image = new gamejs.Surface([60, 60])
     this.hp = this.hp0
     this.reeltimer = 0
+    this.vz = 0
     gamejs.draw.circle(this.image, "green", [30, 16], 16)
 }
 gamejs.utils.objects.extend(Critter, StagedThing)
@@ -611,7 +657,9 @@ Critter.prototype.hit = function(dhp, who) {
     }
 }
 Critter.prototype.attack = function (who) {
-    who.hit(this.strength, this)
+    var shot = new Shot(this, who, this.strength)
+    shot.attachto(this.parent)
+//    who.hit(this.strength, this)
     this.hittimer = this.hittime
 }
 Critter.prototype.localcontains = function(pos) {
