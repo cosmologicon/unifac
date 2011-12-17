@@ -1,5 +1,7 @@
 var gamejs = require('gamejs')
 var Images = require('./Images')
+var state = require('./state')
+
 
 // Base class for entities, arranged into a tree
 Thing = function() {
@@ -539,7 +541,7 @@ HealthBar = function() {
 gamejs.utils.objects.extend(HealthBar, StagedThing)
 HealthBar.prototype.draw = function(screen) {
     if (!this.parent || this.parent.hp >= this.parent.hp0) return
-    var x0 = Math.round(Math.sqrt(this.parent.hp0) * 4)
+    var x0 = Math.round(20 + Math.sqrt(this.parent.hp0) * 2)
     var x = Math.round(Math.max(this.parent.hp * x0 / this.parent.hp0, 0))
     // TODO: make this a slightly better-looking image
     gamejs.draw.line(screen, this.color1, [-x0/2-1,0], [-x0/2+x0+1,0], 6)
@@ -554,7 +556,7 @@ ManaBar = function() {
 gamejs.utils.objects.extend(ManaBar, StagedThing)
 ManaBar.prototype.draw = function(screen) {
     if (!this.parent || this.parent.mp >= this.parent.mp0) return
-    var x0 = Math.round(Math.sqrt(this.parent.mp0) * 4)
+    var x0 = Math.round(20 + Math.sqrt(this.parent.mp0) * 2)
     var x = Math.round(Math.max(this.parent.mp * x0 / this.parent.mp0, 0))
     gamejs.draw.line(screen, this.color1, [-x0/2-1,0], [-x0/2+x0+1,0], 6)
     if (x > 0) gamejs.draw.line(screen, this.color0, [-x0/2,0], [-x0/2+x,0], 4)

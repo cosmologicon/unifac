@@ -1,5 +1,6 @@
+var state = require('./state')
 
-var screen, HUD, gameplay, statusbox, stage
+var screen
 var dragpos, dragging = false
 var mousepos, mousestart, mouset0
 var gamejs = require('gamejs')
@@ -25,8 +26,8 @@ window.requestAnimFrame = (function(){
 //   is within 0.25s of mousedown
 // I think that this is more reliable than relying on the browser click event? idk i heard that
 function handleclick(pos) {
-    var gamepos = stage.togamepos(pos)
-    var clicked = stage.topcontains(pos)
+    var gamepos = state.stage.togamepos(pos)
+    var clicked = state.stage.topcontains(pos)
     if (clicked) {
         if (selected.length == 1 && selected[0] === clicked) {
             applyselection([])
@@ -36,8 +37,8 @@ function handleclick(pos) {
             for (var j in selected) selected[j].prey = clicked
         }
     } else if (selected.length) {
-        var p = (new Thing.Puddle()).attachto(indicators).setstagepos(gamepos)
-//        var b = (new Thing.Bolt()).attachto(critters).setstagepos(gamepos)
+        var p = (new Thing.Puddle()).attachto(state.indicators).setstagepos(gamepos)
+//        var b = (new Thing.Bolt()).attachto(state.critters).setstagepos(gamepos)
         for (var j = 0 ; j < selected.length ; ++j) {
             selected[j].target = [gamepos[0], gamepos[1] + 20 * j]
             selected[j].prey = null
@@ -70,8 +71,6 @@ function handlemousemove(pos) {
             dragging = dx * dx + dy * dy > 20 * 20
         }
         if (dragging) {
-//            gameplay.x = Math.max(Math.min(gameplay.x + dx, 0), 0)
-//            gameplay.y = Math.max(Math.min(gameplay.y + dy, 0), 480-854)
             dragpos = pos
         }
     }
@@ -80,8 +79,8 @@ function handlemousemove(pos) {
 function handlekeydown(key, pos) {
     switch (key) {
         case gamejs.event.K_1:
-            var gamepos = stage.togamepos(pos)
-            var s = (new Thing.Shockwave(0.5, 200)).attachto(indicators).setstagepos(gamepos)
+            var gamepos = state.stage.togamepos(pos)
+            var s = (new Thing.Shockwave(0.5, 200)).attachto(state.indicators).setstagepos(gamepos)
             hazards.push(s)
             break
         case gamejs.event.K_a:  // select/deselect all
@@ -93,7 +92,7 @@ function handlekeydown(key, pos) {
             break
         case gamejs.event.K_SPACE:  // cast
             if (selected.length == 1) {
-                selected[0].castat(stage.togamepos(pos), critters, indicators)
+                selected[0].castat(state.stage.togamepos(pos), state.critters, state.indicators)
             }
             break
     }
@@ -106,7 +105,7 @@ function applyselection(newselected) {
     sindics = []
     selected = newselected
     for (var j in selected) {
-        sindics.push((new Thing.Indicator(selected[j], 20, null, "yellow")).attachto(indicators))
+        sindics.push((new Thing.Indicator(selected[j], 20, null, "yellow")).attachto(state.indicators))
     }
 }
 
@@ -142,28 +141,28 @@ function think(dt) {
     if (Math.random() * 5 < dt && tokens.length < 10) {
         var tpos = [Math.random() * 600 - 300, Math.random() * 600 - 300]
         var type = [Thing.HealToken, Thing.ManaToken][Math.floor(Math.random() * 2)]
-        var token = (new type()).attachto(critters).setstagepos(tpos)
+        var token = (new type()).attachto(state.critters).setstagepos(tpos)
         tokens.push(token)
-        var i = (new Thing.Indicator(token, 5, "rgba(0,0,0,0.5)", null)).attachto(indicators)
+        var i = (new Thing.Indicator(token, 5, "rgba(0,0,0,0.5)", null)).attachto(state.indicators)
     }
 
     var castarea = null
     if (selected.length == 1) {
-        castarea = selected[0].getcastarea().attachto(indicators)
+        castarea = selected[0].getcastarea().attachto(state.indicators)
     }
 
     selector = null
     if (dragpos && dragging) {
-        var p1 = stage.togamepos(mousestart), p2 = stage.togamepos(mousepos)
-        statusbox.update([p1, p2])
-        selector = (new Thing.Selector()).attachto(indicators).setends(p1, p2)
+        var p1 = state.stage.togamepos(mousestart), p2 = state.stage.togamepos(mousepos)
+        state.statusbox.update([p1, p2])
+        selector = (new Thing.Selector()).attachto(state.indicators).setends(p1, p2)
     }
 
     // FIXME
-    //gameplay.think0(dt)
-    critters.think0(dt)
-    indicators.think0(dt)
-    HUD.think0(dt)
+    //state.gameplay.think0(dt)
+    state.critters.think0(dt)
+    state.indicators.think0(dt)
+    state.HUD.think0(dt)
 
     for (var j in players) {
         players[j].nab(tokens)
@@ -176,14 +175,14 @@ function think(dt) {
     }
 
     screen.fill("black")
-    gameplay.draw0(screen)
+    state.gameplay.draw0(screen)
     if (screen.boltage) {
         for (var j = 0 ; j < screen.boltage ; ++j) {
             screen.fill("rgba(255,255,255," + Math.random() + ")")
         }
         screen.boltage = 0
     }
-    HUD.draw0(screen)
+    state.HUD.draw0(screen)
 
     if (selector) {
         selector.die()
@@ -227,22 +226,17 @@ function init() {
     
 
     screen = gamejs.display.getSurface()
-    HUD = new Thing.Thing()
-    gameplay = new Thing.Thing()
-    var fps = (new Thing.FPSCounter()).attachto(HUD)
-    statusbox = (new Thing.TextBox()).attachto(HUD).setpos([10, 440])
+    state.makelayers()
 
-    stage = (new Thing.Stage()).attachto(gameplay)
-    indicators = (new Thing.StagedThing()).attachto(stage)
-    critters = (new Thing.StagedThing()).attachto(stage)
-    players.push((new Thing.Adventurer()).attachto(critters).setstagepos([100,100]))
-    players.push((new Thing.Adventurer()).attachto(critters).setstagepos([-100,100]))
-    players.push((new Thing.Adventurer()).attachto(critters).setstagepos([100,-100]))
-    players.push((new Thing.Adventurer()).attachto(critters).setstagepos([-100,-100]))
+
+    players.push((new Thing.Adventurer()).attachto(state.critters).setstagepos([100,100]))
+    players.push((new Thing.Adventurer()).attachto(state.critters).setstagepos([-100,100]))
+    players.push((new Thing.Adventurer()).attachto(state.critters).setstagepos([100,-100]))
+    players.push((new Thing.Adventurer()).attachto(state.critters).setstagepos([-100,-100]))
     for (var j = 0 ; j < players.length; ++j) {
-        (new Thing.Indicator(players[j], 15, "rgba(0,0,0,0.5)", null)).attachto(indicators)
+        (new Thing.Indicator(players[j], 15, "rgba(0,0,0,0.5)", null)).attachto(state.indicators)
     }
-    monsters.push((new Thing.Monster()).attachto(critters).setstagepos([200, 0]))
+    monsters.push((new Thing.Monster()).attachto(state.critters).setstagepos([200, 0]))
 
     gamejs.time.fpsCallback(think, null, 10)
 
