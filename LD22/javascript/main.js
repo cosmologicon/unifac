@@ -141,7 +141,8 @@ function think(dt) {
 
     if (Math.random() * 5 < dt && tokens.length < 10) {
         var tpos = [Math.random() * 600 - 300, Math.random() * 600 - 300]
-        var token = (new Thing.HealToken()).attachto(critters).setstagepos(tpos)
+        var type = [Thing.HealToken, Thing.ManaToken][Math.floor(Math.random() * 2)]
+        var token = (new type()).attachto(critters).setstagepos(tpos)
         tokens.push(token)
         var i = (new Thing.Indicator(token, 5, "rgba(0,0,0,0.5)", null)).attachto(indicators)
     }

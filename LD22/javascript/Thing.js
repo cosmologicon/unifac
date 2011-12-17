@@ -437,7 +437,7 @@ Token.prototype.collect = function(who) {
     if (!par) return
     this.die()
     this.affect(who)
-    var e = (new Effect(this.info)).attachto(par).setstagepos([x, y, 30])
+    var e = (new Effect(this.info, this.color)).attachto(par).setstagepos([x, y, 30])
 }
 
 HealToken = function(dhp) {
@@ -448,6 +448,16 @@ gamejs.utils.objects.extend(HealToken, Token)
 HealToken.prototype.affect = function(who) {
     if (who)
         who.hp = Math.min(who.hp + this.dhp, who.hp0)
+}
+
+ManaToken = function(dmp) {
+    this.dmp = dmp || 5
+    Token.apply(this, ["+" + this.dmp + "MP", "yellow"])
+}
+gamejs.utils.objects.extend(ManaToken, Token)
+ManaToken.prototype.affect = function(who) {
+    if (who)
+        who.mp = Math.min(who.mp + this.dmp, who.mp0)
 }
 
 
@@ -521,9 +531,6 @@ Shot.prototype.think = function(dt) {
 
 
 
-
-
-// Collectible token
 HealthBar = function() {
     StagedThing.apply(this)
     this.color0 = "white"
@@ -532,9 +539,23 @@ HealthBar = function() {
 gamejs.utils.objects.extend(HealthBar, StagedThing)
 HealthBar.prototype.draw = function(screen) {
     if (!this.parent || this.parent.hp >= this.parent.hp0) return
-    var x0 = Math.round(this.parent.hp0 * 4)
+    var x0 = Math.round(Math.sqrt(this.parent.hp0) * 4)
     var x = Math.round(Math.max(this.parent.hp * x0 / this.parent.hp0, 0))
     // TODO: make this a slightly better-looking image
+    gamejs.draw.line(screen, this.color1, [-x0/2-1,0], [-x0/2+x0+1,0], 6)
+    if (x > 0) gamejs.draw.line(screen, this.color0, [-x0/2,0], [-x0/2+x,0], 4)
+}
+
+ManaBar = function() {
+    StagedThing.apply(this)
+    this.color0 = "yellow"
+    this.color1 = "black"
+}
+gamejs.utils.objects.extend(ManaBar, StagedThing)
+ManaBar.prototype.draw = function(screen) {
+    if (!this.parent || this.parent.mp >= this.parent.mp0) return
+    var x0 = Math.round(Math.sqrt(this.parent.mp0) * 4)
+    var x = Math.round(Math.max(this.parent.mp * x0 / this.parent.mp0, 0))
     gamejs.draw.line(screen, this.color1, [-x0/2-1,0], [-x0/2+x0+1,0], 6)
     if (x > 0) gamejs.draw.line(screen, this.color0, [-x0/2,0], [-x0/2+x,0], 4)
 }
@@ -547,7 +568,6 @@ Critter = function(hp0) {
     this.target = null
     this.walkspeed = 100
     this.healrate = 0
-    this.manarate = 0
     this.hp0 = hp0 || 5
     this.hitradius = 100
     this.castradius = 0
@@ -620,10 +640,14 @@ Critter.prototype.think = function(dt) {
     this.hittimer = Math.max(this.hittimer - dt, 0)
     StagedThing.prototype.think.call(this, dt)
 }
+Critter.prototype.isvulnerable = function() {
+    return true
+}
 // Receive a hit (of how much, and from whom)
 Critter.prototype.hit = function(dhp, who) {
+    if (!this.isvulnerable()) return
     this.hp -= dhp
-    var e = (new Effect("-" + dhp + "HP")).attachto(this)
+    var e = (new Effect("-" + dhp + "HP", "red")).attachto(this)
     if (!this.healthbar) {
         this.healthbar = (new HealthBar()).attachto(this).setstagepos([0,0,60])
     }
@@ -657,8 +681,13 @@ Adventurer = function() {
     this.reach = 20
     this.r = 30
     this.healrate = 0.2
+    this.mp0 = 30
+    this.mp = this.mp0 / 2
+    this.manarate = 0.2
+    this.manabar = null
     this.castradius = 200
     this.casttarget = null
+    this.quakejump = null
     this.image = Images.getadvimage()
 }
 gamejs.utils.objects.extend(Adventurer, Critter)
@@ -678,31 +707,111 @@ Adventurer.prototype.nab = function(tokens) {
         }
     }
 }
+Adventurer.prototype.isvulnerable = function() {
+    return !this.quakejump
+}
 Adventurer.prototype.think = function(dt) {
+    if (!this.manabar) {
+        this.manabar = (new ManaBar()).attachto(this).setstagepos([0,0,68])
+    }
+    if (this.quakejump) {
+        this.handlequake(dt)
+    }
+
     if (this.casttarget) {
-        if (this.casttarget[0] == "bolt")
-            this.castboltat(this.casttarget[1], this.casttarget[2], this.casttarget[3])
-        this.target = this.casttarget ? this.casttarget[1] : null
+        // I'm sure there's a way to do this, but I'm not going to bother looking it up in the middle of LD
+        this.castat(this.casttarget[0], this.casttarget[1], this.casttarget[2], this.casttarget[3])
+        this.target = this.casttarget ? this.casttarget[0] : null
+    }
+    if (this.manarate > 0) {
+        this.mp = Math.min(this.mp + this.manarate * dt, this.mp0)
     }
     Critter.prototype.think.call(this, dt)
+}
+Adventurer.prototype.draw = function(screen) {
+    if (this.quakejump) {
+        if (this.quakejump[0] == "up") {
+            var x = this.gz / 100
+            var scale = 1 + 4 * Math.exp(-x * (4 - x))
+            screen._context.scale(1/scale, scale)
+        }
+        if (this.quakejump[0] == "hover") {
+//            screen._context.rotate(this.quakejump[1] / 0.4 * 6.28)
+        }
+        if (this.quakejump[0] == "down") {
+            var scale = 1 + 4 * Math.exp(-this.gz / 100)
+            screen._context.scale(scale, 1/Math.sqrt(scale))
+        }
+    }
+    Critter.prototype.draw.call(this, screen)
 }
 Adventurer.prototype.getcastarea = function() {
     var i = new Indicator(this, this.castradius, null, "#0000FF")
     i.z = -20000
     return i
 }
-Adventurer.prototype.castat = function(pos, critters, indicators) {
-    this.castboltat(pos, critters, indicators)
+Adventurer.prototype.cancast = function() {
+    return this.mp >= 3
+}
+Adventurer.prototype.castat = function(pos, critters, indicators, type) {
+    if (this.mp < 3) return false
+    type = type || "quake"
+    var dx = pos[0] - this.gx, dy = pos[1] - this.gy
+    if (dx * dx + dy * dy < this.castradius * this.castradius) {
+        this.casttarget = null
+        switch (type) {
+            case "bolt": this.castboltat(pos, critters, indicators) ; break
+            case "quake": this.castquakeat(pos, critters, indicators) ; break
+        }
+    } else {
+        this.casttarget = [pos, critters, indicators, type]
+    }
+    return true
 }
 Adventurer.prototype.castboltat = function(pos, critters, indicators) {
     // FIXME: unless we don't want to attach Adventurers
-    var dx = pos[0] - this.gx, dy = pos[1] - this.gy
-    if (dx * dx + dy * dy < this.castradius * this.castradius) {
-        var b = (new Bolt()).attachto(critters).setstagepos(pos)
-        this.casttarget = null
-    } else {
-        this.casttarget = ["bolt", pos, critters, indicators]
+    var b = (new Bolt()).attachto(critters).setstagepos(pos)
+    this.mp -= 3
+}
+Adventurer.prototype.castquakeat = function(pos, critters, indicators) {
+    this.quakejump = ["up", pos, indicators]
+    this.mp -= 3
+}
+// The casting sequence for the quake spell is a little involved
+Adventurer.prototype.handlequake = function(dt) {
+    switch (this.quakejump[0]) {
+        case "up":
+            var dz = dt * 600
+            this.gz += dz
+            if (this.gz > 200) {
+                this.gx = this.quakejump[1][0]
+                this.gy = this.quakejump[1][1]
+                this.quakejump = ["hover", 0.4, this.quakejump[2]]
+            } else {
+                var f = dz / (200 - this.gz + dz)
+                this.gx += (this.quakejump[1][0] - this.gx) * f
+                this.gy += (this.quakejump[1][1] - this.gy) * f
+            }
+            break
+        case "hover":
+            this.quakejump[1] -= dt
+            if (this.quakejump[1] < 0) {
+                this.quakejump = ["down", this.quakejump[2]]
+            }
+            break
+        case "down":
+            var dz = dt * 1200
+            this.gz -= dz
+            if (this.gz < 0) {
+                this.gz = 0
+                var s = new Shockwave(0.5, 300, "brown", 1)
+                s.attachto(this.quakejump[1]).setstagepos([this.gx, this.gy, 0])
+                this.quakejump = null
+            }
+            break
     }
+    this.prey = null
+    this.target = null
 }
 
 
@@ -752,6 +861,7 @@ exports.Selector = Selector
 exports.Critter = Critter
 exports.Adventurer = Adventurer
 exports.HealToken = HealToken
+exports.ManaToken = ManaToken
 exports.Effect = Effect
 exports.Bolt = Bolt
 exports.Shockwave = Shockwave
