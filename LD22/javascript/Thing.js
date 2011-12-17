@@ -217,19 +217,20 @@ StagedThing.prototype.setstagepos = function (pos) {
 }
 // TODO - clean up this mess maybe?
 StagedThing.prototype.stageposof = function(pos) {
-    return this.parent.stageposof(pos)
+    return this.parent ? this.parent.stageposof(pos) : pos
 }
 StagedThing.prototype.stagepos = function(pos) {
     return this.stageposof(this.gamepos(pos))
 }
 StagedThing.prototype.gamepos = function(pos) {
     if (pos) {
-        return this.parent.gamepos([pos[0] + this.gx, pos[1] + this.gy, pos[2] + this.gz])
+        return this.parent ? this.parent.gamepos([pos[0] + this.gx, pos[1] + this.gy, pos[2] + this.gz]) : pos
     } else {
-        return this.parent.gamepos([this.gx, this.gy, this.gz])
+        return this.parent ? this.parent.gamepos([this.gx, this.gy, this.gz]) : pos
     }
 }
 StagedThing.prototype.think = function(dt) {
+    if (!this.parent) return
     var p = this.parent.stageposof([this.gx, this.gy, this.gz])
     this.x = p[0]
     this.y = p[1]
@@ -502,8 +503,8 @@ Shot = function(sender, receiver, dhp, color) {
     this.dhp = dhp || 1
     this.sender = sender
     this.receiver = receiver
-    this.p0 = this.sender.gamepos()
-    this.p1 = this.receiver.gamepos()
+    this.p0 = this.sender.gamepos() || [0,0,0]
+    this.p1 = this.receiver.gamepos() || [0,0,0]
 
     var dx = this.p1[0] - this.p0[0]
     var dy = this.p1[1] - this.p0[1]
@@ -527,8 +528,7 @@ Shot.prototype.think = function(dt) {
         return
     } else {
         if (this.receiver && this.receiver.parent) {
-            this.p1 = this.receiver.gamepos()
-//            alert(this.p0, this.p1)
+            this.p1 = this.receiver.gamepos() || [0,0,0]
         }
         var f = this.t / this.tmax
         this.gx = this.p0[0] * (1 - f) + this.p1[0] * f
@@ -657,10 +657,11 @@ Critter.prototype.hit = function(dhp, who) {
     }
 }
 Critter.prototype.attack = function (who) {
-    var shot = new Shot(this, who, this.strength)
-    shot.attachto(this.parent)
-//    who.hit(this.strength, this)
-    this.hittimer = this.hittime
+    if (this.parent) {
+        var shot = new Shot(this, who, this.strength)
+        shot.attachto(this.parent)
+        this.hittimer = this.hittime
+    }
 }
 Critter.prototype.localcontains = function(pos) {
     var x = pos[0], y = pos[1] + this.r
@@ -676,6 +677,7 @@ Adventurer = function() {
     this.reach = 20
     this.r = 30
     this.healrate = 0.2
+    this.castradius = 200
     this.image = Images.getadvimage()
 }
 gamejs.utils.objects.extend(Adventurer, Critter)
@@ -698,6 +700,11 @@ Adventurer.prototype.nab = function(tokens) {
 Adventurer.prototype.think = function(dt) {
     Critter.prototype.think.call(this, dt)
 //    if (Math.random() * 3 < dt) (new Spark()).attachto(this.parent).setstagepos([this.gx, this.gy, 30])
+}
+Adventurer.prototype.getcastarea = function() {
+    var i = new Indicator(this, this.castradius, null, "#0000FF")
+    i.z = -20000
+    return i
 }
 
 

@@ -141,6 +141,11 @@ function think(dt) {
         var i = (new Thing.Indicator(token, 5, "rgba(0,0,0,0.5)", null)).attachto(indicators)
     }
 
+    var castarea = null
+    if (selected.length == 1) {
+        castarea = selected[0].getcastarea().attachto(indicators)
+    }
+
     selector = null
     if (dragpos && dragging) {
         var p1 = stage.togamepos(mousestart), p2 = stage.togamepos(mousepos)
@@ -176,6 +181,9 @@ function think(dt) {
 
     if (selector) {
         selector.die()
+    }
+    if (castarea) {
+        castarea.die()
     }
     
     tokens = tokens.filter(function (t) { return t.parent })
