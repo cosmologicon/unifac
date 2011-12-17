@@ -823,10 +823,10 @@ Monster = function(hp0) {
     Critter.apply(this, [hp0])
     this.r = 15
     this.hitradius = 100
-    this.image = new gamejs.Surface([4*this.r, 4*this.r])
     this.basespeed = 40  // walk speed when not pursuing a player
-    gamejs.draw.circle(this.image, "#008800", [2*this.r, this.r], this.r)
-//    this.image = Images.getadvimage()
+//    this.image = new gamejs.Surface([4*this.r, 4*this.r])
+//    gamejs.draw.circle(this.image, "#008800", [2*this.r, this.r], this.r)
+    this.image = Images.getimage("lump")
 }
 gamejs.utils.objects.extend(Monster, Critter)
 Monster.prototype.think = function (dt) {

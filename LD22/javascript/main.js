@@ -242,7 +242,19 @@ function init() {
 
 }
 
-gamejs.preload(["img/peepers-0.png", "img/noggin-0.png", "img/foots-0.png"])
+// ls -1 img/*.png | sed 's/^/    \"/;s/$/\",/'
+gamejs.preload([
+    "img/birdy-0.png",
+    "img/birdy-1.png",
+    "img/birdy-2.png",
+    "img/birdy-3.png",
+    "img/foots-0.png",
+    "img/lump-0.png",
+    "img/noggin-0.png",
+    "img/peepers-0.png",
+    "img/spike-0.png",
+    "img/zoltar-0.png",
+])
 
 
 gamejs.ready(init)

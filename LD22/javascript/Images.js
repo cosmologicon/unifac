@@ -45,5 +45,14 @@ function getadvimage(spec) {
 }
 
 
+function getimage(name) {
+    switch (name) {
+        case "lump":
+            return gamejs.transform.scale(getpiece("lump-0"), [100, 100])
+    }
+}
+
+
 exports.getadvimage = getadvimage
+exports.getimage = getimage
 
