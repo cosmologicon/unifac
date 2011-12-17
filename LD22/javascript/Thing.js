@@ -341,6 +341,7 @@ Token.prototype.think = function(dt) {
 }
 Token.prototype.collect = function(who) {
     var par = this.parent, x = this.gx, y = this.gy, z = this.gz
+    if (!par) return
     this.die()
     var e = (new Effect(this.info)).attachto(par).setstagepos([x, y, 30])
 }
@@ -380,6 +381,11 @@ Adventurer = function() {
     this.image = Images.getadvimage()
 }
 gamejs.utils.objects.extend(Adventurer, Critter)
+Adventurer.prototype.localcontains = function(pos) {
+    var x = pos[0], y = pos[1] + 30
+//    alert([x,y,this.x, this.y])
+    return x * x + y * y < 30 * 30
+}
 Adventurer.prototype.nab = function(tokens) {
     for (var j = 0 ; j < tokens.length ; ++j) {
         var token = tokens[j]
@@ -397,6 +403,20 @@ Adventurer.prototype.nab = function(tokens) {
     }
 }
 
+/*
+// What do you think?
+Monster = function() {
+    Critter.apply(this)
+    this.reach = 20
+    this.image = new gamejs.Surface([120, 120])
+    this.prey = null
+    gamejs.draw.circle(this.image, "#00FF00", [60, 32], 32)
+//    this.image = Images.getadvimage()
+}
+gamejs.utils.objects.extend(Monster, Critter)
+Monster.prototype.chooseprey(players) {
+    
+}*/
 
 
 

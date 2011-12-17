@@ -38,7 +38,7 @@ function getadvimage(spec) {
 
     var flipped = true
     
-    img.blit(getpiece("foots-0", null, flipped))
+//    img.blit(getpiece("foots-0", null, flipped))
     img.blit(getpiece("noggin-0", null, flipped))
     img.blit(getpiece("peepers-0", null, flipped))
     return gamejs.transform.scale(img, [100, 100])

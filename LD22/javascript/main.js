@@ -1,12 +1,11 @@
 
 var screen, HUD, gameplay, statusbox, stage
-var dragpos, dragging = false, mousepos, mousestart
+var dragpos, dragging = false
+var mousepos, mousestart, mouset0
 var gamejs = require('gamejs')
 var Thing = require('./Thing')
 var tokens = new Array(), players = new Array()
-var selected = null, sindics = []
-
-var mousedown = false, mousepos = null
+var selected = [], sindics = []
 
 /*
 // shim layer with setTimeout fallback
@@ -22,16 +21,34 @@ window.requestAnimFrame = (function(){
 })();*/
  
 
+// We count it as a click if the mouse has moved less than 20px and mouseup
+//   is within 0.25s of mousedown
+// I think that this is more reliable than relying on the browser click event? idk i heard that
 function handleclick(pos) {
-    if (dragging) {
-        if (selector)
-            applyselection(selector)
-    } else {
-        var gamepos = stage.togamepos(pos)
+    var gamepos = stage.togamepos(pos)
+    var clicked = stage.topcontains(pos)
+    if (clicked) {
+        if (selected.length == 1 && selected[0] === clicked) {
+            applyselection([])
+        } else {
+            applyselection([clicked])
+        }
+    } else if (selected.length) {
         var p = (new Thing.Puddle()).attachto(indicators).setstagepos(gamepos)
         for (var j = 0 ; j < selected.length ; ++j) {
             selected[j].target = [gamepos[0], gamepos[1] + 20 * j]
         }
+    }
+}
+
+function handlemouseup(pos) {
+    if (dragging) {
+        if (selector) {
+            newselected = players.filter(function (p) { return selector.contains(p) })
+            applyselection(newselected)
+        }
+    } else {
+        handleclick(pos)
     }
     dragging = false
     dragpos = null
@@ -40,6 +57,7 @@ function handleclick(pos) {
 function handlemousedown(pos) {
     dragpos = pos
     mousestart = pos
+    mouset0 = (new Date()).getTime()
 }
 function handlemousemove(pos) {
     if (dragpos) {
@@ -55,12 +73,12 @@ function handlemousemove(pos) {
     }
 }
 
-function applyselection(selector) {
+function applyselection(newselected) {
     for (var j in sindics) {
         sindics[j].die()
     }
     sindics = []
-    selected = players.filter(function (p) { return selector.contains(p) })
+    selected = newselected
     for (var j in selected) {
         sindics.push((new Thing.Indicator(selected[j], 20, null, "yellow")).attachto(indicators))
     }
@@ -74,7 +92,7 @@ function think(dt) {
     gamejs.event.get().forEach(function(event) {
         if (event.type === gamejs.event.MOUSE_UP) {
             if (screen.getRect().collidePoint(event.pos)) {
-                handleclick(event.pos)
+                handlemouseup(event.pos)
             }
 //            statusbox.update(event.pos)
         }
@@ -172,7 +190,7 @@ function init() {
         (new Thing.Indicator(players[j], 15, "rgba(0,0,0,0.5)", null)).attachto(indicators)
     }
 
-    gamejs.time.fpsCallback(think, null, 60)
+    gamejs.time.fpsCallback(think, null, 5)
 
 }
 
