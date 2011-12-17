@@ -3,6 +3,7 @@ var screen, HUD, gameplay, statusbox, stage
 var dragpos, dragging = false, mousepos, mousestart
 var gamejs = require('gamejs')
 var Thing = require('./Thing')
+var tokens = new Array(), players = new Array()
 
 var mousedown = false, mousepos = null
 
@@ -22,8 +23,9 @@ window.requestAnimFrame = (function(){
 
 function handleclick(pos) {
     if (!dragging) {
-        statusbox.update(stage.togamepos(pos))
-        var p = (new Thing.Puddle()).attachto(stage).setstagepos(stage.togamepos(pos))
+        var gamepos = stage.togamepos(pos)
+        var p = (new Thing.Puddle()).attachto(stage).setstagepos(gamepos)
+        players[0].target = gamepos
     }
     dragging = false
     dragpos = null
@@ -49,7 +51,7 @@ function handlemousemove(pos) {
 
 var t0 = 0
 function think(dt) {
-    dt *= 0.001
+    dt = Math.min(dt * 0.001, 0.1)
 
     gamejs.event.get().forEach(function(event) {
         if (event.type === gamejs.event.MOUSE_UP) {
@@ -73,7 +75,11 @@ function think(dt) {
         }
     })
 
-
+    if (Math.random() * 5 < dt && tokens.length < 10) {
+        var tpos = [Math.random() * 600 - 300, Math.random() * 600 - 300]
+        var token = (new Thing.Token()).attachto(stage).setstagepos(tpos)
+        tokens.push(token)
+    }
 
     var selector = null
     if (dragpos && dragging) {
@@ -85,6 +91,10 @@ function think(dt) {
     gameplay.think0(dt)
     HUD.think0(dt)
 
+    for (var j in players) {
+        players[j].nab(tokens)
+    }
+
     screen.fill("black")
     gameplay.draw0(screen)
     HUD.draw0(screen)
@@ -92,6 +102,8 @@ function think(dt) {
     if (selector) {
         selector.die()
     }
+    
+    tokens = tokens.filter(function (t) { return t.parent })
 
 }
 
@@ -128,6 +140,7 @@ function init() {
     statusbox = (new Thing.TextBox()).attachto(HUD).setpos([10, 440])
 
     stage = (new Thing.Stage()).attachto(gameplay)
+    players.push((new Thing.Adventurer()).attachto(stage))
 //    gameplay.image = backdropimg
 //    gameplay.centered = false
 //    balls = (new Thing.Thing()).attachto(gameplay)

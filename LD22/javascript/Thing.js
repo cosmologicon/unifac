@@ -172,12 +172,14 @@ Stage = function() {
     return this
 }
 gamejs.utils.objects.extend(Stage, Thing)
-Stage.prototype.think = function(dt) {
+Stage.prototype.think0 = function(dt) {
+    Thing.prototype.think0.call(this, dt)
+    this.children.sort(function(a,b) { return a.z - b.z })
 }
 // Convert gamepos (gx, gy, gz) into stagepos (x, y, z)
 // TODO: handle rotation?
 Stage.prototype.stagepos = function(pos) {
-    var gx = pos[0], gy = pos[1], gz = [1]
+    var gx = pos[0], gy = pos[1], gz = pos[2]
     return [gx, gy/2 - gz/2, gy]
 }
 Stage.prototype.togamepos = function(pos) {
@@ -219,6 +221,29 @@ StagedThing.prototype.think = function(dt) {
     this.y = p[1]
     this.z = p[2]
 }
+
+Effect = function(text) {
+    StagedThing.apply(this)
+    this.t = 0
+    this.text = text || " "
+    // TODO: use a stroke-able font because it looks cooler
+    this.font = new gamejs.font.Font("12px sans-serif")
+    this.image = this.font.render(this.text, "yellow")
+    return this
+}
+gamejs.utils.objects.extend(Effect, StagedThing)
+Effect.prototype.think = function(dt) {
+    this.gz += 50 * dt
+    StagedThing.prototype.think.call(this, dt)
+    this.t += dt
+    if (this.t > 0.8) this.die()
+}
+// TODO: fade away
+/*Effect.prototype.draw = function(screen) {
+    screen._context.scale(1, 0.5)
+    gamejs.draw.circle(screen, "rgba(80,80,80,0.25)", [0, 0], this.t * 50)
+    gamejs.draw.circle(screen, "#FF0000", [0, 0], this.t * 50, 2)
+}*/
 
 
 // I don't know, an indicator of some kind?
@@ -265,6 +290,81 @@ Selector.prototype.draw = function(screen) {
 }
 
 
+// Collectible token
+Token = function() {
+    StagedThing.apply(this)
+    this.t = Math.random() * 100
+    this.image = new gamejs.Surface([10, 10])
+    gamejs.draw.circle(this.image, "yellow", [5, 5], 5)
+    this.info = "+HP"
+}
+gamejs.utils.objects.extend(Token, StagedThing)
+Token.prototype.think = function(dt) {
+    this.t += dt
+    var h = (this.t % 0.5) * 2
+    h = Math.min(h, 1 - h) * 30
+    this.gz = 25 * Math.abs(Math.sin(this.t * 5))
+    StagedThing.prototype.think.call(this, dt)
+}
+/*Token.prototype.draw = function(screen) {
+    screen.blit(this.image, [-5, -3 - h])
+}*/
+Token.prototype.collect = function(who) {
+    var par = this.parent, x = this.gx, y = this.gy, z = this.gz
+    this.die()
+    var e = (new Effect(this.info)).attachto(par).setstagepos([x, y, z])
+}
+
+
+// Sprite base class
+Critter = function() {
+    StagedThing.apply(this)
+    this.target = null
+    this.walkspeed = 100
+    this.image = new gamejs.Surface([60, 60])
+    gamejs.draw.circle(this.image, "green", [30, 16], 16)
+}
+gamejs.utils.objects.extend(Critter, StagedThing)
+Critter.prototype.think = function(dt) {
+    if (this.target) {
+        var d = dt * this.walkspeed
+        var dx = this.target[0] - this.gx, dy = this.target[1] - this.gy
+        if (dx * dx + dy * dy <= d * d) {
+            this.gx = this.target[0]
+            this.gy = this.target[1]
+            this.target = null
+        } else {
+            var f = d / Math.sqrt(dx * dx + dy * dy)
+            this.gx += dx * f
+            this.gy += dy * f
+        }
+    }
+    StagedThing.prototype.think.call(this, dt)
+}
+
+// Player character
+Adventurer = function() {
+    Critter.apply(this)
+    this.reach = 20
+}
+gamejs.utils.objects.extend(Adventurer, Critter)
+Adventurer.prototype.nab = function(tokens) {
+    for (var j = 0 ; j < tokens.length ; ++j) {
+        var token = tokens[j]
+        if (token.parent) {  // token still alive
+            // FIXME: assumes gx,gy is gameplay position
+            var dx = Math.abs(this.gx - token.gx)
+            if (dx > this.reach) continue
+            var dy = Math.abs(this.gy - token.gy)
+            if (dy > this.reach) continue
+            if (dx * dx + dy * dy < this.reach * this.reach) {
+                token.collect()
+                // TODO: get the token's powaaaah!
+            }
+        }
+    }
+}
+
 
 
 
@@ -275,4 +375,8 @@ exports.Stage = Stage
 exports.StagedThing = StagedThing
 exports.Puddle = Puddle
 exports.Selector = Selector
+exports.Critter = Critter
+exports.Adventurer = Adventurer
+exports.Token = Token
+exports.Effect = Effect
 
