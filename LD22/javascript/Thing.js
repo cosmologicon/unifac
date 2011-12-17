@@ -179,9 +179,15 @@ Stage.prototype.think0 = function(dt) {
 }
 // Convert gamepos (gx, gy, gz) into stagepos (x, y, z)
 // TODO: handle rotation?
-Stage.prototype.stagepos = function(pos) {
+Stage.prototype.stageposof = function(pos) {
     var gx = pos[0], gy = pos[1], gz = pos[2]
     return [gx, gy/2 - 0.866*gz, gy]
+}
+Stage.prototype.gamepos = function(pos) {
+    return pos
+}
+Stage.prototype.stagepos = function(pos) {
+    return this.stageposof(pos)
 }
 Stage.prototype.togamepos = function(pos) {
     var wpos = this.worldpos()
@@ -209,16 +215,22 @@ StagedThing.prototype.setstagepos = function (pos) {
     this.think(0)
     return this
 }
-// FIXME: there's an error here if it's not a direct child of the stage.
+// TODO - clean up this mess maybe?
+StagedThing.prototype.stageposof = function(pos) {
+    return this.parent.stageposof(pos)
+}
 StagedThing.prototype.stagepos = function(pos) {
+    return this.stageposof(this.gamepos(pos))
+}
+StagedThing.prototype.gamepos = function(pos) {
     if (pos) {
-        return this.parent.stagepos([pos[0] + this.gx, pos[1] + this.gy, pos[2] + this.gz])
+        return this.parent.gamepos([pos[0] + this.gx, pos[1] + this.gy, pos[2] + this.gz])
     } else {
-        return this.parent.stagepos([this.gx, this.gy, this.gz])
+        return this.parent.gamepos([this.gx, this.gy, this.gz])
     }
 }
 StagedThing.prototype.think = function(dt) {
-    var p = this.stagepos()
+    var p = this.parent.stageposof([this.gx, this.gy, this.gz])
     this.x = p[0]
     this.y = p[1]
     this.z = p[2]
@@ -228,18 +240,23 @@ StagedThing.prototype.think0 = function(dt) {
     this.children.sort(function(a,b) { return a.z - b.z })
 }
 
-Effect = function(text) {
+Effect = function(text, color) {
     StagedThing.apply(this)
     this.t = 0
     this.text = text || " "
+    this.color = color || "yellow"
     // TODO: use a stroke-able font because it looks cooler
     this.font = new gamejs.font.Font("12px sans-serif")
-    this.image = this.font.render(this.text, "yellow")
+    this.image = this.font.render(this.text, this.color)
     return this
 }
 gamejs.utils.objects.extend(Effect, StagedThing)
 Effect.prototype.think = function(dt) {
     this.gz += 50 * dt
+//    alert([this.gx, this.gy, this.gz])
+//    alert(this.gamepos())
+//    alert(this.stageposof(this.gamepos()))
+//    alert(this.stagepos())
     StagedThing.prototype.think.call(this, dt)
     this.t += dt
     if (this.t > 0.8) this.die()
@@ -327,6 +344,61 @@ Bolt.prototype.draw = function(screen) {
     screen.boltage = 1 + (screen.boltage || 0)
 }
 
+// Like a puddle but it can hurt you
+Shockwave = function(tmax, rmax, color1, dhp) {
+    color1 = color1 || "#7FFF7F"
+    Puddle.apply(this, [tmax, rmax, null, color1])
+    this.passed = []
+    this.dhp = dhp || 1
+}
+gamejs.utils.objects.extend(Shockwave, Puddle)
+Shockwave.prototype.draw = function(screen) {
+    screen._context.scale(1, 0.5)
+    var f = this.t / this.tmax
+    if (f > 0.5) {
+        screen._context.globalAlpha *= (1 - f) * 2
+    }
+    var r0 = f * this.rmax
+    for (var j = 0 ; j < 4 ; ++j) {
+        var r = r0 - j * 8
+        if (r <= 3) break
+        gamejs.draw.circle(screen, this.color1, [0, 0], r, 2)
+        screen._context.globalAlpha *= 0.6
+    }
+}
+Shockwave.prototype.harm = function (victims) {
+    var r = this.t * this.rmax / this.tmax
+    for (var j in victims) {
+        var victim = victims[j]
+        if (this.passed.indexOf(victim) > -1) continue
+        var dx = victim.gx - this.gx, dy = victim.gy - this.gy
+        if (dx * dx + dy * dy < r * r) {
+            victim.hit(this.dhp, this)
+            this.passed.push(victim)
+        }
+    }
+}
+
+
+Bolt.prototype.think = function(dt) {
+    this.t += dt
+    if (this.t > 0.4 && this.parent) this.die()
+    StagedThing.prototype.think.call(this, dt)
+}
+Bolt.prototype.draw = function(screen) {
+    for (var j = 0 ; j < 2 ; ++j) {
+        var x = 0, y = 0
+        while (y > -500) {
+            var nx = x + Math.random() * 50 - 25 + 10, ny = y - 60
+            gamejs.draw.line(screen, "white", [x, y], [nx, ny], 2)
+            x = nx
+            y = ny
+        }
+    }
+    screen.boltage = 1 + (screen.boltage || 0)
+}
+
+
 
 Selector = function() {
     StagedThing.apply(this)
@@ -361,12 +433,13 @@ Selector.prototype.contains = function(critter) {
 
 
 // Collectible token
-Token = function() {
+Token = function(info, color) {
     StagedThing.apply(this)
     this.t = Math.random() * 100
     this.image = new gamejs.Surface([10, 18])
-    gamejs.draw.circle(this.image, "yellow", [5, 5], 5)
-    this.info = "+HP"
+    this.color = color || "white"
+    gamejs.draw.circle(this.image, this.color, [5, 5], 5)
+    this.info = info || " "
 }
 gamejs.utils.objects.extend(Token, StagedThing)
 Token.prototype.think = function(dt) {
@@ -376,12 +449,26 @@ Token.prototype.think = function(dt) {
     this.gz = 25 * Math.abs(Math.sin(this.t * 5))
     StagedThing.prototype.think.call(this, dt)
 }
+Token.prototype.affect = function(who) {
+}
 Token.prototype.collect = function(who) {
     var par = this.parent, x = this.gx, y = this.gy, z = this.gz
     if (!par) return
     this.die()
+    this.affect(who)
     var e = (new Effect(this.info)).attachto(par).setstagepos([x, y, 30])
 }
+
+HealToken = function(dhp) {
+    this.dhp = dhp || 5
+    Token.apply(this, ["+" + this.dhp + "HP", "red"])
+}
+gamejs.utils.objects.extend(HealToken, Token)
+HealToken.prototype.affect = function(who) {
+    if (who)
+        who.hp = Math.min(who.hp + this.dhp, who.hp0)
+}
+
 
 Spark = function(color) {
     StagedThing.apply(this)
@@ -410,17 +497,57 @@ Spark.prototype.think = function(dt) {
 }
 
 
+
+// Collectible token
+HealthBar = function() {
+    StagedThing.apply(this)
+    this.color0 = "white"
+    this.color1 = "red"
+}
+gamejs.utils.objects.extend(HealthBar, StagedThing)
+HealthBar.prototype.draw = function(screen) {
+    if (!this.parent || this.parent.hp >= this.parent.hp0) return
+    var x0 = Math.round(this.parent.hp0 * 4)
+    var x = Math.round(Math.max(this.parent.hp * x0 / this.parent.hp0, 0))
+    // TODO: make this a slightly better-looking image
+    gamejs.draw.line(screen, this.color1, [-x0/2-1,0], [-x0/2+x0+1,0], 6)
+    if (x > 0) gamejs.draw.line(screen, this.color0, [-x0/2,0], [-x0/2+x,0], 4)
+}
+
+
+
 // Sprite base class
-Critter = function() {
+Critter = function(hp0) {
     StagedThing.apply(this)
     this.target = null
     this.walkspeed = 100
+    this.healrate = 0
+    this.manarate = 0
+    this.hp0 = hp0 || 5
+    this.hitradius = 100
+    this.castradius = 0
+
+    this.healthbar = null
     this.image = new gamejs.Surface([60, 60])
+    this.hp = this.hp0
+    this.reeltimer = 0
     gamejs.draw.circle(this.image, "green", [30, 16], 16)
 }
 gamejs.utils.objects.extend(Critter, StagedThing)
 Critter.prototype.think = function(dt) {
-    if (this.target) {
+    if (this.reeltimer) {
+        this.reeltimer -= dt
+        var dx = this.reelfrom[0] - this.gx, dy = this.reelfrom[1] - this.gy
+        var f = 4 * this.walkspeed * dt / Math.sqrt(dx * dx + dy * dy)
+        this.gx -= dx * f
+        this.gy -= dy * f
+        if (this.reeltimer <= 0) {
+            this.reeltimer = 0
+            if (this.hp < 0) {
+                this.die()
+            }
+        }
+    } else if (this.target) {
         var d = dt * this.walkspeed
         var dx = this.target[0] - this.gx, dy = this.target[1] - this.gy
         if (dx * dx + dy * dy <= d * d) {
@@ -433,14 +560,34 @@ Critter.prototype.think = function(dt) {
             this.gy += dy * f
         }
     }
+    if (this.healrate > 0) {
+        this.hp = Math.min(this.hp + this.healrate * dt, this.hp0)
+    }
     StagedThing.prototype.think.call(this, dt)
 }
+// Receive a hit (of how much, and from whom)
+Critter.prototype.hit = function(dhp, who) {
+    this.hp -= dhp
+    var e = (new Effect("-" + dhp + "HP")).attachto(this)
+    if (!this.healthbar) {
+        this.healthbar = (new HealthBar()).attachto(this).setstagepos([0,0,60])
+    }
+
+    e.gx = 0
+    e.gy = 0
+    e.gz = 30
+    if (who) {
+        this.reeltimer = 0.125
+        this.reelfrom = [who.gx, who.gy]
+    }
+}
+
 
 // Player character
 Adventurer = function() {
     Critter.apply(this)
     this.reach = 20
-//    this.image = new gamejs.Surface([120, 120])
+    this.healrate = 0.2
     this.image = Images.getadvimage()
 }
 gamejs.utils.objects.extend(Adventurer, Critter)
@@ -459,7 +606,7 @@ Adventurer.prototype.nab = function(tokens) {
             var dy = Math.abs(this.gy - token.gy)
             if (dy > this.reach) continue
             if (dx * dx + dy * dy < this.reach * this.reach) {
-                token.collect()
+                token.collect(this)
                 // TODO: get the token's powaaaah!
             }
         }
@@ -499,7 +646,8 @@ exports.Indicator = Indicator
 exports.Selector = Selector
 exports.Critter = Critter
 exports.Adventurer = Adventurer
-exports.Token = Token
+exports.HealToken = HealToken
 exports.Effect = Effect
 exports.Bolt = Bolt
+exports.Shockwave = Shockwave
 

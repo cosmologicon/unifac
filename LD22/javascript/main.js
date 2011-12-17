@@ -4,7 +4,7 @@ var dragpos, dragging = false
 var mousepos, mousestart, mouset0
 var gamejs = require('gamejs')
 var Thing = require('./Thing')
-var tokens = new Array(), players = new Array()
+var tokens = new Array(), players = new Array(), hazards = new Array()
 var selected = [], sindics = []
 
 /*
@@ -74,6 +74,16 @@ function handlemousemove(pos) {
     }
 }
 
+function handlekeydown(key, pos) {
+    switch (key) {
+        case gamejs.event.K_1:
+            var gamepos = stage.togamepos(pos)
+            var s = (new Thing.Shockwave(0.5, 200)).attachto(indicators).setstagepos(gamepos)
+            hazards.push(s)
+            break
+    }
+}
+
 function applyselection(newselected) {
     for (var j in sindics) {
         sindics[j].die()
@@ -110,11 +120,14 @@ function think(dt) {
             }
             mousepos = event.pos
         }
+        if (event.type === gamejs.event.KEY_DOWN) {
+            handlekeydown(event.key, mousepos)
+        }
     })
 
     if (Math.random() * 5 < dt && tokens.length < 10) {
         var tpos = [Math.random() * 600 - 300, Math.random() * 600 - 300]
-        var token = (new Thing.Token()).attachto(critters).setstagepos(tpos)
+        var token = (new Thing.HealToken()).attachto(critters).setstagepos(tpos)
         tokens.push(token)
         var i = (new Thing.Indicator(token, 5, "rgba(0,0,0,0.5)", null)).attachto(indicators)
     }
@@ -135,6 +148,9 @@ function think(dt) {
     for (var j in players) {
         players[j].nab(tokens)
     }
+    for (var j in hazards) {
+        hazards[j].harm(players)
+    }
 
     screen.fill("black")
     gameplay.draw0(screen)
@@ -151,6 +167,9 @@ function think(dt) {
     }
     
     tokens = tokens.filter(function (t) { return t.parent })
+    players = players.filter(function (t) { return t.parent })
+    hazards = hazards.filter(function (t) { return t.parent })
+    selected = selected.filter(function (t) { return t.parent })
 
 
 }
@@ -197,7 +216,7 @@ function init() {
         (new Thing.Indicator(players[j], 15, "rgba(0,0,0,0.5)", null)).attachto(indicators)
     }
 
-    gamejs.time.fpsCallback(think, null, 60)
+    gamejs.time.fpsCallback(think, null, 10)
 
 }
 
