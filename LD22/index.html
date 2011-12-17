@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Last One Standing</title>
+<!-- Styling -->
+    <style type=text/css>
+        body{
+           background: black;
+           color: white;
+           margin:1em 0 2em 6em;
+           padding:0;
+           text-align: center;
+        }
+        #gjs-canvas {
+           border: none;
+        }
+        #gjs-loader {
+            width: 50%;
+            height: 50%;
+            background: url('../skeleton/public/ajax-loader.gif');
+        }
+    </style>
+    <script src="public/yabble.js"></script>
+    <script src="public/gamejs-wrapped.js"></script>
+    <script>
+        require.setModuleRoot('./javascript/')
+        require.run('main')
+    </script>
+<body>
+<header>
+<h1>Last One Standing</h1>
+</header>
+<div>
+    <div id="gjs-loader">
+       Reticulating splines...
+    </div>
+    <canvas id="gjs-canvas"></canvas>
+    <p>
+      By <a href="http://christophernight.net">Christopher Night</a>.
+      Powered by <a href="http://gamejs.org">GameJs</a>.
+    </p>
+</div>
+
