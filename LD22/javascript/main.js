@@ -35,6 +35,7 @@ function handleclick(pos) {
         }
     } else if (selected.length) {
         var p = (new Thing.Puddle()).attachto(indicators).setstagepos(gamepos)
+//        var b = (new Thing.Bolt()).attachto(critters).setstagepos(gamepos)
         for (var j = 0 ; j < selected.length ; ++j) {
             selected[j].target = [gamepos[0], gamepos[1] + 20 * j]
         }
@@ -137,6 +138,12 @@ function think(dt) {
 
     screen.fill("black")
     gameplay.draw0(screen)
+    if (screen.boltage) {
+        for (var j = 0 ; j < screen.boltage ; ++j) {
+            screen.fill("rgba(255,255,255," + Math.random() + ")")
+        }
+        screen.boltage = 0
+    }
     HUD.draw0(screen)
 
     if (selector) {
@@ -190,7 +197,7 @@ function init() {
         (new Thing.Indicator(players[j], 15, "rgba(0,0,0,0.5)", null)).attachto(indicators)
     }
 
-    gamejs.time.fpsCallback(think, null, 5)
+    gamejs.time.fpsCallback(think, null, 60)
 
 }
 

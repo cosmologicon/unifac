@@ -206,6 +206,7 @@ StagedThing.prototype.setstagepos = function (pos) {
     } else {
         this.gx = this.gy = this.gz = 0
     }
+    this.think(0)
     return this
 }
 // FIXME: there's an error here if it's not a direct child of the stage.
@@ -221,6 +222,10 @@ StagedThing.prototype.think = function(dt) {
     this.x = p[0]
     this.y = p[1]
     this.z = p[2]
+}
+StagedThing.prototype.think0 = function(dt) {
+    Thing.prototype.think0.call(this, dt)
+    this.children.sort(function(a,b) { return a.z - b.z })
 }
 
 Effect = function(text) {
@@ -247,22 +252,7 @@ Effect.prototype.think = function(dt) {
 }*/
 
 
-// I don't know, an indicator of some kind?
-Puddle = function() {
-    StagedThing.apply(this)
-    this.t = 0
-}
-gamejs.utils.objects.extend(Puddle, StagedThing)
-Puddle.prototype.think = function(dt) {
-    StagedThing.prototype.think.call(this, dt)
-    this.t += dt
-    if (this.t > 0.5) this.die()
-}
-Puddle.prototype.draw = function(screen) {
-    screen._context.scale(1, 0.5)
-    gamejs.draw.circle(screen, "rgba(80,80,80,0.25)", [0, 0], this.t * 50)
-    gamejs.draw.circle(screen, "#FF0000", [0, 0], this.t * 50, 2)
-}
+
 
 // A circle that sits on the ground beneath a critter
 Indicator = function(caster, r, color0, color1) {
@@ -289,6 +279,53 @@ Indicator.prototype.draw = function(screen) {
         gamejs.draw.circle(screen, this.color1, [0, 0], this.r, 2)
 }
 
+// Like an indicator but it doesn't follow anything around
+Puddle = function(tmax, rmax, color0, color1) {
+    StagedThing.apply(this)
+    this.t = 0
+    this.tmax = tmax || 0.5
+    this.rmax = rmax || 30
+    this.color0 = color0 || "rgba(80, 80, 80, 0.25)"
+    this.color1 = color1 || "#FF0000"
+}
+gamejs.utils.objects.extend(Puddle, StagedThing)
+Puddle.prototype.think = function(dt) {
+    StagedThing.prototype.think.call(this, dt)
+    this.t += dt
+    if (this.t > this.tmax) this.die()
+}
+Puddle.prototype.draw = function(screen) {
+    screen._context.scale(1, 0.5)
+    var r = this.t * this.rmax / this.tmax
+    if (r > 3) {
+        gamejs.draw.circle(screen, this.color0, [0, 0], r)
+        gamejs.draw.circle(screen, this.color1, [0, 0], r, 2)
+    }
+}
+
+// Ka-boom!
+Bolt = function() {
+    StagedThing.apply(this)
+    this.t = 0
+}
+gamejs.utils.objects.extend(Bolt, StagedThing)
+Bolt.prototype.think = function(dt) {
+    this.t += dt
+    if (this.t > 0.4 && this.parent) this.die()
+    StagedThing.prototype.think.call(this, dt)
+}
+Bolt.prototype.draw = function(screen) {
+    for (var j = 0 ; j < 2 ; ++j) {
+        var x = 0, y = 0
+        while (y > -500) {
+            var nx = x + Math.random() * 50 - 25 + 10, ny = y - 60
+            gamejs.draw.line(screen, "white", [x, y], [nx, ny], 2)
+            x = nx
+            y = ny
+        }
+    }
+    screen.boltage = 1 + (screen.boltage || 0)
+}
 
 
 Selector = function() {
@@ -344,6 +381,32 @@ Token.prototype.collect = function(who) {
     if (!par) return
     this.die()
     var e = (new Effect(this.info)).attachto(par).setstagepos([x, y, 30])
+}
+
+Spark = function(color) {
+    StagedThing.apply(this)
+    this.color = color || "blue"
+    var r = Math.random() * 100 + 100
+    var theta = Math.random() * 1000
+    this.vx = r * Math.cos(theta)
+    this.vy = r * Math.sin(theta)
+    this.vz = 100
+    this.g = -200
+    this.image = new gamejs.Surface([4, 4])
+    this.image.fill(this.color)
+}
+gamejs.utils.objects.extend(Spark, StagedThing)
+Spark.prototype.think = function(dt) {
+    this.gx += this.vx * dt
+    this.gy += this.vy * dt
+    this.gz += this.vz * dt + 0.5 * this.g * dt * dt
+    this.vz += this.g * dt
+    StagedThing.prototype.think.call(this, dt)
+    if (this.gz < 0 && this.parent) {
+        var par = this.parent, x = this.gx, y = this.gy, z = this.gz
+        this.die()
+        var e = (new Puddle(null, null, null, this.color)).attachto(par).setstagepos([this.gx, this.gy])
+    }
 }
 
 
@@ -402,6 +465,12 @@ Adventurer.prototype.nab = function(tokens) {
         }
     }
 }
+Adventurer.prototype.think = function(dt) {
+    Critter.prototype.think.call(this, dt)
+//    if (Math.random() * 3 < dt) (new Spark()).attachto(this.parent).setstagepos([this.gx, this.gy, 30])
+    
+}
+
 
 /*
 // What do you think?
@@ -432,4 +501,5 @@ exports.Critter = Critter
 exports.Adventurer = Adventurer
 exports.Token = Token
 exports.Effect = Effect
+exports.Bolt = Bolt
 
