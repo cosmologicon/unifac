@@ -1,4 +1,5 @@
 var gamejs = require('gamejs')
+var Images = require('./Images')
 
 // Base class for entities, arranged into a tree
 Thing = function() {
@@ -375,6 +376,8 @@ Critter.prototype.think = function(dt) {
 Adventurer = function() {
     Critter.apply(this)
     this.reach = 20
+//    this.image = new gamejs.Surface([120, 120])
+    this.image = Images.getadvimage()
 }
 gamejs.utils.objects.extend(Adventurer, Critter)
 Adventurer.prototype.nab = function(tokens) {

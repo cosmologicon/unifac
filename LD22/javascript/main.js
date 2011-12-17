@@ -127,6 +127,7 @@ function think(dt) {
     
     tokens = tokens.filter(function (t) { return t.parent })
 
+
 }
 
 
@@ -155,7 +156,6 @@ function init() {
     
 
     screen = gamejs.display.getSurface()
-//    for (var j in screen) alert(j)
     HUD = new Thing.Thing()
     gameplay = new Thing.Thing()
     var fps = (new Thing.FPSCounter()).attachto(HUD)
@@ -171,13 +171,13 @@ function init() {
     for (var j = 0 ; j < players.length; ++j) {
         (new Thing.Indicator(players[j], 15, "rgba(0,0,0,0.5)", null)).attachto(indicators)
     }
-//    gameplay.image = backdropimg
-//    gameplay.centered = false
-//    balls = (new Thing.Thing()).attachto(gameplay)
 
     gamejs.time.fpsCallback(think, null, 60)
 
 }
+
+gamejs.preload(["img/peepers-0.png", "img/noggin-0.png", "img/foots-0.png"])
+
 
 gamejs.ready(init)
 
