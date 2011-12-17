@@ -526,7 +526,12 @@ Critter = function(hp0) {
     this.hp0 = hp0 || 5
     this.hitradius = 100
     this.castradius = 0
+    this.hittimer = 0
+    this.hittime = 1
+    this.strength = 1
+    this.r = 10
 
+    this.prey = null
     this.healthbar = null
     this.image = new gamejs.Surface([60, 60])
     this.hp = this.hp0
@@ -535,12 +540,35 @@ Critter = function(hp0) {
 }
 gamejs.utils.objects.extend(Critter, StagedThing)
 Critter.prototype.think = function(dt) {
+    // Set target based on prey
+    if (this.hittimer) {
+        this.target = null
+    } else if (this.prey) {
+        var dx = this.prey.gx - this.gx, dy = this.prey.gy - this.gy
+        var r = this.hitradius - 20
+        if (this.target) { // already pursuing the prey
+            if (dx * dx + dy * dy < r * r) {
+                this.target = null
+                this.attack(this.prey)
+            } else {
+                this.target = [this.prey.gx, this.prey.gy]
+            }
+        } else {
+            if (dx * dx + dy * dy < this.hitradius * this.hitradius) {
+                this.attack(this.prey)
+            } else {
+                this.target = [this.prey.gx, this.prey.gy]
+            }
+        }
+        if (!this.prey.parent) this.prey = this.target = null
+    }
+
     if (this.reeltimer) {
-        this.reeltimer -= dt
         var dx = this.reelfrom[0] - this.gx, dy = this.reelfrom[1] - this.gy
-        var f = 4 * this.walkspeed * dt / Math.sqrt(dx * dx + dy * dy)
+        var f = 4 * this.walkspeed * Math.min(dt, this.reeltimer) / Math.sqrt(dx * dx + dy * dy)
         this.gx -= dx * f
         this.gy -= dy * f
+        this.reeltimer -= dt
         if (this.reeltimer <= 0) {
             this.reeltimer = 0
             if (this.hp < 0) {
@@ -563,6 +591,7 @@ Critter.prototype.think = function(dt) {
     if (this.healrate > 0) {
         this.hp = Math.min(this.hp + this.healrate * dt, this.hp0)
     }
+    this.hittimer = Math.max(this.hittimer - dt, 0)
     StagedThing.prototype.think.call(this, dt)
 }
 // Receive a hit (of how much, and from whom)
@@ -572,30 +601,36 @@ Critter.prototype.hit = function(dhp, who) {
     if (!this.healthbar) {
         this.healthbar = (new HealthBar()).attachto(this).setstagepos([0,0,60])
     }
-
+    // TODO: can't I put this back?
     e.gx = 0
     e.gy = 0
     e.gz = 30
     if (who) {
-        this.reeltimer = 0.125
+        this.reeltimer = 0.05 * Math.sqrt(dhp)
         this.reelfrom = [who.gx, who.gy]
     }
 }
+Critter.prototype.attack = function (who) {
+    who.hit(this.strength, this)
+    this.hittimer = this.hittime
+}
+Critter.prototype.localcontains = function(pos) {
+    var x = pos[0], y = pos[1] + this.r
+    return x * x + y * y < this.r * this.r
+}
+
 
 
 // Player character
 Adventurer = function() {
-    Critter.apply(this)
+    hp0 = 5
+    Critter.apply(this, [hp0])
     this.reach = 20
+    this.r = 30
     this.healrate = 0.2
     this.image = Images.getadvimage()
 }
 gamejs.utils.objects.extend(Adventurer, Critter)
-Adventurer.prototype.localcontains = function(pos) {
-    var x = pos[0], y = pos[1] + 30
-//    alert([x,y,this.x, this.y])
-    return x * x + y * y < 30 * 30
-}
 Adventurer.prototype.nab = function(tokens) {
     for (var j = 0 ; j < tokens.length ; ++j) {
         var token = tokens[j]
@@ -615,24 +650,40 @@ Adventurer.prototype.nab = function(tokens) {
 Adventurer.prototype.think = function(dt) {
     Critter.prototype.think.call(this, dt)
 //    if (Math.random() * 3 < dt) (new Spark()).attachto(this.parent).setstagepos([this.gx, this.gy, 30])
-    
 }
 
 
-/*
 // What do you think?
-Monster = function() {
-    Critter.apply(this)
-    this.reach = 20
-    this.image = new gamejs.Surface([120, 120])
-    this.prey = null
-    gamejs.draw.circle(this.image, "#00FF00", [60, 32], 32)
+Monster = function(hp0) {
+    Critter.apply(this, [hp0])
+    this.r = 15
+    this.hitradius = 100
+    this.image = new gamejs.Surface([4*this.r, 4*this.r])
+    this.basespeed = 40  // walk speed when not pursuing a player
+    gamejs.draw.circle(this.image, "#008800", [2*this.r, this.r], this.r)
 //    this.image = Images.getadvimage()
 }
 gamejs.utils.objects.extend(Monster, Critter)
-Monster.prototype.chooseprey(players) {
-    
-}*/
+Monster.prototype.think = function (dt) {
+    this.walkspeed = this.prey ? 2 * this.basespeed : this.basespeed
+    Critter.prototype.think.call(this, dt)
+    if (!this.hittimer && !this.prey && !this.target) {
+        if (Math.random() * 3 < dt) {
+            var r = Math.random() * 200 + 100
+            var theta = Math.random() * 1000
+            this.target = [this.gx + r * Math.cos(theta), this.gy + r * Math.sin(theta)]
+        }
+    }
+}
+Monster.prototype.hit = function(dhp, who) {
+    Critter.prototype.hit.call(this, dhp, who)
+    this.target = this.prey = null
+}
+
+// TODO
+Monster.prototype.chooseprey = function(players) {
+    this.prey = players[0]
+}
 
 
 
@@ -650,4 +701,7 @@ exports.HealToken = HealToken
 exports.Effect = Effect
 exports.Bolt = Bolt
 exports.Shockwave = Shockwave
+
+exports.Monster = Monster
+
 

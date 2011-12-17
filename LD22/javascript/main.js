@@ -4,7 +4,7 @@ var dragpos, dragging = false
 var mousepos, mousestart, mouset0
 var gamejs = require('gamejs')
 var Thing = require('./Thing')
-var tokens = new Array(), players = new Array(), hazards = new Array()
+var tokens = new Array(), players = new Array(), hazards = new Array(), monsters = new Array()
 var selected = [], sindics = []
 
 /*
@@ -30,14 +30,17 @@ function handleclick(pos) {
     if (clicked) {
         if (selected.length == 1 && selected[0] === clicked) {
             applyselection([])
-        } else {
+        } else if (clicked instanceof Thing.Adventurer) {
             applyselection([clicked])
+        } else if (clicked instanceof Thing.Monster) {
+            for (var j in selected) selected[j].prey = clicked
         }
     } else if (selected.length) {
         var p = (new Thing.Puddle()).attachto(indicators).setstagepos(gamepos)
 //        var b = (new Thing.Bolt()).attachto(critters).setstagepos(gamepos)
         for (var j = 0 ; j < selected.length ; ++j) {
             selected[j].target = [gamepos[0], gamepos[1] + 20 * j]
+            selected[j].prey = null
         }
     }
 }
@@ -81,6 +84,13 @@ function handlekeydown(key, pos) {
             var s = (new Thing.Shockwave(0.5, 200)).attachto(indicators).setstagepos(gamepos)
             hazards.push(s)
             break
+        case gamejs.event.K_a:  // select/deselect all
+            if (selected.length) {
+                applyselection([])
+            } else {
+                applyselection(players)
+            }
+            break
     }
 }
 
@@ -105,7 +115,6 @@ function think(dt) {
             if (screen.getRect().collidePoint(event.pos)) {
                 handlemouseup(event.pos)
             }
-//            statusbox.update(event.pos)
         }
         if (event.type === gamejs.event.MOUSE_DOWN) {
             if (screen.getRect().collidePoint(event.pos)) {
@@ -151,6 +160,9 @@ function think(dt) {
     for (var j in hazards) {
         hazards[j].harm(players)
     }
+    for (var j in monsters) {
+        monsters[j].chooseprey(players)
+    }
 
     screen.fill("black")
     gameplay.draw0(screen)
@@ -170,6 +182,7 @@ function think(dt) {
     players = players.filter(function (t) { return t.parent })
     hazards = hazards.filter(function (t) { return t.parent })
     selected = selected.filter(function (t) { return t.parent })
+    monsters = monsters.filter(function (t) { return t.parent })
 
 
 }
@@ -215,6 +228,7 @@ function init() {
     for (var j = 0 ; j < players.length; ++j) {
         (new Thing.Indicator(players[j], 15, "rgba(0,0,0,0.5)", null)).attachto(indicators)
     }
+    monsters.push((new Thing.Monster()).attachto(critters).setstagepos([200, 0]))
 
     gamejs.time.fpsCallback(think, null, 10)
 
