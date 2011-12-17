@@ -202,7 +202,7 @@ Stage.prototype.draw = function(screen) {
 // TODO: handle rotation?
 Stage.prototype.stageposof = function(pos) {
     var gx = pos[0], gy = pos[1], gz = pos[2]
-    return [gx * this.C - gy * this.S, (gy * this.C + gx * this.S)/2 - 0.866*gz, gy]
+    return [gx * this.C - gy * this.S, (gy * this.C + gx * this.S)/2 - 0.866*gz, (gy * this.C + gx * this.S)]
 }
 Stage.prototype.gamepos = function(pos) {
     return pos
@@ -726,6 +726,7 @@ Critter.prototype.attack = function (who) {
         var shot = new Shot(this, who, this.strength)
         shot.attachto(this.parent)
         this.hittimer = this.hittime * (1 + 0.1 * Math.random())
+        this.logmotion(who.gx - this.gx, who.gy - this.gy)
     }
 }
 Critter.prototype.localcontains = function(pos) {
@@ -763,13 +764,33 @@ Adventurer.prototype.nab = function(tokens) {
             if (dy > this.reach) continue
             if (dx * dx + dy * dy < this.reach * this.reach) {
                 token.collect(this)
-                // TODO: get the token's powaaaah!
             }
         }
     }
 }
+Adventurer.prototype.considerattacking = function(monsters) {
+    if (this.target || this.prey || this.hittimer || !this.isresponding()) return
+    var x = this.gx, y = this.gy
+    var closest = null, d2min = 0
+    for (var j in monsters) {
+        var m = monsters[j]
+        var dx = m.gx - x, dy = m.gy - y
+        var d2 = dx * dx + dy * dy
+        if (d2 > this.hitradius * this.hitradius) continue
+        if (!closest || d2 < d2min) {
+            closest = m
+            d2min = d2
+        }
+    }
+    if (closest) this.attack(closest)
+}
+// Will respond to user commands
+Adventurer.prototype.isresponding = function() {
+    return !this.reeltimer && !this.quakejump
+}
+// Can get hit by, you know, stuff
 Adventurer.prototype.isvulnerable = function() {
-    return !this.quakejump
+    return !this.reeltimer && !this.quakejump
 }
 Adventurer.prototype.think = function(dt) {
     if (!this.manabar) {

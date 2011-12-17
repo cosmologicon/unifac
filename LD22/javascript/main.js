@@ -5,8 +5,6 @@ var dragpos, dragging = false
 var mousepos, mousestart, mouset0
 var gamejs = require('gamejs')
 var Thing = require('./Thing')
-var tokens = new Array(), players = new Array(), hazards = new Array(), monsters = new Array()
-var selected = [], sindics = []
 
 /*
 // shim layer with setTimeout fallback
@@ -29,19 +27,19 @@ function handleclick(pos) {
     var gamepos = state.stage.togamepos(pos)
     var clicked = state.stage.topcontains(pos)
     if (clicked) {
-        if (selected.length == 1 && selected[0] === clicked) {
-            applyselection([])
+        if (state.selected.length == 1 && state.selected[0] === clicked) {
+            state.applyselection()
         } else if (clicked instanceof Thing.Adventurer) {
-            applyselection([clicked])
+            state.applyselection([clicked])
         } else if (clicked instanceof Thing.Monster) {
-            for (var j in selected) selected[j].prey = clicked
+            for (var j in state.selected) state.selected[j].prey = clicked
         }
-    } else if (selected.length) {
+    } else if (state.selected.length) {
         var p = (new Thing.Puddle()).attachto(state.indicators).setstagepos(gamepos)
-//        var b = (new Thing.Bolt()).attachto(state.critters).setstagepos(gamepos)
-        for (var j = 0 ; j < selected.length ; ++j) {
-            selected[j].target = [gamepos[0], gamepos[1] + 20 * j]
-            selected[j].prey = null
+        for (var j = 0 ; j < state.selected.length ; ++j) {
+            // TODO: better crowding algorithm
+            state.selected[j].target = [gamepos[0], gamepos[1] + 20 * j]
+            state.selected[j].prey = null
         }
     }
 }
@@ -49,8 +47,8 @@ function handleclick(pos) {
 function handlemouseup(pos) {
     if (dragging) {
         if (selector) {
-            newselected = players.filter(function (p) { return selector.contains(p) })
-            applyselection(newselected)
+            newselected = state.players.filter(function (p) { return selector.contains(p) })
+            state.applyselection(newselected)
         }
     } else {
         handleclick(pos)
@@ -81,18 +79,18 @@ function handlekeydown(key, pos) {
         case gamejs.event.K_1:
             var gamepos = state.stage.togamepos(pos)
             var s = (new Thing.Shockwave(0.5, 200)).attachto(state.indicators).setstagepos(gamepos)
-            hazards.push(s)
+            state.hazards.push(s)
             break
         case gamejs.event.K_a:  // select/deselect all
-            if (selected.length) {
-                applyselection([])
+            if (state.selected.length) {
+                state.applyselection()
             } else {
-                applyselection(players)
+                state.applyselection(state.players)
             }
             break
         case gamejs.event.K_SPACE:  // cast
-            if (selected.length == 1) {
-                selected[0].castat(state.stage.togamepos(pos), state.critters, state.indicators)
+            if (state.selected.length == 1) {
+                state.selected[0].castat(state.stage.togamepos(pos), state.critters, state.indicators)
             }
             break
         case gamejs.event.K_RIGHT:
@@ -103,18 +101,6 @@ function handlekeydown(key, pos) {
             break
     }
 }
-
-function applyselection(newselected) {
-    for (var j in sindics) {
-        sindics[j].die()
-    }
-    sindics = []
-    selected = newselected
-    for (var j in selected) {
-        sindics.push((new Thing.Indicator(selected[j], 20, null, "yellow")).attachto(state.indicators))
-    }
-}
-
 
 var t0 = 0
 function think(dt) {
@@ -144,17 +130,17 @@ function think(dt) {
         }
     })
 
-    if (Math.random() * 5 < dt && tokens.length < 10) {
+    if (Math.random() * 5 < dt && state.tokens.length < 10) {
         var tpos = [Math.random() * 600 - 300, Math.random() * 600 - 300]
         var type = [Thing.HealToken, Thing.ManaToken][Math.floor(Math.random() * 2)]
         var token = (new type()).attachto(state.critters).setstagepos(tpos)
-        tokens.push(token)
+        state.tokens.push(token)
         var i = (new Thing.Indicator(token, 5, "rgba(0,0,0,0.5)", null)).attachto(state.indicators)
     }
 
     var castarea = null
-    if (selected.length == 1) {
-        castarea = selected[0].getcastarea().attachto(state.indicators)
+    if (state.selected.length == 1) {
+        castarea = state.selected[0].getcastarea().attachto(state.indicators)
     }
 
     selector = null
@@ -170,14 +156,15 @@ function think(dt) {
     state.indicators.think0(dt)
     state.HUD.think0(dt)
 
-    for (var j in players) {
-        players[j].nab(tokens)
+    for (var j in state.players) {
+        state.players[j].nab(state.tokens)
+        state.players[j].considerattacking(state.monsters)
     }
-    for (var j in hazards) {
-        hazards[j].harm(players)
+    for (var j in state.hazards) {
+        state.hazards[j].harm(state.players)
     }
-    for (var j in monsters) {
-        monsters[j].chooseprey(players)
+    for (var j in state.monsters) {
+        state.monsters[j].chooseprey(state.players)
     }
 
     screen.fill("black")
@@ -196,13 +183,8 @@ function think(dt) {
     if (castarea) {
         castarea.die()
     }
-    
-    tokens = tokens.filter(function (t) { return t.parent })
-    players = players.filter(function (t) { return t.parent })
-    hazards = hazards.filter(function (t) { return t.parent })
-    selected = selected.filter(function (t) { return t.parent })
-    monsters = monsters.filter(function (t) { return t.parent })
 
+    state.filtergroups()
 
 }
 
@@ -235,14 +217,14 @@ function init() {
     state.makelayers()
 
 
-    players.push((new Thing.Adventurer()).attachto(state.critters).setstagepos([100,100]))
-    players.push((new Thing.Adventurer()).attachto(state.critters).setstagepos([-100,100]))
-    players.push((new Thing.Adventurer()).attachto(state.critters).setstagepos([100,-100]))
-    players.push((new Thing.Adventurer()).attachto(state.critters).setstagepos([-100,-100]))
-    for (var j = 0 ; j < players.length; ++j) {
-        (new Thing.Indicator(players[j], 15, "rgba(0,0,0,0.5)", null)).attachto(state.indicators)
+    state.players.push((new Thing.Adventurer()).attachto(state.critters).setstagepos([100,100]))
+    state.players.push((new Thing.Adventurer()).attachto(state.critters).setstagepos([-100,100]))
+    state.players.push((new Thing.Adventurer()).attachto(state.critters).setstagepos([100,-100]))
+    state.players.push((new Thing.Adventurer()).attachto(state.critters).setstagepos([-100,-100]))
+    for (var j = 0 ; j < state.players.length; ++j) {
+        (new Thing.Indicator(state.players[j], 15, "rgba(0,0,0,0.5)", null)).attachto(state.indicators)
     }
-    monsters.push((new Thing.Monster()).attachto(state.critters).setstagepos([200, 0]))
+    state.monsters.push((new Thing.Monster()).attachto(state.critters).setstagepos([200, 0]))
 
     gamejs.time.fpsCallback(think, null, 10)
 
