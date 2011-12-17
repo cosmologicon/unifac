@@ -180,7 +180,7 @@ Stage.prototype.think0 = function(dt) {
 // TODO: handle rotation?
 Stage.prototype.stagepos = function(pos) {
     var gx = pos[0], gy = pos[1], gz = pos[2]
-    return [gx, gy/2 - gz/2, gy]
+    return [gx, gy/2 - 0.866*gz, gy]
 }
 Stage.prototype.togamepos = function(pos) {
     var wpos = this.worldpos()
@@ -263,6 +263,32 @@ Puddle.prototype.draw = function(screen) {
     gamejs.draw.circle(screen, "#FF0000", [0, 0], this.t * 50, 2)
 }
 
+// A circle that sits on the ground beneath a critter
+Indicator = function(caster, r, color0, color1) {
+    StagedThing.apply(this)
+    this.caster = caster
+    this.r = r
+    this.color0 = color0  // fill color
+    this.color1 = color1  // color of the ring (if any)
+}
+gamejs.utils.objects.extend(Indicator, StagedThing)
+Indicator.prototype.think = function(dt) {
+    if (!this.caster.parent) this.die()
+    this.gx = this.caster.gx
+    this.gy = this.caster.gy
+    this.gz = 0
+    StagedThing.prototype.think.call(this, dt)
+}
+// TODO: make it an image
+Indicator.prototype.draw = function(screen) {
+    screen._context.scale(1, 0.5)
+    if (this.color0)
+        gamejs.draw.circle(screen, this.color0, [0, 0], this.r)
+    if (this.color1)
+        gamejs.draw.circle(screen, this.color1, [0, 0], this.r, 2)
+}
+
+
 
 Selector = function() {
     StagedThing.apply(this)
@@ -288,13 +314,19 @@ Selector.prototype.draw = function(screen) {
         gamejs.draw.circle(screen, "#FF0000", [0, 0], this.r, 2)
     }
 }
+// FIXME: doesn't work if not directly connected to the stage
+Selector.prototype.contains = function(critter) {
+    var dx = this.gx - critter.gx, dy = this.gy - critter.gy
+    return dx * dx + dy * dy < this.r * this.r
+}
+
 
 
 // Collectible token
 Token = function() {
     StagedThing.apply(this)
     this.t = Math.random() * 100
-    this.image = new gamejs.Surface([10, 10])
+    this.image = new gamejs.Surface([10, 18])
     gamejs.draw.circle(this.image, "yellow", [5, 5], 5)
     this.info = "+HP"
 }
@@ -306,13 +338,10 @@ Token.prototype.think = function(dt) {
     this.gz = 25 * Math.abs(Math.sin(this.t * 5))
     StagedThing.prototype.think.call(this, dt)
 }
-/*Token.prototype.draw = function(screen) {
-    screen.blit(this.image, [-5, -3 - h])
-}*/
 Token.prototype.collect = function(who) {
     var par = this.parent, x = this.gx, y = this.gy, z = this.gz
     this.die()
-    var e = (new Effect(this.info)).attachto(par).setstagepos([x, y, z])
+    var e = (new Effect(this.info)).attachto(par).setstagepos([x, y, 30])
 }
 
 
@@ -374,6 +403,7 @@ exports.TextBox = TextBox
 exports.Stage = Stage
 exports.StagedThing = StagedThing
 exports.Puddle = Puddle
+exports.Indicator = Indicator
 exports.Selector = Selector
 exports.Critter = Critter
 exports.Adventurer = Adventurer

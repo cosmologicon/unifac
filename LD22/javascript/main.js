@@ -4,6 +4,7 @@ var dragpos, dragging = false, mousepos, mousestart
 var gamejs = require('gamejs')
 var Thing = require('./Thing')
 var tokens = new Array(), players = new Array()
+var selected = null, sindics = []
 
 var mousedown = false, mousepos = null
 
@@ -22,10 +23,15 @@ window.requestAnimFrame = (function(){
  
 
 function handleclick(pos) {
-    if (!dragging) {
+    if (dragging) {
+        if (selector)
+            applyselection(selector)
+    } else {
         var gamepos = stage.togamepos(pos)
-        var p = (new Thing.Puddle()).attachto(stage).setstagepos(gamepos)
-        players[0].target = gamepos
+        var p = (new Thing.Puddle()).attachto(indicators).setstagepos(gamepos)
+        for (var j = 0 ; j < selected.length ; ++j) {
+            selected[j].target = [gamepos[0], gamepos[1] + 20 * j]
+        }
     }
     dragging = false
     dragpos = null
@@ -48,6 +54,18 @@ function handlemousemove(pos) {
         }
     }
 }
+
+function applyselection(selector) {
+    for (var j in sindics) {
+        sindics[j].die()
+    }
+    sindics = []
+    selected = players.filter(function (p) { return selector.contains(p) })
+    for (var j in selected) {
+        sindics.push((new Thing.Indicator(selected[j], 20, null, "yellow")).attachto(indicators))
+    }
+}
+
 
 var t0 = 0
 function think(dt) {
@@ -77,18 +95,22 @@ function think(dt) {
 
     if (Math.random() * 5 < dt && tokens.length < 10) {
         var tpos = [Math.random() * 600 - 300, Math.random() * 600 - 300]
-        var token = (new Thing.Token()).attachto(stage).setstagepos(tpos)
+        var token = (new Thing.Token()).attachto(critters).setstagepos(tpos)
         tokens.push(token)
+        var i = (new Thing.Indicator(token, 5, "rgba(0,0,0,0.5)", null)).attachto(indicators)
     }
 
-    var selector = null
+    selector = null
     if (dragpos && dragging) {
         var p1 = stage.togamepos(mousestart), p2 = stage.togamepos(mousepos)
         statusbox.update([p1, p2])
-        selector = (new Thing.Selector()).attachto(stage).setends(p1, p2)
+        selector = (new Thing.Selector()).attachto(indicators).setends(p1, p2)
     }
 
-    gameplay.think0(dt)
+    // FIXME
+    //gameplay.think0(dt)
+    critters.think0(dt)
+    indicators.think0(dt)
     HUD.think0(dt)
 
     for (var j in players) {
@@ -140,7 +162,15 @@ function init() {
     statusbox = (new Thing.TextBox()).attachto(HUD).setpos([10, 440])
 
     stage = (new Thing.Stage()).attachto(gameplay)
-    players.push((new Thing.Adventurer()).attachto(stage))
+    indicators = (new Thing.StagedThing()).attachto(stage)
+    critters = (new Thing.StagedThing()).attachto(stage)
+    players.push((new Thing.Adventurer()).attachto(critters).setstagepos([100,100]))
+    players.push((new Thing.Adventurer()).attachto(critters).setstagepos([-100,100]))
+    players.push((new Thing.Adventurer()).attachto(critters).setstagepos([100,-100]))
+    players.push((new Thing.Adventurer()).attachto(critters).setstagepos([-100,-100]))
+    for (var j = 0 ; j < players.length; ++j) {
+        (new Thing.Indicator(players[j], 15, "rgba(0,0,0,0.5)", null)).attachto(indicators)
+    }
 //    gameplay.image = backdropimg
 //    gameplay.centered = false
 //    balls = (new Thing.Thing()).attachto(gameplay)
