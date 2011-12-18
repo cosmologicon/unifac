@@ -173,18 +173,28 @@ Stage = function() {
         gamejs.draw.circle(this.image0, "rgba(0,0,32,0.2)", [Math.random() * 854, Math.random() * 854], 100)
 //    this.image = gamejs.transform.scale(this.image0, [854, 427])
     this.image = this.image0
-    this.turn()
+    this.setalpha()
+    this.targetalpha = this.alpha
     return this
 }
 gamejs.utils.objects.extend(Stage, Thing)
 Stage.prototype.turn = function (dalpha) {
-    this.alpha = (this.alpha || 0) + (dalpha || 0)
+    this.targetalpha += (dalpha || 0)
+}
+Stage.prototype.setalpha = function (alpha) {
+    this.alpha = alpha || 0
     this.S = Math.sin(this.alpha)
     this.C = Math.cos(this.alpha)
 }
-Stage.prototype.think0 = function(dt) {
-    Thing.prototype.think0.call(this, dt)
-    this.children.sort(function(a,b) { return a.z - b.z })
+Stage.prototype.think = function(dt) {
+    Thing.prototype.think.call(this, dt)
+    var dalpha = this.targetalpha - this.alpha
+    if (Math.abs(dalpha) < 0.1) {
+        this.setalpha(this.targetalpha)
+    } else {
+        var f = 1 - Math.exp(-4 * dt)
+        this.setalpha(this.alpha + (this.targetalpha - this.alpha) * f)
+    }
 }
 Stage.prototype.draw = function(screen) {
     screen._context.save()
@@ -354,9 +364,22 @@ Puddle.prototype.draw = function(screen) {
 Bolt = function() {
     StagedThing.apply(this)
     this.t = 0
+    this.spent = false
+    this.range = 100
+    this.dhp = 10
 }
 gamejs.utils.objects.extend(Bolt, StagedThing)
 Bolt.prototype.think = function(dt) {
+    if (!this.spent) {
+        for (var j in state.monsters) {
+            var m = state.monsters[j]
+            var dx = m.gx - this.gx, dy = m.gy - this.gy
+            if (dx * dx + dy * dy < this.range * this.range) {
+                m.hit(this.dhp, this)
+            }
+        }
+        this.spent = true
+    }
     this.t += dt
     if (this.t > 0.4 && this.parent) this.die()
     StagedThing.prototype.think.call(this, dt)
@@ -383,6 +406,7 @@ Shockwave = function(tmax, rmax, color1, dhp) {
 }
 gamejs.utils.objects.extend(Shockwave, Puddle)
 Shockwave.prototype.draw = function(screen) {
+    screen._context.save()
     screen._context.scale(1, 0.5)
     var f = this.t / this.tmax
     if (f > 0.5) {
@@ -395,6 +419,7 @@ Shockwave.prototype.draw = function(screen) {
         gamejs.draw.circle(screen, this.color1, [0, 0], r, 2)
         screen._context.globalAlpha *= 0.6
     }
+    screen._context.restore()
 }
 Shockwave.prototype.harm = function (victims) {
     var r = this.t * this.rmax / this.tmax
@@ -603,10 +628,10 @@ ManaBar.prototype.draw = function(screen) {
 
 
 // Sprite base class
-Critter = function(hp0) {
+Critter = function(hp0, walkspeed) {
     StagedThing.apply(this)
     this.target = null
-    this.walkspeed = 100
+    this.walkspeed = walkspeed || 100
     this.healrate = 0
     this.hp0 = hp0 || 5
     this.hitradius = 100
@@ -652,6 +677,9 @@ Critter.prototype.think = function(dt) {
         if (!this.prey.parent) this.prey = this.target = null
     }
 
+    if (!this.reeltimer && this.hp < 0) {
+        this.die()
+    }
     if (this.reeltimer) {
         var dx = this.reelfrom[0] - this.gx, dy = this.reelfrom[1] - this.gy
         var f = 4 * this.walkspeed * Math.min(dt, this.reeltimer) / Math.sqrt(dx * dx + dy * dy)
@@ -660,9 +688,6 @@ Critter.prototype.think = function(dt) {
         this.reeltimer -= dt
         if (this.reeltimer <= 0) {
             this.reeltimer = 0
-            if (this.hp < 0) {
-                this.die()
-            }
         }
     } else if (this.target) {
         var d = dt * this.walkspeed
@@ -682,8 +707,7 @@ Critter.prototype.think = function(dt) {
         this.gz += this.vz * dt - 500 * dt * dt
         this.vz -= 1000 * dt
         if (this.gz < 0) {
-            this.gz = 0
-            this.vz = 0
+            this.land()
         }
     }
     if (this.gz == 0 && this.bounce && this.canbounce()) {
@@ -723,6 +747,10 @@ Critter.prototype.isvulnerable = function() {
 Critter.prototype.isearthbound = function() {
     return true
 }
+Critter.prototype.land = function () {
+    this.gz = 0
+    this.vz = 0
+}
 Critter.prototype.canbounce = function() {
     return !this.reeltimer && this.target
 }
@@ -753,19 +781,26 @@ Critter.prototype.localcontains = function(pos) {
 }
 
 
-
 // Player character
-Adventurer = function() {
-    hp0 = 5
-    Critter.apply(this, [hp0])
-    this.reach = 20
-    this.r = 30
+Adventurer = function(pstate) {
+    if (!pstate) return
+    Critter.apply(this)
+    this.name = pstate.name
+    this.skill = pstate.skill
+    this.hp0 = pstate.hp0
+    this.mp0 = pstate.mp0
+    this.hp = this.hp0
+    this.mp = this.mp0 / 2
+    this.walkspeed = pstate.speed
+    this.hitradius = pstate.range
+    this.castradius = 2 * pstate.range
+    
+    this.reach = 20 // How far away you grab tokens
+    this.r = pstate.size  // Clickable size. Probably won't alter from 30
     this.healrate = 0.2
-    this.mp0 = 30
     this.mp = this.mp0 / 2
     this.manarate = 0.2
     this.manabar = null
-    this.castradius = 200
     this.casttarget = null
     this.quakejump = null
     this.image = Images.getimage("adv")
@@ -855,7 +890,7 @@ Adventurer.prototype.cancast = function() {
 }
 Adventurer.prototype.castat = function(pos, critters, indicators, type) {
     if (this.mp < 3) return false
-    type = type || "quake"
+    type = type || this.skill || "quake"
     var dx = pos[0] - this.gx, dy = pos[1] - this.gy
     if (dx * dx + dy * dy < this.castradius * this.castradius) {
         this.casttarget = null
@@ -871,6 +906,9 @@ Adventurer.prototype.castat = function(pos, critters, indicators, type) {
 Adventurer.prototype.castboltat = function(pos, critters, indicators) {
     // FIXME: unless we don't want to attach Adventurers
     var b = (new Bolt()).attachto(critters).setstagepos(pos)
+//    var s = new Shockwave(0.4, 100, "white", 10)
+//    s.attachto(state.indicators).setstagepos(pos)
+//    state.mhazards.push(s)
     this.mp -= 3
 }
 Adventurer.prototype.castquakeat = function(pos, critters, indicators) {
@@ -906,6 +944,7 @@ Adventurer.prototype.handlequake = function(dt) {
                 this.gz = 0
                 var s = new Shockwave(0.5, 300, "brown", 1)
                 s.attachto(this.quakejump[1]).setstagepos([this.gx, this.gy, 0])
+                state.mhazards.push(s)
                 this.quakejump = null
             }
             break
@@ -916,7 +955,6 @@ Adventurer.prototype.handlequake = function(dt) {
 
 
 
-// What do you think?
 Monster = function(hp0) {
     Critter.apply(this, [hp0])
     this.r = 30
@@ -924,14 +962,15 @@ Monster = function(hp0) {
     this.basespeed = 40  // walk speed when not pursuing a player
 //    this.image = new gamejs.Surface([4*this.r, 4*this.r])
 //    gamejs.draw.circle(this.image, "#008800", [2*this.r, this.r], this.r)
+    this.wandertime = 3
     this.image = Images.getimage("lump")
 }
 gamejs.utils.objects.extend(Monster, Critter)
 Monster.prototype.think = function (dt) {
     this.walkspeed = this.prey ? 2 * this.basespeed : this.basespeed
     Critter.prototype.think.call(this, dt)
-    if (!this.hittimer && !this.prey && !this.target) {
-        if (Math.random() * 3 < dt) {
+    if (!this.hittimer && !this.prey && !this.target && this.wandertime) {
+        if (Math.random() * this.wandertime < dt) {
             var r = Math.random() * 200 + 100
             var theta = Math.random() * 1000
             this.target = [this.gx + r * Math.cos(theta), this.gy + r * Math.sin(theta)]
@@ -942,11 +981,91 @@ Monster.prototype.hit = function(dhp, who) {
     Critter.prototype.hit.call(this, dhp, who)
     this.target = this.prey = null
 }
-
-// TODO
 Monster.prototype.chooseprey = function(players) {
     this.prey = players[0]
 }
+
+
+// Zoltar never picks any prey, just spawns chaos
+Zoltar = function(level) {
+    this.level = level || 4
+    var hp = (10 + 10 * this.level) / 10
+    Monster.apply(this, [hp])
+    this.r = 60 * this.level
+    this.t = Math.random() * 100
+    this.wandertime = 0
+    this.image = Images.getimage("zoltar-" + this.level)
+    this.bounce = 0
+    this.bouncetime = [0,2,4,6,8][this.level]
+    this.vjump = 200 * this.level
+    this.jumpdist = 200 * this.level
+    this.dhp = this.level
+    this.wavesize = 100 + 60 * this.level
+    this.vx = this.vy = this.vz = 0
+    this.basespeed = 100 * this.level
+}
+gamejs.utils.objects.extend(Zoltar, Monster)
+Zoltar.prototype.setstagepos = function (pos) {
+    Monster.prototype.setstagepos.call(this, pos)
+    if (this.level < 4) this.leap()
+    return this
+}
+Zoltar.prototype.think = function (dt) {
+    this.t += dt
+    this.reeltimer = 0
+    this.hittimer = 0
+    state.statusbox.update([this.gx, this.gy, this.gz])
+    if (this.gz == 0 && this.vz == 0) {
+        this.bouncetimer -= dt
+        if (this.bouncetimer < 0) {
+            this.leap()
+        }
+    }
+    Monster.prototype.think.call(this, dt)
+}
+Zoltar.prototype.leap = function () {
+    var d = this.jumpdist
+    var rnum = function() { return (Math.random() - 0.5) * d}
+    var d20 = this.gx * this.gx + this.gy * this.gy
+    for (var j = 0 ; j < 10 ; ++j) {
+        this.target = [this.gx + rnum(), this.gy + rnum()]
+        var d2 = this.target[0] * this.target[0] + this.target[1] * this.target[1]
+        if (d2 < 400 * 400 || d2 < d20) break
+    }
+    this.vz = this.vjump
+    this.gz = 0.01
+}
+Zoltar.prototype.draw = function (screen) {
+    screen._context.save()
+    var r = 1 + [0, 0.3, 0.25, 0.2, 0.1][this.level] * Math.sin(this.t * 3)
+    screen._context.scale(r, 1/r)
+    this.reeltimer = 0
+    Monster.prototype.draw.call(this, screen)
+    screen._context.restore()
+}
+Zoltar.prototype.chooseprey = function(players) {
+}
+Zoltar.prototype.land = function () {
+    var s = new Shockwave(0.6, this.wavesize, "green", this.dhp)
+    s.attachto(state.indicators).setstagepos([this.gx, this.gy, 0])
+    state.hazards.push(s)
+    Monster.prototype.land.call(this)
+    this.gz = 0
+    this.vz = 0
+    this.target = null
+    this.bouncetimer = this.bouncetime * (1 + 0.1 * Math.random())
+}
+Zoltar.prototype.die = function () {
+    var level = this.level - 1
+    if (level) {
+        for (var j = 0 ; j < 3 ; ++j) {
+            var z = (new Zoltar(level)).attachto(state.critters).setstagepos([this.gx, this.gy, 0])
+            state.monsters.push(z)
+        }
+    }
+    Monster.prototype.die.call(this)
+}
+
 
 
 
@@ -968,5 +1087,6 @@ exports.Bolt = Bolt
 exports.Shockwave = Shockwave
 
 exports.Monster = Monster
+exports.Zoltar = Zoltar
 
 

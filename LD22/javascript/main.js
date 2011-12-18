@@ -104,6 +104,10 @@ function handlekeydown(key, pos) {
             var pos = [600 * Math.cos(theta), 600 * Math.sin(theta)]
             state.monsters.push((new Thing.Monster()).attachto(state.critters).setstagepos(pos))
             break
+        case gamejs.event.K_z:
+            var z = (new Thing.Zoltar()).attachto(state.critters).setstagepos([0,0,600])
+            state.monsters.push(z)
+            break
     }
 }
 
@@ -156,6 +160,7 @@ function think(dt) {
 
     // FIXME
     //state.gameplay.think0(dt)
+    state.stage.think(dt)
     state.critters.think0(dt)
     state.indicators.think0(dt)
     state.HUD.think0(dt)
@@ -167,10 +172,13 @@ function think(dt) {
     for (var j in state.hazards) {
         state.hazards[j].harm(state.players)
     }
+    for (var j in state.mhazards) {
+        state.mhazards[j].harm(state.monsters)
+    }
     for (var j in state.monsters) {
         state.monsters[j].chooseprey(state.players)
     }
-    state.statusbox.update(state.xp + " XP")
+//    state.statusbox.update(state.xp + " XP")
 
 
     screen.fill("black")

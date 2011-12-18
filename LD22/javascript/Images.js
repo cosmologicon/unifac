@@ -54,6 +54,14 @@ function getimage(name) {
             return gamejs.transform.scale(img, [100, 100])
         case "lump":
             return gamejs.transform.scale(getpiece("lump-0"), [100, 100])
+        case "zoltar-4":
+            return gamejs.transform.scale(getpiece("zoltar-0"), [300, 300])
+        case "zoltar-3":
+            return gamejs.transform.scale(getpiece("zoltar-0"), [200, 200])
+        case "zoltar-2":
+            return gamejs.transform.scale(getpiece("zoltar-0"), [150, 150])
+        case "zoltar-1":
+            return gamejs.transform.scale(getpiece("zoltar-0"), [120, 120])
     }
 }
 
