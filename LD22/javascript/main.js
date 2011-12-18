@@ -31,7 +31,7 @@ function handleclick(pos) {
             state.applyselection()
         } else if (clicked instanceof Thing.Adventurer) {
             state.applyselection([clicked])
-        } else if (clicked instanceof Thing.Monster) {
+        } else if (clicked instanceof Thing.Monster && clicked.takesphysical) {
             for (var j in state.selected) state.selected[j].prey = clicked
         }
     } else if (state.selected.length) {
@@ -389,15 +389,19 @@ gamejs.preload([
     "img/birdy-1.png",
     "img/birdy-2.png",
     "img/birdy-3.png",
+    "img/crystal-0.png",
     "img/dana-0.png",
     "img/foots-0.png",
     "img/lisa-0.png",
     "img/lump-0.png",
+    "img/mort-0.png",
     "img/noggin-0.png",
     "img/peepers-0.png",
+    "img/rosa-0.png",
     "img/skull-0.png",
     "img/spike-0.png",
     "img/theo-0.png",
+    "img/vern-0.png",
     "img/zoltar-0.png",
     "img/zoltar-1.png",
 ])

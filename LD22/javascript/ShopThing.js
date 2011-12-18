@@ -36,25 +36,27 @@ UpgradeMenu = function(player, pstates, index) {
 }
 gamejs.utils.objects.extend(UpgradeMenu, Thing.Thing)
 UpgradeMenu.prototype.build = function () {
-    this.image = new gamejs.Surface([300, 200])
+    this.image = new gamejs.Surface([300, 240])
     this.image.fill("#000044")
     while (this.children.length) this.children[0].die()
     this.setpos([427, 200])
     var namebox = new Thing.TextBox("Adventurer: " + this.pstate.name)
-    namebox.attachto(this).setpos([-130, -100])
+    namebox.attachto(this).setpos([-130, -110])
     var s = new Thing.TextBox("Skill: " + this.pstate.skill)
-    s.attachto(this).setpos([-120, -76]);
+    s.attachto(this).setpos([-120, -80]);
     (new Thing.TextBox("" + this.pstate.xpspent, [0, 0], "12px sans-serif", "blue")).attachto(this).setpos([120, 80]);
     (new Thing.TextBox(this.pstate.hp0 + "HP")).attachto(this).setpos([-30, -44]);
     (new Thing.TextBox(this.pstate.mp0 + "MP")).attachto(this).setpos([-30, -12]);
-    (new Thing.TextBox(Math.floor(this.pstate.speed/10) + " speed")).attachto(this).setpos([-30, 20]);
-    (new Thing.TextBox(Math.floor(this.pstate.range/10) + " range")).attachto(this).setpos([-30, 52]);
+    (new Thing.TextBox(this.pstate.strength + " strength")).attachto(this).setpos([-30, 20]);
+    (new Thing.TextBox(Math.floor(this.pstate.speed/10) + " speed")).attachto(this).setpos([-30, 52]);
+    (new Thing.TextBox(Math.floor(this.pstate.range/20) + " range")).attachto(this).setpos([-30, 84]);
 
     var i = this.index;
     (new Thing.Button("-" + state.upgradeamt(0, i) + "XP", null, function () { state.upgrade(0, i) })).attachto(this).setpos([-80,-32]);
     (new Thing.Button("-" + state.upgradeamt(1, i) + "XP", null, function () { state.upgrade(1, i) })).attachto(this).setpos([-80,0]);
     (new Thing.Button("-" + state.upgradeamt(2, i) + "XP", null, function () { state.upgrade(2, i) })).attachto(this).setpos([-80,32]);
     (new Thing.Button("-" + state.upgradeamt(3, i) + "XP", null, function () { state.upgrade(3, i) })).attachto(this).setpos([-80,64]);
+    (new Thing.Button("-" + state.upgradeamt(4, i) + "XP", null, function () { state.upgrade(4, i) })).attachto(this).setpos([-80,96]);
 
 
 /*    hp0: 200,

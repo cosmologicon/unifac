@@ -56,6 +56,8 @@ function getimage(name) {
         case "dana": return gamejs.transform.scale(getpiece("dana-0"), [100, 100])
         case "lisa": return gamejs.transform.scale(getpiece("lisa-0"), [100, 100])
         case "theo": return gamejs.transform.scale(getpiece("theo-0"), [100, 100])
+        case "rosa": return gamejs.transform.scale(getpiece("rosa-0"), [100, 100])
+        case "mort": return gamejs.transform.scale(getpiece("mort-0"), [100, 100])
 
 
         case "monster":
@@ -72,7 +74,11 @@ function getimage(name) {
             return img
 
         case "lump": return gamejs.transform.scale(getpiece("lump-0"), [100, 100])
+        case "largelump": return gamejs.transform.scale(getpiece("lump-0"), [180, 180])
         case "spike": return gamejs.transform.scale(getpiece("spike-0"), [100, 100])
+
+        case "crystal-0":
+            return gamejs.transform.scale(getpiece("crystal-0"), [400, 400])
 
         case "zoltar-4":
             return gamejs.transform.scale(getpiece("zoltar-1"), [300, 300])

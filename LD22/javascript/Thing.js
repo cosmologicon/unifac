@@ -401,6 +401,7 @@ Bolt.prototype.think = function(dt) {
         for (var j in state.monsters) {
             var m = state.monsters[j]
             var dx = m.gx - this.gx, dy = m.gy - this.gy
+//            alert([j, m.gx, m.gy, dx, dy, this.range])
             if (dx * dx + dy * dy < this.range * this.range) {
                 m.hit(this.dhp, this)
             }
@@ -552,7 +553,7 @@ Token.prototype.think = function(dt) {
     this.vx *= f
     this.vy *= f
     StagedThing.prototype.think.call(this, dt)
-    if (this.t > 30) this.die()
+    if (this.t > 15) this.die()
 }
 Token.prototype.affect = function(who) {
 }
@@ -722,6 +723,7 @@ Critter = function(hp0, walkspeed) {
     this.vz = 0
     this.bounce = 100
     this.shotcolor = "blue"
+    this.takesphysical = true  // Takes physical damage
     gamejs.draw.circle(this.image, "green", [30, 16], 16)
 }
 gamejs.utils.objects.extend(Critter, StagedThing)
@@ -853,7 +855,7 @@ Critter.prototype.attack = function (who) {
     }
 }
 Critter.prototype.localcontains = function(pos) {
-    var x = pos[0], y = pos[1] + this.r
+    var x = pos[0], y = pos[1] + this.r * 0.65
     return x * x + y * y < this.r * this.r
 }
 Critter.prototype.getshadow = function () {
@@ -912,6 +914,7 @@ Adventurer.prototype.considerattacking = function(monsters) {
     var closest = null, d2min = 0
     for (var j in monsters) {
         var m = monsters[j]
+        if (!m.takesphysical) continue
         var dx = m.gx - x, dy = m.gy - y
         var d2 = dx * dx + dy * dy
         if (d2 > this.hitradius * this.hitradius) continue
@@ -924,7 +927,7 @@ Adventurer.prototype.considerattacking = function(monsters) {
 }
 // Will respond to user commands
 Adventurer.prototype.isresponding = function() {
-    return !this.reeltimer && !this.quakejump
+    return !this.quakejump
 }
 // Can get hit by, you know, stuff
 Adventurer.prototype.isvulnerable = function() {
@@ -1064,6 +1067,13 @@ Monster.prototype.think = function (dt) {
             this.target = [this.gx + r * Math.cos(theta), this.gy + r * Math.sin(theta)]
         }
     }
+    if (this.hittimer && this.prey && !this.target && this.wandertime) {
+        if (Math.random() * this.wandertime * 2 < dt) {
+            var r = Math.random() * 200 + 100
+            var theta = Math.random() * 1000
+            this.target = [this.gx + r * Math.cos(theta), this.gy + r * Math.sin(theta)]
+        }
+    }
 }
 Monster.prototype.hit = function(dhp, who) {
     Critter.prototype.hit.call(this, dhp, who)
@@ -1108,6 +1118,24 @@ Lump.prototype.droploot = function() {
     this.droptoken(ExpToken, 1)
     if (Math.random() < 0.3) {
         this.droptoken(HealToken, 5)
+    }
+}
+
+
+LargeLump = function() {
+    var hp = 10
+    Monster.apply(this, [hp])
+    this.image = Images.getimage("largelump")
+    this.wandertime = 10
+    this.strength = 1
+    this.basespeed = 25
+    this.r *= 1.8
+}
+gamejs.utils.objects.extend(LargeLump, Monster)
+Lump.prototype.droploot = function() {
+    this.droptoken(ExpToken, 3)
+    if (Math.random() < 0.5) {
+        this.droptoken(ManaToken, 5)
     }
 }
 
@@ -1158,6 +1186,31 @@ Bomb.prototype.attack = function(who) {
 
 
 // BOSSES
+
+// The Crystal just sort of stands around, you know?
+Crystal = function(level) {
+    var hp = 50
+    Monster.apply(this, [hp])
+    this.r = 60
+    this.t = Math.random() * 100
+    this.wandertime = 0
+    this.image = Images.getimage("crystal-0")
+    this.bounce = 0
+    this.takesphysical = false
+}
+gamejs.utils.objects.extend(Crystal, Monster)
+Crystal.prototype.chooseprey = function(players) {
+}
+Crystal.prototype.think = function (dt) {
+    this.reeltimer = 0
+    Monster.prototype.think.call(this, dt)
+}
+Crystal.prototype.draw = function (screen) {
+    this.reeltimer = 0
+    Monster.prototype.draw.call(this, screen)
+}
+
+
 
 // Zoltar never picks any prey, just spawns chaos
 Zoltar = function(level) {
@@ -1315,6 +1368,7 @@ exports.Monster = Monster
 exports.Lump = Lump
 exports.Spike = Spike
 exports.Bomb = Bomb
+exports.Crystal = Crystal
 exports.Zoltar = Zoltar
 exports.Birdy = Birdy
 

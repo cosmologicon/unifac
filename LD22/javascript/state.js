@@ -92,9 +92,9 @@ var mtypes = {
 }
 
 exports.gameevents = function(dt) {
-    
+    gamet += dt
 
-    if (exports.currentlevel == 1) {
+    if (exports.currentlevel < 10) {
         while (monsterq.length && monsterq[0][0] >= exports.monsters.length) {
             var wave = monsterq.splice(0, 1)[0]
             var theta = Math.random() * 1000, r = 600
@@ -110,13 +110,33 @@ exports.gameevents = function(dt) {
         }
         if (exitportal.parent) {
             checkexitportal()
-        } else if (!monsterq.length && !exports.monsters.length) {
-            placeexitportal()
+        }
+
+        if (exports.currentlevel == 2) {
+            if (Math.random() * 10 < dt) {
+                var n = Math.floor(Math.sqrt(gamet)) + 1
+                var mons = [n]
+                for (var j = 0 ; j < n ; ++j) mons.push("lump")
+                monsterq = [mons]
+            }
+        }
+
+        
+        // End conditions
+        if (exports.currentlevel == 1) {  // Kill all monsters
+            if (!monsterq.length && !exports.monsters.length) {
+                placeexitportal()
+            }
+        } else if (exports.currentlevel == 2) {  // Kill the crystal
+            if (crystal.hp <= 0) {
+                placeexitportal()
+            }
         }
     }
 }
 
 placeexitportal = function() {
+    if (exitportal.parent) return
     exitportal.attachto(exports.indicators)
     exitportal.reposition()
     exitportal.r *= 2
@@ -134,7 +154,14 @@ checkexitportal = function () {
 }
 
 beatlevel = function() {
-    // TODO: increment unlocked level
+    completedlevel = exports.currentlevel
+    if (exports.currentlevel == 1) {
+        for (var j in playerstates) {
+            playerstates[j].mp0 = 10
+        }
+    }
+    exports.savestate()
+
     // TODO: desertion
     exports.loadlevel(71)
 }
@@ -143,31 +170,50 @@ beatlevel = function() {
 
 exports.currentlevel = 0
 exports.loadlevel = function(level) {
+    gamet = 0
     if (!level) {
-        if (exports.currentlevel == 0) {
-            level = 21
-        } else if (exports.currentlevel == 21) {
-            level = 1
-        } else if (exports.currentlevel == 1) {
+        if (exports.currentlevel == 0) {  // start -> first title
+            level = 21 + completedlevel
+        } else if (exports.currentlevel > 20 && exports.currentlevel < 30) {  // title ->  gameplay
+            level = exports.currentlevel - 20
+        } else if (exports.currentlevel == 1) {   // gameplay -> shop. shouldn't be here.
             level = 10
-        } else if (exports.currentlevel == 10) {
-            level = 21
-        } else if (exports.currentlevel == 71) {
+        } else if (exports.currentlevel == 10) {  // shop -> title
+            level = 21 + completedlevel
+        } else if (exports.currentlevel == 71) {  // end title -> cutscene
             // TODO: should be cutscene
             level = 10
-        } else if (exports.currentlevel == 72) {
+        } else if (exports.currentlevel == 72) {  // end title -> shop
             level = 10
         }
     }
+    alert([exports.currentlevel, level])
     exports.currentlevel = level
 
 
     creategroups()
 
     if (exports.currentlevel == 21) {
-        exports.title = "Quest for the forgotten Spells"
+        exports.title = "Quest for the Lost Spells"
+        exports.subtitle = "Five adventurers remain"
+    }
+    if (exports.currentlevel == 22) {
+        exports.title = "Quest for the Crystal Key"
         exports.subtitle = "Four adventurers remain"
     }
+    if (exports.currentlevel == 23) {
+        exports.title = "The Cavern of Zoltar"
+        exports.subtitle = "Three adventurers remain"
+    }
+    if (exports.currentlevel == 24) {
+        exports.title = "Zoltar's Lair"
+        exports.subtitle = "Two adventurers remain"
+    }
+    if (exports.currentlevel == 25) {
+        exports.title = "The Last Adventure"
+        exports.subtitle = "One adventurer remains"
+    }
+
 
     if (exports.currentlevel == 71) {
         exports.title = "Quest completed"
@@ -190,7 +236,18 @@ exports.loadlevel = function(level) {
             exports.players.push(player);
             player.castshadow()
         }
-        monsterq = [[0,"lump","lump","lump"], [1,"lump","lump","lump"]]
+    }
+
+    if (exports.currentlevel == 1) {  // Fixed monster queue
+        monsterq = [[0,"lump","lump","lump"], [1,"lump","lump","lump"], [2,"lump","lump","lump"],
+            [3,"lump","lump","lump","lump","lump","lump"],
+            [4,"lump","lump","lump","lump","lump","lump","lump","lump","lump"],
+            [5,"lump","lump","lump","lump","lump","lump","lump","lump","lump"],
+        ]
+        exitportal = new Thing.ExitPortal()
+    } else if (exports.currentlevel == 2) {
+        crystal = (new Thing.Crystal()).attachto(exports.critters)
+        exports.monsters.push(crystal)
         exitportal = new Thing.ExitPortal()
     }
     if (exports.currentlevel == 10) {
@@ -241,10 +298,13 @@ exports.upgrade = function(type, who) {
             playerstates[who].mp0 += 5
             break
         case 2:
-            playerstates[who].speed += 10
+            playerstates[who].strength += 1
             break
         case 3:
-            playerstates[who].range += 10
+            playerstates[who].speed += 10
+            break
+        case 4:
+            playerstates[who].range += 20
             break
     }
     playerstates[who].xpspent += amt
@@ -254,47 +314,14 @@ exports.upgrade = function(type, who) {
 
 
 var playerstates = [
-{
-    name: "dana",
-    size: 30,
-    skill: "bolt",
-    hp0: 200,
-    mp0: 200,
-    speed: 100,
-    range: 100,
-    strength: 3,
-    xpspent: 0,
-    upgrades: [0, 0, 0, 0],
-    deserted: 0,
-},
-{
-    name: "lisa",
-    size: 30,
-    skill: "bolt",
-    hp0: 200,
-    mp0: 200,
-    speed: 100,
-    range: 100,
-    strength: 3,
-    xpspent: 0,
-    upgrades: [0, 0, 0, 0],
-    deserted: 0,
-},
-{
-    name: "theo",
-    size: 30,
-    skill: "bolt",
-    hp0: 200,
-    mp0: 200,
-    speed: 100,
-    range: 100,
-    strength: 3,
-    xpspent: 0,
-    upgrades: [0, 0, 0, 0],
-    deserted: 0,
-}]
+  { name: "dana", size: 28, skill: "bolt",  hp0: 20, mp0: 0, speed: 90,  range: 100, strength: 3, xpspent: 0, upgrades: [0, 0, 0, 0, 0], deserted: 0, },
+  { name: "lisa", size: 28, skill: "quake", hp0: 40, mp0: 0, speed: 60,  range: 100, strength: 2, xpspent: 0, upgrades: [0, 0, 0, 0, 0], deserted: 0, },
+  { name: "theo", size: 28, skill: "quake", hp0: 20, mp0: 0, speed: 80,  range:  60, strength: 2, xpspent: 0, upgrades: [0, 0, 0, 0, 0], deserted: 0, },
+  { name: "rosa", size: 28, skill: "bolt",  hp0: 20, mp0: 0, speed: 120, range:  60, strength: 2, xpspent: 0, upgrades: [0, 0, 0, 0, 0], deserted: 0, },
+  { name: "mort", size: 28, skill: "drain", hp0: 40, mp0: 0, speed: 50,  range: 140, strength: 1, xpspent: 0, upgrades: [0, 0, 0, 0, 0], deserted: 0, },
+]
 var completedlevel = 0
-exports.xp = 50
+exports.xp = 0
 
 
 // The state is the overall quest state, doesn't include things that reset
@@ -305,14 +332,25 @@ exports.savestate = function() {
 }
 
 exports.loadstate = function() {
-    var obj = JSON.parse(localStorage.lastadvstate)
-    exports.xp = obj[0]
-    currentlevel = obj[1]
-    playerstates = obj[2]
+    if (localStorage.lastadvstate) {
+        var obj = JSON.parse(localStorage.lastadvstate)
+        exports.xp = obj[0]
+        currentlevel = obj[1]
+        playerstates = obj[2]
+    }
+    exports.savestate()
 }
+
+delete localStorage.lastadvstate  // TODO: remove
+exports.loadstate()
 
 exports.resetstate = function() {
     delete localStorage.lastadvstate
     window.location.reload()
 }
+
+
+
+
+
 
