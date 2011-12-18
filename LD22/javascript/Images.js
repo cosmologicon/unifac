@@ -53,6 +53,11 @@ function getimage(name) {
             img.blit(getpiece("peepers-0"))
             return gamejs.transform.scale(img, [100, 100])
 
+        case "dana": return gamejs.transform.scale(getpiece("dana-0"), [100, 100])
+        case "lisa": return gamejs.transform.scale(getpiece("lisa-0"), [100, 100])
+        case "theo": return gamejs.transform.scale(getpiece("theo-0"), [100, 100])
+
+
         case "monster":
             var img = new gamejs.Surface([100, 100])
             gamejs.draw.circle(img, "green", [50, 25], 25)
@@ -66,19 +71,17 @@ function getimage(name) {
             gamejs.draw.circle(img, "#AAAA00", [30, 16], 16)
             return img
 
-        case "lump":
-            return gamejs.transform.scale(getpiece("lump-0"), [100, 100])
-        case "spike":
-            return gamejs.transform.scale(getpiece("spike-0"), [100, 100])
+        case "lump": return gamejs.transform.scale(getpiece("lump-0"), [100, 100])
+        case "spike": return gamejs.transform.scale(getpiece("spike-0"), [100, 100])
 
         case "zoltar-4":
-            return gamejs.transform.scale(getpiece("zoltar-0"), [300, 300])
+            return gamejs.transform.scale(getpiece("zoltar-1"), [300, 300])
         case "zoltar-3":
-            return gamejs.transform.scale(getpiece("zoltar-0"), [200, 200])
+            return gamejs.transform.scale(getpiece("zoltar-1"), [200, 200])
         case "zoltar-2":
-            return gamejs.transform.scale(getpiece("zoltar-0"), [150, 150])
+            return gamejs.transform.scale(getpiece("zoltar-1"), [150, 150])
         case "zoltar-1":
-            return gamejs.transform.scale(getpiece("zoltar-0"), [120, 120])
+            return gamejs.transform.scale(getpiece("zoltar-1"), [120, 120])
 
         case "birdy-0":
             return gamejs.transform.scale(getpiece("birdy-0"), [200, 200])

@@ -818,7 +818,7 @@ Adventurer = function(pstate) {
     this.manabar = null
     this.casttarget = null
     this.quakejump = null
-    this.image = Images.getimage("adv")
+    this.image = Images.getimage(pstate.name)
 }
 gamejs.utils.objects.extend(Adventurer, Critter)
 Adventurer.prototype.nab = function(tokens) {

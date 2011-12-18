@@ -46,7 +46,7 @@ exports.applyselection = function(newselected) {
 //      - critters
 // - HUD
 
-exports.makelayers = function() {
+makelayers = function() {
     HUD = new Thing.Thing()
     gameplay = new Thing.Thing()
     var fps = (new Thing.FPSCounter()).attachto(HUD)
@@ -65,21 +65,41 @@ exports.makelayers = function() {
 
 }
 
-exports.loadlevel = function() {
-    for (var j = 0 ; j < playerstates.length ; ++j) {
-        var player = new Thing.Adventurer(playerstates[j])
-        var pos = [Math.random() * 400 - 200, Math.random() * 400 - 200]
-        player.attachto(exports.critters).setstagepos(pos)
-        exports.players.push(player);
-        player.castshadow()
+exports.currentlevel = 0
+exports.loadlevel = function(level) {
+    if (!level) {
+        if (exports.currentlevel == 0) {
+            level = 21
+        } else if (exports.currentlevel == 21) {
+            level = 1
+        }
     }
-    exports.monsterq = ["lump", "lump", "lump"]
+    exports.currentlevel = level
+
+
+    if (exports.currentlevel == 21) {
+        exports.title = "Quest for the forgotten Spells"
+        exports.subtitle = "Four adventurers remain"
+    }
+
+    if (exports.currentlevel == 1) {
+        makelayers()
+        for (var j = 0 ; j < playerstates.length ; ++j) {
+            var player = new Thing.Adventurer(playerstates[j])
+            var pos = [Math.random() * 400 - 200, Math.random() * 400 - 200]
+            player.attachto(exports.critters).setstagepos(pos)
+            exports.players.push(player);
+            player.castshadow()
+        }
+        exports.monsterq = ["lump", "lump", "lump"]
+    }
 }
 
 
 
-var playerstate = {
-    name: "Simone",
+var playerstates = [
+{
+    name: "dana",
     size: 30,
     skill: "bolt",
     hp0: 200,
@@ -88,18 +108,37 @@ var playerstate = {
     range: 100,
     xpspent: 0,
     deserted: 0,
-}
-
-var playerstates = new Array()
-for (var j = 0 ; j < 4 ; ++j) playerstates[j] = playerstate
-var currentlevel = 1
+},
+{
+    name: "lisa",
+    size: 30,
+    skill: "bolt",
+    hp0: 200,
+    mp0: 200,
+    speed: 100,
+    range: 100,
+    xpspent: 0,
+    deserted: 0,
+},
+{
+    name: "theo",
+    size: 30,
+    skill: "bolt",
+    hp0: 200,
+    mp0: 200,
+    speed: 100,
+    range: 100,
+    xpspent: 0,
+    deserted: 0,
+}]
+var completedlevel = 0
 exports.xp = 0
 
 
 // The state is the overall quest state, doesn't include things that reset
 // when you start a level over
 exports.savestate = function() {
-    var obj = [exports.xp, currentlevel, playerstates]
+    var obj = [exports.xp, completedlevel, playerstates]
     localStorage.lastadvstate = JSON.stringify(obj)
 }
 

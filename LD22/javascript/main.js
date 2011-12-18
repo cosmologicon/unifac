@@ -147,7 +147,7 @@ function handlekeydown(key, pos) {
             state.monsters.push(z)
             z.castshadow()
             break
-        case gamejs.event.K_b:
+        case gamejs.event.K_k:
             var b = (new Thing.Birdy()).attachto(state.critters).setstagepos([0,0,100])
             state.monsters.push(b)
             b.castshadow()
@@ -158,7 +158,47 @@ function handlekeydown(key, pos) {
 var t0 = 0
 function think(dt) {
     dt = Math.min(dt * 0.001, 0.1)
+    if (state.currentlevel > 20) {
+        titlethink(dt)
+    } else if (state.currentlevel > 10) {
+        cutthink(dt)
+    } else if (state.currentlevel == 10) {
+        shopthink(dt)
+    } else if (state.currentlevel >= 1) {
+        gamethink(dt)
+    }
+}
 
+
+function titlethink(dt) {
+    screen.fill("black")
+    screen._context.textAlign = "center"
+    screen._context.fillStyle = "white"
+    screen._context.font = "bold 40px serif"
+    screen._context.fillText(state.title, 427, 200)
+    screen._context.font = "bold 24px serif"
+    screen._context.fillText(state.subtitle, 427, 260)
+    screen._context.font = "16px serif"
+    screen._context.fillText("click to continue", 427, 400)
+    gamejs.event.get().forEach(function(event) {
+        if (event.type === gamejs.event.MOUSE_UP) {
+            if (screen.getRect().collidePoint(event.pos)) {
+                state.loadlevel()
+            }
+        }
+    })
+}
+
+
+// Upgradin stuff....
+function shopthink(dt) {
+
+}
+
+
+
+// The gameplay context
+function gamethink(dt) {
     gamejs.event.get().forEach(function(event) {
         if (event.type === gamejs.event.MOUSE_UP) {
             if (screen.getRect().collidePoint(event.pos)) {
@@ -272,7 +312,7 @@ function init() {
     
 
     screen = gamejs.display.getSurface()
-    state.makelayers()
+//    state.makelayers()
     state.loadlevel()
 
     gamejs.time.fpsCallback(think, null, 10)
@@ -285,12 +325,17 @@ gamejs.preload([
     "img/birdy-1.png",
     "img/birdy-2.png",
     "img/birdy-3.png",
+    "img/dana-0.png",
     "img/foots-0.png",
+    "img/lisa-0.png",
     "img/lump-0.png",
     "img/noggin-0.png",
     "img/peepers-0.png",
+    "img/skull-0.png",
     "img/spike-0.png",
+    "img/theo-0.png",
     "img/zoltar-0.png",
+    "img/zoltar-1.png",
 ])
 
 
