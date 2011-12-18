@@ -388,12 +388,12 @@ Puddle.prototype.draw = function(screen) {
 }
 
 // Ka-boom!
-Bolt = function() {
+Bolt = function(dhp) {
     StagedThing.apply(this)
     this.t = 0
     this.spent = false
     this.range = 100
-    this.dhp = 10
+    this.dhp = dhp || 10
 }
 gamejs.utils.objects.extend(Bolt, StagedThing)
 Bolt.prototype.think = function(dt) {
@@ -567,7 +567,7 @@ Token.prototype.collect = function(who) {
 
 HealToken = function(dhp) {
     this.dhp = dhp || 5
-    Token.apply(this, ["+" + this.dhp + "HP", "red"])
+    Token.apply(this, ["+" + this.dhp + "HP", "green"])
 }
 gamejs.utils.objects.extend(HealToken, Token)
 HealToken.prototype.affect = function(who) {
@@ -639,7 +639,7 @@ Shot = function(sender, receiver, dhp, color) {
     this.zmax = this.tmax * 50.
     this.t = 0
 
-    r = Math.round(3 + Math.sqrt(this.dhp))
+    r = Math.round(5 + Math.sqrt(this.dhp))
     this.image = new gamejs.Surface([r, r])
     this.image.fill(this.color)
 }
@@ -648,23 +648,38 @@ Shot.prototype.think = function(dt) {
     this.t += dt
     if (this.t > this.tmax) {
         if (this.receiver && this.receiver.parent) {
-            this.receiver.hit(this.dhp, this.sender)
+            this.land()
         }
         this.die()
         return
     } else {
         if (this.receiver && this.receiver.parent) {
-            this.p1 = this.receiver.gamepos() || [0,0,0]
+            this.p1 = this.receiver.gamepos()
         }
-        var f = this.t / this.tmax
-        this.gx = this.p0[0] * (1 - f) + this.p1[0] * f
-        this.gy = this.p0[1] * (1 - f) + this.p1[1] * f
-        this.gz = this.p0[2] * (1 - f) + this.p1[2] * f + 30 + this.zmax * 4 * f * (1-f)
+        if (this.p1) {
+            var f = this.t / this.tmax
+            this.gx = this.p0[0] * (1 - f) + this.p1[0] * f
+            this.gy = this.p0[1] * (1 - f) + this.p1[1] * f
+            this.gz = this.p0[2] * (1 - f) + this.p1[2] * f + 30 + this.zmax * 4 * f * (1-f)
+        } else {
+            this.die()
+        }
 //        alert([f, this.t, this.tmax])
     }
     StagedThing.prototype.think.call(this, dt)
 }
+Shot.prototype.land = function() {
+    this.receiver.hit(this.dhp, this.sender)
+}
 
+Drainer = function(sender, receiver, dhp) {
+    Shot.apply(this, [sender, receiver, dhp, "green"])
+}
+gamejs.utils.objects.extend(Drainer, Shot)
+Drainer.prototype.land = function() {
+    this.receiver.hp = Math.min(this.receiver.hp + this.dhp, this.receiver.hp0)
+    var e = (new Effect("+" + this.dhp + "HP", "green")).attachto(this.receiver).setstagepos([0,0,60])
+}
 
 
 HealthBar = function() {
@@ -883,7 +898,7 @@ Adventurer = function(pstate) {
     
     this.reach = 20 // How far away you grab tokens
     this.r = pstate.size  // Clickable size. Probably won't alter from 30
-    this.healrate = 0.2
+    this.healrate = 0.02
     this.mp = this.mp0 / 2
     this.manarate = 0.2
     this.manabar = null
@@ -979,7 +994,7 @@ Adventurer.prototype.cancast = function() {
     return this.mp >= 3
 }
 Adventurer.prototype.castat = function(pos, critters, indicators, type) {
-    if (this.mp < 3) return false
+    if (this.mp < {bolt:5,quake:3,drain:3}[type]) return false
     type = type || this.skill || "quake"
     var dx = pos[0] - this.gx, dy = pos[1] - this.gy
     if (dx * dx + dy * dy < this.castradius * this.castradius) {
@@ -987,6 +1002,7 @@ Adventurer.prototype.castat = function(pos, critters, indicators, type) {
         switch (type) {
             case "bolt": this.castboltat(pos, critters, indicators) ; break
             case "quake": this.castquakeat(pos, critters, indicators) ; break
+            case "drain": this.castdrainat(pos, critters, indicators) ; break
         }
     } else {
         this.casttarget = [pos, critters, indicators, type]
@@ -995,15 +1011,38 @@ Adventurer.prototype.castat = function(pos, critters, indicators, type) {
 }
 Adventurer.prototype.castboltat = function(pos, critters, indicators) {
     // FIXME: unless we don't want to attach Adventurers
-    var b = (new Bolt()).attachto(critters).setstagepos(pos)
+    var b = (new Bolt(this.strength * 5)).attachto(critters).setstagepos(pos)
 //    var s = new Shockwave(0.4, 100, "white", 10)
 //    s.attachto(state.indicators).setstagepos(pos)
 //    state.mhazards.push(s)
-    this.mp -= 3
+    this.mp -= 5
 }
 Adventurer.prototype.castquakeat = function(pos, critters, indicators) {
     this.quakejump = ["up", pos, indicators]
     this.mp -= 3
+}
+Adventurer.prototype.castdrainat = function(pos, critters, indicators) {
+    var x = pos[0], y = pos[1]
+    if (!state.monsters) return
+    var closest = null, d2min = 0
+    for (var j in state.monsters) {
+        if (state.monsters[j].hp <= 0) continue
+        var dx = state.monsters[j].gx - x
+        var dy = state.monsters[j].gy - y
+        var d2 = dx * dx + dy * dy
+        if (d2 > this.castradius * this.castradius) continue
+        if (!closest || d2 < d2min) {
+            closest = state.monsters[j]
+            d2min = d2
+        }
+    }
+    if (closest) {
+        var dhp = Math.floor(Math.min(closest.hp, 3 * this.strength))
+        closest.hit(dhp, this)
+        var d = new Drainer(closest, this, dhp)
+        d.attachto(this.parent)
+        this.mp -= 3
+    }
 }
 // The casting sequence for the quake spell is a little involved
 Adventurer.prototype.handlequake = function(dt) {
@@ -1032,7 +1071,7 @@ Adventurer.prototype.handlequake = function(dt) {
             this.gz -= dz
             if (this.gz < 0) {
                 this.gz = 0
-                var s = new Shockwave(0.5, 300, "brown", 1)
+                var s = new Shockwave(0.5, 300, "brown", 3*this.strength)
                 s.attachto(this.quakejump[1]).setstagepos([this.gx, this.gy, 0])
                 state.mhazards.push(s)
                 this.quakejump = null
@@ -1119,6 +1158,9 @@ Lump.prototype.droploot = function() {
     if (Math.random() < 0.3) {
         this.droptoken(HealToken, 5)
     }
+    if (state.currentlevel != 1 && Math.random() < 0.3) {
+        this.droptoken(ManaToken, 5)
+    }
 }
 
 
@@ -1132,10 +1174,10 @@ LargeLump = function() {
     this.r *= 1.8
 }
 gamejs.utils.objects.extend(LargeLump, Monster)
-Lump.prototype.droploot = function() {
+LargeLump.prototype.droploot = function() {
     this.droptoken(ExpToken, 3)
     if (Math.random() < 0.5) {
-        this.droptoken(ManaToken, 5)
+        this.droptoken(ManaToken, 3)
     }
 }
 
@@ -1226,7 +1268,7 @@ Zoltar = function(level) {
     this.vjump = 200 * this.level
     this.jumpdist = 200 * this.level
     this.dhp = this.level
-    this.wavesize = 100 + 60 * this.level
+    this.wavesize = 60 + 40 * this.level
     this.vx = this.vy = this.vz = 0
     this.basespeed = 100 * this.level
 }
@@ -1366,6 +1408,7 @@ exports.Shockwave = Shockwave
 
 exports.Monster = Monster
 exports.Lump = Lump
+exports.LargeLump = LargeLump
 exports.Spike = Spike
 exports.Bomb = Bomb
 exports.Crystal = Crystal

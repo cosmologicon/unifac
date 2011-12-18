@@ -88,7 +88,8 @@ makeshoplayers = function() {
 }
 
 var mtypes = {
-    lump: Thing.Lump
+    lump: Thing.Lump,
+    largelump: Thing.LargeLump,
 }
 
 exports.gameevents = function(dt) {
@@ -113,10 +114,10 @@ exports.gameevents = function(dt) {
         }
 
         if (exports.currentlevel == 2) {
-            if (Math.random() * 10 < dt) {
-                var n = Math.floor(Math.sqrt(gamet)) + 1
+            if (Math.random() * 2 < dt) {
+                var n = Math.floor(Math.sqrt(gamet) / 3) + 1
                 var mons = [n]
-                for (var j = 0 ; j < n ; ++j) mons.push("lump")
+                for (var j = 0 ; j < n ; ++j) mons.push("lump") //Math.random() < 0.3 ? "largelump" : "lump")
                 monsterq = [mons]
             }
         }
@@ -128,7 +129,7 @@ exports.gameevents = function(dt) {
                 placeexitportal()
             }
         } else if (exports.currentlevel == 2) {  // Kill the crystal
-            if (crystal.hp <= 0) {
+            if (!crystal.parent) {
                 placeexitportal()
             }
         }
@@ -226,7 +227,7 @@ exports.loadlevel = function(level) {
 
 
 
-    if (exports.currentlevel == 1) {
+    if (exports.currentlevel < 10) {
         makelayers()
         for (var j = 0 ; j < playerstates.length ; ++j) {
             if (playerstates[j].deserted) continue
@@ -236,6 +237,8 @@ exports.loadlevel = function(level) {
             exports.players.push(player);
             player.castshadow()
         }
+        exitportal = new Thing.ExitPortal()
+        monsterq = new Array()
     }
 
     if (exports.currentlevel == 1) {  // Fixed monster queue
@@ -244,11 +247,9 @@ exports.loadlevel = function(level) {
             [4,"lump","lump","lump","lump","lump","lump","lump","lump","lump"],
             [5,"lump","lump","lump","lump","lump","lump","lump","lump","lump"],
         ]
-        exitportal = new Thing.ExitPortal()
     } else if (exports.currentlevel == 2) {
         crystal = (new Thing.Crystal()).attachto(exports.critters)
         exports.monsters.push(crystal)
-        exitportal = new Thing.ExitPortal()
     }
     if (exports.currentlevel == 10) {
         makeshoplayers()
@@ -349,6 +350,14 @@ exports.resetstate = function() {
     window.location.reload()
 }
 
+
+
+
+if (true) { // TODO: remove
+    for (var j in playerstates) playerstates[j].mp0 = 100
+    completedlevel = 1
+    exports.xp = 1000
+}
 
 
 

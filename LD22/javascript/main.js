@@ -38,7 +38,8 @@ function handleclick(pos) {
         var p = (new Thing.Puddle()).attachto(state.indicators).setstagepos(gamepos)
         for (var j = 0 ; j < state.selected.length ; ++j) {
             // TODO: better crowding algorithm
-            state.selected[j].target = [gamepos[0], gamepos[1] + 20 * j]
+            var theta = Math.random() * 1000, r = 20 * j
+            state.selected[j].target = [gamepos[0] + r * Math.sin(theta), gamepos[1] + r * Math.cos(theta)]
             state.selected[j].casttarget = null
             state.selected[j].prey = null
         }
@@ -92,7 +93,7 @@ function handlekeydown(key, pos) {
             }
             break
         case gamejs.event.K_0:
-            state.loadlevel()
+            state.beatlevel()
             break
         case gamejs.event.K_1:
             var gamepos = state.stage.togamepos(pos)
