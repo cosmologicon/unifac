@@ -188,6 +188,14 @@ beatlevel = function() {
 
     exports.loadlevel(71)
 }
+exports.beatlevel = beatlevel
+
+var musics = {
+    1: "happy-0",
+    2: "happy-1",
+    3: "happy-2",
+    10: "fast-0",
+}
 
 
 
@@ -213,6 +221,7 @@ exports.loadlevel = function(level) {
     alert([exports.currentlevel, level])
     exports.currentlevel = level
 
+    if (musics[level]) sound.playmusic(musics[level])
 
     creategroups()
 

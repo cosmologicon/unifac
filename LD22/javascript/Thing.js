@@ -757,7 +757,7 @@ Critter.prototype.think = function(dt) {
                 this.target = null
                 this.attack(this.prey)
             } else {
-                this.target = [this.prey.gx, this.prey.gy]
+                this.targetprey()
             }
         } else {
             if (dx * dx + dy * dy < this.hitradius * this.hitradius) {
@@ -817,6 +817,9 @@ Critter.prototype.think = function(dt) {
     this.hittimer = Math.max(this.hittimer - dt, 0)
     StagedThing.prototype.think.call(this, dt)
 }
+Critter.prototype.targetprey = function () {
+    this.target = [this.prey.gx, this.prey.gy]
+}
 Critter.prototype.isfacingright = function () {
     var dx = this.lastmotion[0], dy = this.lastmotion[1]
     // FIXME: must be grandchild of stage
@@ -869,6 +872,7 @@ Critter.prototype.attack = function (who) {
     if (this.parent) {
         var shot = new Shot(this, who, this.strength, this.shotcolor)
         shot.attachto(this.parent)
+        shot.setpos([this.gx, this.gy, 30])
         this.hittimer = this.hittime * (1 + 0.1 * Math.random())
         this.logmotion(who.gx - this.gx, who.gy - this.gy)
     }
@@ -1119,6 +1123,9 @@ Monster.prototype.think = function (dt) {
         }
     }
 }
+Monster.prototype.targetprey = function () {
+    this.target = [this.prey.gx + Math.random() * 200 - 100, this.prey.gy + Math.random() * 200 - 100]
+}
 Monster.prototype.hit = function(dhp, who) {
     Critter.prototype.hit.call(this, dhp, who)
     this.target = this.prey = null
@@ -1236,7 +1243,7 @@ Bomb.prototype.attack = function(who) {
 
 // The Crystal just sort of stands around, you know?
 Crystal = function(level) {
-    var hp = 50
+    var hp = 500
     Monster.apply(this, [hp])
     this.r = 60
     this.t = Math.random() * 100

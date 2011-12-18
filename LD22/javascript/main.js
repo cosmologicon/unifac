@@ -385,7 +385,7 @@ function init() {
 
 }
 
-// ls -1 img/*.png sound/*.ogg | sed 's/^/    \"/;s/$/\",/'
+// ls -1 img/*.png sound/*.ogg music/*.ogg | sed 's/^/    \"/;s/$/\",/'
 gamejs.preload([
     "img/birdy-0.png",
     "img/birdy-1.png",
@@ -406,9 +406,17 @@ gamejs.preload([
     "img/vern-0.png",
     "img/zoltar-0.png",
     "img/zoltar-1.png",
+    "music/boss-0.ogg",
+    "music/boss-2.ogg",
+    "music/cutscene-0.ogg",
+    "music/fast-0.ogg",
+    "music/happy-0.ogg",
+    "music/happy-1.ogg",
+    "music/happy-2.ogg",
     "sound/boing-0.ogg",
     "sound/cast-0.ogg",
     "sound/cry-0.ogg",
+    "sound/die-0.ogg",
     "sound/ding-0.ogg",
     "sound/klaxon-0.ogg",
     "sound/no-0.ogg",

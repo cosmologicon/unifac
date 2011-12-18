@@ -26,7 +26,7 @@ var musicname = null
 function playmusic(name) {
     if (musicname == name) return // already playing
     musicname = name
-    if (music) music.stop()
+    if (music) music.pause()
     music = new Audio("music/" + name + ".ogg")
     music.loop = true
     music.volume = musicvolume
