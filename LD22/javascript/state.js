@@ -1,4 +1,5 @@
 var Thing = require('./Thing')
+var sound = require('./sound')
 var ShopThing = require('./ShopThing')
 var gamejs = require('gamejs')
 
@@ -28,6 +29,7 @@ exports.filtergroups = function() {
 // Select new players
 var sindicators = []
 exports.applyselection = function(newselected) {
+    if (newselected.length) sound.play("select-0")
     for (var j in sindicators) {
         sindicators[j].die()
     }
@@ -138,6 +140,7 @@ exports.gameevents = function(dt) {
 
 placeexitportal = function() {
     if (exitportal.parent) return
+    sound.play("portal-0")
     exitportal.attachto(exports.indicators)
     exitportal.reposition()
     exitportal.r *= 2
@@ -309,7 +312,11 @@ exports.upgradeamt = function(type, who) {
 }
 exports.upgrade = function(type, who) {
     var amt = exports.upgradeamt(type, who)
-    if (exports.xp < amt) return
+    if (exports.xp < amt) {
+        sound.play("no-0")
+        return
+    }
+    sound.play("powerup-0")
     exports.xp -= amt
     switch (type) {
         case 0:

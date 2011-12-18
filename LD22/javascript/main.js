@@ -353,6 +353,7 @@ function gamethink(dt) {
 
 
 function init() {
+
     gamejs.display.setMode([854, 480])
 /*
     backdropimg = new gamejs.Surface([854, 854])
@@ -384,7 +385,7 @@ function init() {
 
 }
 
-// ls -1 img/*.png | sed 's/^/    \"/;s/$/\",/'
+// ls -1 img/*.png sound/*.ogg | sed 's/^/    \"/;s/$/\",/'
 gamejs.preload([
     "img/birdy-0.png",
     "img/birdy-1.png",
@@ -405,6 +406,17 @@ gamejs.preload([
     "img/vern-0.png",
     "img/zoltar-0.png",
     "img/zoltar-1.png",
+    "sound/boing-0.ogg",
+    "sound/cast-0.ogg",
+    "sound/cry-0.ogg",
+    "sound/ding-0.ogg",
+    "sound/klaxon-0.ogg",
+    "sound/no-0.ogg",
+    "sound/portal-0.ogg",
+    "sound/powerup-0.ogg",
+    "sound/quake-0.ogg",
+    "sound/select-0.ogg",
+    "sound/shine-0.ogg",
 ])
 
 

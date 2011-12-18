@@ -1,6 +1,7 @@
 var gamejs = require('gamejs')
 var Images = require('./Images')
 var state = require('./state')
+var sound = require('./sound')
 
 
 // Base class for entities, arranged into a tree
@@ -431,6 +432,7 @@ Shockwave = function(tmax, rmax, color1, dhp) {
     Puddle.apply(this, [tmax, rmax, null, color1])
     this.passed = []
     this.dhp = dhp || 1
+    sound.play("quake-0")
 }
 gamejs.utils.objects.extend(Shockwave, Puddle)
 Shockwave.prototype.draw = function(screen) {
@@ -768,6 +770,7 @@ Critter.prototype.think = function(dt) {
     }
 
     if (!this.reeltimer && this.hp < 0) {
+        sound.play("die-0")
         this.die()
     }
     if (this.reeltimer) {
@@ -852,6 +855,7 @@ Critter.prototype.canbounce = function() {
 Critter.prototype.hit = function(dhp, who) {
     if (!this.isvulnerable()) return
     this.hp -= dhp
+    sound.play("no-0")
     var e = (new Effect("-" + dhp + "HP", "red")).attachto(this).setstagepos([0,0,60])
     if (!this.healthbar) {
         this.healthbar = (new HealthBar()).attachto(this).setstagepos([0,0,60])
@@ -918,6 +922,7 @@ Adventurer.prototype.nab = function(tokens) {
             var dy = Math.abs(this.gy - token.gy)
             if (dy > this.reach) continue
             if (dx * dx + dy * dy < this.reach * this.reach) {
+                sound.play("powerup-0")
                 token.collect(this)
             }
         }
@@ -1247,6 +1252,10 @@ Crystal.prototype.think = function (dt) {
     this.reeltimer = 0
     Monster.prototype.think.call(this, dt)
 }
+Crystal.prototype.hit = function (dhp, who) {
+    sound.play("shine-0")
+    Monster.prototype.hit.call(this, dhp, who)
+}
 Crystal.prototype.draw = function (screen) {
     this.reeltimer = 0
     Monster.prototype.draw.call(this, screen)
@@ -1287,6 +1296,7 @@ Zoltar.prototype.think = function (dt) {
         this.bouncetimer -= dt
         if (this.bouncetimer < 0) {
             this.leap()
+            sound.play("boing-0")
         }
     }
     Monster.prototype.think.call(this, dt)
