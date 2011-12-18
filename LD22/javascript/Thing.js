@@ -898,9 +898,9 @@ Adventurer = function(pstate) {
     
     this.reach = 20 // How far away you grab tokens
     this.r = pstate.size  // Clickable size. Probably won't alter from 30
-    this.healrate = 0.02
+    this.healrate = 0.01
     this.mp = this.mp0 / 2
-    this.manarate = 0.2
+    this.manarate = 0.01
     this.manabar = null
     this.casttarget = null
     this.quakejump = null

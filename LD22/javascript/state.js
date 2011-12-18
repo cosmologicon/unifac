@@ -163,7 +163,26 @@ beatlevel = function() {
     }
     exports.savestate()
 
-    // TODO: desertion
+    // Desertion
+    var n = 0, xpmax = -1
+    deserted = null
+    for (var j in playerstates) {
+        if (playerstates[j].deserted) continue
+        if (playerstates[j].xpspent > xpmax) {
+            deserted = j
+            n = 1
+            xpmax = playerstates[j].xpspent
+        } else if (playerstates[j].xpspent == xpmax) {
+            if (Math.random() * (n + 1) < 1) {
+                deserted = j
+                n += 1
+            }
+        }
+    }
+    if (deserted !== null) {
+        playerstates[deserted].deserted = true
+    }
+
     exports.loadlevel(71)
 }
 
@@ -218,11 +237,11 @@ exports.loadlevel = function(level) {
 
     if (exports.currentlevel == 71) {
         exports.title = "Quest completed"
-        exports.subtitle = " " // TODO: hasty explanation?
+        exports.subtitle = "But one adventurer could not continue..."
     }
     if (exports.currentlevel == 72) {
         exports.title = "Quest failed"
-        exports.subtitle = " "
+        exports.subtitle = "Try again"
     }
 
 
@@ -279,6 +298,7 @@ exports.loadlevel = function(level) {
 exports.setshopvisibility = function() {
     greeting.attachto(exports.selected.length == 0 ? exports.HUD : null)
     for (var j = 0 ; j < upgrademenu.length ; ++j) {
+        if (!upgrademenu[j]) continue
         var sel = exports.selected.indexOf(upgrademenu[j].player) > -1
         upgrademenu[j].attachto(sel ? exports.HUD : null)
     }
@@ -310,7 +330,11 @@ exports.upgrade = function(type, who) {
     }
     playerstates[who].xpspent += amt
     playerstates[who].upgrades[type] += 1
-    for (var j in upgrademenu) upgrademenu[j].image = null
+    for (var j in upgrademenu) {
+        if (upgrademenu[j]) {
+            upgrademenu[j].image = null
+        }
+    }
 }
 
 
@@ -353,7 +377,7 @@ exports.resetstate = function() {
 
 
 
-if (true) { // TODO: remove
+if (false) { // TODO: remove
     for (var j in playerstates) playerstates[j].mp0 = 100
     completedlevel = 1
     exports.xp = 1000
