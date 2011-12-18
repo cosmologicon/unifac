@@ -52,8 +52,25 @@ function getimage(name) {
             img.blit(getpiece("noggin-0"))
             img.blit(getpiece("peepers-0"))
             return gamejs.transform.scale(img, [100, 100])
+
+        case "monster":
+            var img = new gamejs.Surface([100, 100])
+            gamejs.draw.circle(img, "green", [50, 25], 25)
+            return img
+        case "bomb0":
+            var img = new gamejs.Surface([60, 60])
+            gamejs.draw.circle(img, "#440000", [30, 16], 16)
+            return img
+        case "bomb1":
+            var img = new gamejs.Surface([60, 60])
+            gamejs.draw.circle(img, "#AAAA00", [30, 16], 16)
+            return img
+
         case "lump":
             return gamejs.transform.scale(getpiece("lump-0"), [100, 100])
+        case "spike":
+            return gamejs.transform.scale(getpiece("spike-0"), [100, 100])
+
         case "zoltar-4":
             return gamejs.transform.scale(getpiece("zoltar-0"), [300, 300])
         case "zoltar-3":
@@ -62,6 +79,16 @@ function getimage(name) {
             return gamejs.transform.scale(getpiece("zoltar-0"), [150, 150])
         case "zoltar-1":
             return gamejs.transform.scale(getpiece("zoltar-0"), [120, 120])
+
+        case "birdy-0":
+            return gamejs.transform.scale(getpiece("birdy-0"), [200, 200])
+        case "birdy-1":
+            return gamejs.transform.scale(getpiece("birdy-1"), [200, 200])
+        case "birdy-2":
+            return gamejs.transform.scale(getpiece("birdy-2"), [200, 200])
+        case "birdy-3":
+            return gamejs.transform.scale(getpiece("birdy-3"), [200, 200])
+
     }
 }
 

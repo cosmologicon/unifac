@@ -264,7 +264,7 @@ StagedThing.prototype.draw = function(screen) {
     var d2 = this.gx * this.gx + this.gy * this.gy
     if (d2 > 427 * 427) {
         // TODO: find some way to fade
-        screen._context.globalAlpha *= 0.5
+        //screen._context.globalAlpha *= 0.5
     }
     Thing.prototype.draw.call(this, screen)
 }
@@ -286,17 +286,13 @@ Effect = function(text, color) {
     this.text = text || " "
     this.color = color || "yellow"
     // TODO: use a stroke-able font because it looks cooler
-    this.font = new gamejs.font.Font("12px sans-serif")
+    this.font = new gamejs.font.Font("bold 16px sans-serif")
     this.image = this.font.render(this.text, this.color)
     return this
 }
 gamejs.utils.objects.extend(Effect, StagedThing)
 Effect.prototype.think = function(dt) {
     this.gz += 50 * dt
-//    alert([this.gx, this.gy, this.gz])
-//    alert(this.gamepos())
-//    alert(this.stageposof(this.gamepos()))
-//    alert(this.stagepos())
     StagedThing.prototype.think.call(this, dt)
     this.t += dt
     if (this.t > 0.8) this.die()
@@ -329,11 +325,13 @@ Indicator.prototype.think = function(dt) {
 }
 // TODO: make it an image
 Indicator.prototype.draw = function(screen) {
+    screen._context.save()
     screen._context.scale(1, 0.5)
     if (this.color0)
         gamejs.draw.circle(screen, this.color0, [0, 0], this.r)
     if (this.color1)
         gamejs.draw.circle(screen, this.color1, [0, 0], this.r, 2)
+    screen._context.restore()
 }
 
 // Like an indicator but it doesn't follow anything around
@@ -352,12 +350,14 @@ Puddle.prototype.think = function(dt) {
     if (this.t > this.tmax) this.die()
 }
 Puddle.prototype.draw = function(screen) {
+    screen._context.save()
     screen._context.scale(1, 0.5)
     var r = this.t * this.rmax / this.tmax
     if (r > 3) {
         gamejs.draw.circle(screen, this.color0, [0, 0], r)
         gamejs.draw.circle(screen, this.color1, [0, 0], r, 2)
     }
+    screen._context.restore()
 }
 
 // Ka-boom!
@@ -454,9 +454,11 @@ Selector.prototype.think = function(dt) {
 }
 Selector.prototype.draw = function(screen) {
     if (this.r > 4) {
+        screen._context.save()
         screen._context.scale(1, 0.5)
         gamejs.draw.circle(screen, "rgba(80,80,80,0.25)", [0, 0], this.r)
         gamejs.draw.circle(screen, "#FF0000", [0, 0], this.r, 2)
+        screen._context.restore()
     }
 }
 // FIXME: doesn't work if not directly connected to the stage
@@ -470,7 +472,7 @@ Selector.prototype.contains = function(critter) {
 // Collectible token
 Token = function(info, color) {
     StagedThing.apply(this)
-    this.t = Math.random() * 100
+    this.t = 0
     this.image = new gamejs.Surface([10, 18])
     this.color = color || "white"
     gamejs.draw.circle(this.image, this.color, [5, 5], 5)
@@ -569,7 +571,8 @@ Shot = function(sender, receiver, dhp, color) {
     this.zmax = this.tmax * 50.
     this.t = 0
 
-    this.image = new gamejs.Surface([4, 4])
+    r = Math.round(3 + Math.sqrt(this.dhp))
+    this.image = new gamejs.Surface([r, r])
     this.image.fill(this.color)
 }
 gamejs.utils.objects.extend(Shot, StagedThing)
@@ -646,6 +649,8 @@ Critter = function(hp0, walkspeed) {
     this.image = new gamejs.Surface([60, 60])
     this.hp = this.hp0
     this.reeltimer = 0
+    this.reeltilt = true
+    this.reelspeed = 400
     this.lastmotion = [Math.random() - 0.5, Math.random() - 0.5]  // To determine facing right
     this.vz = 0
     this.bounce = 100
@@ -659,7 +664,7 @@ Critter.prototype.think = function(dt) {
     } else if (this.prey) {
         var dx = this.prey.gx - this.gx, dy = this.prey.gy - this.gy
         this.logmotion(dx, dy)
-        var r = this.hitradius - 20
+        var r = this.hitradius * 0.8
         if (this.target) { // already pursuing the prey
             if (dx * dx + dy * dy < r * r) {
                 this.target = null
@@ -682,7 +687,11 @@ Critter.prototype.think = function(dt) {
     }
     if (this.reeltimer) {
         var dx = this.reelfrom[0] - this.gx, dy = this.reelfrom[1] - this.gy
-        var f = 4 * this.walkspeed * Math.min(dt, this.reeltimer) / Math.sqrt(dx * dx + dy * dy)
+        if (dx * dx + dy * dy < 1) {
+            dx = Math.random() - 0.5
+            dy = Math.random() - 0.5
+        }
+        var f = this.reelspeed * Math.min(dt, this.reeltimer) / Math.sqrt(dx * dx + dy * dy)
         this.gx -= dx * f
         this.gy -= dy * f
         this.reeltimer -= dt
@@ -732,7 +741,7 @@ Critter.prototype.reelingfromright = function () {
 }
 Critter.prototype.draw = function (screen) {
     screen._context.save()
-    if (this.reeltimer) screen._context.rotate(this.reelingfromright() ? -0.5 : 0.5)
+    if (this.reeltimer && this.reeltilt) screen._context.rotate(this.reelingfromright() ? -0.5 : 0.5)
     if (this.isfacingright()) screen._context.scale(-1, 1)
     StagedThing.prototype.draw.call(this, screen)
     screen._context.restore()
@@ -779,6 +788,12 @@ Critter.prototype.localcontains = function(pos) {
     var x = pos[0], y = pos[1] + this.r
     return x * x + y * y < this.r * this.r
 }
+Critter.prototype.getshadow = function () {
+    return new Indicator(this, this.r * 0.6, "rgba(0,0,0,0.4)", null)
+}
+Critter.prototype.castshadow = function () {
+    this.getshadow().attachto(state.indicators)
+}
 
 
 // Player character
@@ -793,7 +808,7 @@ Adventurer = function(pstate) {
     this.mp = this.mp0 / 2
     this.walkspeed = pstate.speed
     this.hitradius = pstate.range
-    this.castradius = 2 * pstate.range
+    this.castradius = pstate.range
     
     this.reach = 20 // How far away you grab tokens
     this.r = pstate.size  // Clickable size. Probably won't alter from 30
@@ -864,6 +879,7 @@ Adventurer.prototype.think = function(dt) {
     Critter.prototype.think.call(this, dt)
 }
 Adventurer.prototype.draw = function(screen) {
+    screen._context.save()
     if (this.quakejump) {
         if (this.quakejump[0] == "up") {
             var x = this.gz / 100
@@ -879,6 +895,7 @@ Adventurer.prototype.draw = function(screen) {
         }
     }
     Critter.prototype.draw.call(this, screen)
+    screen._context.restore()
 }
 Adventurer.prototype.getcastarea = function() {
     var i = new Indicator(this, this.castradius, null, "#0000FF")
@@ -982,9 +999,75 @@ Monster.prototype.hit = function(dhp, who) {
     this.target = this.prey = null
 }
 Monster.prototype.chooseprey = function(players) {
-    this.prey = players[0]
+    var closest = null, d2min = 0
+    for (var j in players) {
+        var p = players[j]
+        var dx = p.gx - this.gx, dy = p.gy - this.gy
+        var d2 = dx * dx + dy * dy
+        if (!closest || d2 < d2min) {
+            closest = p
+            d2min = d2
+        }
+    }
+    this.prey = closest
 }
 
+Lump = function() {
+    var hp = 30
+    Monster.apply(this, [hp])
+    this.image = Images.getimage("lump")
+    this.wandertime = 10
+    this.strength = 3
+    this.basespeed = 25
+}
+gamejs.utils.objects.extend(Lump, Monster)
+
+Spike = function() {
+    var hp = 10
+    Monster.apply(this, [hp])
+    this.image = Images.getimage("spike")
+    this.wandertime = 1
+    this.basespeed = 60
+}
+gamejs.utils.objects.extend(Spike, Monster)
+
+Bomb = function() {
+    var hp = 20
+    Monster.apply(this, [hp])
+    this.images = [Images.getimage("bomb0"), Images.getimage("bomb1")]
+    this.wandertime = 10
+    this.strength = 0
+    this.basespeed = 40
+    this.hitradius = 1
+    this.reeltilt = false
+    this.reelspeed = 600
+    this.t = 10
+}
+gamejs.utils.objects.extend(Bomb, Monster)
+Bomb.prototype.think = function (dt) {
+    var n = Math.round(this.t)
+    this.t -= dt
+    if (this.t <= 0) this.detonate()
+    this.image = this.images[Math.floor(this.t < 3 ? this.t * 6 : this.t * 3) % 2]
+    if (n && Math.round(this.t) != n && this.parent) {
+        var e = (new Effect("" + n, "red")).attachto(this.parent).setstagepos([this.gx, this.gy, 40])
+    }
+    Monster.prototype.think.call(this, dt)
+}
+Bomb.prototype.detonate = function () {
+    var s = new Shockwave(0.3, 150, "green", this.strength)
+    s.attachto(state.indicators).setstagepos([this.gx, this.gy, 0])
+    state.hazards.push(s)
+    this.die()
+}
+Bomb.prototype.attack = function(who) {
+    this.detonate()
+}
+
+
+
+
+// BOSSES
 
 // Zoltar never picks any prey, just spawns chaos
 Zoltar = function(level) {
@@ -1061,9 +1144,59 @@ Zoltar.prototype.die = function () {
         for (var j = 0 ; j < 3 ; ++j) {
             var z = (new Zoltar(level)).attachto(state.critters).setstagepos([this.gx, this.gy, 0])
             state.monsters.push(z)
+            z.castshadow()
         }
     }
     Monster.prototype.die.call(this)
+}
+
+
+// Birdy's bird form
+Birdy = function(level) {
+    var hp = 200
+    Monster.apply(this, [hp])
+    this.r = 40
+    this.t = Math.random() * 100
+    var fnames = ["birdy-0", "birdy-1", "birdy-2", "birdy-3"]
+    this.frames = new Array()
+    for (var j = 0 ; j < 4 ; ++j) this.frames.push(Images.getimage(fnames[j]))
+    this.image = this.frames[1]
+    this.strength = 10
+    this.basespeed = 250
+    this.reeltilt = false
+    this.hitradius = 400
+}
+gamejs.utils.objects.extend(Birdy, Monster)
+Birdy.prototype.think = function (dt) {
+    this.t += dt
+    var z = this.gz
+    if (this.target) {
+        var fnum = Math.floor(this.t * 8) % 4
+    } else {
+        var fnum = [0,1,1,1,1,1,1,1,2,3][Math.floor(this.t * 8) % 10]
+    }
+    this.image = this.frames[fnum]
+    this.gz += 5 * fnum
+    Monster.prototype.think.call(this, dt)
+    this.gz = z
+
+    if (Math.random() < dt * 6) {
+        for (var j = 0 ; j < state.players.length ; ++j) {
+            if (Math.random() < 0.8) continue
+            var p = state.players[j]
+            if (p.gx * p.gx + p.gy * p.gy < this.hitradius * this.hitradius) {
+                this.attack(p)
+            }
+        }
+    }
+}
+Birdy.prototype.chooseprey = function(players) {
+}
+Birdy.prototype.isearthbound = function() {
+    return false
+}
+Birdy.prototype.draw = function (screen) {
+    Monster.prototype.draw.call(this, screen)
 }
 
 
@@ -1087,6 +1220,10 @@ exports.Bolt = Bolt
 exports.Shockwave = Shockwave
 
 exports.Monster = Monster
+exports.Lump = Lump
+exports.Spike = Spike
+exports.Bomb = Bomb
 exports.Zoltar = Zoltar
+exports.Birdy = Birdy
 
 

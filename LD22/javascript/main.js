@@ -39,6 +39,7 @@ function handleclick(pos) {
         for (var j = 0 ; j < state.selected.length ; ++j) {
             // TODO: better crowding algorithm
             state.selected[j].target = [gamepos[0], gamepos[1] + 20 * j]
+            state.selected[j].casttarget = null
             state.selected[j].prey = null
         }
     }
@@ -76,6 +77,20 @@ function handlemousemove(pos) {
 
 function handlekeydown(key, pos) {
     switch (key) {
+        case gamejs.event.K_TAB:
+            if (state.players.length) {
+                if (state.selected.length == 1) {
+                    for (var j = 0 ; j < state.players.length ; ++j) {
+                        if (state.selected.indexOf(state.players[j]) != -1) {
+                            state.applyselection([state.players[(j+1)%state.players.length]])
+                            break
+                        }
+                    }
+                } else {
+                    state.applyselection([state.players[0]])
+                }
+            }
+            break
         case gamejs.event.K_1:
             var gamepos = state.stage.togamepos(pos)
             var s = (new Thing.Shockwave(0.5, 200)).attachto(state.indicators).setstagepos(gamepos)
@@ -102,11 +117,40 @@ function handlekeydown(key, pos) {
         case gamejs.event.K_m:
             var theta = Math.random() * 1000
             var pos = [600 * Math.cos(theta), 600 * Math.sin(theta)]
-            state.monsters.push((new Thing.Monster()).attachto(state.critters).setstagepos(pos))
+            var m = (new Thing.Monster()).attachto(state.critters).setstagepos(pos)
+            state.monsters.push(m)
+            m.castshadow()
+            break
+        case gamejs.event.K_l:
+            var theta = Math.random() * 1000
+            var pos = [600 * Math.cos(theta), 600 * Math.sin(theta)]
+            var m = (new Thing.Lump()).attachto(state.critters).setstagepos(pos)
+            state.monsters.push(m)
+            m.castshadow()
+            break
+        case gamejs.event.K_b:
+            var theta = Math.random() * 1000
+            var pos = [600 * Math.cos(theta), 600 * Math.sin(theta)]
+            var m = (new Thing.Bomb()).attachto(state.critters).setstagepos(pos)
+            state.monsters.push(m)
+            m.castshadow()
+            break
+        case gamejs.event.K_s:
+            var theta = Math.random() * 1000
+            var pos = [600 * Math.cos(theta), 600 * Math.sin(theta)]
+            var m = (new Thing.Spike()).attachto(state.critters).setstagepos(pos)
+            state.monsters.push(m)
+            m.castshadow()
             break
         case gamejs.event.K_z:
             var z = (new Thing.Zoltar()).attachto(state.critters).setstagepos([0,0,600])
             state.monsters.push(z)
+            z.castshadow()
+            break
+        case gamejs.event.K_b:
+            var b = (new Thing.Birdy()).attachto(state.critters).setstagepos([0,0,100])
+            state.monsters.push(b)
+            b.castshadow()
             break
     }
 }

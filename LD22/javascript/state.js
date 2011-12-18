@@ -71,9 +71,9 @@ exports.loadlevel = function() {
         var pos = [Math.random() * 400 - 200, Math.random() * 400 - 200]
         player.attachto(exports.critters).setstagepos(pos)
         exports.players.push(player);
-        // TODO: getshadow method
-        (new Thing.Indicator(player, 15, "rgba(0,0,0,0.5)", null)).attachto(exports.indicators)
+        player.castshadow()
     }
+    exports.monsterq = ["lump", "lump", "lump"]
 }
 
 
