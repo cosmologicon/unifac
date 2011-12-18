@@ -122,19 +122,44 @@ Thing.prototype.topcontains = function(pos) {
 }
 
 // A humble text box. Call update with new text!
-TextBox = function(text, pos) {
+TextBox = function(text, pos, fontname, color) {
     Thing.apply(this)
-    this.font = new gamejs.font.Font("20px sans-serif")
+    this.font = new gamejs.font.Font(fontname || "20px sans-serif")
+    this.color = color || "white"
     this.centered = false
     this.update(text)
     this.setpos(pos)
     return this
 }
 gamejs.utils.objects.extend(TextBox, Thing)
-TextBox.prototype.update = function(text) {
+TextBox.prototype.update = function(text, color) {
     this.text = text || " "
-    this.image = this.font.render(this.text, "white")
+    this.color = color || this.color
+    this.image = this.font.render(this.text, this.color)
 }
+
+Button = function(text, pos, callback) {
+    TextBox.apply(this, [text, pos])
+    this.callback = callback
+    this.font = new gamejs.font.Font("20px sans-serif")
+    this.centered = true
+    this.update(text)
+    this.setpos(pos)
+}
+gamejs.utils.objects.extend(Button, TextBox)
+Button.prototype.update = function(text) {
+    this.text = text || " "
+    var timg = this.font.render(this.text, "white")
+    this.image = timg.clone()
+    this.image.fill("gray")
+    this.image.blit(timg, [0,0])
+}
+Button.prototype.localcontains = function(pos) {
+    var r = this.image.getRect()
+    r.center = [0, 0]
+    return r.collidePoint(pos)
+}
+
 
 
 // FPS counter. automatically updates
@@ -168,9 +193,11 @@ Stage = function() {
     this.x = 427
     this.y = 267
     this.image0 = new gamejs.Surface([854, 854])
-    this.image0.fill("#004400")
-    for (var j = 0 ; j < 100 ; ++j)
-        gamejs.draw.circle(this.image0, "rgba(0,0,32,0.2)", [Math.random() * 854, Math.random() * 854], 100)
+    this.image0.fill("#444444")
+    for (var j = 0 ; j < 100 ; ++j) {
+        color = "rgba(" + Math.floor(Math.random() * 128) + "," + Math.floor(Math.random() * 128) + "," + Math.floor(Math.random() * 128) + ",0.2)"
+        gamejs.draw.circle(this.image0, color, [Math.random() * 854, Math.random() * 854], 100)
+    }
 //    this.image = gamejs.transform.scale(this.image0, [854, 427])
     this.image = this.image0
     this.setalpha()
@@ -189,10 +216,10 @@ Stage.prototype.setalpha = function (alpha) {
 Stage.prototype.think = function(dt) {
     Thing.prototype.think.call(this, dt)
     var dalpha = this.targetalpha - this.alpha
-    if (Math.abs(dalpha) < 0.1) {
+    if (Math.abs(dalpha) < 0.01) {
         this.setalpha(this.targetalpha)
     } else {
-        var f = 1 - Math.exp(-4 * dt)
+        var f = 1 - Math.exp(-6 * dt)
         this.setalpha(this.alpha + (this.targetalpha - this.alpha) * f)
     }
 }
@@ -468,6 +495,38 @@ Selector.prototype.contains = function(critter) {
 }
 
 
+ExitPortal = function() {
+    StagedThing.apply(this)
+    this.z = -4000
+    this.r = 100
+    this.t = 0
+}
+gamejs.utils.objects.extend(ExitPortal, StagedThing)
+ExitPortal.prototype.reposition = function() {
+    this.gx = Math.random() * 400 - 200
+    this.gy = Math.random() * 400 - 200
+    return this
+}
+ExitPortal.prototype.think = function(dt) {
+    this.t += dt
+    StagedThing.prototype.think.call(this, dt)
+}
+ExitPortal.prototype.draw = function(screen) {
+    screen._context.save()
+    screen._context.scale(1, 0.5)
+    var a = Math.sin(this.t * 2) * 0.4 + 0.5
+    gamejs.draw.circle(screen, "rgba(255,255,255," + a + ")", [0, 0], this.r)
+    gamejs.draw.circle(screen, "#0000FF", [0, 0], this.r, 2)
+    screen._context.restore()
+}
+ExitPortal.prototype.contains = function(critter) {
+    var dx = this.gx - critter.gx, dy = this.gy - critter.gy
+    return dx * dx + dy * dy < this.r * this.r
+}
+
+
+
+
 
 // Collectible token
 Token = function(info, color) {
@@ -477,6 +536,9 @@ Token = function(info, color) {
     this.color = color || "white"
     gamejs.draw.circle(this.image, this.color, [5, 5], 5)
     this.info = info || " "
+    var theta = Math.random() * 1000
+    this.vx = 120 * Math.cos(theta)
+    this.vy = 120 * Math.sin(theta)
 }
 gamejs.utils.objects.extend(Token, StagedThing)
 Token.prototype.think = function(dt) {
@@ -484,6 +546,11 @@ Token.prototype.think = function(dt) {
     var h = (this.t % 0.5) * 2
     h = Math.min(h, 1 - h) * 30
     this.gz = 25 * Math.abs(Math.sin(this.t * 5))
+    this.gx += this.vx * dt
+    this.gy += this.vy * dt
+    var f = Math.exp(-1 * dt)
+    this.vx *= f
+    this.vy *= f
     StagedThing.prototype.think.call(this, dt)
     if (this.t > 30) this.die()
 }
@@ -654,6 +721,7 @@ Critter = function(hp0, walkspeed) {
     this.lastmotion = [Math.random() - 0.5, Math.random() - 0.5]  // To determine facing right
     this.vz = 0
     this.bounce = 100
+    this.shotcolor = "blue"
     gamejs.draw.circle(this.image, "green", [30, 16], 16)
 }
 gamejs.utils.objects.extend(Critter, StagedThing)
@@ -778,7 +846,7 @@ Critter.prototype.hit = function(dhp, who) {
 }
 Critter.prototype.attack = function (who) {
     if (this.parent) {
-        var shot = new Shot(this, who, this.strength)
+        var shot = new Shot(this, who, this.strength, this.shotcolor)
         shot.attachto(this.parent)
         this.hittimer = this.hittime * (1 + 0.1 * Math.random())
         this.logmotion(who.gx - this.gx, who.gy - this.gy)
@@ -809,6 +877,7 @@ Adventurer = function(pstate) {
     this.walkspeed = pstate.speed
     this.hitradius = pstate.range
     this.castradius = pstate.range
+    this.strength = pstate.strength
     
     this.reach = 20 // How far away you grab tokens
     this.r = pstate.size  // Clickable size. Probably won't alter from 30
@@ -819,6 +888,7 @@ Adventurer = function(pstate) {
     this.casttarget = null
     this.quakejump = null
     this.image = Images.getimage(pstate.name)
+    this.shotcolor = "blue"
 }
 gamejs.utils.objects.extend(Adventurer, Critter)
 Adventurer.prototype.nab = function(tokens) {
@@ -861,7 +931,7 @@ Adventurer.prototype.isvulnerable = function() {
     return !this.reeltimer && !this.quakejump
 }
 Adventurer.prototype.think = function(dt) {
-    if (!this.manabar) {
+    if (!this.manabar && this.mp0) {
         this.manabar = (new ManaBar()).attachto(this).setstagepos([0,0,68])
     }
     if (this.quakejump) {
@@ -981,6 +1051,7 @@ Monster = function(hp0) {
 //    gamejs.draw.circle(this.image, "#008800", [2*this.r, this.r], this.r)
     this.wandertime = 3
     this.image = Images.getimage("lump")
+    this.shotcolor = "red"
 }
 gamejs.utils.objects.extend(Monster, Critter)
 Monster.prototype.think = function (dt) {
@@ -1011,16 +1082,35 @@ Monster.prototype.chooseprey = function(players) {
     }
     this.prey = closest
 }
+Monster.prototype.die = function() {
+    this.droploot()
+    Critter.prototype.die.call(this)
+}
+Monster.prototype.droploot = function() {
+}
+Monster.prototype.droptoken = function(type, amt) {
+    var token = (new type(amt)).attachto(state.critters).setstagepos([this.gx, this.gy, 0])
+    state.tokens.push(token)
+    var i = (new Indicator(token, 5, "rgba(0,0,0,0.5)", null)).attachto(state.indicators)
+}
+
 
 Lump = function() {
-    var hp = 30
+    var hp = 4
     Monster.apply(this, [hp])
     this.image = Images.getimage("lump")
     this.wandertime = 10
-    this.strength = 3
+    this.strength = 1
     this.basespeed = 25
 }
 gamejs.utils.objects.extend(Lump, Monster)
+Lump.prototype.droploot = function() {
+    this.droptoken(ExpToken, 1)
+    if (Math.random() < 0.3) {
+        this.droptoken(HealToken, 5)
+    }
+}
+
 
 Spike = function() {
     var hp = 10
@@ -1205,11 +1295,13 @@ Birdy.prototype.draw = function (screen) {
 exports.Thing = Thing
 exports.FPSCounter = FPSCounter
 exports.TextBox = TextBox
+exports.Button = Button
 exports.Stage = Stage
 exports.StagedThing = StagedThing
 exports.Puddle = Puddle
 exports.Indicator = Indicator
 exports.Selector = Selector
+exports.ExitPortal = ExitPortal
 exports.Critter = Critter
 exports.Adventurer = Adventurer
 exports.HealToken = HealToken

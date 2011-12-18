@@ -91,6 +91,9 @@ function handlekeydown(key, pos) {
                 }
             }
             break
+        case gamejs.event.K_0:
+            state.loadlevel()
+            break
         case gamejs.event.K_1:
             var gamepos = state.stage.togamepos(pos)
             var s = (new Thing.Shockwave(0.5, 200)).attachto(state.indicators).setstagepos(gamepos)
@@ -109,10 +112,10 @@ function handlekeydown(key, pos) {
             }
             break
         case gamejs.event.K_RIGHT:
-            state.stage.turn(0.1)
+            state.stage.turn(Math.PI / 4)
             break
         case gamejs.event.K_LEFT:
-            state.stage.turn(-0.1)
+            state.stage.turn(-Math.PI / 4)
             break
         case gamejs.event.K_m:
             var theta = Math.random() * 1000
@@ -192,6 +195,64 @@ function titlethink(dt) {
 
 // Upgradin stuff....
 function shopthink(dt) {
+    gamejs.event.get().forEach(function(event) {
+        if (event.type === gamejs.event.MOUSE_UP) {
+            if (screen.getRect().collidePoint(event.pos)) {
+                var button = state.HUD.topcontains(event.pos)
+                if (button && button.callback) {
+                    button.callback()
+                } else {
+                    var sprite = state.gameplay.topcontains(event.pos)
+                    if (sprite) {
+                        state.applyselection([sprite])
+                    }
+                }
+
+/*    var gamepos = state.stage.togamepos(pos)
+    var clicked = state.stage.topcontains(pos)
+    if (clicked) {
+        if (state.selected.length == 1 && state.selected[0] === clicked) {
+            state.applyselection()
+        } else if (clicked instanceof Thing.Adventurer) {
+            state.applyselection([clicked])
+        } else if (clicked instanceof Thing.Monster) {
+            for (var j in state.selected) state.selected[j].prey = clicked
+        }
+    } else if (state.selected.length) {
+        var p = (new Thing.Puddle()).attachto(state.indicators).setstagepos(gamepos)
+        for (var j = 0 ; j < state.selected.length ; ++j) {
+            // TODO: better crowding algorithm
+            state.selected[j].target = [gamepos[0], gamepos[1] + 20 * j]
+            state.selected[j].casttarget = null
+            state.selected[j].prey = null
+        }
+    }
+}*/
+
+
+//                handlemouseup(event.pos)
+            }
+        }
+        if (event.type === gamejs.event.KEY_DOWN) {
+//            handlekeydown(event.key, mousepos)
+        }
+    })
+
+    state.setshopvisibility()
+
+    state.stage.turn(0.03 * dt)
+
+    state.stage.think(dt)
+    state.critters.think0(dt)
+    state.indicators.think0(dt)
+    state.HUD.think0(dt)
+    
+    state.statusbox.update(state.stage.alpha)
+
+
+    screen.fill("black")
+    state.gameplay.draw0(screen)
+    state.HUD.draw0(screen)
 
 }
 
@@ -223,13 +284,14 @@ function gamethink(dt) {
         }
     })
 
+/*
     if (Math.random() * 5 < dt && state.tokens.length < 10) {
         var tpos = [Math.random() * 600 - 300, Math.random() * 600 - 300]
         var type = [Thing.HealToken, Thing.ManaToken, Thing.ExpToken][Math.floor(Math.random() * 3)]
         var token = (new type()).attachto(state.critters).setstagepos(tpos)
         state.tokens.push(token)
         var i = (new Thing.Indicator(token, 5, "rgba(0,0,0,0.5)", null)).attachto(state.indicators)
-    }
+    }*/
 
     var castarea = null
     if (state.selected.length == 1) {
@@ -241,6 +303,8 @@ function gamethink(dt) {
         var p1 = state.stage.togamepos(mousestart), p2 = state.stage.togamepos(mousepos)
         selector = (new Thing.Selector()).attachto(state.indicators).setends(p1, p2)
     }
+
+    state.gameevents(dt)
 
     // FIXME
     //state.gameplay.think0(dt)
