@@ -28,7 +28,8 @@ exports.applyselection = function(newselected) {
     sindicators = []
     exports.selected = newselected
     for (var j in exports.selected) {
-//        sindicators.push((new Thing.Indicator(exports.selected[j], 20, null, "yellow")).attachto(exports.indicators))
+        var i = (new Thing.Indicator(exports.selected[j], 20, null, "yellow")).attachto(exports.indicators)
+        sindicators.push(i)
     }
 }
 
@@ -42,7 +43,7 @@ exports.applyselection = function(newselected) {
 //      - critters
 // - HUD
 
-function makelayers() {
+exports.makelayers = function() {
     HUD = new Thing.Thing()
     gameplay = new Thing.Thing()
     var fps = (new Thing.FPSCounter()).attachto(HUD)
@@ -61,6 +62,16 @@ function makelayers() {
 
 }
 
+exports.loadlevel = function() {
+    exports.xp = 0
 
-exports.makelayers = makelayers
+
+    var ps = [[100, 100], [-100, 100], [100, -100], [-100, -100]]
+    for (var j = 0 ; j < ps.length ; ++j) {
+        var player = (new Thing.Adventurer()).attachto(exports.critters).setstagepos(ps[j])
+        exports.players.push(player);
+        (new Thing.Indicator(player, 15, "rgba(0,0,0,0.5)", null)).attachto(exports.indicators)
+    }
+}
+
 

@@ -99,6 +99,11 @@ function handlekeydown(key, pos) {
         case gamejs.event.K_LEFT:
             state.stage.turn(-0.1)
             break
+        case gamejs.event.K_m:
+            var theta = Math.random() * 1000
+            var pos = [600 * Math.cos(theta), 600 * Math.sin(theta)]
+            state.monsters.push((new Thing.Monster()).attachto(state.critters).setstagepos(pos))
+            break
     }
 }
 
@@ -132,7 +137,7 @@ function think(dt) {
 
     if (Math.random() * 5 < dt && state.tokens.length < 10) {
         var tpos = [Math.random() * 600 - 300, Math.random() * 600 - 300]
-        var type = [Thing.HealToken, Thing.ManaToken][Math.floor(Math.random() * 2)]
+        var type = [Thing.HealToken, Thing.ManaToken, Thing.ExpToken][Math.floor(Math.random() * 3)]
         var token = (new type()).attachto(state.critters).setstagepos(tpos)
         state.tokens.push(token)
         var i = (new Thing.Indicator(token, 5, "rgba(0,0,0,0.5)", null)).attachto(state.indicators)
@@ -146,7 +151,6 @@ function think(dt) {
     selector = null
     if (dragpos && dragging) {
         var p1 = state.stage.togamepos(mousestart), p2 = state.stage.togamepos(mousepos)
-        state.statusbox.update([p1, p2])
         selector = (new Thing.Selector()).attachto(state.indicators).setends(p1, p2)
     }
 
@@ -166,6 +170,8 @@ function think(dt) {
     for (var j in state.monsters) {
         state.monsters[j].chooseprey(state.players)
     }
+    state.statusbox.update(state.xp + " XP")
+
 
     screen.fill("black")
     state.gameplay.draw0(screen)
@@ -215,16 +221,7 @@ function init() {
 
     screen = gamejs.display.getSurface()
     state.makelayers()
-
-
-    state.players.push((new Thing.Adventurer()).attachto(state.critters).setstagepos([100,100]))
-    state.players.push((new Thing.Adventurer()).attachto(state.critters).setstagepos([-100,100]))
-    state.players.push((new Thing.Adventurer()).attachto(state.critters).setstagepos([100,-100]))
-    state.players.push((new Thing.Adventurer()).attachto(state.critters).setstagepos([-100,-100]))
-    for (var j = 0 ; j < state.players.length; ++j) {
-        (new Thing.Indicator(state.players[j], 15, "rgba(0,0,0,0.5)", null)).attachto(state.indicators)
-    }
-    state.monsters.push((new Thing.Monster()).attachto(state.critters).setstagepos([200, 0]))
+    state.loadlevel()
 
     gamejs.time.fpsCallback(think, null, 10)
 

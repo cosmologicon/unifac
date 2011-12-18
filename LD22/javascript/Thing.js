@@ -250,6 +250,14 @@ StagedThing.prototype.gamepos = function(pos) {
         return this.parent ? this.parent.gamepos([this.gx, this.gy, this.gz]) : pos
     }
 }
+StagedThing.prototype.draw = function(screen) {
+    var d2 = this.gx * this.gx + this.gy * this.gy
+    if (d2 > 427 * 427) {
+        // TODO: find some way to fade
+        screen._context.globalAlpha *= 0.5
+    }
+    Thing.prototype.draw.call(this, screen)
+}
 StagedThing.prototype.think = function(dt) {
     if (!this.parent) return
     var p = this.parent.stageposof([this.gx, this.gy, this.gz])
@@ -450,6 +458,7 @@ Token.prototype.think = function(dt) {
     h = Math.min(h, 1 - h) * 30
     this.gz = 25 * Math.abs(Math.sin(this.t * 5))
     StagedThing.prototype.think.call(this, dt)
+    if (this.t > 30) this.die()
 }
 Token.prototype.affect = function(who) {
 }
@@ -470,6 +479,16 @@ HealToken.prototype.affect = function(who) {
     if (who)
         who.hp = Math.min(who.hp + this.dhp, who.hp0)
 }
+
+ExpToken = function(dxp) {
+    this.dxp = dxp || 5
+    Token.apply(this, ["+" + this.dxp + "XP", "#AAAAAA"])
+}
+gamejs.utils.objects.extend(ExpToken, Token)
+ExpToken.prototype.affect = function(who) {
+    if (who) state.xp += this.dxp
+}
+
 
 ManaToken = function(dmp) {
     this.dmp = dmp || 5
@@ -690,7 +709,6 @@ Critter.prototype.reelingfromright = function () {
 Critter.prototype.draw = function (screen) {
     screen._context.save()
     if (this.reeltimer) screen._context.rotate(this.reelingfromright() ? -0.5 : 0.5)
-
     if (this.isfacingright()) screen._context.scale(-1, 1)
     StagedThing.prototype.draw.call(this, screen)
     screen._context.restore()
@@ -943,6 +961,7 @@ exports.Selector = Selector
 exports.Critter = Critter
 exports.Adventurer = Adventurer
 exports.HealToken = HealToken
+exports.ExpToken = ExpToken
 exports.ManaToken = ManaToken
 exports.Effect = Effect
 exports.Bolt = Bolt
