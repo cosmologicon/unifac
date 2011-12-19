@@ -29,7 +29,7 @@ exports.filtergroups = function() {
 // Select new players
 var sindicators = []
 exports.applyselection = function(newselected) {
-    if (newselected.length) sound.play("select-0")
+    if (newselected && newselected.length) sound.play("select-0")
     for (var j in sindicators) {
         sindicators[j].die()
     }
@@ -92,6 +92,11 @@ makeshoplayers = function() {
 var mtypes = {
     lump: Thing.Lump,
     largelump: Thing.LargeLump,
+    spike: Thing.Spike,
+    largespike: Thing.LargeSpike,
+    skull: Thing.Skull,
+    zoltar: Thing.Zoltar,
+    birdy: Thing.Birdy,
 }
 
 exports.gameevents = function(dt) {
@@ -106,10 +111,15 @@ exports.gameevents = function(dt) {
                 r += 100
                 var pos = [r * Math.cos(theta), r * Math.sin(theta)]
                 var type = mtypes[wave[j]]
+                if (wave[j] == "zoltar") pos = [0,0,600]
+                if (wave[j] == "birdy") pos = [pos[0],pos[1],120]
                 var m = (new type()).attachto(exports.critters).setstagepos(pos)
                 exports.monsters.push(m)
                 m.castshadow()
             }
+        }
+        if (!exports.players.length) {
+            loselevel()
         }
         if (exitportal.parent) {
             checkexitportal()
@@ -117,7 +127,7 @@ exports.gameevents = function(dt) {
 
         if (exports.currentlevel == 2) {
             if (Math.random() * 2 < dt) {
-                var n = Math.floor(Math.sqrt(gamet) / 3) + 1
+                var n = Math.floor(Math.sqrt(Math.sqrt(gamet))) + 1
                 var mons = [n]
                 for (var j = 0 ; j < n ; ++j) mons.push("lump") //Math.random() < 0.3 ? "largelump" : "lump")
                 monsterq = [mons]
@@ -126,7 +136,7 @@ exports.gameevents = function(dt) {
 
         
         // End conditions
-        if (exports.currentlevel == 1) {  // Kill all monsters
+        if (exports.currentlevel == 1 || exports.currentlevel == 3 || exports.currentlevel == 4 || exports.currentlevel == 5) {  // Kill all monsters
             if (!monsterq.length && !exports.monsters.length) {
                 placeexitportal()
             }
@@ -164,7 +174,6 @@ beatlevel = function() {
             playerstates[j].mp0 = 10
         }
     }
-    exports.savestate()
 
     // Desertion
     var n = 0, xpmax = -1
@@ -185,8 +194,13 @@ beatlevel = function() {
     if (deserted !== null) {
         playerstates[deserted].deserted = true
     }
+    exports.savestate()
 
-    exports.loadlevel(71)
+    exports.loadlevel(completedlevel < 5 ? 71 : 26)
+}
+loselevel = function() {
+    exports.savestate()
+    exports.loadlevel(72)
 }
 exports.beatlevel = beatlevel
 
@@ -194,6 +208,8 @@ var musics = {
     1: "happy-0",
     2: "happy-1",
     3: "happy-2",
+    4: "happy-0",
+    5: "happy-1",
     10: "fast-0",
 }
 
@@ -218,7 +234,7 @@ exports.loadlevel = function(level) {
             level = 10
         }
     }
-    alert([exports.currentlevel, level])
+//    alert([exports.currentlevel, level])
     exports.currentlevel = level
 
     if (musics[level]) sound.playmusic(musics[level])
@@ -234,7 +250,7 @@ exports.loadlevel = function(level) {
         exports.subtitle = "Four adventurers remain"
     }
     if (exports.currentlevel == 23) {
-        exports.title = "The Cavern of Zoltar"
+        exports.title = "The Cavern of Ryor"
         exports.subtitle = "Three adventurers remain"
     }
     if (exports.currentlevel == 24) {
@@ -255,6 +271,10 @@ exports.loadlevel = function(level) {
         exports.title = "Quest failed"
         exports.subtitle = "Try again"
     }
+    if (exports.currentlevel == 26) {
+        exports.title = "The adventure is over"
+        exports.subtitle = "Thanks for playing"
+    }
 
 
 
@@ -274,13 +294,35 @@ exports.loadlevel = function(level) {
 
     if (exports.currentlevel == 1) {  // Fixed monster queue
         monsterq = [[0,"lump","lump","lump"], [1,"lump","lump","lump"], [2,"lump","lump","lump"],
-            [3,"lump","lump","lump","lump","lump","lump"],
-            [4,"lump","lump","lump","lump","lump","lump","lump","lump","lump"],
-            [5,"lump","lump","lump","lump","lump","lump","lump","lump","lump"],
+            [3,"lump","lump","lump","lump"],
+            [4,"lump","lump","lump","lump","largelump"],
+            [5,"lump","lump","lump","lump","lump","largelump"],
         ]
     } else if (exports.currentlevel == 2) {
         crystal = (new Thing.Crystal()).attachto(exports.critters)
         exports.monsters.push(crystal)
+    } else if (exports.currentlevel == 3) {
+        monsterq = [[0,"lump","spike","lump"], [1,"spike","spike","spike"],
+            [2,"spike", "spike", "spike"],
+            [3,"largespike"],
+            [0,"largelump", "largelump", "largelump", "lump","spike","largelump","lump","lump", "largespike", "spike"],
+            [0,"skull"], [2,"skull"], [2,"skull"],
+        ]
+    } else if (exports.currentlevel == 4) {
+        monsterq = [[0,"largelump","largelump","largelump"],
+            [1,"largespike", "largespike", "largespike"],
+            [2,"largelump", "largespike", "largespike", "largespike", "largespike"],
+            [0,"zoltar"],
+        ]
+//        monsterq =[[0,"zoltar"]]
+    } else if (exports.currentlevel == 5) {
+        monsterq = [[0,"largelump","largelump","largelump"],
+            [1,"largespike", "largespike", "largespike"],
+            [2,"largelump", "largespike", "largespike", "largespike", "largespike"],
+            [0,"zoltar"],
+        ]
+        monsterq =[[0,"birdy"]]
+
     }
     if (exports.currentlevel == 10) {
         makeshoplayers()
@@ -351,12 +393,13 @@ exports.upgrade = function(type, who) {
             upgrademenu[j].image = null
         }
     }
+    exports.savestate()
 }
 
 
 var playerstates = [
-  { name: "dana", size: 28, skill: "bolt",  hp0: 20, mp0: 0, speed: 90,  range: 100, strength: 3, xpspent: 0, upgrades: [0, 0, 0, 0, 0], deserted: 0, },
-  { name: "lisa", size: 28, skill: "quake", hp0: 40, mp0: 0, speed: 60,  range: 100, strength: 2, xpspent: 0, upgrades: [0, 0, 0, 0, 0], deserted: 0, },
+  { name: "dana", size: 28, skill: "quake", hp0: 20, mp0: 0, speed: 90,  range: 100, strength: 3, xpspent: 0, upgrades: [0, 0, 0, 0, 0], deserted: 0, },
+  { name: "lisa", size: 28, skill: "bolt",  hp0: 40, mp0: 0, speed: 60,  range: 100, strength: 2, xpspent: 0, upgrades: [0, 0, 0, 0, 0], deserted: 0, },
   { name: "theo", size: 28, skill: "quake", hp0: 20, mp0: 0, speed: 80,  range:  60, strength: 2, xpspent: 0, upgrades: [0, 0, 0, 0, 0], deserted: 0, },
   { name: "rosa", size: 28, skill: "bolt",  hp0: 20, mp0: 0, speed: 120, range:  60, strength: 2, xpspent: 0, upgrades: [0, 0, 0, 0, 0], deserted: 0, },
   { name: "mort", size: 28, skill: "drain", hp0: 40, mp0: 0, speed: 50,  range: 140, strength: 1, xpspent: 0, upgrades: [0, 0, 0, 0, 0], deserted: 0, },
@@ -376,20 +419,20 @@ exports.loadstate = function() {
     if (localStorage.lastadvstate) {
         var obj = JSON.parse(localStorage.lastadvstate)
         exports.xp = obj[0]
-        currentlevel = obj[1]
+        completedlevel = obj[1]
         playerstates = obj[2]
     }
     exports.savestate()
 }
 
-delete localStorage.lastadvstate  // TODO: remove
+//delete localStorage.lastadvstate  // TODO: remove
 exports.loadstate()
 
 exports.resetstate = function() {
     delete localStorage.lastadvstate
     window.location.reload()
 }
-
+document.getElementById("resetstate").onclick = exports.resetstate
 
 
 

@@ -75,7 +75,10 @@ function getimage(name) {
 
         case "lump": return gamejs.transform.scale(getpiece("lump-0"), [100, 100])
         case "largelump": return gamejs.transform.scale(getpiece("lump-0"), [180, 180])
+        case "hugelump": return gamejs.transform.scale(getpiece("lump-0"), [240, 240])
         case "spike": return gamejs.transform.scale(getpiece("spike-0"), [100, 100])
+        case "largespike": return gamejs.transform.scale(getpiece("spike-0"), [180, 180])
+        case "hugespike": return gamejs.transform.scale(getpiece("spike-0"), [240, 240])
 
         case "crystal-0":
             return gamejs.transform.scale(getpiece("crystal-0"), [400, 400])
@@ -87,16 +90,19 @@ function getimage(name) {
         case "zoltar-2":
             return gamejs.transform.scale(getpiece("zoltar-1"), [150, 150])
         case "zoltar-1":
-            return gamejs.transform.scale(getpiece("zoltar-1"), [120, 120])
+            return gamejs.transform.scale(getpiece("zoltar-0"), [120, 120])
+
+        case "skull":
+            return gamejs.transform.scale(getpiece("skull-0"), [300, 300])
 
         case "birdy-0":
-            return gamejs.transform.scale(getpiece("birdy-0"), [200, 200])
+            return gamejs.transform.scale(getpiece("birdy-0"), [300, 300])
         case "birdy-1":
-            return gamejs.transform.scale(getpiece("birdy-1"), [200, 200])
+            return gamejs.transform.scale(getpiece("birdy-1"), [300, 300])
         case "birdy-2":
-            return gamejs.transform.scale(getpiece("birdy-2"), [200, 200])
+            return gamejs.transform.scale(getpiece("birdy-2"), [300, 300])
         case "birdy-3":
-            return gamejs.transform.scale(getpiece("birdy-3"), [200, 200])
+            return gamejs.transform.scale(getpiece("birdy-3"), [300, 300])
 
     }
 }

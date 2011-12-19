@@ -1,4 +1,5 @@
 var state = require('./state')
+var sound = require('./sound')
 
 var screen
 var dragpos, dragging = false
@@ -32,7 +33,10 @@ function handleclick(pos) {
         } else if (clicked instanceof Thing.Adventurer) {
             state.applyselection([clicked])
         } else if (clicked instanceof Thing.Monster && clicked.takesphysical) {
-            for (var j in state.selected) state.selected[j].prey = clicked
+            for (var j in state.selected) {
+                state.selected[j].prey = clicked
+                sound.play("select-0")
+            }
         }
     } else if (state.selected.length) {
         var p = (new Thing.Puddle()).attachto(state.indicators).setstagepos(gamepos)
@@ -156,6 +160,11 @@ function handlekeydown(key, pos) {
             state.monsters.push(b)
             b.castshadow()
             break
+        case gamejs.event.K_u:
+            var b = (new Thing.Skull()).attachto(state.critters).setstagepos([0,0,600])
+            state.monsters.push(b)
+            b.castshadow()
+            break
     }
 }
 
@@ -171,6 +180,8 @@ function think(dt) {
     } else if (state.currentlevel >= 1) {
         gamethink(dt)
     }
+    sound.setvolumes(document.getElementById("sfxvolume").value * 0.1,
+                     document.getElementById("musicvolume").value * 0.1)
 }
 
 
@@ -182,13 +193,17 @@ function titlethink(dt) {
     screen._context.fillText(state.title, 427, 200)
     screen._context.font = "bold 24px serif"
     screen._context.fillText(state.subtitle, 427, 260)
-    screen._context.font = "16px serif"
-    screen._context.fillText("click to continue", 427, 400)
+    if (state.currentlevel != 26) {
+        screen._context.font = "16px serif"
+        screen._context.fillText("click to continue", 427, 400)
+    }
     gamejs.event.get().forEach(function(event) {
         if (event.type === gamejs.event.MOUSE_UP) {
-            if (screen.getRect().collidePoint(event.pos)) {
+            if (state.currentlevel != 26 && screen.getRect().collidePoint(event.pos)) {
                 state.loadlevel()
             }
+        } else if (event.type === gamejs.event.KEY_DOWN && event.key == gamejs.event.K_BACKSPACE) {
+            state.loadlevel(10)
         }
     })
 }
@@ -208,33 +223,10 @@ function shopthink(dt) {
                         state.applyselection([sprite])
                     }
                 }
-
-/*    var gamepos = state.stage.togamepos(pos)
-    var clicked = state.stage.topcontains(pos)
-    if (clicked) {
-        if (state.selected.length == 1 && state.selected[0] === clicked) {
-            state.applyselection()
-        } else if (clicked instanceof Thing.Adventurer) {
-            state.applyselection([clicked])
-        } else if (clicked instanceof Thing.Monster) {
-            for (var j in state.selected) state.selected[j].prey = clicked
-        }
-    } else if (state.selected.length) {
-        var p = (new Thing.Puddle()).attachto(state.indicators).setstagepos(gamepos)
-        for (var j = 0 ; j < state.selected.length ; ++j) {
-            // TODO: better crowding algorithm
-            state.selected[j].target = [gamepos[0], gamepos[1] + 20 * j]
-            state.selected[j].casttarget = null
-            state.selected[j].prey = null
-        }
-    }
-}*/
-
-
-//                handlemouseup(event.pos)
             }
         }
         if (event.type === gamejs.event.KEY_DOWN) {
+            if (event.key == gamejs.event.K_0) state.xp += 10
 //            handlekeydown(event.key, mousepos)
         }
     })
@@ -248,7 +240,7 @@ function shopthink(dt) {
     state.indicators.think0(dt)
     state.HUD.think0(dt)
     
-    state.statusbox.update(state.stage.alpha)
+//    state.statusbox.update(state.stage.alpha)
 
 
     screen.fill("black")
@@ -285,18 +277,37 @@ function gamethink(dt) {
         }
     })
 
-/*
-    if (Math.random() * 5 < dt && state.tokens.length < 10) {
-        var tpos = [Math.random() * 600 - 300, Math.random() * 600 - 300]
-        var type = [Thing.HealToken, Thing.ManaToken, Thing.ExpToken][Math.floor(Math.random() * 3)]
-        var token = (new type()).attachto(state.critters).setstagepos(tpos)
-        state.tokens.push(token)
-        var i = (new Thing.Indicator(token, 5, "rgba(0,0,0,0.5)", null)).attachto(state.indicators)
-    }*/
+
+    if (state.tokens.length < 30 && Math.random() < dt) {
+        var tpos = function() { return [Math.random() * 600 - 300, Math.random() * 600 - 300] }
+        var spawntoken = function(type, amt) {
+            var token = (new type(amt)).attachto(state.critters).setstagepos(tpos())
+            state.tokens.push(token)
+            var i = (new Thing.Indicator(token, 5, "rgba(0,0,0,0.5)", null)).attachto(state.indicators)
+        }
+        if (state.currentlevel == 1) {
+            if (Math.random() * 5 < 1) spawntoken(Thing.HealToken, 3)
+        } else if (state.currentlevel == 2) {
+            if (Math.random() * 10 < 1) spawntoken(Thing.HealToken, 3)
+            if (Math.random() * 10 < 1) spawntoken(Thing.ManaToken, 3)
+        } else if (state.currentlevel == 3) {
+            if (Math.random() * 20 < 1) spawntoken(Thing.HealToken, 5)
+            if (Math.random() * 20 < 1) spawntoken(Thing.ManaToken, 5)
+        } else if (state.currentlevel == 4) {
+            if (Math.random() * 20 < 1) spawntoken(Thing.HealToken, 10)
+            if (Math.random() * 20 < 1) spawntoken(Thing.ManaToken, 10)
+        } else if (state.currentlevel == 5) {
+            if (Math.random() * 30 < 1) spawntoken(Thing.HealToken, 10)
+            if (Math.random() * 30 < 1) spawntoken(Thing.ManaToken, 10)
+        }
+    }
+
 
     var castarea = null
+    var selinfo = null
     if (state.selected.length == 1) {
         castarea = state.selected[0].getcastarea().attachto(state.indicators)
+        selinfo = state.selected[0].getselinfo().attachto(state.HUD).setpos([0, 0])
     }
 
     selector = null
@@ -346,6 +357,9 @@ function gamethink(dt) {
     if (castarea) {
         castarea.die()
     }
+    if (selinfo) {
+        selinfo.die()
+    }
 
     state.filtergroups()
 
@@ -381,7 +395,7 @@ function init() {
 //    state.makelayers()
     state.loadlevel()
 
-    gamejs.time.fpsCallback(think, null, 10)
+    gamejs.time.fpsCallback(think, null, 40)
 
 }
 

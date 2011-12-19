@@ -5,7 +5,7 @@ var state = require('./state')
 
 
 BankBox = function() {
-    Thing.TextBox.apply(this, ["To spend: ???XP", [740,40]])
+    Thing.TextBox.apply(this, ["To spend: ???XP", [120,40]])
     this.font = new gamejs.font.Font("24px sans-serif")
     this.centered = true
 }

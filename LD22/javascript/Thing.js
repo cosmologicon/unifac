@@ -165,7 +165,7 @@ Button.prototype.localcontains = function(pos) {
 
 // FPS counter. automatically updates
 FPSCounter = function() {
-    TextBox.apply(this, ["???fps", [5, 10]])
+    TextBox.apply(this, ["???fps", [740, 10]])
     this.t0 = 0
     this.dtsum = 0
     this.dtj = 0
@@ -395,6 +395,7 @@ Bolt = function(dhp) {
     this.spent = false
     this.range = 100
     this.dhp = dhp || 10
+    sound.play("quake-0")
 }
 gamejs.utils.objects.extend(Bolt, StagedThing)
 Bolt.prototype.think = function(dt) {
@@ -676,6 +677,9 @@ Shot.prototype.land = function() {
 
 Drainer = function(sender, receiver, dhp) {
     Shot.apply(this, [sender, receiver, dhp, "green"])
+    r = Math.round(5 + Math.sqrt(this.dhp)) * 3
+    this.image = new gamejs.Surface([r, r])
+    this.image.fill(this.color)
 }
 gamejs.utils.objects.extend(Drainer, Shot)
 Drainer.prototype.land = function() {
@@ -725,7 +729,7 @@ Critter = function(hp0, walkspeed) {
     this.hitradius = 100
     this.castradius = 0
     this.hittimer = 0
-    this.hittime = 1
+    this.hittime = 2
     this.strength = 1
     this.r = 10
 
@@ -746,9 +750,10 @@ Critter = function(hp0, walkspeed) {
 gamejs.utils.objects.extend(Critter, StagedThing)
 Critter.prototype.think = function(dt) {
     // Set target based on prey
-    if (this.hittimer) {
-        this.target = null
-    } else if (this.prey) {
+//    if (this.hittimer) {
+//        this.target = null
+//    } else 
+    if (this.prey && !this.hittimer) {
         var dx = this.prey.gx - this.gx, dy = this.prey.gy - this.gy
         this.logmotion(dx, dy)
         var r = this.hitradius * 0.8
@@ -911,6 +916,7 @@ Adventurer = function(pstate) {
     this.manarate = 0.01
     this.manabar = null
     this.casttarget = null
+    this.casttimer = 0
     this.quakejump = null
     this.image = Images.getimage(pstate.name)
     this.shotcolor = "blue"
@@ -973,6 +979,7 @@ Adventurer.prototype.think = function(dt) {
     if (this.manarate > 0) {
         this.mp = Math.min(this.mp + this.manarate * dt, this.mp0)
     }
+    this.casttimer -= dt
     Critter.prototype.think.call(this, dt)
 }
 Adventurer.prototype.draw = function(screen) {
@@ -980,14 +987,14 @@ Adventurer.prototype.draw = function(screen) {
     if (this.quakejump) {
         if (this.quakejump[0] == "up") {
             var x = this.gz / 100
-            var scale = 1 + 4 * Math.exp(-x * (4 - x))
+            var scale = 1 + 2 * Math.exp(-x * (4 - x))
             screen._context.scale(1/scale, scale)
         }
         if (this.quakejump[0] == "hover") {
 //            screen._context.rotate(this.quakejump[1] / 0.4 * 6.28)
         }
         if (this.quakejump[0] == "down") {
-            var scale = 1 + 4 * Math.exp(-this.gz / 100)
+            var scale = 1 + 2 * Math.exp(-this.gz / 100)
             screen._context.scale(scale, 1/Math.sqrt(scale))
         }
     }
@@ -1000,13 +1007,14 @@ Adventurer.prototype.getcastarea = function() {
     return i
 }
 Adventurer.prototype.cancast = function() {
-    return this.mp >= 3
+    return this.casttimer <= 0 && this.mp > {bolt:5,quake:3,drain:3}[this.skill]
 }
 Adventurer.prototype.castat = function(pos, critters, indicators, type) {
-    if (this.mp < {bolt:5,quake:3,drain:3}[type]) return false
+    if (!this.cancast()) return false
     type = type || this.skill || "quake"
     var dx = pos[0] - this.gx, dy = pos[1] - this.gy
     if (dx * dx + dy * dy < this.castradius * this.castradius) {
+        this.casttimer = 1
         this.casttarget = null
         switch (type) {
             case "bolt": this.castboltat(pos, critters, indicators) ; break
@@ -1046,7 +1054,7 @@ Adventurer.prototype.castdrainat = function(pos, critters, indicators) {
         }
     }
     if (closest) {
-        var dhp = Math.floor(Math.min(closest.hp, 3 * this.strength))
+        var dhp = Math.floor(Math.min(closest.hp, 4 * this.strength))
         closest.hit(dhp, this)
         var d = new Drainer(closest, this, dhp)
         d.attachto(this.parent)
@@ -1080,7 +1088,7 @@ Adventurer.prototype.handlequake = function(dt) {
             this.gz -= dz
             if (this.gz < 0) {
                 this.gz = 0
-                var s = new Shockwave(0.5, 300, "brown", 3*this.strength)
+                var s = new Shockwave(0.5, 300, "brown", 2*this.strength)
                 s.attachto(this.quakejump[1]).setstagepos([this.gx, this.gy, 0])
                 state.mhazards.push(s)
                 this.quakejump = null
@@ -1089,6 +1097,17 @@ Adventurer.prototype.handlequake = function(dt) {
     }
     this.prey = null
     this.target = null
+}
+Adventurer.prototype.getselinfo = function () {
+    var box = new Thing()
+    box.centered = false;
+    (new TextBox("Adventurer: " + this.name, null, null, "white")).attachto(box).setpos([0,0]);
+    (new TextBox("  HP: " + Math.round(this.hp) + "/" + this.hp0, null, null, "white")).attachto(box).setpos([0,56]);
+    if (this.mp0) {
+        (new TextBox("  Skill: " + this.skill, null, null, "white")).attachto(box).setpos([0,28]);
+        (new TextBox("  MP: " + Math.round(this.mp) + "/" + this.mp0, null, null, "white")).attachto(box).setpos([0,84]);
+    }
+    return box
 }
 
 
@@ -1170,8 +1189,8 @@ Lump.prototype.droploot = function() {
     if (Math.random() < 0.3) {
         this.droptoken(HealToken, 5)
     }
-    if (state.currentlevel != 1 && Math.random() < 0.3) {
-        this.droptoken(ManaToken, 5)
+    if (state.currentlevel != 1 && Math.random() < 0.2) {
+        this.droptoken(ManaToken, 2)
     }
 }
 
@@ -1188,32 +1207,62 @@ LargeLump = function() {
 gamejs.utils.objects.extend(LargeLump, Monster)
 LargeLump.prototype.droploot = function() {
     this.droptoken(ExpToken, 3)
-    if (Math.random() < 0.5) {
-        this.droptoken(ManaToken, 3)
+    if (state.currentlevel != 1 && Math.random() < 0.2) {
+        this.droptoken(ManaToken, 5)
     }
 }
 
 
 Spike = function() {
-    var hp = 10
+    var hp = 12
     Monster.apply(this, [hp])
     this.image = Images.getimage("spike")
+    this.strength = 2
     this.wandertime = 1
-    this.basespeed = 60
+    this.basespeed = 40
 }
 gamejs.utils.objects.extend(Spike, Monster)
+Spike.prototype.droploot = function() {
+    this.droptoken(ExpToken, 6)
+    if (Math.random() < 0.3) {
+        this.droptoken(ManaToken, 6)
+    }
+    if (Math.random() < 0.3) {
+        this.droptoken(HealToken, 6)
+    }
+}
+
+LargeSpike = function() {
+    var hp = 30
+    Monster.apply(this, [hp])
+    this.image = Images.getimage("largespike")
+    this.strength = 3
+    this.wandertime = 1
+    this.basespeed = 40
+}
+gamejs.utils.objects.extend(LargeSpike, Monster)
+LargeSpike.prototype.droploot = function() {
+    this.droptoken(ExpToken, 15)
+    if (Math.random() < 0.3) {
+        this.droptoken(ManaToken, 15)
+    }
+    if (Math.random() < 0.3) {
+        this.droptoken(HealToken, 15)
+    }
+}
+
 
 Bomb = function() {
-    var hp = 20
+    var hp = 100
     Monster.apply(this, [hp])
     this.images = [Images.getimage("bomb0"), Images.getimage("bomb1")]
     this.wandertime = 10
-    this.strength = 0
-    this.basespeed = 40
+    this.strength = 20
+    this.basespeed = 30
     this.hitradius = 1
     this.reeltilt = false
     this.reelspeed = 600
-    this.t = 10
+    this.t = 6.9
 }
 gamejs.utils.objects.extend(Bomb, Monster)
 Bomb.prototype.think = function (dt) {
@@ -1235,6 +1284,12 @@ Bomb.prototype.detonate = function () {
 Bomb.prototype.attack = function(who) {
     this.detonate()
 }
+Bomb.prototype.droploot = function() {
+    if (this.hp < 0) {
+        if (Math.random() < 0.4) this.droptoken(ManaToken, 10)
+        if (Math.random() < 0.4) this.droptoken(HealToken, 10)
+    }
+}
 
 
 
@@ -1243,7 +1298,7 @@ Bomb.prototype.attack = function(who) {
 
 // The Crystal just sort of stands around, you know?
 Crystal = function(level) {
-    var hp = 500
+    var hp = 150
     Monster.apply(this, [hp])
     this.r = 60
     this.t = Math.random() * 100
@@ -1267,26 +1322,31 @@ Crystal.prototype.draw = function (screen) {
     this.reeltimer = 0
     Monster.prototype.draw.call(this, screen)
 }
+Crystal.prototype.droploot = function() {
+    for (var j = 0 ; j < 5 ; ++j)
+        this.droptoken(ExpToken, 20)
+}
 
 
 
 // Zoltar never picks any prey, just spawns chaos
 Zoltar = function(level) {
     this.level = level || 4
-    var hp = (10 + 10 * this.level) / 10
+    var hp = (10 + 10 * this.level) * 6
     Monster.apply(this, [hp])
-    this.r = 60 * this.level
+    this.r = 30 * this.level
     this.t = Math.random() * 100
     this.wandertime = 0
     this.image = Images.getimage("zoltar-" + this.level)
     this.bounce = 0
-    this.bouncetime = [0,2,4,6,8][this.level]
+    this.bouncetime = [0,1,2,3,4][this.level]
     this.vjump = 200 * this.level
     this.jumpdist = 200 * this.level
-    this.dhp = this.level
-    this.wavesize = 60 + 40 * this.level
+    this.dhp = this.level * 2
+    this.wavesize = 40 + 60 * this.level
     this.vx = this.vy = this.vz = 0
     this.basespeed = 100 * this.level
+    sound.playmusic("boss-2")
 }
 gamejs.utils.objects.extend(Zoltar, Monster)
 Zoltar.prototype.setstagepos = function (pos) {
@@ -1298,7 +1358,6 @@ Zoltar.prototype.think = function (dt) {
     this.t += dt
     this.reeltimer = 0
     this.hittimer = 0
-    state.statusbox.update([this.gx, this.gy, this.gz])
     if (this.gz == 0 && this.vz == 0) {
         this.bouncetimer -= dt
         if (this.bouncetimer < 0) {
@@ -1342,8 +1401,8 @@ Zoltar.prototype.land = function () {
 }
 Zoltar.prototype.die = function () {
     var level = this.level - 1
-    if (level) {
-        for (var j = 0 ; j < 3 ; ++j) {
+    if (level > 1) {
+        for (var j = 0 ; j < (level == 3 ? 3 : 2) ; ++j) {
             var z = (new Zoltar(level)).attachto(state.critters).setstagepos([this.gx, this.gy, 0])
             state.monsters.push(z)
             z.castshadow()
@@ -1351,22 +1410,83 @@ Zoltar.prototype.die = function () {
     }
     Monster.prototype.die.call(this)
 }
+Zoltar.prototype.droploot = function() {
+    for (var j = 0 ; j < this.level - 1 ; ++j) {
+        this.droptoken(ManaToken, 20)
+        this.droptoken(HealToken, 20)
+        this.droptoken(ExpToken, 50)
+    }
+}
 
+
+// Birdy's skull form
+Skull = function() {
+    var hp = 300
+    Monster.apply(this, [hp])
+    this.r = 80
+    this.t = Math.random() * 100
+    this.image = Images.getimage("skull")
+    this.strength = 3
+    this.basespeed = 200
+//    this.reeltilt = false
+    this.hitradius = 200
+    this.wandertime = 5000
+    sound.playmusic("boss-0")
+}
+gamejs.utils.objects.extend(Skull, Monster)
+Skull.prototype.think = function (dt) {
+    this.t += dt
+    
+    if (this.t >= 6) {
+        if (Math.random() < 0.4) this.droptoken(HealToken, 6)
+        if (Math.random() < 0.4) this.droptoken(ManaToken, 6)
+        var r = 250
+        var theta = Math.random() * 1000
+        this.target = [r * Math.cos(theta), r * Math.sin(theta)]
+    }
+    if (this.target) this.t = 0
+    Monster.prototype.think.call(this, dt)
+
+    if (this.t > 0.5 && this.t < 2 && Math.random() < dt * 2) {
+        for (var j = 0 ; j < state.players.length ; ++j) {
+            if (Math.random() < 0.8) continue
+            var p = state.players[j]
+            if (p.gx * p.gx + p.gy * p.gy < this.hitradius * this.hitradius) {
+                this.attack(p)
+            }
+        }
+    }
+}
+Skull.prototype.chooseprey = function(players) {
+}
+Skull.prototype.isearthbound = function() {
+    return true
+}
+Skull.prototype.draw = function (screen) {
+    Monster.prototype.draw.call(this, screen)
+}
+Skull.prototype.droploot = function() {
+    for (var j = 0 ; j < 10 ; ++j) {
+        this.droptoken(ExpToken, 20)
+    }
+}
 
 // Birdy's bird form
 Birdy = function(level) {
-    var hp = 200
+    var hp = 1000
     Monster.apply(this, [hp])
-    this.r = 40
+    this.r = 80
     this.t = Math.random() * 100
+    this.t2 = 0
     var fnames = ["birdy-0", "birdy-1", "birdy-2", "birdy-3"]
     this.frames = new Array()
     for (var j = 0 ; j < 4 ; ++j) this.frames.push(Images.getimage(fnames[j]))
     this.image = this.frames[1]
-    this.strength = 10
+    this.strength = 40
     this.basespeed = 250
     this.reeltilt = false
     this.hitradius = 400
+    sound.playmusic("boss-0")
 }
 gamejs.utils.objects.extend(Birdy, Monster)
 Birdy.prototype.think = function (dt) {
@@ -1379,17 +1499,31 @@ Birdy.prototype.think = function (dt) {
     }
     this.image = this.frames[fnum]
     this.gz += 5 * fnum
+    
+    this.t2 += dt
+    if (this.t2 >= 6) {
+        if (Math.random() < 0.4) this.droptoken(HealToken, 6)
+        if (Math.random() < 0.4) this.droptoken(ManaToken, 6)
+        var r = 250
+        var theta = Math.random() * 1000
+        this.target = [r * Math.cos(theta), r * Math.sin(theta)]
+        this.t2 = 0
+    }
     Monster.prototype.think.call(this, dt)
     this.gz = z
 
-    if (Math.random() < dt * 6) {
-        for (var j = 0 ; j < state.players.length ; ++j) {
+    if (Math.random() * 10 < dt) {
+        var m = (new Bomb()).attachto(state.critters).setstagepos([this.gx, this.gy, this.gz])
+        state.monsters.push(m)
+        m.castshadow()
+        
+/*        for (var j = 0 ; j < state.players.length ; ++j) {
             if (Math.random() < 0.8) continue
             var p = state.players[j]
             if (p.gx * p.gx + p.gy * p.gy < this.hitradius * this.hitradius) {
                 this.attack(p)
             }
-        }
+        }*/
     }
 }
 Birdy.prototype.chooseprey = function(players) {
@@ -1427,9 +1561,11 @@ exports.Monster = Monster
 exports.Lump = Lump
 exports.LargeLump = LargeLump
 exports.Spike = Spike
+exports.LargeSpike = LargeSpike
 exports.Bomb = Bomb
 exports.Crystal = Crystal
 exports.Zoltar = Zoltar
 exports.Birdy = Birdy
+exports.Skull = Skull
 
 

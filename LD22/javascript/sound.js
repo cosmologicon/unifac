@@ -33,6 +33,14 @@ function playmusic(name) {
     music.play()
 }
 
+
+exports.setvolumes = function (svol, mvol) {
+    volume = svol
+    musicvolume = mvol
+    if (music) music.volume = musicvolume
+}
+
+
 exports.play = play
 exports.playmusic = playmusic
 
