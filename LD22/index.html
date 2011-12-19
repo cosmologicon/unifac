@@ -5,7 +5,7 @@
 <!-- Styling -->
     <style type=text/css>
         body{
-           background: black;
+           background: #111111;
            color: white;
            margin:1em 0 2em 6em;
            padding:0;
@@ -18,9 +18,23 @@
             width: 50%;
             height: 50%;
         }
+        a:link { color: #88F; text-decoration: none; }
+        a:visited { color: #F8F; text-decoration: none; }
+        a:active { color: #F44; text-decoration: none; }
+        header {
+            text-align: center;
+            margin-bottom: 14px;
+        }
+        h1 {
+            margin-bottom: 2px;
+        }
+        header p {
+            margin: 2px;
+        }
     </style>
-    <script src="public/yabble.js"></script>
-    <script src="public/gamejs-wrapped.js"></script>
+<!--    <script src="public/yabble.js"></script>
+    <script src="public/gamejs-wrapped.js"></script> -->
+    <script src="javascript/gjs-app-wrapped.js"></script>
     <script>
         require.setModuleRoot('./javascript/')
         require.run('main')
@@ -31,22 +45,28 @@
     <p>
       An HTML5 game by <a href="http://christophernight.net">Christopher Night</a>.
       Powered by <a href="http://gamejs.org">GameJs</a>.
+      Tested on Firefox.
     </p>
+<p><a href="tips.html">Strategy, tips, and info (read if you're stuck)</a></p>
 </header>
-<p>This game was made from scratch in 48 hours for the 22nd Ludum Dare. The theme was "Alone"
-<p>I thought about how you always start out RPGs alone and build up a party until the end
-of the game where you face the final foe together, and I thought, what if it went the other way?
-So in this game you start with a large party and every chapter you lose a member of your party until
-you have just one adventurer left.
-<p>Now, I didn't have time to make a whole RPG, so this is just an action game with some RPG elements.
-
 <div>
     <div id="gjs-loader">
-       Reticulating splines...
+       Loading images, sound effects, and music. This might take a few minutes....
     </div>
     <canvas id="gjs-canvas"></canvas>
 </div>
+<h2>Controls (READ THIS):</h2>
+<ul>
+<li>Select by left-clicking or clicking and dragging
+<li>Press A to select all/none
+<li>Press TAB to cycle through all adventurers
+<li>Press LEFT and RIGHT to rotate the game
+<li>Left-click on the ground to send selected adventurer(s)
+<li>Left-click on an enemy to move to them (will attack automatically)
+<li>Press SPACE (after completing the first quest) to cast a spell
+</ul>
 
+<h2>Options</h2>
 <p style="margin:auto; text-align:center">
 Music volume<br>
 <input id=musicvolume name=musicvolume type=range min=0 max=10 value=3><br>

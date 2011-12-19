@@ -96,14 +96,14 @@ function handlekeydown(key, pos) {
                 }
             }
             break
-        case gamejs.event.K_0:
+/*        case gamejs.event.K_0:
             state.beatlevel()
             break
         case gamejs.event.K_1:
             var gamepos = state.stage.togamepos(pos)
             var s = (new Thing.Shockwave(0.5, 200)).attachto(state.indicators).setstagepos(gamepos)
             state.hazards.push(s)
-            break
+            break*/
         case gamejs.event.K_a:  // select/deselect all
             if (state.selected.length) {
                 state.applyselection()
@@ -122,7 +122,7 @@ function handlekeydown(key, pos) {
         case gamejs.event.K_LEFT:
             state.stage.turn(-Math.PI / 4)
             break
-        case gamejs.event.K_m:
+/*        case gamejs.event.K_m:
             var theta = Math.random() * 1000
             var pos = [600 * Math.cos(theta), 600 * Math.sin(theta)]
             var m = (new Thing.Monster()).attachto(state.critters).setstagepos(pos)
@@ -164,7 +164,7 @@ function handlekeydown(key, pos) {
             var b = (new Thing.Skull()).attachto(state.critters).setstagepos([0,0,600])
             state.monsters.push(b)
             b.castshadow()
-            break
+            break*/
     }
 }
 
