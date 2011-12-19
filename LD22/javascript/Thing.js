@@ -1421,9 +1421,9 @@ Zoltar.prototype.droploot = function() {
 
 // Birdy's skull form
 Skull = function() {
-    var hp = 300
+    var hp = 150
     Monster.apply(this, [hp])
-    this.r = 80
+    this.r = 40
     this.t = Math.random() * 100
     this.image = Images.getimage("skull")
     this.strength = 3
@@ -1475,7 +1475,7 @@ Skull.prototype.droploot = function() {
 Birdy = function(level) {
     var hp = 1000
     Monster.apply(this, [hp])
-    this.r = 80
+    this.r = 40
     this.t = Math.random() * 100
     this.t2 = 0
     var fnames = ["birdy-0", "birdy-1", "birdy-2", "birdy-3"]
@@ -1484,6 +1484,7 @@ Birdy = function(level) {
     this.image = this.frames[1]
     this.strength = 40
     this.basespeed = 250
+    this.reelspeed = 100
     this.reeltilt = false
     this.hitradius = 400
     sound.playmusic("boss-0")
@@ -1504,7 +1505,7 @@ Birdy.prototype.think = function (dt) {
     if (this.t2 >= 6) {
         if (Math.random() < 0.4) this.droptoken(HealToken, 6)
         if (Math.random() < 0.4) this.droptoken(ManaToken, 6)
-        var r = 250
+        var r = Math.random() * 250
         var theta = Math.random() * 1000
         this.target = [r * Math.cos(theta), r * Math.sin(theta)]
         this.t2 = 0

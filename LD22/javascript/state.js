@@ -316,12 +316,11 @@ exports.loadlevel = function(level) {
         ]
 //        monsterq =[[0,"zoltar"]]
     } else if (exports.currentlevel == 5) {
-        monsterq = [[0,"largelump","largelump","largelump"],
-            [1,"largespike", "largespike", "largespike"],
-            [2,"largelump", "largespike", "largespike", "largespike", "largespike"],
-            [0,"zoltar"],
+        monsterq = [[0,"largelump", "largespike", "largespike", "largespike", "largespike"],
+            [2,"largelump", "largespike", "largespike", "largespike", "largespike", "largespike", "largespike", "largespike", "largespike"],
+            [10,"largelump", "largespike", "largespike", "largespike", "largespike", "largespike", "largespike", "largespike", "largespike"],
+            [0,"birdy"],[2,"birdy"],[2,"birdy"],
         ]
-        monsterq =[[0,"birdy"]]
 
     }
     if (exports.currentlevel == 10) {
