@@ -1110,6 +1110,12 @@ Adventurer.prototype.getselinfo = function () {
     }
     return box
 }
+Adventurer.prototype.canbounce = function() {
+    return !this.reeltimer && this.target && !this.quakejump
+}
+Adventurer.prototype.isearthbound = function() {
+    return !this.quakejump
+}
 
 
 
