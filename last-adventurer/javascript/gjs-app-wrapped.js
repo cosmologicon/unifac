@@ -6016,14 +6016,14 @@ Adventurer.prototype.draw = function(screen) {
     if (this.quakejump) {
         if (this.quakejump[0] == "up") {
             var x = this.gz / 100
-            var scale = 1 + 2 * Math.exp(-x * (4 - x))
+            var scale = 1 + 1 * Math.exp(-x * (4 - x))
             screen._context.scale(1/scale, scale)
         }
         if (this.quakejump[0] == "hover") {
 //            screen._context.rotate(this.quakejump[1] / 0.4 * 6.28)
         }
         if (this.quakejump[0] == "down") {
-            var scale = 1 + 2 * Math.exp(-this.gz / 100)
+            var scale = 1 + 1 * Math.exp(-this.gz / 100)
             screen._context.scale(scale, 1/Math.sqrt(scale))
         }
     }
@@ -6064,6 +6064,7 @@ Adventurer.prototype.castboltat = function(pos, critters, indicators) {
     this.mp -= 5
 }
 Adventurer.prototype.castquakeat = function(pos, critters, indicators) {
+    if (this.quakejump) return
     this.quakejump = ["up", pos, indicators]
     this.mp -= 3
 }
@@ -7012,32 +7013,32 @@ gamejs.preload([
     "img/birdy-3.png",
     "img/crystal-0.png",
     "img/dana-0.png",
-    "img/foots-0.png",
+//    "img/foots-0.png",
     "img/lisa-0.png",
     "img/lump-0.png",
     "img/mort-0.png",
-    "img/noggin-0.png",
-    "img/peepers-0.png",
+//    "img/noggin-0.png",
+//    "img/peepers-0.png",
     "img/rosa-0.png",
     "img/skull-0.png",
     "img/spike-0.png",
     "img/theo-0.png",
-    "img/vern-0.png",
+//    "img/vern-0.png",
     "img/zoltar-0.png",
     "img/zoltar-1.png",
     "music/boss-0.ogg",
     "music/boss-2.ogg",
-    "music/cutscene-0.ogg",
+//    "music/cutscene-0.ogg",
     "music/fast-0.ogg",
     "music/happy-0.ogg",
     "music/happy-1.ogg",
     "music/happy-2.ogg",
     "sound/boing-0.ogg",
-    "sound/cast-0.ogg",
-    "sound/cry-0.ogg",
+//    "sound/cast-0.ogg",
+//    "sound/cry-0.ogg",
     "sound/die-0.ogg",
-    "sound/ding-0.ogg",
-    "sound/klaxon-0.ogg",
+//    "sound/ding-0.ogg",
+//    "sound/klaxon-0.ogg",
     "sound/no-0.ogg",
     "sound/portal-0.ogg",
     "sound/powerup-0.ogg",
