@@ -987,14 +987,14 @@ Adventurer.prototype.draw = function(screen) {
     if (this.quakejump) {
         if (this.quakejump[0] == "up") {
             var x = this.gz / 100
-            var scale = 1 + 2 * Math.exp(-x * (4 - x))
+            var scale = 1 + 1 * Math.exp(-x * (4 - x))
             screen._context.scale(1/scale, scale)
         }
         if (this.quakejump[0] == "hover") {
 //            screen._context.rotate(this.quakejump[1] / 0.4 * 6.28)
         }
         if (this.quakejump[0] == "down") {
-            var scale = 1 + 2 * Math.exp(-this.gz / 100)
+            var scale = 1 + 1 * Math.exp(-this.gz / 100)
             screen._context.scale(scale, 1/Math.sqrt(scale))
         }
     }
@@ -1035,6 +1035,7 @@ Adventurer.prototype.castboltat = function(pos, critters, indicators) {
     this.mp -= 5
 }
 Adventurer.prototype.castquakeat = function(pos, critters, indicators) {
+    if (this.quakejump) return
     this.quakejump = ["up", pos, indicators]
     this.mp -= 3
 }
@@ -1108,6 +1109,12 @@ Adventurer.prototype.getselinfo = function () {
         (new TextBox("  MP: " + Math.round(this.mp) + "/" + this.mp0, null, null, "white")).attachto(box).setpos([0,84]);
     }
     return box
+}
+Adventurer.prototype.canbounce = function() {
+    return !this.reeltimer && this.target && !this.quakejump
+}
+Adventurer.prototype.isearthbound = function() {
+    return !this.quakejump
 }
 
 
