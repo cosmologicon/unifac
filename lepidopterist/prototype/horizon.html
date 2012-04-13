@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>parallaxing horizon prototype</title>
+<link href='http://fonts.googleapis.com/css?family=Viga' rel='stylesheet' type='text/css'>
+<style>
+body {
+    background: black; color: white;
+    font-family: 'Viga';
+    font-size: 110%;
+}
+h1 {
+    font-size: 160%;
+    text-align: center;
+    margin: 0.5em auto;
+}
+* {
+    margin: auto;
+    text-align: center;
+}
+
+input {
+    background: inherit; color: inherit; border: none;
+    font-family: inherit; font-size: inherit;
+    width: 20em;
+}
+td {
+    text-align: right
+}
+</style>
+
+<script src="../../UFX/src/ticker.js"></script>
+<script src="../../UFX/src/scene.js"></script>
+<script src="../../UFX/src/key.js"></script>
+<body>
+<h1>parallaxing horizon prototype</h1>
+<canvas id=canvas style="border: thin blue solid"></canvas>
+
+<script>
+var canvas = document.getElementById("canvas"), sx = 800, sy = 500
+canvas.width = sx ; canvas.height = sy
+var context = canvas.getContext("2d")
+
+window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
+                               window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
+UFX.scene.init()
+UFX.key.init()
+UFX.key.watchlist = "left right up down".split()
+
+
+function gpos(x, y) {
+    
+}
+var ground = document.createElement("canvas")
+ground.width = sx ; ground.height = sy
+
+var hscene = Object.create(UFX.scene.Scene)
+hscene.think = function(dt) {
+    context.fillStyle = "blue"
+    context.fillRect(0,0,800,500)
+}
+
+UFX.scene.push(hscene)
+
+</script>
+
+
