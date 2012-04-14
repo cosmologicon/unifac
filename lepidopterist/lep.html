@@ -33,31 +33,33 @@ td {
 <script src="../UFX/src/ticker.js"></script>
 <script src="../UFX/src/resource.js"></script>
 <script src="../UFX/src/scene.js"></script>
+<script src="../UFX/src/pause.js"></script>
 <script src="../UFX/src/key.js"></script>
 
 <!-- game code -->
 <script src="gamestate.js"></script>
+<script src="settings.js"></script>
+<script src="vista.js"></script>
+
+<!-- Scenes -->
+<script src="playscene.js"></script>
 
 <body>
 <h1>Mortimer the Lepidopterist</h1>
 <canvas id=canvas style="border: thin gray solid"></canvas>
 
+<input type=button onclick="gamestate.reset()">Reset saved game</input>
+
 <script>
-var canvas = document.getElementById("canvas"), sx = 800, sy = 500
-canvas.width = sx ; canvas.height = sy
+var canvas = document.getElementById("canvas")
+canvas.width = settings.sx ; canvas.height = settings.sy
 var context = canvas.getContext("2d")
 
 window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
                                window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
-UFX.scene.init()
 UFX.key.init()
-UFX.key.watchlist = "left right up down".split()
-
-var hscene = Object.create(UFX.scene.Scene)
-hscene.think = function(dt) {
-}
-
-UFX.scene.push(hscene)
+UFX.scene.init()
+UFX.scene.push(PlayScene)
 
 </script>
 
