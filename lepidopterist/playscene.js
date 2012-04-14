@@ -25,10 +25,25 @@ PlayScene.think = function (dt, keyevents, combos) {
             scene.color = "green"
         } else if (combo.kstring === "left right space up") {
             scene.color = "white"
+        } else if (combo.kstring === "up") {
+            you.jump()
         }
     })
+    you.think(dt)
+    vista.settarget(you.lookingat())
+    vista.think(dt)
+}
+PlayScene.draw = function () {
     context.fillStyle = this.color
     context.fillRect(0, 0, settings.sx, settings.sy)
     vista.draw()
+    context.save()
+    var p0 = vista.screenpos([0, 0])
+    context.translate(p0[0], p0[1])
+    context.scale(1, -1)
+    context.save()
+    you.draw()
+    context.restore()
+    context.restore()
 }
 
