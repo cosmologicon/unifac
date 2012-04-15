@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Skeletal animation test</title>
+<link href='http://fonts.googleapis.com/css?family=Viga' rel='stylesheet' type='text/css'>
+<style>
+body {
+    background: black; color: white;
+    font-family: 'Viga';
+    font-size: 110%;
+}
+h1 {
+    font-size: 160%;
+    text-align: center;
+    margin: 0.5em auto;
+}
+* {
+    margin: auto;
+    text-align: center;
+}
+
+input {
+    background: inherit; color: inherit; border: none;
+    font-family: inherit; font-size: inherit;
+    width: 20em;
+}
+td {
+    text-align: right
+}
+</style>
+
+<!-- UFX libraries -->
+<script src="../../UFX/src/ticker.js"></script>
+<script src="../../UFX/src/resource.js"></script>
+<script src="../../UFX/src/key.js"></script>
+<script src="../../UFX/src/Thing.js"></script>
+
+<body>
+<h1>Skeletal animation test</h1>
+<canvas id=canvas style="border: thin gray solid"></canvas>
+
+<script>
+var canvas = document.getElementById("canvas")
+canvas.width = 600 ; canvas.height = 600
+var context = canvas.getContext("2d")
+
+function drawdot(x, y) {
+    context.beginPath()
+    context.arc(x, y, 4, 0, 6.3)
+    context.fillStyle = "white"
+    context.fill()
+}
+
+UFX.key.init()
+var t = 0
+function think(dt) {
+    t += dt
+    context.fillStyle = "#333"
+    context.fillRect(0, 0, 600, 600)
+    context.save()
+    context.scale(0.5, 0.5)
+    context.drawImage(UFX.resource.images.bod, 0, 0)
+    var x = 510, y = 260
+    context.save()
+    context.translate(x, y)
+    context.rotate(0.4 * Math.sin(t * 4))
+    context.translate(-x, -y)
+    context.drawImage(UFX.resource.images.noggin, 0, 0)
+    context.restore()
+    drawdot(x, y)
+
+    var x = 480, y = 420
+    context.save()
+    context.translate(x, y)
+    context.rotate(0.4 * Math.sin(t * 3 + 3))
+    context.translate(-x, -y)
+    context.drawImage(UFX.resource.images.ruparm, 0, 0)
+    context.drawImage(UFX.resource.images.rlowarm, 0, 0)
+    context.drawImage(UFX.resource.images.rhand, 0, 0)
+    context.restore()
+    drawdot(x, y)
+
+    context.restore()
+
+
+    document.title = UFX.ticker.getfpsstr()
+}
+
+
+UFX.resource.onload = function () {
+    UFX.ticker.register(think)
+}
+UFX.resource.base = "skeleton"
+UFX.resource.load({
+    bod: "bod.png",
+    noggin: "noggin.png",
+    ruparm: "ruparm.png",
+    rlowarm: "rlowarm.png",
+    rhand: "rhand.png",
+})
+
+</script>
+
