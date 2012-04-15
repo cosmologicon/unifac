@@ -20,7 +20,6 @@ h1 {
 }
 
 input {
-    background: inherit; color: inherit; border: none;
     font-family: inherit; font-size: inherit;
     width: 20em;
 }
@@ -33,16 +32,64 @@ td {
 <script src="../../UFX/src/ticker.js"></script>
 <script src="../../UFX/src/resource.js"></script>
 <script src="../../UFX/src/key.js"></script>
+<script src="../../UFX/src/mouse.js"></script>
 <script src="../../UFX/src/Thing.js"></script>
+
+<script src="skeleton/data.js"></script>
 
 <body>
 <h1>Skeletal animation test</h1>
 <canvas id=canvas style="border: thin gray solid"></canvas>
 
+<input type=text id=newkfname></input>
+<button onclick="data.kframes.push(newkframe(document.getElementById('newkfname').value))">Add keyframe</button>
+<button onclick="getdata()">Get data</button>
+
 <script>
 var canvas = document.getElementById("canvas")
 canvas.width = 600 ; canvas.height = 600
 var context = canvas.getContext("2d")
+
+
+function getdata() {
+    for (nname in nodes) {
+        data.anchors[nname] = nodes[nname].anchor
+    }
+    window.open("data:text/plain;charset=utf-8," + "var data = " + JSON.stringify(data))
+}
+
+function Node(name, parent) {
+    this.name = name
+    this.parent = null
+    this.children = []
+    if (parent) this.attachto(parent)
+}
+Node.prototype = {
+    attachto: function (parent) {
+        this.parent = parent
+        parent.children.push(this)
+    },
+}
+
+var nodes = {}, nodenames = []
+data.structure.forEach(function (spec) {
+    if (spec.indexOf(">") > -1) {
+        var words = spec.split(">")
+        nodes[words[0]] = new Node(words[0], nodes[words[1]])
+        nodenames.push(words[0])
+    } else {
+        nodes[spec] = new Node(spec)
+        nodenames.push(spec)
+    }
+})
+
+data.anchors = data.anchors || {}
+for (var nname in nodes) {
+    if (!(nname in data.anchors)) {
+        data.anchors[nname] = { x: 0, y: 0, r: 0 }
+    }
+    nodes[nname].anchor = data.anchors[nname]
+}
 
 function drawdot(x, y) {
     context.beginPath()
@@ -51,44 +98,103 @@ function drawdot(x, y) {
     context.fill()
 }
 
+function newkframe(name) {
+    var kframe = {
+        name: name,
+        disp: {},
+    }
+    for (var nname in nodes) {
+        kframe.disp[nname] = { x: 0, y: 0, r: 0 }
+    }
+    return kframe
+}
+
+if (!data.kframes) {
+    data.kframes = [newkframe("control")]
+}
+
+
 UFX.key.init()
+UFX.mouse.init(canvas)
+UFX.key.watchlist = "up down left right space enter tab shift 1 2 R".split(" ")
 var t = 0
+var jnode = 0, currentnode = nodes[nodenames[jnode]]
+var jkframe = 0, currentkframe = data.kframes[jkframe]
 function think(dt) {
     t += dt
+    var rangle = 0.4 * Math.sin(7 * t)
+    var controlling = currentkframe.name === "control"
+
+    UFX.key.events().forEach(function (event) {
+        if (event.type === "down" && event.name === "tab") {
+            jnode = (jnode + 1) % nodenames.length
+            currentnode = nodes[nodenames[jnode]]
+        } else if (event.type === "down" && event.name === "enter") {
+            jkframe = (jkframe + 1) % data.kframes.length
+            currentkframe = data.kframes[jkframe]
+        }
+        if (!controlling && event.type === "down") {
+            var disp = currentkframe.disp[currentnode.name]
+            var factor = UFX.key.ispressed.shift ? 0.1 : 1
+            if (event.name === "up") disp.y -= 10 * factor
+            if (event.name === "down") disp.y += 10 * factor
+            if (event.name === "left") disp.x -= 10 * factor
+            if (event.name === "right") disp.x += 10 * factor
+            if (event.name === "1") disp.r -= 0.1 * factor
+            if (event.name === "2") disp.r += 0.1 * factor
+            if (event.name === "R") disp.x = disp.y = disp.r = 0
+        }
+    })
+    UFX.mouse.events().forEach(function (event) {
+        if (event.type == "up") {
+            if (controlling) {
+                currentnode.anchor.x = event.pos[0] / 0.5
+                currentnode.anchor.y = event.pos[1] / 0.5
+            }
+        }
+    })
+
     context.fillStyle = "#333"
     context.fillRect(0, 0, 600, 600)
     context.save()
     context.scale(0.5, 0.5)
-    context.drawImage(UFX.resource.images.bod, 0, 0)
-    var x = 510, y = 260
-    context.save()
-    context.translate(x, y)
-    context.rotate(0.4 * Math.sin(t * 4))
-    context.translate(-x, -y)
-    context.drawImage(UFX.resource.images.noggin, 0, 0)
-    context.restore()
-    drawdot(x, y)
 
-    var x = 480, y = 420
-    context.save()
-    context.translate(x, y)
-    context.rotate(0.4 * Math.sin(t * 3 + 3))
-    context.translate(-x, -y)
-    context.drawImage(UFX.resource.images.ruparm, 0, 0)
-    context.drawImage(UFX.resource.images.rlowarm, 0, 0)
-    context.drawImage(UFX.resource.images.rhand, 0, 0)
-    context.restore()
-    drawdot(x, y)
+    function drawnode(node) {
+        context.save()
+        if (controlling) {
+            context.translate(node.anchor.x, node.anchor.y)
+            if (node === currentnode) context.rotate(rangle)
+            context.translate(-node.anchor.x, -node.anchor.y)
+        } else {
+            var disp = currentkframe.disp[node.name]
+            context.translate(node.anchor.x, node.anchor.y)
+            context.rotate(disp.r)
+            context.translate(-node.anchor.x, -node.anchor.y)
+            context.translate(disp.x, disp.y)
+        }
+        context.globalAlpha = node === currentnode ? 1 : 0.5
+        context.drawImage(UFX.resource.images[node.name], 0, 0)
+        node.children.forEach(drawnode)
+        drawdot(node.anchor.x, node.anchor.y)
+        context.restore()
+    }
+    drawnode(nodes.bod)
 
     context.restore()
 
+    context.textAlign = "right"
+    context.textBaseline = "top"
+    context.font = "24px Viga"
+    context.fillStyle = "#AAF"
+    context.fillText(data.kframes[jkframe].name, 590, 10)
+    context.fillText(nodenames[jnode], 590, 36)
 
     document.title = UFX.ticker.getfpsstr()
 }
 
 
 UFX.resource.onload = function () {
-    UFX.ticker.register(think)
+    UFX.ticker.register(think, null, {maxups: 60})
 }
 UFX.resource.base = "skeleton"
 UFX.resource.load({
