@@ -16,7 +16,7 @@ FacesDirection = {
 }
 LooksAhead = {
     lookingat: function() {
-        var dx = (this.facingright ? 1 : - 1) * settings.sx / 4
+        var dx = (this.facingright ? 1 : - 1) * settings.sx / 10
         return [this.x + dx, this.y + 40]
     },
 }
@@ -38,21 +38,79 @@ IsBlock = {
         context.restore()
         context.strokeStyle = color
         context.stroke()
+        
+        context.beginPath()
+        context.arc(0, 0, 3, 0, 6.3)
+        context.fillStyle = "white"
+        context.fill()
     },
 }
 
 
 // Player character state components
-CanJumpFrom = {
+IsState = {
+    enter: function () {
+    },
+    exit: function () {
+    },
+    think: function () {
+    },
+    draw: function () {
+    },
     jump: function () {
-        this.vy = 200
-        this.nextstate = JumpState
+    },
+    move: function () {
     },
 }
 
-FeelsGravity = {
+IsLaunch = {
+    init: function (vx0, vy0) {
+        this.vx0 = vx0 || 0
+        this.vy0 = vy0 || 0
+    },
+    enter: function () {
+        this.vx = (this.facingright ? 1 : -1) * this.state.vx0
+        this.vy = this.state.vy0
+    },
+}
+
+CanRun = {
+    init: function (vx0) {
+        this.vx0 = vx0 || 0
+    },
+    enter: function () {
+        this.vx = 0
+    },
+    move: function (d) {
+        this.vx = this.state.vx0 * d
+        if (d > 0) this.facingright = true
+        if (d < 0) this.facingright = false
+    },
     think: function (dt) {
-        this.vy -= dt * 400
+        this.x += this.vx * dt
+    },
+}
+
+AboutFace = {
+    enter: function () {
+        this.facingright = !this.facingright
+    },
+}
+
+Earthbound = {
+    enter: function () {
+        this.y = 0
+        this.vy = 0
+    },
+}
+
+ArcMotion = {
+    init: function (g) {
+        this.g = g || 400
+    },
+    think: function (dt) {
+        this.vy -= dt * this.state.g
+        this.x += this.vx * dt
         this.y += this.vy * dt
     },
 }
@@ -67,23 +125,33 @@ LandsAtGround = {
 }
 
 // Player character states
-StandState = UFX.Thing().
-               addcomp(IsBlock).
-               addcomp(CanJumpFrom).
-               definemethod("think")
+StandState = UFX.Thing()
+              .addcomp(IsState)
+              .addcomp(Earthbound)
+              .addcomp(CanRun, 200)
+              .addcomp(IsBlock)
 
-JumpState = UFX.Thing().
-               addcomp(IsBlock).
-               addcomp(FeelsGravity).
-               addcomp(LandsAtGround).
-               definemethod("jump")
+JumpState = UFX.Thing()
+              .addcomp(IsState)
+              .addcomp(IsLaunch, 40, 200)
+              .addcomp(ArcMotion)
+              .addcomp(LandsAtGround)
+              .addcomp(IsBlock)
+
+TurnState = UFX.Thing()
+              .addcomp(IsState)
+              .addcomp(AboutFace)
+              .addcomp(IsLaunch, 0, 200)
+              .addcomp(ArcMotion)
+              .addcomp(LandsAtGround)
+              .addcomp(IsBlock)
 
 
 HasStates = {
     init: function (state0) {
         this.state = this.state0 = state0
         this.nextstate = null
-        var machine = this
+        this.state.enter.apply(this)
     },
     draw: function () {
         this.state.draw.apply(this, arguments)
@@ -91,13 +159,18 @@ HasStates = {
     think: function () {
         this.state.think.apply(this, arguments)
         if (this.nextstate) {
+            this.state.exit.apply(this)
             this.state = this.nextstate
+            this.state.enter.apply(this)
             this.nextstate = null
         }
     },
     jump: function () {
         this.state.jump.apply(this, arguments)
-    }
+    },
+    move: function () {
+        this.state.move.apply(this, arguments)
+    },
 }
 
 

@@ -9,9 +9,9 @@ PlayScene.start = function () {
     UFX.key.qup = false
 }
 PlayScene.thinkargs = function (dt) {
-    return [dt, UFX.key.events(), UFX.key.combos()]
+    return [dt, UFX.key.events(), UFX.key.ispressed, UFX.key.combos()]
 }
-PlayScene.think = function (dt, keyevents, combos) {
+PlayScene.think = function (dt, keyevents, pressed, combos) {
     var scene = this
     keyevents.forEach(function (event) {
         if (event.name === "escape") {
@@ -19,16 +19,18 @@ PlayScene.think = function (dt, keyevents, combos) {
         }
     })
     combos.forEach(function (combo) {
-        if (combo.kstring === "left up") {
-            scene.color = "blue"
-        } else if (combo.kstring === "right space") {
-            scene.color = "green"
-        } else if (combo.kstring === "left right space up") {
-            scene.color = "white"
-        } else if (combo.kstring === "up") {
-            you.jump()
+        var swap = !you.facingright && settings.swapcontrols
+        var cstring = combo.kstring
+            .replace("left", (swap ? "forward" : "back"))
+            .replace("right", (swap ? "back" : "forward"))
+    
+        if (cstring === "up") {
+            you.nextstate = JumpState
+        } else if (cstring === "back") {
+            you.nextstate = TurnState
         }
     })
+    you.move((pressed.right ? 1 : 0) - (pressed.left ? 1 : 0))
     you.think(dt)
     vista.settarget(you.lookingat())
     vista.think(dt)
