@@ -25,9 +25,9 @@ PlayScene.think = function (dt, keyevents, pressed, combos) {
             .replace("right", (swap ? "back" : "forward"))
     
         if (cstring === "up") {
-            you.nextstate = JumpState
+            you.nextstate = YouStates.jump
         } else if (cstring === "back") {
-            you.nextstate = TurnState
+            you.nextstate = YouStates.turn
         }
     })
     you.move((pressed.right ? 1 : 0) - (pressed.left ? 1 : 0))

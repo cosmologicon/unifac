@@ -57,8 +57,6 @@ IsState = {
     },
     draw: function () {
     },
-    jump: function () {
-    },
     move: function () {
     },
 }
@@ -118,34 +116,35 @@ ArcMotion = {
 LandsAtGround = {
     think: function (dt) {
         if (this.y < 0) {
-            this.y = 0
-            this.nextstate = StandState
+            this.nextstate = YouStates.stand
         }
     },
 }
 
 // Player character states
-StandState = UFX.Thing()
+YouStates = {
+    stand: UFX.Thing()
               .addcomp(IsState)
               .addcomp(Earthbound)
-              .addcomp(CanRun, 200)
+              .addcomp(CanRun, mechanics.runvx)
               .addcomp(IsBlock)
-
-JumpState = UFX.Thing()
+    ,
+    jump: UFX.Thing()
               .addcomp(IsState)
               .addcomp(IsLaunch, 40, 200)
               .addcomp(ArcMotion)
               .addcomp(LandsAtGround)
               .addcomp(IsBlock)
-
-TurnState = UFX.Thing()
+    ,
+    turn: UFX.Thing()
               .addcomp(IsState)
               .addcomp(AboutFace)
-              .addcomp(IsLaunch, 0, 200)
+              .addcomp(IsLaunch, mechanics.turnvx, mechanics.turnvy)
               .addcomp(ArcMotion)
               .addcomp(LandsAtGround)
               .addcomp(IsBlock)
-
+    ,
+}
 
 HasStates = {
     init: function (state0) {
@@ -165,9 +164,6 @@ HasStates = {
             this.nextstate = null
         }
     },
-    jump: function () {
-        this.state.jump.apply(this, arguments)
-    },
     move: function () {
         this.state.move.apply(this, arguments)
     },
@@ -179,6 +175,6 @@ var you = UFX.Thing().
             addcomp(HasPosition, 0, 0).
             addcomp(FacesDirection, true).
             addcomp(LooksAhead).
-            addcomp(HasStates, StandState)
+            addcomp(HasStates, YouStates.stand)
 
 
