@@ -41,8 +41,8 @@ td {
 <h1>Skeletal animation test</h1>
 <canvas id=canvas style="border: thin gray solid"></canvas>
 
-<input type=text id=newkfname></input>
-<button onclick="data.kframes.push(newkframe(document.getElementById('newkfname').value))">Add keyframe</button>
+<input type=text id=animname></input>
+<button onclick="addanim()">Add animation</button>
 <button onclick="getdata()">Get data</button>
 
 <script>
@@ -101,6 +101,7 @@ function drawdot(x, y) {
 function newkframe(name) {
     var kframe = {
         name: name,
+        t: 0,
         disp: {},
     }
     for (var nname in nodes) {
@@ -108,46 +109,148 @@ function newkframe(name) {
     }
     return kframe
 }
+var frame0 = newkframe()
 
-if (!data.kframes) {
-    data.kframes = [newkframe("control")]
+function combineframes(frame0, frame1, f, t) {
+    var frame = {
+        name: "",
+        t: t,
+        disp: {}
+    }
+    for (var nname in nodes) {
+        frame.disp[nname] = {
+            x: frame0.disp[nname].x * (1-f) + frame1.disp[nname].x,
+            y: frame0.disp[nname].y * (1-f) + frame1.disp[nname].y,
+            r: frame0.disp[nname].r * (1-f) + frame1.disp[nname].r,
+        }
+    }
+    return frame
 }
+
+function addanim(name) {
+    var aname = document.getElementById('animname').value
+    data.anims.push({
+        name: aname,
+        duration: 1.0,
+        kframes: [],
+    })
+}
+
+function getframe(anim, t) {
+    if (!anim.kframes.length) return frame0
+    var lastj = anim.kframes.length - 1, nextj = 0
+    for (var j = 0 ; j < anim.kframes.length ; ++j) {
+        var tf = anim.kframes[j].t
+        if (tf == t) return anim.kframes[j]
+        if (tf < t && tf > anim.kframes[lastj]) {
+            lastj = j
+        } else if (t < tf && tf < anim.kframes[nextj]) {
+            nextj = j
+        }
+    }
+    var f0 = anim.kframes[lastj], f1 = anim.kframes[nextj]
+    var dt = t - f0.t, dt0 = f1.t - f0.t
+    if (dt < 0) dt += anim.duration
+    if (dt0 < 0) dt0 += anim.duration
+    return combineframes(f0, f1, 1 - dt / dt0, t)
+}
+
+function addkframe(anim, t) {
+    var frame = getframe(anim, t)
+    var kframe = {
+        name: anim.name + t,
+        t: t,
+        disp: {},
+    }
+    for (var nname in frame.disp) {
+        var disp = frame.disp[nname]
+        kframe.disp[nname] = { x: disp.x, y: disp.y, r: disp.r }
+    }
+    anim.kframes.push(kframe)
+    anim.kframes.sort(function (f0, f1) { return f0.t - f1.t })
+}
+
+function nearestkframe(anim, t) {
+    if (!anim.kframes.length) return null
+    var mindt = 1000, jmin = 0
+    for (var j = 0 ; j < anim.kframes.length ; ++j) {
+        var dt = Math.abs(anim.kframes[j].t - t)
+        if (dt < mindt) {
+            dt = mindt ; jmin = j
+        }
+    }
+    return anim.kframes[jmin]
+}
+
+function nextkframet(anim, t) {
+    if (anim.kframes.length == 0) return t
+    for (var j = 1 ; j < anim.kframes.length ; ++j) {
+        if (anim.kframes[j].t > t) return anim.kframes[j].t
+    }
+    return anim.kframes[0].t
+}
+
+
+
+data.anims = data.anims || []
 
 
 UFX.key.init()
 UFX.mouse.init(canvas)
-UFX.key.watchlist = "up down left right space enter tab shift 1 2 R".split(" ")
+UFX.key.watchlist = "up down left right space enter tab shift 1 2 backspace F1 F2 F3 F5 openbracket closebracket K".split(" ")
 var t = 0
-var jnode = 0, currentnode = nodes[nodenames[jnode]]
-var jkframe = 0, currentkframe = data.kframes[jkframe]
+var currentt = 0, playing = false, playfactor = 1.0
+var jnode = 0
+var janim = 0
+var jkframe = 0
+var mode = "control"  // control: set control points, pose: pose nodes, anim: view animation, add frames
+
+var currentanim = data.anims[0]
+
 function think(dt) {
     t += dt
     var rangle = 0.4 * Math.sin(7 * t)
-    var controlling = currentkframe.name === "control"
 
     UFX.key.events().forEach(function (event) {
-        if (event.type === "down" && event.name === "tab") {
-            jnode = (jnode + 1) % nodenames.length
-            currentnode = nodes[nodenames[jnode]]
-        } else if (event.type === "down" && event.name === "enter") {
-            jkframe = (jkframe + 1) % data.kframes.length
-            currentkframe = data.kframes[jkframe]
+        if (event.type !== "down") return
+        var factor = UFX.key.ispressed.shift ? 0.1 : 1
+        if (event.name === "F1") mode = "control"
+        if (event.name === "F2") mode = "anim"
+        if (event.name === "F3") {
+            currentkframe = nearestkframe(currentanim, currentt)
+            if (currentkframe) {
+                currentt = currentkframe.t
+                mode = "pose"
+            }
         }
-        if (!controlling && event.type === "down") {
+        if (mode === "control" || mode === "pose") {
+            if (event.name === "tab") {
+                jnode = (jnode + 1) % nodenames.length
+                currentnode = nodes[nodenames[jnode]]
+            }
+        }
+        if (mode === "anim") {
+            if (event.name === "F5") playing = !playing
+            if (event.name === "left") currentt -= 0.02 * factor
+            if (event.name === "right") currentt += 0.02 * factor
+            if (event.name === "closebracket") currentt = nextkframet(currentanim, currentt)
+            if (event.name === "tab") janim = (janim + 1) % data.anims.length
+            if (event.name === "K") addkframe(currentanim, currentt)
+        }
+        if (mode === "pose") {
             var disp = currentkframe.disp[currentnode.name]
-            var factor = UFX.key.ispressed.shift ? 0.1 : 1
             if (event.name === "up") disp.y -= 10 * factor
             if (event.name === "down") disp.y += 10 * factor
             if (event.name === "left") disp.x -= 10 * factor
             if (event.name === "right") disp.x += 10 * factor
             if (event.name === "1") disp.r -= 0.1 * factor
             if (event.name === "2") disp.r += 0.1 * factor
-            if (event.name === "R") disp.x = disp.y = disp.r = 0
+            if (event.name === "backspace") disp.x = disp.y = disp.r = 0
         }
     })
     UFX.mouse.events().forEach(function (event) {
         if (event.type == "up") {
-            if (controlling) {
+            if (mode === "control") {
                 currentnode.anchor.x = event.pos[0] / 0.5
                 currentnode.anchor.y = event.pos[1] / 0.5
             }
@@ -159,14 +262,35 @@ function think(dt) {
     context.save()
     context.scale(0.5, 0.5)
 
+
+    if (mode === "control" || mode === "pose") currentnode = nodes[nodenames[jnode]]
+    if (mode === "anim" || mode === "pose") currentanim = data.anims[janim]
+
+    if (mode === "anim" && playing) {
+        currentt += dt * playfactor
+        while (currentt >= currentanim.duration)
+            currentt -= currentanim.duration
+        while (currentt < 0)
+            currentt += currentanim.duration
+    }
+
+
+    var currentframe = frame0
+    if (mode === "anim") {
+        currentframe = getframe(currentanim, currentt)
+    } else if (mode === "pose") {
+        currentframe = currentkframe
+    }
+    
+
     function drawnode(node) {
         context.save()
-        if (controlling) {
+        if (mode === "control") {
             context.translate(node.anchor.x, node.anchor.y)
             if (node === currentnode) context.rotate(rangle)
             context.translate(-node.anchor.x, -node.anchor.y)
         } else {
-            var disp = currentkframe.disp[node.name]
+            var disp = currentframe.disp[node.name]
             context.translate(node.anchor.x, node.anchor.y)
             context.rotate(disp.r)
             context.translate(-node.anchor.x, -node.anchor.y)
@@ -186,8 +310,39 @@ function think(dt) {
     context.textBaseline = "top"
     context.font = "24px Viga"
     context.fillStyle = "#AAF"
-    context.fillText(data.kframes[jkframe].name, 590, 10)
-    context.fillText(nodenames[jnode], 590, 36)
+    var ty = 4
+    function printtext(text) {
+        context.fillText(text, 590, ty)
+        ty += 26
+    }
+    
+    printtext(mode + " mode")
+    if (mode === "anim" || mode === "pose") {
+        printtext("animation: " + currentanim.name)
+        printtext(Math.floor(currentt*1000) + "ms / "
+                + Math.floor(currentanim.duration*1000) + "ms")
+
+        context.save()
+        context.globalAlpha = 0.2
+        context.fillStyle = "white"
+        context.fillRect(20, 560, 240 * currentanim.duration, 10)
+        context.restore()
+        function lineat(x, color) {
+            context.strokeStyle = color
+            context.lineWidth = 3
+            context.beginPath()
+            context.moveTo(x, 550)
+            context.lineTo(x, 580)
+            context.stroke()
+        }
+        currentanim.kframes.forEach(function (frame) {
+            lineat(20 + 240 * frame.t, "white")
+        })
+        lineat(20 + 240 * currentt, "yellow")
+    }
+    if (mode === "control" || mode === "pose") {
+        printtext("node: " + currentnode.name)
+    }
 
     document.title = UFX.ticker.getfpsstr()
 }
