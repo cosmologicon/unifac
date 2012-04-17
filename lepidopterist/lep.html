@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Mortimer the Lepidopterist</title>
+<link href='http://fonts.googleapis.com/css?family=Viga' rel='stylesheet' type='text/css'>
+<style>
+body {
+    background: black; color: white;
+    font-family: 'Viga';
+    font-size: 110%;
+}
+h1 {
+    font-size: 160%;
+    text-align: center;
+    margin: 0.5em auto;
+}
+* {
+    margin: auto;
+    text-align: center;
+}
+
+input {
+    background: inherit; color: inherit; border: none;
+    font-family: inherit; font-size: inherit;
+    width: 20em;
+}
+td {
+    text-align: right
+}
+</style>
+
+<!-- UFX libraries -->
+<script src="../UFX/src/ticker.js"></script>
+<script src="../UFX/src/resource.js"></script>
+<script src="../UFX/src/scene.js"></script>
+<script src="../UFX/src/pause.js"></script>
+<script src="../UFX/src/key.js"></script>
+<script src="../UFX/src/Thing.js"></script>
+
+<!-- game code -->
+<script src="gamestate.js"></script>
+<script src="settings.js"></script>
+<script src="vista.js"></script>
+
+<!-- Scenes -->
+<script src="playscene.js"></script>
+
+<!-- Player character -->
+<script src="you.js"></script>
+
+
+<body>
+<h1>Mortimer the Lepidopterist</h1>
+<canvas id=canvas style="border: thin gray solid"></canvas>
+
+<input type=button onclick="gamestate.reset()">Reset saved game</input>
+
+<script>
+var canvas = document.getElementById("canvas")
+canvas.width = settings.sx ; canvas.height = settings.sy
+var context = canvas.getContext("2d")
+
+window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
+                               window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
+UFX.key.init()
+UFX.scene.init()
+UFX.scene.push(PlayScene)
+
+</script>
+
+
