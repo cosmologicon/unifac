@@ -40,6 +40,8 @@ td {
 Capture middle click</input>
 <p><input type=checkbox onclick="UFX.mouse.capture.right = this.checked">
 Capture right click</input>
+<p><input type=checkbox onclick="UFX.mouse.capture.wheel = this.checked">
+Capture mouse wheel</input>
 
 <script>
 var canvas = document.getElementById("canvas")
@@ -70,6 +72,7 @@ var dots = document.createElement("canvas")
 dots.width = 400
 dots.height = 300
 var dcontext = dots.getContext("2d")
+var bcolor = 0
 
 
 function drawdot(pos, color) {
@@ -91,8 +94,11 @@ function draw() {
         }
     })
     
+    bcolor += UFX.mouse.getwheeldy()
+    bcolor = ((bcolor % 255) + 255) % 255
+    context.fillStyle = "rgb(0,0," + Math.floor(bcolor) + ")"
 
-    context.clearRect(0, 0, 400, 300)
+    context.fillRect(0, 0, 400, 300)
     context.drawImage(grid, 0, 0)
     context.drawImage(dots, 0, 0)
     if (UFX.mouse.drag) {
@@ -100,7 +106,6 @@ function draw() {
         context.beginPath()
         context.moveTo(UFX.mouse.drag.pos0[0], UFX.mouse.drag.pos0[1])
         context.lineTo(UFX.mouse.drag.pos[0], UFX.mouse.drag.pos[1])
-//        context.endPath()
         context.stroke()
         
     }

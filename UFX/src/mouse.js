@@ -1,6 +1,6 @@
 // Mouse module - puts mouse events in a queue
 
-// Does not yet handle scrolling or multitouch
+// Does not yet handle horizontal scrolling or multitouch
 
 
 if (typeof UFX == "undefined") UFX = {}
@@ -12,8 +12,9 @@ UFX.mouse.qdown = true
 UFX.mouse.qup = true
 UFX.mouse.qclick = false
 UFX.mouse.qblur = false
-// Should we watch for left, middle, and right events?
-UFX.mouse.capture = { left: true, middle: false, right: false }
+UFX.mouse.qwheel = false
+// Should we watch for left, middle, right, and wheel events?
+UFX.mouse.capture = { left: true, middle: false, right: false, wheel: false }
 
 // While the mouse is down, this is updated with info on the current drag event
 UFX.mouse.watchdrag = true
@@ -29,8 +30,16 @@ UFX.mouse.clearevents = function () {
     UFX.mouse._events = []
 }
 
+UFX.mouse.getwheeldy = function () {
+    var dy = UFX.mouse.wheeldy
+    UFX.mouse.wheeldy = 0
+    return dy
+}
+
 // This is updated every mouse event with the last known mouse position (as a length-2 array)
 UFX.mouse.pos = null
+//UFX.mouse.wheeldx = 0
+UFX.mouse.wheeldy = 0
 
 UFX.mouse.init = function (element, backdrop) {
     UFX.mouse._captureevents(element, backdrop)
@@ -46,11 +55,14 @@ UFX.mouse._captureevents = function (element, backdrop) {
     if (typeof backdrop == "string") backdrop = document.getElementById(backdrop)
 
     backdrop.addEventListener("blur", UFX.mouse._onblur, true)
+    // TODO: add these instead of replacing the event handlers
     element.onmouseout = UFX.mouse._onmouseout
     element.onmousedown = UFX.mouse._onmousedown
     backdrop.onmouseup = UFX.mouse._onmouseup
     element.onclick = UFX.mouse._onclick
     element.oncontextmenu = UFX.mouse._oncontextmenu
+    element.onmousewheel = UFX.mouse._onmousewheel  // non-Firefox
+    element.addEventListener("DOMMouseScroll", UFX.mouse._onmousewheel)  // Firefox
     
     backdrop.onmousemove = UFX.mouse._onmousemove
 
@@ -95,6 +107,7 @@ UFX.mouse._onclick = function (event) {
             time: Date.now(),
             baseevent: event,
         }
+        UFX.mouse._events.push(mevent)
     }
     event.preventDefault()
     return false
@@ -122,6 +135,7 @@ UFX.mouse._onmousedown = function (event) {
             time: Date.now(),
             baseevent: event,
         }
+        UFX.mouse._events.push(mevent)
     }
     event.preventDefault()
     return false
@@ -164,4 +178,24 @@ UFX.mouse._onmousemove = function (event) {
     }
     return false
 }
+
+UFX.mouse._onmousewheel = function (event) {
+    if (!UFX.mouse.active || !UFX.mouse.capture.wheel) return true
+    var dy = "wheelDelta" in event ? event.wheelDelta / 40. : -event.detail
+    UFX.mouse.wheeldy += dy
+    if (UFX.mouse.qwheel) {
+        var mevent = {
+            type: "wheel",
+            pos: UFX.mouse._geteventpos(event, UFX.mouse._element),
+            dy: dy,
+//            dx: event.wheelDeltaX,
+            time: Date.now(),
+            baseevent: event,
+        }
+        UFX.mouse._events.push(mevent)
+    }
+    event.preventDefault()
+    return false
+}
+
 
