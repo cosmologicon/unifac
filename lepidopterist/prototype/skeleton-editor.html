@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Skeletal animation editor</title>
+<link href='http://fonts.googleapis.com/css?family=Viga' rel='stylesheet' type='text/css'>
+<style>
+body {
+    background: black; color: white;
+    font-family: 'Viga';
+    font-size: 110%;
+}
+h1 {
+    font-size: 160%;
+    text-align: center;
+    margin: 0.5em auto;
+}
+</style>
+
+<!-- UFX libraries -->
+<script src="../../UFX/src/ticker.js"></script>
+<script src="../../UFX/src/resource.js"></script>
+<script src="../../UFX/src/key.js"></script>
+<script src="../../UFX/src/mouse.js"></script>
+<script src="../../UFX/src/Thing.js"></script>
+
+<script src="skeleton/data.js"></script>
+<script src="skeleton/skeleton.js"></script>
+
+<body>
+<h1>Skeletal animation editor</h1>
+<canvas id=canvas style="border: thin gray solid"></canvas>
+
+<script>
+var canvas = document.getElementById("canvas")
+canvas.width = sx = 600 ; canvas.height = sy = 600
+var context = canvas.getContext("2d")
+
+// Pop open a window with text that you can copy
+function popwindow(data) {
+    window.open("data:text/plain;charset=utf-8," + "var data = " + JSON.stringify(data))
+}
+
+
+// Load up initial data and resources
+
+var skeletons = {}
+for (var sname in skelspec) {
+    skeletons[sname] = new Skeleton(skelspec[sname])
+}
+
+
+UFX.resource.onload = function () {
+    UFX.ticker.register(think, null, {maxups: 60})
+}
+
+</script>
+
+
