@@ -1,1 +1,5 @@
-var data = {"structure":["bod","noggin>bod","ruparm>bod","rlowarm>ruparm","rhand>rlowarm"],"anchors":{"bod":{"x":534,"y":538,"r":0},"noggin":{"x":572,"y":222,"r":0},"ruparm":{"x":0,"y":0,"r":0},"rlowarm":{"x":0,"y":0,"r":0},"rhand":{"x":0,"y":0,"r":0}},"anims":[{"name":"nab","duration":1,"kframes":[{"name":"nab0","t":0,"disp":{"bod":{"x":0,"y":0,"r":0},"noggin":{"x":0,"y":0,"r":0},"ruparm":{"x":0,"y":0,"r":0},"rlowarm":{"x":0,"y":0,"r":0},"rhand":{"x":0,"y":0,"r":0}}},{"name":"nab0.32","t":0.32,"disp":{"bod":{"x":null,"y":null,"r":null},"noggin":{"x":null,"y":null,"r":null},"ruparm":{"x":null,"y":null,"r":null},"rlowarm":{"x":null,"y":null,"r":null},"rhand":{"x":null,"y":null,"r":null}}},{"name":"nab0.48000000000000015","t":0.48000000000000015,"disp":{"bod":{"x":null,"y":null,"r":null},"noggin":{"x":null,"y":null,"r":null},"ruparm":{"x":null,"y":null,"r":null},"rlowarm":{"x":null,"y":null,"r":null},"rhand":{"x":null,"y":null,"r":null}}}]}]}
+var skelspecs = {"mortimer":{"partmap":{
+    bod: ["root", 1],
+    rarm0: ["bod", 1],
+    rarm1: ["rarm0", 1],
+}}}

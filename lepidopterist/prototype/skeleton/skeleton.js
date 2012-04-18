@@ -29,16 +29,8 @@ You only really have to fill in skel.skeleton, and the rest will be added automa
         ],
     }
 */
-if (typeof skelspecs === "undefined") {
-    var defaultskel = {
-        partmap: {
-        },
-    }
-    var skelspecs = {
-        default: defaultskel,
-    }
-    popwindow(skelspecs)
-}
+
+
 
 // A skeleton consists of:
 //   a tree of body parts,
@@ -166,7 +158,7 @@ Animation.prototype = {
     },
 
     // Find the next keyframe (for advancing), wrapping past the end of the duration
-    nextkframe = function(t) {
+    nextkframe: function(t) {
         if (!this.kframes.length) return null
         for (var j = 1 ; j < this.kframes.length ; ++j) {
             if (this.kframes[j].t > t) return this.kframes[j]

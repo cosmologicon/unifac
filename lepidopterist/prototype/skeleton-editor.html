@@ -28,7 +28,7 @@ h1 {
 
 <body>
 <h1>Skeletal animation editor</h1>
-<canvas id=canvas style="border: thin gray solid"></canvas>
+<canvas id=canvas style="border: thick white outset"></canvas>
 
 <script>
 var canvas = document.getElementById("canvas")
@@ -36,22 +36,97 @@ canvas.width = sx = 600 ; canvas.height = sy = 600
 var context = canvas.getContext("2d")
 
 // Pop open a window with text that you can copy
-function popwindow(data) {
-    window.open("data:text/plain;charset=utf-8," + "var data = " + JSON.stringify(data))
+function popwindow(varname, data) {
+    window.open("data:text/plain;charset=utf-8," + "var " + varname + " = " + JSON.stringify(data))
 }
 
 
 // Load up initial data and resources
-
 var skeletons = {}
-for (var sname in skelspec) {
-    skeletons[sname] = new Skeleton(skelspec[sname])
+if (typeof skelspecs === "undefined") {
+    var defaultskel = {
+        partmap: {
+        },
+    }
+    var skelspecs = {
+        default: defaultskel,
+    }
+    popwindow("skelspecs", skelspecs)
 }
+for (var sname in skelspecs) {
+    skeletons[sname] = new Skeleton(skelspecs[sname])
+}
+
+
 
 
 UFX.resource.onload = function () {
     UFX.ticker.register(think, null, {maxups: 60})
 }
+UFX.resource.base = "skeleton"
+for (var sname in skeletons) {
+    for (var partname in skeletons[sname].partmap) {
+        UFX.resource.load({ partname: partname + ".png" })
+    }
+}
+UFX.key.init()
+UFX.key.watchlist = "comma period".split(" ")
+UFX.mouse.init(canvas)
+UFX.mouse.capture.middle = true
+UFX.mouse.capture.wheel = true
+
+var zoom = 0.5, x0 = 0, y0 = 0
+var dragx0 = 0, dragy0 = 0  // where x0 and y0 were when we started dragging
+function think(dt) {
+    UFX.key.events().forEach(function (event) {
+        // zoom in/out with comma/period
+        if (event.type === "up" && event.name === "comma") zoom /= 1.2
+        if (event.type === "up" && event.name === "period") zoom *= 1.2
+    })
+    // zoom by scrolling
+    zoom *= Math.pow(1.02, UFX.mouse.getwheeldy())
+    // pan by middle dragging
+    if (UFX.mouse.drag && UFX.mouse.drag.button === 1) {
+        x0 = dragx0 - UFX.mouse.drag.dx / zoom
+        y0 = dragy0 - UFX.mouse.drag.dy / zoom
+    } else {
+        dragx0 = x0 ; dragy0 = y0
+    }
+
+
+    context.save()
+    context.fillStyle = "#666"
+    context.fillRect(0, 0, sx, sy)
+    context.translate(sx/2, sy/2)
+    context.scale(zoom, zoom)
+    context.translate(-x0, -y0)
+    // Draw the background grid
+    var xmin = x0 - sx/2 / zoom, xmax = x0 + sx/2 / zoom
+    var ymin = y0 - sx/2 / zoom, ymax = y0 + sy/2 / zoom
+    var majorstep = Math.pow(10, Math.floor(Math.log(sx / zoom / 5) / Math.log(10)))
+
+    
+    function drawline(x0, y0, x1, y1, color) {
+        context.beginPath()
+        context.moveTo(x0, y0)
+        context.lineTo(x1, y1)
+        context.strokeStyle = color
+        context.stroke()
+    }
+    context.lineWidth = 1.0 / zoom
+    for (var y = majorstep ; y < ymax ; y += majorstep) drawline(xmin, y, xmax, y, "#AAA")
+    for (var y = -majorstep ; y > ymin ; y -= majorstep) drawline(xmin, y, xmax, y, "#AAA")
+    for (var x = majorstep ; x < xmax ; x += majorstep) drawline(x, ymin, x, ymax, "#AAA")
+    for (var x = -majorstep ; x > xmin ; x -= majorstep) drawline(x, ymin, x, ymax, "#AAA")
+    drawline(xmin, 0, xmax, 0, "#AFA")
+    drawline(0, ymin, 0, ymax, "#AFA")
+
+
+
+    context.restore()
+    document.title = UFX.ticker.getfpsstr()
+}
+
 
 </script>
 
