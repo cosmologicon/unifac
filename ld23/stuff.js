@@ -103,6 +103,42 @@ var FadesUpward = {
     },
 }
 
+var FadesOutward = {
+    init: function (smax, vs, s0) {
+        this.smax = smax
+        this.vs = vs || 400
+        this.s = s0 || 0
+    },
+    think: function (dt) {
+        this.s += this.vs * dt
+        if (this.s > this.smax) this.alive = false
+    },
+    draw: function () {
+        var a = Math.max(0, Math.min(1, 1 - (this.smax - this.s) / this.smax / 3))
+        context.strokeStyle = "blue"
+        context.lineWidth = 1.5
+        context.beginPath()
+        context.arc(0, 0, this.s, 0, tau)
+        context.stroke()
+    },
+}
+
+var HitsWithin = {
+    init: function (dhp) {
+        this.dhp = dhp
+    },
+    hit: function (objs) {
+        for (var j = 0 ; j < objs.length ; ++j) {
+            var dx = getdx(this.x, objs[j].x) * this.xfactor
+            var dy = this.y - objs[j].y
+            if (dx * dx + dy * dy < this.s * this.s) {
+                objs[j].takedamage(this.dhp)
+            }
+        }
+    },
+}
+
+
 var GivesMoney = {
     init: function (money) {
         this.money = money || 1
@@ -126,6 +162,19 @@ var GivesBoost = {
             nabber.vy = Math.max(nabber.vy, 0) + this.boostvy
         }
     },
+}
+
+var HasHealth = {
+    init: function (hp) {
+        this.hp = hp || 1
+    },
+    die: function () {
+        this.alive = false
+    },
+    takedamage: function (dhp) {
+        this.hp -= dhp
+        if (this.hp <= 0) this.die()
+    }
 }
 
 
@@ -165,6 +214,16 @@ Bubble.prototype = UFX.Thing()
 
 
 
+function Wave (x0, y0) {
+    this.x = x0
+    this.y = y0
+    this.alive = true
+    this.think(0)
+}
+Wave.prototype = UFX.Thing()
+                    .addcomp(WorldBound)
+                    .addcomp(FadesOutward, 50, 200)
+                    .addcomp(HitsWithin, 1)
 
 
 

@@ -29,6 +29,7 @@ GameScene.start = function () {
 
     // Yes these are supposed to be globals
     hitters = []  // objects that the player can run into
+    ehitters = []  // objects that the enemies can run into
     effects = []  // text effects
     structures = []  // structures
     monsters = [] 
@@ -45,6 +46,7 @@ GameScene.think = function (dt) {
         down: !!(UFX.key.ispressed.down || UFX.key.ispressed.S),
         left: !!(UFX.key.ispressed.left || UFX.key.ispressed.A),
         right: !!(UFX.key.ispressed.right || UFX.key.ispressed.D),
+        act: !!(UFX.key.ispressed.space || UFX.key.ispressed.enter),
     }
     var nkeys = {}
     UFX.key.events().forEach(function (event) {
@@ -56,6 +58,7 @@ GameScene.think = function (dt) {
     nkeys.down = nkeys.down || nkeys.S
     nkeys.left = nkeys.left || nkeys.A
     nkeys.right = nkeys.right || nkeys.D
+    nkeys.act = nkeys.space || nkeys.enter
     you.move(mkeys, nkeys)
 
     if (UFX.random(10) < dt) {
@@ -68,38 +71,47 @@ GameScene.think = function (dt) {
         monsters.push(new Gnat(UFX.random(tau), 200))
     }
 
-    
-    hitters.forEach(function (obj) { obj.think(dt) })
-    effects.forEach(function (effect) { effect.think(dt) })
-    structures.forEach(function (structure) { structure.think(dt) })
-    monsters.forEach(function (monster) { monster.think(dt) })
-    you.think(dt)
+    var n = settings.tickmult
+    dt /= n
+    for (var jit = 0 ; jit < n ; ++jit) {
+        hitters.forEach(function (obj) { obj.think(dt) })
+        ehitters.forEach(function (obj) { obj.think(dt) })
+        effects.forEach(function (effect) { effect.think(dt) })
+        structures.forEach(function (structure) { structure.think(dt) })
+        monsters.forEach(function (monster) { monster.think(dt) })
+        you.think(dt)
 
 
-    function stillalive(arr) {
-        var narr = []
-        arr.forEach(function (x) { if (x.alive) narr.push(x) })
-        return narr
+        function stillalive(arr) {
+            var narr = []
+            arr.forEach(function (x) { if (x.alive) narr.push(x) })
+            return narr
+        }
+
+        you.updatestate()
+
+        you.nab(hitters)
+        you.interact(structures)
+        you.clonk(monsters)
+
+        ehitters.forEach(function (ehitter) {
+            ehitter.hit(monsters)
+        })
+
+        hitters = stillalive(hitters)
+        ehitters = stillalive(ehitters)
+        effects = stillalive(effects)
+        structures = stillalive(structures)
+        monsters = stillalive(monsters)
+
     }
-
-    hitters = stillalive(hitters)
-    effects = stillalive(effects)
-    structures = stillalive(structures)
-    monsters = stillalive(monsters)
-
-    you.updatestate()
-
-    you.nab(hitters)
-    you.interact(structures)
-    you.clonk(monsters)
-
 
     if (UFX.key.ispressed.shift) {
         camera.settarget([0, 0], 0.3, 0)
     } else {
         camera.settarget(you.lookingat())
     }
-    camera.think(dt)
+    camera.think(dt * n)
     
 }
 
@@ -145,6 +157,7 @@ GameScene.draw = function () {
     structures.forEach(draw)
     hitters.forEach(draw)
     monsters.forEach(draw)
+    ehitters.forEach(draw)
     draw(you)
     effects.forEach(draw)
 
