@@ -32,6 +32,15 @@ var CanNab = {
 }
 
 
+var CanShock = {
+    move: function (mkeys, nkeys) {
+        if (nkeys.act) {
+            ehitters.push(new Wave(this.x, this.y))
+        }
+    },
+}
+
+
 // States for our state machine
 var HasStates = {
     init: function (state0) {
@@ -150,4 +159,5 @@ var you = UFX.Thing()
              .addcomp(HasStates, StandState)
              .addcomp(IsBall)
              .addcomp(CanNab, 15)
+             .addcomp(CanShock)
 
