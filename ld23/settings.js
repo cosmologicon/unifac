@@ -20,7 +20,7 @@ var mechanics = {
 
     clonkvy: 200,
     
-    gravity: 800,  // non-resisted gravity
+    gravity: 400,  // non-resisted gravity
     rgravity: 400,  // resisted gravity
     
     lookahead: 100,
