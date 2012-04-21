@@ -14,7 +14,7 @@ var mechanics = {
     gravity: 800,  // non-resisted gravity
     rgravity: 400,  // resisted gravity
     
-    lookahead: 10000,
+    lookahead: 100,
 
 }
 
