@@ -1,10 +1,10 @@
 
 var GameScene = Object.create(UFX.scene.Scene)
 
-var tau = 2 * Math.PI
 
 GameScene.start = function () {
-    camera.y = gamestate.worldsize / tau
+
+    camera.y = gamestate.worldr = gamestate.worldsize / tau
 
     this.ptexture = context.createRadialGradient(0, 4, 3, 2, 2, 5)
     this.ptexture.addColorStop(0, "blue")
@@ -27,34 +27,25 @@ GameScene.start = function () {
 
 GameScene.think = function (dt) {
     UFX.key.events().forEach(function (event) {
-        if (event.type === "up" && event.name === "right") {
-            camera.x += 50
-        }
-        if (event.type === "up" && event.name === "left") {
-            camera.x -= 50
-        }
-        if (event.type === "up" && event.name === "up") {
-            camera.y += 50
-        }
-        if (event.type === "up" && event.name === "down") {
-            camera.y -= 50
-        }
     })
+    you.move(UFX.key.ispressed)
+    
+    you.think(dt)
 }
 
 GameScene.draw = function () {
     context.fillStyle = "#333"
     context.fillRect(0, 0, settings.sx, settings.sy)
-    
-    var worldr = gamestate.worldsize / tau
 
     context.save()
     context.translate(settings.sx/2, settings.sy/2)
-    context.scale(camera.zoom, camera.zoom)
-    context.translate(0, camera.y)
-    context.rotate(camera.x / worldr)
+    context.scale(camera.zoom, -camera.zoom)
+    context.translate(0, -camera.y)
+    context.rotate(camera.x / gamestate.worldr)
+
     // Draw world
-    context.scale(worldr, worldr)
+    context.save()
+    context.scale(gamestate.worldr, gamestate.worldr)
     context.beginPath()
     context.arc(0, 0, 1, 0, tau)
     context.lineWidth = 0.01
@@ -64,7 +55,11 @@ GameScene.draw = function () {
     context.stroke()
     context.restore()
 
-    document.title = UFX.ticker.getfpsstr()
+    you.draw()
+
+    context.restore()
+
+//    document.title = UFX.ticker.getfpsstr()
 }
 
 
