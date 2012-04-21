@@ -46,7 +46,27 @@ BlowsBubbles = {
             this.wobble()
         }
     },
+}
 
+TossesBombs = {
+    init: function () {
+        this.maxbombs = 3
+        this.tbomb = 0
+        this.rechargetime = 3
+    },
+    think: function (dt) {
+        this.tbomb += dt
+        var nbombs = []
+        this.bombs.forEach(function (b) { if (b.alive) nbombs.push(b) } )
+        this.bombs = nbombs
+        if (this.bombs.length < this.maxbombs && this.tbomb > this.rechargetime) {
+            var bomb = new Bomb(this.x, this.y + 40)
+            hitters.push(bomb)
+            this.bombs.push(bomb)
+            this.wobble()
+            this.tbomb = 0
+        }
+    },
 }
 
 
@@ -84,6 +104,46 @@ DrawBubbler = {
     },
 }
 
+DrawSilo = {
+    draw: function () {
+        context.fillStyle = "#90F"
+        context.strokeStyle = "black"
+        context.lineWidth = 1
+        context.beginPath()
+        context.moveTo(-16, -2)
+        context.quadraticCurveTo(0, -8, 16, -2)
+        context.bezierCurveTo(12, 12, -12, 12, -16, -2)
+        context.closePath()
+        context.fill()
+        context.stroke()
+
+        context.fillStyle = "#60F"
+        context.beginPath()
+        context.moveTo(-12, 4)
+        context.quadraticCurveTo(0, 0, 12, 4)
+        context.bezierCurveTo(8, 20, -8, 20, -12, 4)
+        context.closePath()
+        context.fill()
+        context.stroke()
+
+        context.fillStyle = "#30F"
+        context.beginPath()
+        context.moveTo(-8, 12)
+        context.quadraticCurveTo(0, 8, 8, 12)
+        context.bezierCurveTo(8, 24, -8, 24, -8, 12)
+        context.closePath()
+        context.fill()
+        context.stroke()
+
+        context.fillStyle = "black"
+        context.scale(2.5, 1)
+        context.beginPath()
+        context.arc(0, 19, 2, 0, tau)
+        context.fill()
+    },
+}
+
+
 
 
 function Springboard (x) {
@@ -113,6 +173,22 @@ Bubbler.prototype = UFX.Thing()
                            .addcomp(Wobbles, 25, 0.6)
                            .addcomp(BlowsBubbles)
                            .addcomp(DrawBubbler)
+
+
+function Silo (x) {
+    this.x = x
+    this.y = 0
+    this.bombs = []
+    this.alive = true
+    this.think(0)
+}
+Silo.prototype = UFX.Thing()
+                    .definemethod("interact")
+                    .addcomp(WorldBound)
+                    .addcomp(CanUpgrade, "silo")
+                    .addcomp(Wobbles, 25, 0.6)
+                    .addcomp(TossesBombs)
+                    .addcomp(DrawSilo)
 
 
 

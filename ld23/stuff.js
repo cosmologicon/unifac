@@ -93,6 +93,22 @@ var Drifts = {
     },
 }
 
+
+var SeeksOrbit = {
+    init: function (ymax) {
+        this.ymax = ymax || 200
+    },
+    think: function (dt) {
+        this.x += this.vx * dt / this.xfactor
+        this.y += this.vy * dt
+        if (this.y >= this.ymax) {
+            this.y = this.ymax
+            this.vy = 0
+        }
+    },
+}
+
+
 var Crashes = {
     think: function (dt) {
         this.alive = this.alive && this.y > 0
@@ -160,6 +176,16 @@ var GivesMoney = {
     },
 }
 
+var ExplodesOnTouch = {
+    benabbed: function (nabber) {
+        if (this.alive) {
+            this.alive = false
+            ehitters.push(new Wave(this.x, this.y, 300, 500))
+        }
+    },
+}
+
+
 var GivesBoost = {
     init: function (boostvy) {
         this.boostvy = boostvy
@@ -221,10 +247,27 @@ Bubble.prototype = UFX.Thing()
                      .addcomp(GivesBoost, 240)
 
 
+function Bomb(x, y) {
+    this.x = x
+    this.y = y
+    this.vx = UFX.random.choice([40, 40])
+    this.vy = 60
+    this.alive = true
+    this.think(0)
+}
+Bomb.prototype = UFX.Thing()
+                     .addcomp(WorldBound)
+                     .addcomp(SeeksOrbit, 200)
+                     .addcomp(IsBall, 10, "pink")
+                     .addcomp(ExplodesOnTouch)
 
-function Wave (x0, y0) {
+
+
+function Wave (x0, y0, smax, vs) {
     this.x = x0
     this.y = y0
+    if (smax) this.smax = smax
+    if (vs) this.vs = vs
     this.alive = true
     this.think(0)
 }
