@@ -139,6 +139,7 @@ GameScene.drawstars = function () {
 
 
 GameScene.drawworld = function () {
+    if (gamestate.worldsize <= 0) return
     // Draw world
     context.save()
     context.scale(gamestate.worldr, gamestate.worldr)

@@ -24,6 +24,13 @@ CanUpgrade = {
     },
 }
 
+CanDemolish = {
+    die: function () {
+        this.alive = false
+        effects.push(new Rubble(this.x, this.y + 16))
+    },
+}
+
 
 SpringsYou = {
     interact: function (you) {
@@ -155,6 +162,7 @@ function Springboard (x) {
 Springboard.prototype = UFX.Thing()
                            .addcomp(WorldBound)
                            .addcomp(CanUpgrade, "springboard")
+                           .addcomp(CanDemolish)
                            .addcomp(SpringsYou)
                            .addcomp(Wobbles, 25, 0.6)
                            .addcomp(DrawSpringboard)
@@ -170,6 +178,7 @@ Bubbler.prototype = UFX.Thing()
                            .definemethod("interact")
                            .addcomp(WorldBound)
                            .addcomp(CanUpgrade, "bubbler")
+                           .addcomp(CanDemolish)
                            .addcomp(Wobbles, 25, 0.6)
                            .addcomp(BlowsBubbles)
                            .addcomp(DrawBubbler)
@@ -186,6 +195,7 @@ Silo.prototype = UFX.Thing()
                     .definemethod("interact")
                     .addcomp(WorldBound)
                     .addcomp(CanUpgrade, "silo")
+                    .addcomp(CanDemolish)
                     .addcomp(Wobbles, 25, 0.6)
                     .addcomp(TossesBombs)
                     .addcomp(DrawSilo)

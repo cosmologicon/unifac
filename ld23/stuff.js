@@ -57,6 +57,39 @@ var IsBox = {
     }
 }
 
+var IsBlob = {
+    init: function (size, color0, color1) {
+        this.blobsize = size || 10
+        this.blobcolor0 = color0 || "purple"
+        this.blobcolor1 = color1 || "purple"
+        this.tspin = 0
+    },
+    think: function (dt) {
+        this.tspin += dt
+    },
+    draw: function () {
+        context.rotate(this.tspin)
+        context.strokeStyle = "black"
+        context.lineWidth = 1
+        var s = this.blobsize
+        function circ(x, y, r) {
+            context.beginPath()
+            context.arc(x*s, y*s, r*s, 0, tau)
+            context.stroke()
+            context.fill()
+        }
+        context.fillStyle = this.blobcolor0
+        circ(0, 0.8, 0.5)
+        circ(0, -0.8, 0.5)
+        context.fillStyle = this.blobcolor1
+        circ(0, 0, 0.8)
+        context.fillStyle = this.blobcolor0
+        circ(0.8, 0, 0.5)
+        circ(-0.8, 0, 0.5)
+        
+        
+    },
+}
 
 var Wobbles = {
     init: function (wspeed, wmag) {
@@ -128,10 +161,11 @@ var FadesUpward = {
 }
 
 var FadesOutward = {
-    init: function (smax, vs, s0) {
+    init: function (smax, vs, s0, color) {
         this.smax = smax
         this.vs = vs || 400
         this.s = s0 || 0
+        this.color = color || "blue"
     },
     think: function (dt) {
         this.s += this.vs * dt
@@ -139,11 +173,14 @@ var FadesOutward = {
     },
     draw: function () {
         var a = Math.max(0, Math.min(1, 1 - (this.smax - this.s) / this.smax / 3))
-        context.strokeStyle = "blue"
+        context.strokeStyle = this.color
+        context.fillStyle = this.color
         context.lineWidth = 1.5
         context.beginPath()
         context.arc(0, 0, this.s, 0, tau)
         context.stroke()
+        context.globalAlpha *= 0.3
+        context.fill()
     },
 }
 
@@ -250,7 +287,7 @@ Bubble.prototype = UFX.Thing()
 function Bomb(x, y) {
     this.x = x
     this.y = y
-    this.vx = UFX.random.choice([40, 40])
+    this.vx = UFX.random.choice([-40, 40])
     this.vy = 60
     this.alive = true
     this.think(0)
@@ -258,7 +295,7 @@ function Bomb(x, y) {
 Bomb.prototype = UFX.Thing()
                      .addcomp(WorldBound)
                      .addcomp(SeeksOrbit, 200)
-                     .addcomp(IsBall, 10, "pink")
+                     .addcomp(IsBlob, 10, "pink")
                      .addcomp(ExplodesOnTouch)
 
 

@@ -129,3 +129,13 @@ Indicator = UFX.Thing()
                .addcomp(WorldBound)
                .addcomp(IsArrow)
 
+function Rubble(px, py) {
+    this.x = px
+    this.y = py
+    this.alive = true
+    this.think(0)
+}
+Rubble.prototype = UFX.Thing()
+                      .addcomp(WorldBound)
+                      .addcomp(FadesOutward, 40, 60, 0, "brown")
+

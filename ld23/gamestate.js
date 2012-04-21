@@ -1,10 +1,25 @@
 
 gamestate = Object.create({
     setworldsize: function (s) {
+        this.nslots = Math.floor(s / 50)
+        // A cunning algorithm to fairly choose which buildings get destroyed when the world shrinks
+        //   or which slots get added when the world grows
+        var nstructures = new Array(this.nslots)
+        for (var j = 0 ; j < this.nslots ; ++j) nstructures[j] = null
+        if (structures.length) {
+            var dk = UFX.random.rand(this.nslots)
+            for (var j = 0 ; j < structures.length ; ++j) {
+                var k = Math.floor((j * this.nslots + dk) / structures.length)
+                if (nstructures[k]) nstructures[k].die()
+                nstructures[k] = structures[j]
+                if (structures[j]) structures[j].x = k * tau / this.nslots
+            }
+        }
+        structures = nstructures
+
         this.worldsize = s
         this.worldr = s / tau
-        this.nslots = Math.floor(s / 50)
-        structures.length = this.nslots
+        this.hp = 100
     },
     // If player is at x, where's the nearest building location?
     buildindex: function(x) {
@@ -22,9 +37,18 @@ gamestate = Object.create({
         structure.x = slot * tau / this.nslots
     },
     
+    removestructure: function (slot) {
+        if (typeof slot !== "number") slot = this.buildindex(you.x)
+        if (!structures[slot]) return
+        structures[slot].die()
+    },
+    
     hurtworld: function (dhp) {
         this.hp -= dhp
-        
+        if (this.hp <= 0) {
+            GrowScene.newsize = gamestate.worldsize - 100
+            UFX.scene.push(GrowScene)
+        }
     },
 })
 
@@ -92,6 +116,5 @@ function build(button) {
         gamestate.addstructure(new Silo())
     }
 }
-
 
 
