@@ -4,7 +4,7 @@ var GameScene = Object.create(UFX.scene.Scene)
 
 GameScene.start = function () {
 
-    camera.y = gamestate.worldr = gamestate.worldsize / tau
+    gamestate.worldr = gamestate.worldsize / tau
 
     this.ptexture = context.createRadialGradient(0, 4, 3, 2, 2, 5)
     this.ptexture.addColorStop(0, "blue")
@@ -31,6 +31,10 @@ GameScene.think = function (dt) {
     you.move(UFX.key.ispressed)
     
     you.think(dt)
+    
+    camera.settarget(you.lookingat())
+    camera.think(dt)
+    
 }
 
 GameScene.draw = function () {
@@ -40,7 +44,7 @@ GameScene.draw = function () {
     context.save()
     context.translate(settings.sx/2, settings.sy/2)
     context.scale(camera.zoom, -camera.zoom)
-    context.translate(0, -camera.y)
+    context.translate(0, -camera.y - gamestate.worldr)
     context.rotate(camera.x / gamestate.worldr)
 
     // Draw world

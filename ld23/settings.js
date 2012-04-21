@@ -7,6 +7,7 @@ var settings = {
 
 var mechanics = {
     runspeed: 120,
+    lookahead: 10000,
 
 }
 
