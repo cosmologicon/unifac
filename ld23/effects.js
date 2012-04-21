@@ -49,6 +49,7 @@ function MoneyBox (amount, px, py) {
     this.x = px
     this.y = py
     this.settext("+$" + amount)
+    this.alive = true
     this.think(0)
 }
 MoneyBox.prototype = UFX.Thing()
@@ -56,10 +57,6 @@ MoneyBox.prototype = UFX.Thing()
                         .addcomp(Floats, 100)
                         .addcomp(Fades)
                         .addcomp(SolidText, "", "yellow")
-
-
-// It's just easier if this is a global, okay?
-var effects = []
 
 
 
