@@ -1,41 +1,4 @@
 
-var WorldBound = {
-    init: function () {
-        this.x = 0
-        this.y = 0
-        this.vx = 0
-        this.vy = 0
-        this.facingright = true
-    },
-    think: function () {
-        this.xfactor = gamestate.worldr + this.y
-    },
-    draw: function () {
-        context.rotate(-this.x)
-        context.beginPath()
-        context.moveTo(0, 0)
-        context.lineTo(0, this.xfactor)
-        context.strokeStyle = "yellow"
-        context.stroke()
-        context.translate(0, this.xfactor)
-    },
-    lookingat: function () {
-        var dx = (this.facingright ? 1 : -1) * Math.min(mechanics.lookahead / this.xfactor, 0.5)
-        return [this.x + dx, this.y]
-    },
-}
-
-var IsBall = {
-    draw: function () {
-        context.beginPath()
-        context.arc(0, 7, 10, 0, tau)
-        context.strokeStyle = "orange"
-        context.lineWidth = 1
-        context.stroke()
-    }
-}
-
-
 // States for our state machine
 var HasStates = {
     init: function (state0) {
@@ -55,6 +18,7 @@ var HasStates = {
             this.state = this.nextstate
             this.state.enter.call(this)
             this.nextstate = null
+            this.think(0)
         }
     },
 }
@@ -64,6 +28,7 @@ var StandState = {
     enter: function () {
         this.vy = 0
         this.y = 0
+        this.jumps = 0  // Number of times you've jumped
     },
     exit: function () {
     },
@@ -81,6 +46,8 @@ var StandState = {
 }
 var LeapState = {
     enter: function () {
+        this.vy = 0
+        this.jumps += 1
     },
     exit: function () {
     },
@@ -109,6 +76,9 @@ var FallState = {
         this.vx = hmove * mechanics.jumphspeed
         if (hmove) this.facingright = hmove > 0
         this.resistfall = !!mkeys.up
+        if (nkeys.up && this.jumps < gamestate.njumps) {
+            this.nextstate = LeapState
+        }
     },
     think: function (dt) {
         this.vy -= (this.resistfall ? mechanics.rgravity : mechanics.gravity) * dt
@@ -126,4 +96,5 @@ var you = UFX.Thing()
              .addcomp(WorldBound)
              .addcomp(HasStates, StandState)
              .addcomp(IsBall)
+             .addcomp(CanNab, 15)
 
