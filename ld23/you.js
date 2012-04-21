@@ -35,9 +35,56 @@ var CanNab = {
 var CanShock = {
     move: function (mkeys, nkeys) {
         if (nkeys.act) {
-            ehitters.push(new Wave(this.x, this.y))
+            ehitters.push(new Wave(this.x, this.y + 8))
         }
     },
+}
+
+
+function drawantenna() {
+    context.lineCap = "round"
+    context.strokeStyle = "green"
+    context.lineWidth = 1.5
+    context.beginPath()
+    context.moveTo(-7, 4)
+    context.quadraticCurveTo(-14, 16, 2, 22)
+    context.stroke()
+}
+function drawhead() {
+    drawantenna()
+
+    context.beginPath()
+    context.arc(0, 0, 12, 0, tau)
+    context.fillStyle = "#AA0"
+    context.fill()
+    context.strokeStyle = "#FF7"
+    context.stroke()
+    context.strokeStyle = "black"
+    context.lineWidth = 2
+    context.beginPath()
+    context.moveTo(4, -4)
+    context.lineTo(4, 4)
+    context.stroke()
+    context.beginPath()
+    context.moveTo(8, -4)
+    context.lineTo(8, 4)
+    context.stroke()
+
+    context.rotate(0.4)
+    drawantenna()
+}
+
+function drawbody() {
+    var ps = [[-4, -8], [-6, -16], [-12, -24], [-4, -28], [4, -28], [12, -24], [6, -16], [4, -8]]
+    context.lineWidth = 1
+    context.beginPath()
+    context.moveTo(0, -8)
+    ps.forEach(function (p) { context.lineTo(p[0], p[1]) })
+    context.closePath()
+    context.fillStyle = "#F70"
+    context.fill()
+    context.strokeStyle = "#FA7"
+    context.stroke()
 }
 
 
@@ -53,6 +100,9 @@ var HasStates = {
     },
     think: function (dt) {
         this.state.think.call(this, dt)
+    },
+    draw: function () {
+        this.state.draw.call(this)
     },
     updatestate: function () {
         if (this.nextstate) {
@@ -85,6 +135,20 @@ var StandState = {
     think: function (dt) {
         this.x += this.vx * dt / this.xfactor
     },
+    draw: function () {
+        var a = Math.min(Math.abs(this.vx) / 700, 0.5)
+        if (!this.facingright) context.scale(-1, 1)
+    
+        context.save()
+        context.transform(1,0,a,1,24*a,24)
+        drawbody()
+        context.restore()
+        
+        context.save()
+        context.translate(24*a, 24)
+        drawhead()
+        context.restore()
+    },
 }
 var LeapState = {
     enter: function () {
@@ -107,6 +171,9 @@ var LeapState = {
         }
         this.x += this.vx * dt / this.xfactor
         this.y += this.vy * dt
+    },
+    draw: function () {
+        FallState.draw.call(this)
     },
 }
 var FallState = {
@@ -131,6 +198,20 @@ var FallState = {
         this.x += this.vx * dt / this.xfactor
         this.y += this.vy * dt
     },
+    draw: function () {
+        if (!this.facingright) context.scale(-1, 1)
+        context.translate(0, 24)
+        context.save()
+        var a = -0.3 * Math.sin(2 * Math.atan2(this.vy, this.vx))
+        var s = 1 + Math.max(Math.min(this.vy / 1000, 0.2), -0.2)
+        context.rotate(a)
+        context.scale(1, s)
+        drawbody()
+        context.restore()
+        var a = Math.max(Math.min(this.vy / 400, 0.5), -0.5)
+        context.rotate(a)
+        drawhead()
+    },
 }
 var SpringState = {
     enter: function () {
@@ -150,6 +231,9 @@ var SpringState = {
         this.x += this.vx * dt / this.xfactor
         this.y += this.vy * dt
     },
+    draw: function () {
+        FallState.draw.call(this)
+    },
 }
 
 
@@ -157,7 +241,7 @@ var SpringState = {
 var you = UFX.Thing()
              .addcomp(WorldBound)
              .addcomp(HasStates, StandState)
-             .addcomp(IsBall)
+//             .addcomp(IsBall)
              .addcomp(CanNab, 15)
              .addcomp(CanShock)
 
