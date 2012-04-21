@@ -25,6 +25,11 @@ var mechanics = {
     
     lookahead: 100,
 
+    upgrades: {   // cost to upgrade buildings
+        springboard: [10, 20, 30, 40],
+        bubbler: [10, 20, 30],
+    },
+
 }
 
 
