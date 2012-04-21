@@ -26,6 +26,29 @@ gamestate.setworldsize(400)
 
 
 
+function disablebutton (bname) {
+    var b = document.getElementById(bname)
+    b.className = "HUDghost"
+    b.disabled = true
+}
+function hidebutton (bname) {
+    var b = document.getElementById(bname)
+    b.className = "HUDhidden"
+    b.disabled = true
+}
+function enablebutton (bname) {
+    var b = document.getElementById(bname)
+    b.className = "HUDbutton"
+    b.disabled = false
+}
+
+function ghostbuttons () {
+    hidebutton("buildbubbler")
+    
+
+}
+
+
 
 function upgrade(button) {
     if (button.id === "upgradejump") {

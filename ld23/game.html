@@ -32,11 +32,31 @@ td {
 }
 .HUDbutton {
     position: absolute;
-    border: medium blue solid;
-    border-color: rgb(128,128,255);
-    background: rgba(128,128,255,0.2);
+    border: medium rgb(128,128,255) solid;
+    border-radius: 10px;
+    background: rgb(24,24,128);
     color: white;
-    width: 100px;
+    width: 250px;
+    font: inherit;
+    font-size: 28px;
+}
+.HUDghost {
+    position: absolute;
+    border: medium rgb(128,128,128) solid;
+    border-radius: 10px;
+    background: rgba(24,24,24);
+    color: gray;
+    width: 250px;
+    font: inherit;
+    font-size: 28px;
+}
+.HUDhidden {
+    position: absolute;
+    border: medium transparent solid;
+    border-radius: 10px;
+    background: transparent;
+    color: transparent;
+    width: 250px;
     font: inherit;
     font-size: 28px;
 }
@@ -75,15 +95,15 @@ td {
 <tr>
 <td>
 <div id=canvasbox style="border: thin yellow solid">
-<button type=button class=HUDbutton id=buildspring onclick="build(this)" style="left: 10px; top: 10px;"
->Place Launcher</button>
-<button type=button class=HUDbutton id=buildbubbler onclick="build(this)" style="left: 210px; top: 10px;"
->Place Bubbler</button>
 <canvas id=canvas style="border: medium gray outset"></canvas>
 
 </div>
 
-<td>
+<td style="position: relative">
+<button type=button class=HUDbutton id=buildspring onclick="build(this)" style="left: 10px; top: 10px;"
+>Place Launcher</button><br>
+<button type=button class=HUDbutton id=buildbubbler onclick="build(this)" style="left: 210px; top: 110px;"
+>Place Bubbler</button><br>
 <button type=button class=upgradebutton id=upgradejump onclick="upgrade(this)">Upgrade jump ($10)</button>
 <button type=button class=upgradebutton id=upgraderun onclick="upgrade(this)">Upgrade run ($10)</button>
 <button type=button class=upgradebutton id=upgradeworld onclick="upgrade(this)">Upgrade world</button>

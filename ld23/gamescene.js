@@ -113,6 +113,7 @@ GameScene.think = function (dt) {
     }
     camera.think(dt * n)
     
+   
 }
 
 GameScene.draw = function () {
@@ -162,6 +163,8 @@ GameScene.draw = function () {
     effects.forEach(draw)
 
     context.restore()
+
+    ghostbuttons()
 
     document.title = UFX.ticker.getfpsstr()
 }
