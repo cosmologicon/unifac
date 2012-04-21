@@ -192,6 +192,23 @@ GameScene.drawobjs = function () {
     effects.forEach(draw)
 }
 
+GameScene.drawstatus = function () {
+    context.font = "26px Viga"
+    context.textAlign = "right"
+    context.textBaseline = "middle"
+    context.fillStyle = "#AAF"
+    context.strokeStyle = "black"
+    context.lineWidth = 1
+    var y = 18
+    function puttext(text) {
+        context.strokeText(text, settings.sx - 10, y)
+        context.fillText(text, settings.sx - 10, y)
+        y += 28
+    }
+    puttext("health: " + gamestate.hp + "/100")
+}
+
+
 GameScene.draw = function () {
     context.fillStyle = "#333"
     context.fillRect(0, 0, settings.sx, settings.sy)
@@ -202,6 +219,8 @@ GameScene.draw = function () {
     this.drawworld()
     this.drawobjs()
     context.restore()
+
+    this.drawstatus()
 
     document.title = UFX.ticker.getfpsstr()
 }
@@ -219,7 +238,7 @@ GrowScene.think = function (dt) {
         this.wobbling = false
     } else if (this.t < 2) {
         this.wobbling = true
-    } else if (this.t < 3) {
+    } else if (this.t < 2.5) {
         this.wobbling = false
     } else {
         UFX.scene.pop()
@@ -243,6 +262,13 @@ GrowScene.drawworld = function () {
     }
 //    context.scale(s, s)
     GameScene.drawworld.call(this)
+    context.restore()
+}
+
+GrowScene.drawstatus = function () {
+    context.save()
+    context.globalAlpha = 0.2
+    GameScene.drawstatus.call(this)
     context.restore()
 }
 

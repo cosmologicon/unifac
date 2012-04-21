@@ -21,6 +21,11 @@ gamestate = Object.create({
         structures[slot] = structure
         structure.x = slot * tau / this.nslots
     },
+    
+    hurtworld: function (dhp) {
+        this.hp -= dhp
+        
+    },
 })
 
 // Abilities
