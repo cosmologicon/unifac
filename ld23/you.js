@@ -114,6 +114,7 @@ var FallState = {
 }
 var SpringState = {
     enter: function () {
+        this.vx = 0
         this.vy = mechanics.springspeed
         this.t = 0
     },

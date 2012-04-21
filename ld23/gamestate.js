@@ -26,4 +26,14 @@ function upgrade(button) {
     }
 }
 
+function build(button) {
+    if (button.id === "buildspring") {
+        structures.push(new Springboard(you.x))
+    }
+    if (button.id === "buildbubbler") {
+        structures.push(new Bubbler(you.x))
+    }
+}
+
+
 
