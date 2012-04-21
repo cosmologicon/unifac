@@ -26,11 +26,25 @@ GameScene.start = function () {
 }
 
 GameScene.think = function (dt) {
+
+    // Handle keyboard input
+    var mkeys = {
+        up: !!(UFX.key.ispressed.up || UFX.key.ispressed.W),
+        down: !!(UFX.key.ispressed.down || UFX.key.ispressed.S),
+        left: !!(UFX.key.ispressed.left || UFX.key.ispressed.A),
+        right: !!(UFX.key.ispressed.right || UFX.key.ispressed.D),
+    }
+    var nkeys = {}
     UFX.key.events().forEach(function (event) {
+        if (event.type === "down") {
+            nkeys[event.name] = true
+        }
     })
-    you.move(UFX.key.ispressed)
+    you.move(mkeys, nkeys)
     
     you.think(dt)
+
+    you.updatestate()
     
     camera.settarget(you.lookingat())
     camera.think(dt)
