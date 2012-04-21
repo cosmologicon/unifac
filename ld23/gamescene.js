@@ -121,7 +121,7 @@ GameScene.think = function (dt) {
     }
     camera.think(dt * n)
     
-   
+    updatebuttons()
 }
 
 
@@ -142,11 +142,34 @@ GameScene.drawworld = function () {
     context.scale(gamestate.worldr, gamestate.worldr)
     context.beginPath()
     context.arc(0, 0, 1, 0, tau)
-    context.lineWidth = 0.01
     context.fillStyle = this.ptexture
     context.fill()
+    // draw the eyes
+    context.save()
+    context.lineWidth = 0.03
+    context.scale(1, 2)
+    context.fillStyle = "black"
+    context.beginPath()
+    context.arc(0.4, 0.1, 0.18, 0, tau)
+    context.fill()
+    context.beginPath()
+    context.arc(-0.4, 0.1, 0.18, 0, tau)
+    context.fill()
+    context.restore()
+    context.fillStyle = "white"
+    context.beginPath()
+    context.arc(0.35, 0.3, 0.05, 0, tau)
+    context.fill()
+    context.beginPath()
+    context.arc(-0.45, 0.3, 0.05, 0, tau)
+    context.fill()
+
+    // draw the shadow
+    context.beginPath()
+    context.arc(0, 0, 1, 0, tau)
     context.fillStyle = this.stexture
     context.fill()
+    context.lineWidth = 0.01
     context.strokeStyle = "black"
     context.stroke()
     context.restore()
@@ -178,8 +201,6 @@ GameScene.draw = function () {
     this.drawobjs()
     context.restore()
 
-    updatebuttons()
-
     document.title = UFX.ticker.getfpsstr()
 }
 
@@ -208,6 +229,7 @@ GrowScene.think = function (dt) {
     camera.mode = "planet"
     camera.settarget([0, 0])
     camera.think(dt)
+    disableall()
 }
 
 GrowScene.drawworld = function () {

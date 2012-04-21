@@ -29,29 +29,32 @@ gamestate.bank = 100
 gamestate.hp = 100
 
 
-function disablebutton (bname) {
+function disablebutton(bname) {
     var b = document.getElementById(bname)
     b.className = "HUDghost"
     b.disabled = true
 }
-function hidebutton (bname) {
+function hidebutton(bname) {
     var b = document.getElementById(bname)
     b.className = "HUDhidden"
     b.disabled = true
 }
-function enablebutton (bname) {
+function enablebutton(bname) {
     var b = document.getElementById(bname)
     b.className = "HUDbutton"
     b.disabled = false
 }
 
-function updatebuttons () {
-    var allbuttons = ["buildspring", "buildbubbler"]
+var allbuttons = ["buildspring", "buildbubbler"]
+function updatebuttons() {
     if (you.y > 0 || structures[gamestate.buildindex(you.x)]) {
         allbuttons.forEach(disablebutton)
     } else {
         allbuttons.forEach(enablebutton)
     }
+}
+function disableall() {
+    allbuttons.forEach(disablebutton)
 }
 
 
