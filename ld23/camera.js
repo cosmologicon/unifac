@@ -15,13 +15,25 @@ var camera = {
         this.targety = p[1]
     },
     think: function (dt) {
-        var f = 1 - Math.exp(-4 * dt)
-        var dx = this.targetx - this.x, dy = this.targety - dy
-        this.x = Math.abs(dx) < 1 ? this.targetx : this.x + f * (this.targetx - this.x)
-        this.y = Math.abs(dy) < 1 ? this.targety : this.y + f * (this.targety - this.y)
+        var f = 1 - Math.exp(-2.5 * dt)
+        var dx = this.targetx - this.x, dy = this.targety - this.y
+        dx = ((dx + tau/2) % tau + tau) % tau - tau/2
+        if (this.y > 1 || Math.abs(dy) > 1) {
+            var r = gamestate.worldr
+            var px = (this.y + r) * Math.sin(this.x), py = (this.y + r) * Math.cos(this.x)
+            var tx = (this.targety + r) * Math.sin(this.targetx), ty = (this.targety + r) * Math.cos(this.targetx)
+            px += f * (tx - px)
+            py += f * (ty - py)
+            this.x = Math.atan2(px, py)
+            this.y = Math.sqrt(px * px + py * py) - r
+        } else if (Math.abs(dx) < 0.01 && Math.abs(dy) < 1) {
+            this.x = this.targetx
+            this.y = this.targety
+        } else {
+            this.x += f * dx
+            this.y += f * dy
+        }
     },
-    
-    
 }
 
 

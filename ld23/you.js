@@ -7,13 +7,21 @@ var WorldBound = {
         this.vy = 0
         this.facingright = true
     },
+    think: function () {
+        this.xfactor = gamestate.worldr + this.y
+    },
     draw: function () {
-        context.rotate(-this.x / gamestate.worldr)
-        context.translate(0, gamestate.worldr + this.y)
+        context.rotate(-this.x)
+        context.beginPath()
+        context.moveTo(0, 0)
+        context.lineTo(0, this.xfactor)
+        context.strokeStyle = "yellow"
+        context.stroke()
+        context.translate(0, this.xfactor)
     },
     lookingat: function () {
-        return [this.x + (this.facingright ? 1 : -1) * mechanics.lookahead / (gamestate.worldr + this.y),
-                this.y]
+        var dx = (this.facingright ? 1 : -1) * Math.min(mechanics.lookahead / this.xfactor, 0.5)
+        return [this.x + dx, this.y]
     },
 }
 
@@ -68,7 +76,7 @@ var StandState = {
         }
     },
     think: function (dt) {
-        this.x += this.vx * dt
+        this.x += this.vx * dt / this.xfactor
     },
 }
 var LeapState = {
@@ -87,7 +95,7 @@ var LeapState = {
             this.nextstate = FallState
             this.vy = mechanics.launchspeed
         }
-        this.x += this.vx * dt
+        this.x += this.vx * dt / this.xfactor
         this.y += this.vy * dt
     },
 }
@@ -107,7 +115,7 @@ var FallState = {
         if (this.y <= 0) {
             this.nextstate = StandState
         }
-        this.x += this.vx * dt
+        this.x += this.vx * dt / this.xfactor
         this.y += this.vy * dt
     },
 }

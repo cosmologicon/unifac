@@ -23,6 +23,12 @@ GameScene.start = function () {
     this.ptexture.addColorStop(0.9, "green")
     this.ptexture.addColorStop(1.0, "blue")
 
+    this.stars = []
+    for (var j = 0 ; j < 100 ; ++j) {
+        this.stars.push([Math.random() * 1000 - 500, Math.random() * 1000 - 500])
+    }
+
+
 }
 
 GameScene.think = function (dt) {
@@ -59,7 +65,15 @@ GameScene.draw = function () {
     context.translate(settings.sx/2, settings.sy/2)
     context.scale(camera.zoom, -camera.zoom)
     context.translate(0, -camera.y - gamestate.worldr)
-    context.rotate(camera.x / gamestate.worldr)
+    context.rotate(camera.x)
+    
+    // Draw stars
+    context.fillStyle = "white"
+    this.stars.forEach(function (star) {
+        context.beginPath()
+        context.arc(star[0], star[1], 1, 0, tau)
+        context.fill()
+    })
 
     // Draw world
     context.save()
