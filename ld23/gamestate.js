@@ -67,7 +67,9 @@ function upgrade(button) {
         gamestate.bank -= 10
     }
     if (button.id === "upgradeworld") {
-        gamestate.setworldsize(gamestate.worldsize + 100)
+//        gamestate.setworldsize(gamestate.worldsize + 100)
+        GrowScene.newsize = gamestate.worldsize + 100
+        UFX.scene.push(GrowScene)
     }
 }
 

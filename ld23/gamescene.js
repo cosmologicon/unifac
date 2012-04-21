@@ -124,16 +124,8 @@ GameScene.think = function (dt) {
    
 }
 
-GameScene.draw = function () {
-    context.fillStyle = "#333"
-    context.fillRect(0, 0, settings.sx, settings.sy)
 
-    context.save()
-    context.translate(settings.sx/2, settings.sy/2)
-    context.scale(camera.zoom, -camera.zoom)
-    context.translate(0, -camera.y - gamestate.worldr)
-    context.rotate(camera.x)
-    
+GameScene.drawstars = function () {
     // Draw stars
     context.fillStyle = "white"
     this.stars.forEach(function (star) {
@@ -141,7 +133,10 @@ GameScene.draw = function () {
         context.arc(star[0], star[1], 1, 0, tau)
         context.fill()
     })
+}
 
+
+GameScene.drawworld = function () {
     // Draw world
     context.save()
     context.scale(gamestate.worldr, gamestate.worldr)
@@ -155,8 +150,9 @@ GameScene.draw = function () {
     context.strokeStyle = "black"
     context.stroke()
     context.restore()
+}
 
-
+GameScene.drawobjs = function () {
     function draw(obj) {
         context.save()
         obj.draw()
@@ -169,12 +165,64 @@ GameScene.draw = function () {
     ehitters.forEach(draw)
     draw(you)
     effects.forEach(draw)
+}
 
+GameScene.draw = function () {
+    context.fillStyle = "#333"
+    context.fillRect(0, 0, settings.sx, settings.sy)
+
+    context.save()
+    camera.orient()
+    this.drawstars()
+    this.drawworld()
+    this.drawobjs()
     context.restore()
 
     updatebuttons()
 
     document.title = UFX.ticker.getfpsstr()
 }
+
+
+var GrowScene = Object.create(GameScene)
+
+GrowScene.start = function () {
+    this.t = 0
+}
+
+GrowScene.think = function (dt) {
+    this.t += dt
+    if (this.t < 1) {
+        this.wobbling = false
+    } else if (this.t < 2) {
+        this.wobbling = true
+    } else if (this.t < 3) {
+        this.wobbling = false
+    } else {
+        UFX.scene.pop()
+    }
+    if (this.t > 2 && gamestate.worldsize !== this.newsize) {
+        gamestate.setworldsize(this.newsize)
+    }
+
+    camera.mode = "planet"
+    camera.settarget([0, 0])
+    camera.think(dt)
+}
+
+GrowScene.drawworld = function () {
+    context.save()
+    if (this.wobbling) {
+        context.rotate(this.t * 10)
+        context.scale(0.8, 1.2)
+        context.rotate(-this.t * 10)
+    }
+//    context.scale(s, s)
+    GameScene.drawworld.call(this)
+    context.restore()
+}
+
+
+
 
 
