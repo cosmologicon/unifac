@@ -18,6 +18,17 @@ var CanNab = {
             objs[j].interact(this)
         }
     },
+    clonk: function (objs) {
+        if (this.vy >= 0) return
+        for (var j = 0 ; j < objs.length ; ++j) {
+            var dx = Math.abs(getdx(this.x, objs[j].x)) * this.xfactor
+            if (dx > objs[j].width) continue
+            var dy = Math.abs(this.y - objs[j].y)
+            if (dy > objs[j].height) continue
+            objs[j].clonk(this)
+            this.vy = mechanics.clonkvy
+        }
+    },
 }
 
 

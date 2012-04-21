@@ -24,7 +24,7 @@ var WorldBound = {
     },
     lookingat: function () {
         var dx = (this.facingright ? 1 : -1) * Math.min(mechanics.lookahead / this.xfactor, 0.5)
-        return [this.x + dx, this.y]
+        return [this.x + dx, this.y * 0.6]
     },
 }
 
@@ -39,6 +39,10 @@ var IsBall = {
         context.strokeStyle = this.ballcolor
         context.lineWidth = 1
         context.stroke()
+        context.beginPath()
+        context.arc(0, 0, 1, 0, tau)
+        context.fillStyle = "white"
+        context.fill()
     }
 }
 

@@ -31,6 +31,7 @@ GameScene.start = function () {
     hitters = []  // objects that the player can run into
     effects = []  // text effects
     structures = []  // structures
+    monsters = [] 
     
     structures.push(new Springboard(0.5))
 
@@ -63,12 +64,16 @@ GameScene.think = function (dt) {
     if (UFX.random(10) < dt) {
         hitters.push(new Bubble(UFX.random(tau), 0))
     }
+    if (UFX.random(1) < dt) {
+        monsters.push(new Gnat(UFX.random(tau), 200))
+    }
 
     
     hitters.forEach(function (obj) { obj.think(dt) })
-    you.think(dt)
     effects.forEach(function (effect) { effect.think(dt) })
     structures.forEach(function (structure) { structure.think(dt) })
+    monsters.forEach(function (monster) { monster.think(dt) })
+    you.think(dt)
 
 
     function stillalive(arr) {
@@ -80,13 +85,20 @@ GameScene.think = function (dt) {
     hitters = stillalive(hitters)
     effects = stillalive(effects)
     structures = stillalive(structures)
+    monsters = stillalive(monsters)
 
     you.updatestate()
 
     you.nab(hitters)
     you.interact(structures)
+    you.clonk(monsters)
 
-    camera.settarget(you.lookingat())
+
+    if (UFX.key.ispressed.shift) {
+        camera.settarget([0, 0], 0.3, 0)
+    } else {
+        camera.settarget(you.lookingat())
+    }
     camera.think(dt)
     
 }
@@ -130,8 +142,9 @@ GameScene.draw = function () {
         context.restore()
     }
 
-    hitters.forEach(draw)
     structures.forEach(draw)
+    hitters.forEach(draw)
+    monsters.forEach(draw)
     draw(you)
     effects.forEach(draw)
 

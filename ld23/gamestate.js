@@ -7,6 +7,7 @@ var gamestate = {
     
     
     bank: 100,
+    hp: 100,
 }
 
 
