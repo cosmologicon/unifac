@@ -5,10 +5,15 @@ var WorldBound = {
         this.y = 0
         this.vx = 0
         this.vy = 0
+        this.facingright = true
     },
     draw: function () {
         context.rotate(-this.x / gamestate.worldr)
         context.translate(0, gamestate.worldr + this.y)
+    },
+    lookingat: function () {
+        return [this.x + (this.facingright ? 1 : -1) * mechanics.lookahead / (gamestate.worldr + this.y),
+                this.y]
     },
 }
 
@@ -39,6 +44,7 @@ var StandState = {
     move: function (mkeys) {
         var hmove = (mkeys.right ? 1 : 0) - (mkeys.left ? 1 : 0)
         this.vx = hmove * mechanics.runspeed
+        if (hmove) this.facingright = hmove > 0
     },
     think: function (dt) {
         this.x += this.vx * dt
