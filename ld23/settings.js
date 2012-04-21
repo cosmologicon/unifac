@@ -6,7 +6,7 @@ var settings = {
 }
 
 var mechanics = {
-
+    runspeed: 120,
 
 }
 
