@@ -59,15 +59,23 @@ var IsBox = {
 
 
 var Wobbles = {
-    init: function () {
+    init: function (wspeed, wmag) {
+        this.wobblet = 0
+        this.wspeed = wspeed || 4
+        this.wmag = wmag || 0.3
+    },
+    wobble: function () {
         this.wobblet = 0
     },
     think: function (dt) {
         this.wobblet += dt
     },
     draw: function () {
-        var s = 1 + 0.3 * Math.sin(this.wobblet * 4) * Math.exp(-0.4 * this.wobblet)
-        context.scale(s, 1/s)
+        var w = this.wobblet * this.wspeed
+        if (w < 50) {
+            var s = 1 + this.wmag * Math.sin(w) * Math.exp(-0.1 * w)
+            context.scale(s, 1/s)
+        }
     },
 }
 
@@ -207,7 +215,7 @@ function Bubble(x, y) {
 Bubble.prototype = UFX.Thing()
                      .addcomp(WorldBound)
                      .addcomp(FadesUpward, 200)
-                     .addcomp(Wobbles)
+                     .addcomp(Wobbles, 4, 0.3)
                      .addcomp(IsBall, 20, "#AAF")
                      .addcomp(Drifts)
                      .addcomp(GivesBoost, 240)
