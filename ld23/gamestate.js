@@ -4,22 +4,28 @@ gamestate = Object.create({
         this.nslots = Math.floor(s / 50)
         // A cunning algorithm to fairly choose which buildings get destroyed when the world shrinks
         //   or which slots get added when the world grows
-        var nstructures = new Array(this.nslots)
-        for (var j = 0 ; j < this.nslots ; ++j) nstructures[j] = null
-        if (structures.length) {
-            var dk = UFX.random.rand(this.nslots)
-            for (var j = 0 ; j < structures.length ; ++j) {
-                var k = Math.floor((j * this.nslots + dk) / structures.length)
-                if (nstructures[k]) nstructures[k].die()
-                nstructures[k] = structures[j]
-                if (structures[j]) structures[j].x = k * tau / this.nslots
+        if (this.nslots) {
+            var nstructures = new Array(this.nslots)
+            for (var j = 0 ; j < this.nslots ; ++j) nstructures[j] = null
+            if (structures.length) {
+                var dk = UFX.random.rand(this.nslots)
+                for (var j = 0 ; j < structures.length ; ++j) {
+                    var k = Math.floor((j * this.nslots + dk) / structures.length)
+                    if (nstructures[k]) nstructures[k].die()
+                    nstructures[k] = structures[j]
+                    if (structures[j]) structures[j].x = k * tau / this.nslots
+                }
             }
+            structures = nstructures
         }
-        structures = nstructures
 
+        if (s < 20) s = 20
         this.worldsize = s
         this.worldr = s / tau
         this.hp = 100
+        if (this.worldsize < 100) {
+            UFX.scene.push(GameOverScene)
+        }
     },
     // If player is at x, where's the nearest building location?
     buildindex: function(x) {
@@ -99,8 +105,11 @@ function upgrade(button) {
         gamestate.bank -= 10
     }
     if (button.id === "upgradeworld") {
-//        gamestate.setworldsize(gamestate.worldsize + 100)
         GrowScene.newsize = gamestate.worldsize + 100
+        UFX.scene.push(GrowScene)
+    }
+    if (button.id === "downgradeworld") {
+        GrowScene.newsize = gamestate.worldsize - 100
         UFX.scene.push(GrowScene)
     }
 }

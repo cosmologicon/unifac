@@ -43,9 +43,9 @@ var camera = {
         }
         var z
         if (this.mode === "play") {
-            z = Math.min(Math.max(0.4 * settings.sy / (this.y + gamestate.worldr), 0.1), 10)
+            z = Math.min(Math.max(0.4 * settings.sy / Math.max(1, this.y + gamestate.worldr), 0.1), 10)
         } else if (this.mode === "planet") {
-            z = settings.sy / gamestate.worldr * 0.2
+            z = Math.min(settings.sy / Math.max(gamestate.worldr, 1) * 0.2, 10)
         }
         if (this.chasezoom) {
             var dz = Math.log(z / this.zoom)

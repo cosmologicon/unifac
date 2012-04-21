@@ -11,15 +11,10 @@ var WorldBound = {
         this.facingright = true
     },
     think: function () {
-        this.xfactor = gamestate.worldr + this.y
+        this.xfactor = Math.max(gamestate.worldr + this.y, 1)
     },
     draw: function () {
         context.rotate(-this.x)
-/*        context.beginPath()
-        context.moveTo(0, 0)
-        context.lineTo(0, this.xfactor)
-        context.strokeStyle = "yellow"
-        context.stroke()*/
         context.translate(0, this.xfactor)
     },
     lookingat: function () {

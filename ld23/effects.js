@@ -111,6 +111,26 @@ MoneyBox.prototype = UFX.Thing()
                         .addcomp(Fades)
                         .addcomp(SolidText, "", "yellow")
 
+var GameOverTitle = {
+    alpha: 0,
+    t: 0,
+    think: function (dt) {
+        this.t += dt
+        this.alpha = Math.min(Math.max(this.t - 1, 0), 1)
+    },
+    draw: function () {
+        context.font = "80px Viga"
+        context.fillStyle = "blue"
+        context.strokeSTyle = "black"
+        context.globalAlpha = this.alpha
+        context.textAlign = "center"
+        context.textBaseline = "middle"
+        context.fillText("GAME OVER", settings.sx/2, settings.sy/2)
+        context.strokeText("GAME OVER", settings.sx/2, settings.sy/2)
+    },
+}
+
+
 
 function EntryPoint (px, py, size) {
     this.x = px
