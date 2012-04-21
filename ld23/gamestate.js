@@ -45,7 +45,7 @@ function enablebutton(bname) {
     b.disabled = false
 }
 
-var allbuttons = ["buildspring", "buildbubbler"]
+var allbuttons = ["buildspring", "buildbubbler", "buildsilo"]
 function updatebuttons() {
     if (you.y > 0 || structures[gamestate.buildindex(you.x)]) {
         allbuttons.forEach(disablebutton)
@@ -82,6 +82,9 @@ function build(button) {
     }
     if (button.id === "buildbubbler") {
         gamestate.addstructure(new Bubbler())
+    }
+    if (button.id === "buildsilo") {
+        gamestate.addstructure(new Silo())
     }
 }
 
