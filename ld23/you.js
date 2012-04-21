@@ -55,6 +55,7 @@ var LeapState = {
         var hmove = (mkeys.right ? 1 : 0) - (mkeys.left ? 1 : 0)
         this.vx = hmove * mechanics.jumphspeed
         if (hmove) this.facingright = hmove > 0
+        if (!mkeys.up) this.nextstate = FallState
     },
     think: function (dt) {
         this.vy += mechanics.launchaccel * dt

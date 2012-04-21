@@ -27,7 +27,9 @@ GameScene.start = function () {
         stars.push([p[0] * 4000 - 2000, p[1] * 4000 - 2000])
     })
 
-    this.tokens = []
+    // Yes these are supposed to be globals
+    hitters = []  // objects that the player can run into
+    effects = []  // text effects
 
 
 }
@@ -53,12 +55,15 @@ GameScene.think = function (dt) {
     nkeys.right = nkeys.right || nkeys.D
     you.move(mkeys, nkeys)
 
-    if (UFX.random() < dt && this.tokens.length == 0) {
-        this.tokens.push(Token())
+    if (UFX.random(10) < dt) {
+        hitters.push(new Token(UFX.random(tau), 400))
+    }
+    if (UFX.random(10) < dt) {
+        hitters.push(new Bubble(UFX.random(tau), 0))
     }
 
     
-    this.tokens.forEach(function (token) { token.think(dt) })
+    hitters.forEach(function (obj) { obj.think(dt) })
     you.think(dt)
     effects.forEach(function (effect) { effect.think(dt) })
 
@@ -69,12 +74,12 @@ GameScene.think = function (dt) {
         return narr
     }
 
-    this.tokens = stillalive(this.tokens)
+    hitters = stillalive(hitters)
     effects = stillalive(effects)
 
     you.updatestate()
 
-    you.nab(this.tokens)
+    you.nab(hitters)
 
     camera.settarget(you.lookingat())
     camera.think(dt)
@@ -120,7 +125,7 @@ GameScene.draw = function () {
         context.restore()
     }
 
-    this.tokens.forEach(draw)
+    hitters.forEach(draw)
     draw(you)
     effects.forEach(draw)
 

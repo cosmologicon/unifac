@@ -42,6 +42,20 @@ var IsBall = {
     }
 }
 
+var Wobbles = {
+    init: function () {
+        this.wobblet = 0
+    },
+    think: function (dt) {
+        this.wobblet += dt
+    },
+    draw: function () {
+        var s = 1 + 0.3 * Math.sin(this.wobblet * 4) * Math.exp(-0.4 * this.wobblet)
+        context.scale(s, 1/s)
+    },
+}
+
+
 
 
 var Drifts = {
@@ -56,11 +70,20 @@ var Drifts = {
 }
 
 var Crashes = {
-    init: function () {
-        this.alive = true
-    },
     think: function (dt) {
         this.alive = this.alive && this.y > 0
+    },
+}
+var FadesUpward = {
+    init: function (ymax) {
+        this.ymax = ymax
+    },
+    think: function (dt) {
+        this.alive = this.alive && this.y < this.ymax
+    },
+    draw: function () {
+        var a = Math.max(0, Math.min(1, (this.ymax - this.y) / 50))
+        context.globalAlpha *= a
     },
 }
 
@@ -93,15 +116,52 @@ var GivesMoney = {
     },
 }
 
-
-function Token() {
-    return UFX.Thing()
-              .addcomp(WorldBound, UFX.random(tau), 400)
-              .addcomp(IsBall, 5, "yellow")
-              .addcomp(Drifts, UFX.random.choice([-50, 50]), -30)
-              .addcomp(Crashes)
-              .addcomp(GivesMoney)
+var GivesBoost = {
+    init: function (boostvy) {
+        this.boostvy = boostvy
+    },
+    benabbed: function (nabber) {
+        if (this.alive) {
+            this.alive = false
+            nabber.vy = Math.max(nabber.vy, 0) + this.boostvy
+        }
+    },
 }
+
+
+
+function Token(x, y) {
+    this.x = x
+    this.y = y
+    this.vx = UFX.random.choice([-50, 50])
+    this.vy = -30
+    this.alive = true
+    this.think(0)
+}
+Token.prototype = UFX.Thing()
+                     .addcomp(WorldBound)
+                     .addcomp(IsBall, 5, "yellow")
+                     .addcomp(Drifts)
+                     .addcomp(Crashes)
+                     .addcomp(GivesMoney)
+
+
+
+function Bubble(x, y) {
+    this.x = x
+    this.y = y
+    this.vx = UFX.random(-20, 20)
+    this.vy = 20
+    this.alive = true
+    this.think(0)
+}
+Bubble.prototype = UFX.Thing()
+                     .addcomp(WorldBound)
+                     .addcomp(FadesUpward, 200)
+                     .addcomp(Wobbles)
+                     .addcomp(IsBall, 20, "#AAF")
+                     .addcomp(Drifts)
+                     .addcomp(GivesBoost, 240)
 
 
 

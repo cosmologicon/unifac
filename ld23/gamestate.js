@@ -1,6 +1,6 @@
 
 var gamestate = {
-    worldsize: 1000,
+    worldsize: 400,
 
     // Abilities
     njumps: 2,  // How many jumps can you perform
