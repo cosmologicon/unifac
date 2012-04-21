@@ -30,7 +30,7 @@ GameScene.start = function () {
     // Yes these are supposed to be globals
     hitters = []  // objects that the player can run into
     ehitters = []  // objects that the enemies can run into
-    effects = []  // text effects
+    effects = [Indicator]  // text and graphical effects
     structures = []  // structures
     monsters = [] 
     

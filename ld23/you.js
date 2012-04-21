@@ -241,7 +241,6 @@ var SpringState = {
 var you = UFX.Thing()
              .addcomp(WorldBound)
              .addcomp(HasStates, StandState)
-//             .addcomp(IsBall)
              .addcomp(CanNab, 15)
              .addcomp(CanShock)
 

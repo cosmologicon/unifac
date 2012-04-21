@@ -67,6 +67,35 @@ var IsDart = {
     },
 }
 
+var IsArrow = {
+    draw: function () {
+        ps = [[-8, -16], [-2, -14], [-4, -32], [4, -32], [2, -14], [8, -16]]
+        context.beginPath()
+        context.moveTo(0, -6)
+        ps.forEach(function (p) { context.lineTo(p[0], p[1]) })
+        context.closePath()
+        context.fillStyle = "rgba(255,255,0,0.5)"
+        context.fill()
+        context.strokeStyle = "rgba(255,0,0,0.5)"
+        context.stroke()
+    },
+}
+
+var FollowsPlayer = {
+    init: function () {
+        this.alive = true
+    },
+    think: function (dt) {
+        this.visible = you.y <= 0
+        this.x = gamestate.buildat(you.x)
+    },
+    draw: function () {
+        if (!this.visible) {
+            context.globalAlpha = 0
+        }
+    },
+}
+
 
 function MoneyBox (amount, px, py) {
     this.alpha = 1
@@ -95,4 +124,8 @@ EntryPoint.prototype = UFX.Thing()
                           .addcomp(WorldBound)
                           .addcomp(IsDart)
 
+Indicator = UFX.Thing()
+               .addcomp(FollowsPlayer)
+               .addcomp(WorldBound)
+               .addcomp(IsArrow)
 
