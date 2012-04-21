@@ -34,7 +34,7 @@ GameScene.start = function () {
 
 
     structures = []
-    gamestate.setworldsize(400)    
+    gamestate.setworldsize(100)    
     gamestate.addstructure(new Springboard())
 
 }
@@ -139,10 +139,11 @@ GameScene.drawstars = function () {
 
 
 GameScene.drawworld = function () {
-    if (gamestate.worldsize <= 0) return
+    if (gamestate.worldsize < 1) return
     // Draw world
     context.save()
-    context.scale(gamestate.worldr, gamestate.worldr)
+    var s = gamestate.worldr + 50 / Math.max(gamestate.worldr, 15)
+    context.scale(s, s)
     context.beginPath()
     context.arc(0, 0, 1, 0, tau)
     context.fillStyle = this.ptexture
@@ -267,6 +268,54 @@ GrowScene.drawworld = function () {
 }
 
 GrowScene.drawstatus = function () {
+    context.save()
+    context.globalAlpha = 0.2
+    GameScene.drawstatus.call(this)
+    context.restore()
+}
+
+var GameOverScene = Object.create(GameScene)
+
+GameOverScene.start = function () {
+    this.alpha = 0
+    this.t = 0
+    gamestate.worldsize = 99
+    gamestate.worldr = gamestate.worldsize / tau
+}
+
+GameOverScene.think = function (dt) {
+    this.t += dt
+    gamestate.worldsize -= 120 * dt
+    gamestate.worldr = gamestate.worldsize / tau
+    if (this.t > 0.7) {
+        this.alpha = Math.min(this.alpha + dt, 0.8)
+        camera.mode = "planet"
+        camera.settarget([you.x, you.y + 44])
+        camera.think(dt)
+        GameOverTitle.think(dt)
+        disableall()
+    }
+}
+
+GameOverScene.draw = function () {
+    context.fillStyle = "#333"
+    context.fillRect(0, 0, settings.sx, settings.sy)
+    context.save()
+    camera.orient()
+    this.drawstars()
+    this.drawworld()
+    you.draw()
+    context.restore()
+    context.globalAlpha = this.alpha
+    context.fillStyle = "black"
+    context.fillRect(0, 0, settings.sx, settings.sy)
+    context.globalAlpha = 1
+    context.save()
+    GameOverTitle.draw()
+    context.restore()
+}
+
+GameOverScene.drawstatus = function () {
     context.save()
     context.globalAlpha = 0.2
     GameScene.drawstatus.call(this)
