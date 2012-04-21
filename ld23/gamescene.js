@@ -22,7 +22,7 @@ GameScene.start = function () {
 
     var stars = this.stars = []
     UFX.random.spread(400).forEach(function (p) {
-        stars.push([p[0] * 4000 - 2000, p[1] * 4000 - 2000])
+        stars.push([p[0] * 2000 - 1000, p[1] * 2000 - 1000])
     })
 
     // Yes these are supposed to be globals
@@ -40,6 +40,7 @@ GameScene.start = function () {
 }
 
 GameScene.think = function (dt) {
+    if (dt > 0.1) dt = 0.1
 
     // Handle keyboard input
     var mkeys = {
@@ -112,8 +113,10 @@ GameScene.think = function (dt) {
     }
 
     if (UFX.key.ispressed.shift) {
-        camera.settarget([0, 0], 0.3, 0)
+        camera.mode = "planet"
+        camera.settarget([0, 0])
     } else {
+        camera.mode = "play"
         camera.settarget(you.lookingat())
     }
     camera.think(dt * n)
