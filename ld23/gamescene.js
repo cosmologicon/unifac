@@ -30,7 +30,9 @@ GameScene.start = function () {
     // Yes these are supposed to be globals
     hitters = []  // objects that the player can run into
     effects = []  // text effects
-
+    structures = []  // structures
+    
+    structures.push(new Springboard(0.5))
 
 }
 
@@ -66,6 +68,7 @@ GameScene.think = function (dt) {
     hitters.forEach(function (obj) { obj.think(dt) })
     you.think(dt)
     effects.forEach(function (effect) { effect.think(dt) })
+    structures.forEach(function (structure) { structure.think(dt) })
 
 
     function stillalive(arr) {
@@ -76,10 +79,12 @@ GameScene.think = function (dt) {
 
     hitters = stillalive(hitters)
     effects = stillalive(effects)
+    structures = stillalive(structures)
 
     you.updatestate()
 
     you.nab(hitters)
+    you.interact(structures)
 
     camera.settarget(you.lookingat())
     camera.think(dt)
@@ -126,6 +131,7 @@ GameScene.draw = function () {
     }
 
     hitters.forEach(draw)
+    structures.forEach(draw)
     draw(you)
     effects.forEach(draw)
 
