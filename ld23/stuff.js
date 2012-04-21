@@ -88,6 +88,7 @@ var GivesMoney = {
         if (this.alive) {
             this.alive = false
             gamestate.bank += this.money
+            effects.push(new MoneyBox(this.money, this.x, this.y))
         }
     },
 }
