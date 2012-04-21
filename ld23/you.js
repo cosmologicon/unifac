@@ -35,7 +35,7 @@ var CanNab = {
 var CanShock = {
     move: function (mkeys, nkeys) {
         if (nkeys.act) {
-            ehitters.push(new Wave(this.x, this.y + 8))
+            this.nextstate = ShockState
         }
     },
 }
@@ -233,6 +233,32 @@ var SpringState = {
     },
     draw: function () {
         FallState.draw.call(this)
+    },
+}
+var ShockState = {
+    enter: function () {
+        this.vy = Math.max(this.vy, mechanics.shockspeed)
+        this.t = 0
+        ehitters.push(new Wave(this.x, this.y + 20))
+    },
+    exit: function () {
+    },
+    move: function (mkeys, nkeys) {
+    },
+    think: function (dt) {
+        this.t += dt
+        if (this.t > mechanics.shocktime) {
+            this.nextstate = FallState
+        }
+        this.x += this.vx * dt / this.xfactor
+        this.y += this.vy * dt
+    },
+    draw: function () {
+        if (!this.facingright) context.scale(-1, 1)
+        context.translate(0, 24)
+        context.rotate(this.t / mechanics.shocktime * tau)
+        drawbody()
+        drawhead()
     },
 }
 

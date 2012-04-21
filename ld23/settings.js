@@ -15,6 +15,9 @@ var mechanics = {
     springspeed: 400,
     springtime: 0.8,
 
+    shockspeed: 140,
+    shocktime: 0.5,
+
     clonkvy: 200,
     
     gravity: 800,  // non-resisted gravity
