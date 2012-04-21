@@ -60,10 +60,17 @@ GameScene.think = function (dt) {
     
     this.tokens.forEach(function (token) { token.think(dt) })
     you.think(dt)
+    effects.forEach(function (effect) { effect.think(dt) })
 
-    var ntokens = []
-    this.tokens.forEach(function (token) { if (token.alive) ntokens.push(token) })
-    this.tokens = ntokens
+
+    function stillalive(arr) {
+        var narr = []
+        arr.forEach(function (x) { if (x.alive) narr.push(x) })
+        return narr
+    }
+
+    this.tokens = stillalive(this.tokens)
+    effects = stillalive(effects)
 
     you.updatestate()
 
@@ -115,6 +122,7 @@ GameScene.draw = function () {
 
     this.tokens.forEach(draw)
     draw(you)
+    effects.forEach(draw)
 
     context.restore()
 
