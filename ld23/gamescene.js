@@ -4,8 +4,6 @@ var GameScene = Object.create(UFX.scene.Scene)
 
 GameScene.start = function () {
 
-    gamestate.worldr = gamestate.worldsize / tau
-
     this.ptexture = context.createRadialGradient(0, 2, 1, 2, 0, 3)
     for (var j = 0 ; j < 5 ; ++j) {
         var a = j * 0.2
@@ -31,10 +29,13 @@ GameScene.start = function () {
     hitters = []  // objects that the player can run into
     ehitters = []  // objects that the enemies can run into
     effects = [Indicator]  // text and graphical effects
-    structures = []  // structures
+//    structures = []  // structures
     monsters = [] 
-    
-    structures.push(new Springboard(0.5))
+
+
+    structures = []
+    gamestate.setworldsize(400)    
+    gamestate.addstructure(new Springboard())
 
 }
 
@@ -77,7 +78,7 @@ GameScene.think = function (dt) {
         hitters.forEach(function (obj) { obj.think(dt) })
         ehitters.forEach(function (obj) { obj.think(dt) })
         effects.forEach(function (effect) { effect.think(dt) })
-        structures.forEach(function (structure) { structure.think(dt) })
+        structures.forEach(function (structure) { if (structure) structure.think(dt) })
         monsters.forEach(function (monster) { monster.think(dt) })
         you.think(dt)
 
@@ -101,8 +102,12 @@ GameScene.think = function (dt) {
         hitters = stillalive(hitters)
         ehitters = stillalive(ehitters)
         effects = stillalive(effects)
-        structures = stillalive(structures)
         monsters = stillalive(monsters)
+        for (var j = 0 ; j < structures.length ; ++j) {
+            if (structures[j] && !structures[j].alive) {
+                structures[j] = null
+            }
+        }
 
     }
 
@@ -155,7 +160,7 @@ GameScene.draw = function () {
         context.restore()
     }
 
-    structures.forEach(draw)
+    structures.forEach(function (s) { if (s) { draw(s) } })
     hitters.forEach(draw)
     monsters.forEach(draw)
     ehitters.forEach(draw)
@@ -164,7 +169,7 @@ GameScene.draw = function () {
 
     context.restore()
 
-    ghostbuttons()
+    updatebuttons()
 
     document.title = UFX.ticker.getfpsstr()
 }

@@ -2,8 +2,9 @@
 gamestate = Object.create({
     setworldsize: function (s) {
         this.worldsize = s
-        this.worldr = s / (2 * Math.PI)
+        this.worldr = s / tau
         this.nslots = Math.floor(s / 50)
+        structures.length = this.nslots
     },
     // If player is at x, where's the nearest building location?
     buildindex: function(x) {
@@ -14,16 +15,18 @@ gamestate = Object.create({
     buildat: function (x) {
         return this.buildindex(x) * tau / this.nslots
     },
+    
+    addstructure: function (structure, slot) {
+        if (typeof slot !== "number") slot = this.buildindex(you.x)
+        structures[slot] = structure
+        structure.x = slot * tau / this.nslots
+    },
 })
 
 // Abilities
 gamestate.njumps = 2  // How many jumps can you perform
 gamestate.bank = 100
 gamestate.hp = 100
-
-
-gamestate.setworldsize(400)
-
 
 
 function disablebutton (bname) {
@@ -42,10 +45,13 @@ function enablebutton (bname) {
     b.disabled = false
 }
 
-function ghostbuttons () {
-    hidebutton("buildbubbler")
-    
-
+function updatebuttons () {
+    var allbuttons = ["buildspring", "buildbubbler"]
+    if (you.y > 0 || structures[gamestate.buildindex(you.x)]) {
+        allbuttons.forEach(disablebutton)
+    } else {
+        allbuttons.forEach(enablebutton)
+    }
 }
 
 
@@ -67,10 +73,10 @@ function upgrade(button) {
 
 function build(button) {
     if (button.id === "buildspring") {
-        structures.push(new Springboard(you.x))
+        gamestate.addstructure(new Springboard())
     }
     if (button.id === "buildbubbler") {
-        structures.push(new Bubbler(you.x))
+        gamestate.addstructure(new Bubbler())
     }
 }
 

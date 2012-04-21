@@ -31,34 +31,32 @@ td {
     position: relative;
 }
 .HUDbutton {
-    position: absolute;
     border: medium rgb(128,128,255) solid;
     border-radius: 10px;
     background: rgb(24,24,128);
     color: white;
     width: 250px;
     font: inherit;
-    font-size: 28px;
+    font-size: 22px;
 }
 .HUDghost {
-    position: absolute;
-    border: medium rgb(128,128,128) solid;
+    border: medium rgb(64,64,64) solid;
     border-radius: 10px;
-    background: rgba(24,24,24);
-    color: gray;
+    background: rgb(24,24,24);
+    color: black;
     width: 250px;
     font: inherit;
-    font-size: 28px;
+    font-size: 22px;
+    font-style: italic;
 }
 .HUDhidden {
-    position: absolute;
     border: medium transparent solid;
     border-radius: 10px;
     background: transparent;
     color: transparent;
     width: 250px;
     font: inherit;
-    font-size: 28px;
+    font-size: 22px;
 }
 
 </style>
@@ -100,10 +98,8 @@ td {
 </div>
 
 <td style="position: relative">
-<button type=button class=HUDbutton id=buildspring onclick="build(this)" style="left: 10px; top: 10px;"
->Place Launcher</button><br>
-<button type=button class=HUDbutton id=buildbubbler onclick="build(this)" style="left: 210px; top: 110px;"
->Place Bubbler</button><br>
+<button type=button class=HUDbutton id=buildspring onclick="build(this)">Place Launcher</button><br>
+<button type=button class=HUDbutton id=buildbubbler onclick="build(this)">Place Bubbler</button><br>
 <button type=button class=upgradebutton id=upgradejump onclick="upgrade(this)">Upgrade jump ($10)</button>
 <button type=button class=upgradebutton id=upgraderun onclick="upgrade(this)">Upgrade run ($10)</button>
 <button type=button class=upgradebutton id=upgradeworld onclick="upgrade(this)">Upgrade world</button>
