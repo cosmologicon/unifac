@@ -15,7 +15,7 @@ var CanNab = {
     },
     interact: function (objs) {
         for (var j = 0 ; j < objs.length ; ++j) {
-            objs[j].interact(this)
+            if (objs[j]) objs[j].interact(this)
         }
     },
     clonk: function (objs) {
