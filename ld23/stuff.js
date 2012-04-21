@@ -35,7 +35,7 @@ var IsBall = {
     },
     draw: function () {
         context.beginPath()
-        context.arc(0, this.ballsize * 0.7, this.ballsize, 0, tau)
+        context.arc(0, 0, this.ballsize, 0, tau)
         context.strokeStyle = this.ballcolor
         context.lineWidth = 1
         context.stroke()

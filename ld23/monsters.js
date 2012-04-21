@@ -6,7 +6,7 @@ var CrashDamage = {
     think: function (dt) {
         if (this.alive && this.y <= 0) {
             this.alive = false
-            gamestate.hp -= this.dhp
+            gamestate.hurtworld(this.dhp)
             effects.push(new EntryPoint(this.x, this.y))
         }
     },
