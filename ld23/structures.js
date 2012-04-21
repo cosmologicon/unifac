@@ -1,4 +1,29 @@
 
+CanUpgrade = {
+    init: function (sched) {
+        this.level = 1
+        this.schedule = mechanics.upgrades[sched]
+        this.maxlevel = this.schedule.length
+    },
+    draw: function () {
+        var n = this.maxlevel
+        for (var j = 0 ; j < n ; ++j) {
+            var x = 5 * (j - (n - 1) / 2.), y = -8
+            if (n > 6) {
+                x *= 0.5
+                if (j % 2) y -= 4
+            }
+            context.beginPath()
+            context.arc(x, y, 2.5, 0, tau)
+            context.strokeStyle = "black"
+            context.lineWidth = 1
+            context.fillStyle = j < this.level ? "red" : "gray"
+            context.fill()
+            context.stroke()
+        }
+    },
+}
+
 
 SpringsYou = {
     interact: function (you) {
@@ -69,6 +94,7 @@ function Springboard (x) {
 }
 Springboard.prototype = UFX.Thing()
                            .addcomp(WorldBound)
+                           .addcomp(CanUpgrade, "springboard")
                            .addcomp(SpringsYou)
                            .addcomp(Wobbles, 25, 0.6)
                            .addcomp(DrawSpringboard)
@@ -83,6 +109,7 @@ function Bubbler (x) {
 Bubbler.prototype = UFX.Thing()
                            .definemethod("interact")
                            .addcomp(WorldBound)
+                           .addcomp(CanUpgrade, "bubbler")
                            .addcomp(Wobbles, 25, 0.6)
                            .addcomp(BlowsBubbles)
                            .addcomp(DrawBubbler)

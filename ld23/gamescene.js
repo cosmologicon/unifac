@@ -22,7 +22,7 @@ GameScene.start = function () {
 
     var stars = this.stars = []
     UFX.random.spread(400).forEach(function (p) {
-        stars.push([p[0] * 2000 - 1000, p[1] * 2000 - 1000])
+        stars.push([p[0] * 1600 - 800, p[1] * 1600 - 800])
     })
 
     // Yes these are supposed to be globals
@@ -65,9 +65,6 @@ GameScene.think = function (dt) {
 
     if (UFX.random(10) < dt) {
         hitters.push(new Token(UFX.random(tau), 400))
-    }
-    if (UFX.random(10) < dt) {
-        hitters.push(new Bubble(UFX.random(tau), 0))
     }
     if (UFX.random(1) < dt) {
         monsters.push(new Gnat(UFX.random(tau), 200))
@@ -127,12 +124,17 @@ GameScene.think = function (dt) {
 
 GameScene.drawstars = function () {
     // Draw stars
+    context.save()
+    var s = Math.pow(camera.zoom, -0.85)
+    context.scale(s, s)
     context.fillStyle = "white"
     this.stars.forEach(function (star) {
         context.beginPath()
-        context.arc(star[0], star[1], 1, 0, tau)
-        context.fill()
+//        context.arc(star[0], star[1], 1, 0, tau)
+//        context.fill()
+        context.fillRect(star[0], star[1], 2, 2)
     })
+    context.restore()
 }
 
 
