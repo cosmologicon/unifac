@@ -6,15 +6,21 @@ var camera = {
     targety: 0,
     zoom: 1,
     ymin: 40,
+    mode: "play",   // can be "planet"
+    chasezoom: false,
     
     lookat: function (p) {
         this.x = this.targetx = p[0]
         this.y = this.targety = p[1]
     },
-    settarget: function (p, ymin) {
-        if (typeof ymin !== "number") ymin = this.ymin
+    settarget: function (p) {
         this.targetx = p[0]
-        this.targety = Math.max(p[1], ymin)
+        if (this.mode === "play") {
+            this.targety = Math.max(p[1], this.ymin)
+        } else if (this.mode === "planet") {
+            this.targety = p[1] - gamestate.worldr
+            this.chasezoom = true
+        }
     },
     think: function (dt) {
         var f = 1 - Math.exp(-2.5 * dt)
@@ -35,7 +41,26 @@ var camera = {
             this.x += f * dx
             this.y += f * dy
         }
-        this.zoom = Math.max(0.4 * settings.sy / (this.y + gamestate.worldr), 0.1)
+        var z
+        if (this.mode === "play") {
+            z = Math.min(Math.max(0.4 * settings.sy / (this.y + gamestate.worldr), 0.1), 10)
+        } else if (this.mode === "planet") {
+            z = settings.sy / gamestate.worldr * 0.1
+        }
+        if (this.chasezoom) {
+            var dz = Math.log(z / this.zoom)
+            if (Math.abs(dz) < 0.01) {
+                this.zoom = z
+                if (this.mode === "play") {
+                    this.chasezoom = false
+                }
+            } else {
+                this.zoom *= Math.exp(2 * f * dz)
+            }
+        } else {
+            this.zoom = z
+        }
+
     },
 }
 
