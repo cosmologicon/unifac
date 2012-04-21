@@ -65,6 +65,8 @@ var context = canvas.getContext("2d")
 window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
                                window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
 UFX.key.init()
+UFX.key.qup = false
+UFX.key.qdown = true
 UFX.key.watchlist = "up down left right W A S D space enter escape".split(" ")
 UFX.scene.init()
 UFX.scene.push(GameScene)
