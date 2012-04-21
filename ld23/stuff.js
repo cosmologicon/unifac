@@ -42,6 +42,18 @@ var IsBall = {
     }
 }
 
+var IsBox = {
+    init: function (size, color) {
+        this.boxsize = size || 10
+        this.boxcolor = color || "purple"
+    },
+    draw: function () {
+        context.strokeStyle = this.boxcolor
+        context.strokeRect(-this.boxsize/2, 0, this.boxsize, this.boxsize)
+    }
+}
+
+
 var Wobbles = {
     init: function () {
         this.wobblet = 0
@@ -84,22 +96,6 @@ var FadesUpward = {
     draw: function () {
         var a = Math.max(0, Math.min(1, (this.ymax - this.y) / 50))
         context.globalAlpha *= a
-    },
-}
-
-
-var CanNab = {
-    init: function (radius) {
-        this.radius = radius || 10
-    },
-    nab: function (objs) {
-        for (var j = 0 ; j < objs.length ; ++j) {
-            var dx = getdx(this.x, objs[j].x) * this.xfactor
-            var dy = this.y - objs[j].y
-            if (dx * dx + dy * dy < this.radius * this.radius) {
-                objs[j].benabbed(this)
-            }
-        }
     },
 }
 

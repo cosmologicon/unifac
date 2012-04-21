@@ -1,4 +1,26 @@
 
+
+var CanNab = {
+    init: function (radius) {
+        this.radius = radius || 10
+    },
+    nab: function (objs) {
+        for (var j = 0 ; j < objs.length ; ++j) {
+            var dx = getdx(this.x, objs[j].x) * this.xfactor
+            var dy = this.y - objs[j].y
+            if (dx * dx + dy * dy < this.radius * this.radius) {
+                objs[j].benabbed(this)
+            }
+        }
+    },
+    interact: function (objs) {
+        for (var j = 0 ; j < objs.length ; ++j) {
+            objs[j].interact(this)
+        }
+    },
+}
+
+
 // States for our state machine
 var HasStates = {
     init: function (state0) {
@@ -85,6 +107,24 @@ var FallState = {
         this.vy -= (this.resistfall ? mechanics.rgravity : mechanics.gravity) * dt
         if (this.y <= 0) {
             this.nextstate = StandState
+        }
+        this.x += this.vx * dt / this.xfactor
+        this.y += this.vy * dt
+    },
+}
+var SpringState = {
+    enter: function () {
+        this.vy = mechanics.springspeed
+        this.t = 0
+    },
+    exit: function () {
+    },
+    move: function (mkeys, nkeys) {
+    },
+    think: function (dt) {
+        this.t += dt
+        if (this.t > mechanics.springtime) {
+            this.nextstate = FallState
         }
         this.x += this.vx * dt / this.xfactor
         this.y += this.vy * dt

@@ -11,6 +11,9 @@ var mechanics = {
     launchspeed: 140,
     launchaccel: 2000,
     
+    springspeed: 400,
+    springtime: 0.8,
+    
     gravity: 800,  // non-resisted gravity
     rgravity: 400,  // resisted gravity
     
