@@ -6,27 +6,28 @@ GameScene.start = function () {
 
     gamestate.worldr = gamestate.worldsize / tau
 
-    this.ptexture = context.createRadialGradient(0, 4, 3, 2, 2, 5)
-    this.ptexture.addColorStop(0, "blue")
-    this.ptexture.addColorStop(0.1, "green")
-    this.ptexture.addColorStop(0.2, "blue")
-    this.ptexture.addColorStop(0.3, "green")
-    this.ptexture.addColorStop(0.39, "green")
-    this.ptexture.addColorStop(0.4, "blue")
-    this.ptexture.addColorStop(0.49, "blue")
-    this.ptexture.addColorStop(0.5, "green")
-    this.ptexture.addColorStop(0.59, "green")
-    this.ptexture.addColorStop(0.6, "blue")
-    this.ptexture.addColorStop(0.69, "blue")
-    this.ptexture.addColorStop(0.7, "green")
-    this.ptexture.addColorStop(0.8, "blue")
-    this.ptexture.addColorStop(0.9, "green")
-    this.ptexture.addColorStop(1.0, "blue")
-
-    this.stars = []
-    for (var j = 0 ; j < 100 ; ++j) {
-        this.stars.push([Math.random() * 1000 - 500, Math.random() * 1000 - 500])
+    this.ptexture = context.createRadialGradient(0, 2, 1, 2, 0, 3)
+    for (var j = 0 ; j < 5 ; ++j) {
+        var a = j * 0.2
+        this.ptexture.addColorStop(a, "blue")
+        this.ptexture.addColorStop(a + 0.08, "blue")
+        this.ptexture.addColorStop(a + 0.09, "black")
+        this.ptexture.addColorStop(a + 0.1, "green")
+        this.ptexture.addColorStop(a + 0.18, "green")
+        this.ptexture.addColorStop(a + 0.19, "black")
     }
+    this.stexture = context.createRadialGradient(0, 0.5, 0, 0, 0.5, 1.5)
+    this.stexture.addColorStop(0, "rgba(0,0,0,0)")
+    this.stexture.addColorStop(1, "rgba(0,0,0,1)")
+
+
+
+    var stars = this.stars = []
+    UFX.random.spread(400).forEach(function (p) {
+        stars.push([p[0] * 4000 - 2000, p[1] * 4000 - 2000])
+    })
+
+    this.tokens = []
 
 
 }
@@ -46,12 +47,28 @@ GameScene.think = function (dt) {
             nkeys[event.name] = true
         }
     })
+    nkeys.up = nkeys.up || nkeys.W
+    nkeys.down = nkeys.down || nkeys.S
+    nkeys.left = nkeys.left || nkeys.A
+    nkeys.right = nkeys.right || nkeys.D
     you.move(mkeys, nkeys)
+
+    if (UFX.random() < dt && this.tokens.length == 0) {
+        this.tokens.push(Token())
+    }
+
     
+    this.tokens.forEach(function (token) { token.think(dt) })
     you.think(dt)
 
+    var ntokens = []
+    this.tokens.forEach(function (token) { if (token.alive) ntokens.push(token) })
+    this.tokens = ntokens
+
     you.updatestate()
-    
+
+    you.nab(this.tokens)
+
     camera.settarget(you.lookingat())
     camera.think(dt)
     
@@ -82,16 +99,26 @@ GameScene.draw = function () {
     context.arc(0, 0, 1, 0, tau)
     context.lineWidth = 0.01
     context.fillStyle = this.ptexture
-    context.strokeStyle = "black"
     context.fill()
+    context.fillStyle = this.stexture
+    context.fill()
+    context.strokeStyle = "black"
     context.stroke()
     context.restore()
 
-    you.draw()
+
+    function draw(obj) {
+        context.save()
+        obj.draw()
+        context.restore()
+    }
+
+    this.tokens.forEach(draw)
+    draw(you)
 
     context.restore()
 
-//    document.title = UFX.ticker.getfpsstr()
+    document.title = UFX.ticker.getfpsstr()
 }
 
 
