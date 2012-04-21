@@ -11,9 +11,10 @@ var camera = {
         this.x = this.targetx = p[0]
         this.y = this.targety = p[1]
     },
-    settarget: function (p) {
+    settarget: function (p, ymin) {
+        if (typeof ymin !== "number") ymin = this.ymin
         this.targetx = p[0]
-        this.targety = Math.max(p[1], this.ymin)
+        this.targety = Math.max(p[1], ymin)
     },
     think: function (dt) {
         var f = 1 - Math.exp(-2.5 * dt)

@@ -1,4 +1,4 @@
-// Text effects
+// Text and special effects
 
 var Floats = {
     init: function (vy) {
@@ -43,6 +43,30 @@ var SolidText = {
     },
 }
 
+var IsDart = {
+    init: function () {
+        this.t = 0
+    },
+    think: function (dt) {
+        this.t += dt
+        if (this.t > 0.5) this.alive = false
+    },
+    draw: function () {
+        var sx = 1 - this.t / 0.5
+        var sy = Math.sin(this.t / 0.5 * tau / 2)
+        context.scale(sx * 10, sy * 40)
+        context.strokeStyle = "red"
+        context.lineWidth = 0.1
+        context.beginPath()
+        var ps = [[-2, 1], [2, 1], [-1, 2], [1, 2]]
+        ps.forEach(function (p) {
+            context.moveTo(0, 0)
+            context.lineTo(p[0], p[1])
+        })
+        context.stroke()
+    },
+}
+
 
 function MoneyBox (amount, px, py) {
     this.alpha = 1
@@ -57,6 +81,19 @@ MoneyBox.prototype = UFX.Thing()
                         .addcomp(Floats, 100)
                         .addcomp(Fades)
                         .addcomp(SolidText, "", "yellow")
+
+
+function EntryPoint (px, py, size) {
+    this.x = px
+    this.y = py
+    this.size = size || 1
+    this.t = 0
+    this.alive = true
+    this.think(0)
+}
+EntryPoint.prototype = UFX.Thing()
+                          .addcomp(WorldBound)
+                          .addcomp(IsDart)
 
 
 
