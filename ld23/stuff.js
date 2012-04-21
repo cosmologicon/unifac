@@ -117,7 +117,7 @@ var GivesBoost = {
         this.boostvy = boostvy
     },
     benabbed: function (nabber) {
-        if (this.alive) {
+        if (this.alive && nabber.y > 0) {
             this.alive = false
             nabber.vy = Math.max(nabber.vy, 0) + this.boostvy
         }
