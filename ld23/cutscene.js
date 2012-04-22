@@ -4,22 +4,76 @@ tip = []
 
 
 story[0] = [
-    "Once upon a time in deep space there was a world named Tonde. Tonde was a friendly world, but very small. It was so small, in fact, that only one creature lived on Tonde. Her name was Zupe.",
-    "Tonde and Zupe were the very best of friends, and not only because they didn't know anyone else. The fact is that they needed each other.",
-    "Zupe needed a place to stand, after all. And Tonde needed Zupe to protect it from the gray creatures from space that would come to hurt it."
+    "Once upon a time in deep space there was a world named Tondie. Tondie was a friendly world, but very small. It was so small, in fact, that only one creature lived on Tondie. Her name was Zupe.",
+    "Tondie and Zupe were the very best of friends, and not only because they didn't know anyone else. The fact is that they needed each other.",
+    "Zupe needed a place to stand, after all. And Tondie needed Zupe to protect it from the gray creatures from space that would come to hurt it."
 ]
 tip[0] = [
     "Control Zupe with the arrow keys or WASD. You can double-jump in the air, and kick by pressing down, space, or enter.",
     "Kicking takes time to recharge. You can see the meter in the upper-right. You can destroy the invaders by kicking them, or jumping on them.",
-    "Zupe can't be hurt, but Tonde can!",
+    "Zupe can't be hurt, but Tondie can!",
 ]
 
 story[1] = [
-    "Zupe wanted to protect Tonde, of course, but it was also great fun! She soon discovered clever ways to help her ward off the invaders."
+    "Zupe wanted to protect Tonide, of course, but it was also great fun! She soon discovered clever ways to help her ward off the invaders."
 ]
 tip[1] = [
-    "Structure unlocked: Tower. Place a tower to reach higher heights!"
+    "Structure unlocked: Tower. Place a tower to reach new heights!"
 ]
+
+story[2] = [
+    "Zupe discovered a kind of structure that would heal Tondie's wounds. It was very important to her that she keep her best friend feeling happy."
+]
+tip[2] = [
+    "Structure unlocked: Healer. Recovers Tondie's health over time.",
+    "Tip: If you're eager for the next wave, you can enter fast-forward mode by holding down Backspace."
+]
+
+story[3] = [
+    "One day, Zupe made the most amazing discovery of all. By collecting enough, she could actually make Tondie grow in size! There would be so much room for activities!",
+    "Tondie was a little nervous about the idea at first, but finally agreed that it would be a good idea. So Zupe worked hard to collect enough."
+]
+tip[3] = [
+    "To grow Tondie, keep the health above 90/100 and collect $400.",
+    "Tip: If you want to get a wide view, hold down Shift."
+]
+
+story[4] = [
+    "Tondie was amazed at how it felt to be larger. It never felt so strong! Tondie asked Zupe to please collect even more so that Tondie could grow again.",
+    "They both agreed that this was the most fun they'd ever had together."
+]
+tip[4] = [
+    "You can now purchase upgrades for your abilities and the structures you've built. You can grow Tondie again when you collect $600."
+]
+
+
+
+story[5] = [
+    "Tondie was getting very big indeed, and the invaders seemed to be getting more and more fierce. Fortunately, Zupe's ingenuity persisted."
+]
+tip[5] = [
+    "Structure unlocked: Bubbler. Creates bubbles to give you a boost when you need it."
+]
+
+story[6] = [
+    "Chapter 6"
+]
+tip[6] = [
+    "Structure unlocked: Launcher. Bounce off this to get a mighty boost."
+]
+
+story[7] = [
+    "Chapter 7"
+]
+tip[7] = [
+    "Structure unlocked: Bomb Silo. This will launch a powerful bomb into orbit. Hit it when you're in a pinch."
+]
+
+
+for (var j = 8 ; j < 20 ; ++j) {
+    story[j] = ["Welcome to chapter " + j]
+    tip[j] = []
+}
 
 
 var CutScene = Object.create(GameScene)
