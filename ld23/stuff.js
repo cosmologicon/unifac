@@ -34,10 +34,10 @@ var IsBall = {
         context.strokeStyle = this.ballcolor
         context.lineWidth = 1
         context.stroke()
-        context.beginPath()
+/*        context.beginPath()
         context.arc(0, 0, 1, 0, tau)
         context.fillStyle = "white"
-        context.fill()
+        context.fill()*/
     }
 }
 
@@ -141,10 +141,21 @@ var SeeksOrbit = {
     },
     think: function (dt) {
         this.x += this.vx * dt / this.xfactor
-        this.y += this.vy * dt
-        if (this.y >= this.ymax) {
-            this.y = this.ymax
-            this.vy = 0
+        if (this.y < this.ymax) {
+            this.y += this.vy * dt
+            if (this.y >= this.ymax) {
+                this.y = this.ymax
+                this.vy = 0
+            }
+        } else if (this.y > this.ymax) {
+            this.y -= this.vy * dt
+            if (this.y <= this.ymax) {
+                this.y = this.ymax
+                this.vy = 0
+            }
+        }
+        if (this.y != this.ymax) {
+            this.vy += 40 * dt
         }
     },
 }
@@ -255,6 +266,7 @@ var GivesBoost = {
         if (this.alive && nabber.y > 0) {
             this.alive = false
             nabber.vy = Math.max(nabber.vy, 0) + this.boostvy
+            nabber.jumps = 1
         }
     },
 }
@@ -305,7 +317,7 @@ Bubble.prototype = UFX.Thing()
                      .addcomp(Wobbles, 4, 0.3)
                      .addcomp(IsBall, 20, "#AAF")
                      .addcomp(Drifts)
-                     .addcomp(GivesBoost, 240)
+                     .addcomp(GivesBoost, 360)
 
 
 function Bomb(x, y) {

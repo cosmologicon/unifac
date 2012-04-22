@@ -56,21 +56,48 @@ tip[5] = [
 ]
 
 story[6] = [
-    "Chapter 6"
+    "Tondie was finally starting to feel like a real planet. This had never happened before. It was a strange feeling, but Tondie knew this is what it wanted."
 ]
 tip[6] = [
     "Structure unlocked: Launcher. Bounce off this to get a mighty boost."
 ]
 
 story[7] = [
-    "Chapter 7"
+    "Zupe asked Tondie if it thought it was big enough now. When Tondie answered, Zupe almost didn't recognize it.",  
+    "Instead of the voice of her friend, Zupe heard only a deep growl... MOOOOOREEEE PLEEEASE.",
+    "She was surprised, but continued on her quest for more.",
 ]
 tip[7] = [
     "Structure unlocked: Bomb Silo. This will launch a powerful bomb into orbit. Hit it when you're in a pinch."
 ]
 
+story[8] = [
+    "Tondie now grew so large that the Lord of all Invaders became jealous. The Invader's capital ship was dispatched to cut Tondie back down to size.",
+    "Zupe knew that this was her ultimate test. If they defeated the capital ship, they would never be bothered again.",
+    "Tondie said nothing."
+]
+tip[8] = [
+    "Good luck!"
+]
 
-for (var j = 8 ; j < 20 ; ++j) {
+story[9] = [
+    "We did it, Tondie! yelled Zupe. We'll be safe forever now!",
+    "But Tondie didn't say anything.",
+    "Tondie was no longer the tiny world that Zupe knew. Tondie was a full planet now. And planets live differently than you and I.",
+    "Planets don't feel the passage of time, or the course of events on their surface.",
+    "Planets don't have friends.",
+    "",
+    "News spread throughout the galaxy of the planet where the Lord of the Invaders was defeated.",
+    "Before long, Zupe was not the only one living on Tondie. She saw many weary people come to this world of peace and happiness.",
+    "Tondie might never be her friend again, but it would forever be her home.",
+]
+tip[9] = [
+    "Thanks for playing!",
+    "Please enjoy this unlimited kick ability. Use it wisely. Or just screw around and keep hitting space. Your call."
+]
+
+
+for (var j = 10 ; j < 20 ; ++j) {
     story[j] = ["Welcome to chapter " + j]
     tip[j] = []
 }
