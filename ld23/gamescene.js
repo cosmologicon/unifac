@@ -50,6 +50,7 @@ GameScene.think = function (dt) {
         right: !!(UFX.key.ispressed.right || UFX.key.ispressed.D),
         act: !!(UFX.key.ispressed.space || UFX.key.ispressed.enter),
     }
+    mkeys.act == mkeys.act || mkeys.down
     var nkeys = {}
     UFX.key.events().forEach(function (event) {
         if (event.type === "down") {
@@ -60,14 +61,17 @@ GameScene.think = function (dt) {
     nkeys.down = nkeys.down || nkeys.S
     nkeys.left = nkeys.left || nkeys.A
     nkeys.right = nkeys.right || nkeys.D
-    nkeys.act = nkeys.space || nkeys.enter
+    nkeys.act = nkeys.space || nkeys.enter || nkeys.down
     you.move(mkeys, nkeys)
 
     if (UFX.random(10) < dt) {
         hitters.push(new Token(UFX.random(tau), 400))
     }
-    if (UFX.random(1) < dt) {
+    if (UFX.random(6) < dt) {
         monsters.push(new Fly(UFX.random(tau), 200))
+    }
+    if (UFX.random(6) < dt) {
+        monsters.push(new Gnat(UFX.random(tau), 200))
     }
 
     var n = settings.tickmult
