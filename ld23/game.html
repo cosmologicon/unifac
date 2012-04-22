@@ -31,30 +31,33 @@ td {
     position: relative;
 }
 .HUDbutton {
+    margin: 5px 20px;
     border: medium rgb(128,128,255) solid;
     border-radius: 10px;
     background: rgb(24,24,128);
     color: white;
-    width: 250px;
+    width: 300px;
     font: inherit;
     font-size: 22px;
 }
 .HUDghost {
+    margin: 5px 20px;
     border: medium rgb(64,64,64) solid;
     border-radius: 10px;
     background: rgb(24,24,24);
     color: black;
-    width: 250px;
+    width: 300px;
     font: inherit;
     font-size: 22px;
     font-style: italic;
 }
 .HUDhidden {
+    margin: 5px 20px;
     border: medium transparent solid;
     border-radius: 10px;
     background: transparent;
     color: transparent;
-    width: 250px;
+    width: 300px;
     font: inherit;
     font-size: 22px;
 }
@@ -98,19 +101,23 @@ td {
 </div>
 
 <td style="position: relative">
-<button type=button class=HUDbutton id=buildspring onclick="build(this)">Place Launcher</button><br>
-<button type=button class=HUDbutton id=buildbubbler onclick="build(this)">Place Bubbler</button><br>
-<button type=button class=HUDbutton id=buildsilo onclick="build(this)">Place Silo</button><br>
-<button type=button class=HUDbutton id=buildhospital onclick="build(this)">Place Healer</button><br>
-<button type=button class=HUDbutton id=buildtower onclick="build(this)">Place Tower</button><br>
-<button type=button class=HUDbutton id=removestructure onclick="gamestate.removestructure()">Remove structure</button><br>
-<button type=button class=HUDbutton id=upgradestructure onclick="gamestate.upgradestructure()">Upgrade structure</button><br>
-<button type=button class=upgradekick id=upgradekick onclick="upgrade(this)">Upgrade kick</button>
-<button type=button class=upgradebutton id=upgradejump onclick="upgrade(this)">Upgrade jump</button>
-<button type=button class=upgradebutton id=upgraderun onclick="upgrade(this)">Upgrade run</button>
-<button type=button class=HUDbutton id=upgradeworld onclick="upgrade(this)">Grow</button>
-<button type=button class=HUDbutton id=downgradeworld onclick="upgrade(this)">Shrink</button>
-<button type=button onclick="gamestate.reset()">Reset saved game</button>
+
+<p style="margin-bottom: 20px">
+<button type=button class=HUDbutton id=upgradestructure onclick="gamestate.upgradestructure()">1: Upgrade structure</button><br>
+<button type=button class=HUDbutton id=upgradejump onclick="upgrade(this)">2: Upgrade jump</button><br>
+<button type=button class=HUDbutton id=upgradekick onclick="upgrade(this)">3: Upgrade kick</button><br>
+<!-- <button type=button class=HUDbutton id=upgraderun onclick="upgrade(this)">Upgrade run</button><br> -->
+<button type=button class=HUDbutton id=upgradeworld onclick="upgrade(this)">4: Grow</button><br>
+<button type=button class=HUDbutton id=downgradeworld onclick="upgrade(this)">Shrink</button><br>
+<p style="margin-bottom: 20px">
+<button type=button class=HUDbutton id=buildtower onclick="build(this)">5: Place Tower</button><br>
+<button type=button class=HUDbutton id=buildhospital onclick="build(this)">6: Place Healer</button><br>
+<button type=button class=HUDbutton id=buildspring onclick="build(this)">7: Place Launcher</button><br>
+<button type=button class=HUDbutton id=buildbubbler onclick="build(this)">8: Place Bubbler</button><br>
+<button type=button class=HUDbutton id=buildsilo onclick="build(this)">9: Place Bomb Silo</button><br>
+<p style="margin-bottom: 20px">
+<button type=button class=HUDbutton id=removestructure onclick="gamestate.removestructure()">0: Remove structure</button><br>
+<!-- <button type=button onclick="gamestate.reset()">Reset saved game</button> -->
 
 </table>
 <script>
@@ -128,7 +135,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequest
 UFX.key.init()
 UFX.key.qup = false
 UFX.key.qdown = true
-UFX.key.watchlist = "up down left right W A S D space enter escape shift".split(" ")
+UFX.key.watchlist = "up down left right W A S D comma O E space enter escape shift 1 2 3 4 5 6 7 8 9 0".split(" ")
 UFX.scene.init()
 UFX.scene.push(GameScene)
 

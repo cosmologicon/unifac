@@ -4,19 +4,24 @@ CanUpgrade = {
         this.level = 0
         this.stype = stype
     },
+    upgradeamount: function () {
+        if (this.level >= gamestate.unlocked.upgradestruct) return false
+        return mechanics.upgradecost[this.stype][this.level]
+    },
     canupgrade: function () {
-        if (this.level >= mechanics.maxlevel[this.stype]) return false
-        var amount = mechanics.upgradecost[this.stype][this.level]
         if (gamestate.bank < amount) return false
-        return true
+        return amount
     },
     upgrade: function () {
-        if (!this.canupgrade()) return
-        gamestate.bank -= mechanics.upgradecost[this.stype][this.level]
+        var amount = this.upgradeamount()
+        if (!amount || amount > gamestate.bank) return
+        gamestate.bank -= amount
         this.level += 1
+        effects.push(new UpgradeBox(this.x, this.y + 50))
     },
     draw: function () {
-        var n = mechanics.maxlevel[this.stype]
+        var n = gamestate.unlocked.upgradestruct
+        if (!n) return
         for (var j = 0 ; j < n ; ++j) {
             var x = 5 * (j - (n - 1) / 2.), y = -8
             if (n > 6) {
@@ -255,7 +260,7 @@ function Springboard (x) {
 }
 Springboard.prototype = UFX.Thing()
                            .addcomp(WorldBound)
-                           .addcomp(CanUpgrade, "springboard")
+                           .addcomp(CanUpgrade, "spring")
                            .addcomp(CanDemolish)
                            .addcomp(SpringsYou)
                            .addcomp(Wobbles, 25, 0.6)

@@ -73,24 +73,43 @@ gamestate = Object.create({
 gamestate.njumps = 2  // How many jumps can you perform
 gamestate.bank = 100
 gamestate.hp = 100
-gamestate.canshock = true
+gamestate.unlocked = {
+    grow: true,
+    shock: 4,
+    jumps: 4,
+    upgradestruct: 4,
+    structures: true,
+}
 gamestate.shocklevel = 0
+gamestate.buildunlocked = {
+    tower: true,
+    hospital: true,
+    springboard: true,
+    bubbler: true,
+    silo: true,
+}
 
-
-function disablebutton(bname) {
+function namebutton(bname, text) {
+    var b = document.getElementById(bname)
+    b.childNodes[0].nodeValue = text
+}
+function disablebutton(bname, text) {
     var b = document.getElementById(bname)
     b.className = "HUDghost"
     b.disabled = true
+    if (text) b.childNodes[0].nodeValue = text
 }
-function hidebutton(bname) {
+function hidebutton(bname, text) {
     var b = document.getElementById(bname)
     b.className = "HUDhidden"
     b.disabled = true
+    if (text) b.childNodes[0].nodeValue = text
 }
-function enablebutton(bname) {
+function enablebutton(bname, text) {
     var b = document.getElementById(bname)
     b.className = "HUDbutton"
     b.disabled = false
+    if (text) b.childNodes[0].nodeValue = text
 }
 function setbutton(bname, enabled) {
     if (enabled) {
@@ -103,28 +122,131 @@ function setbutton(bname, enabled) {
 
 
 var buildbuttons = ["buildspring", "buildbubbler", "buildsilo", "buildhospital", "buildtower"]
-var otherbuttons = ["removestructure", "upgradestructure"]
+var otherbuttons = ["removestructure", "upgradestructure", "upgradeworld", "downgradeworld", "upgradejump", "upgradekick"]
+
+var buildnames = {
+    tower: "Tower",
+    hospital: "Healer",
+    spring: "Launcher",
+    bubbler: "Bubbler",
+    silo: "Bomb Silo",
+}
+var buildkeys = {
+    tower: "5",
+    hospital: "6",
+    spring: "7",
+    bubbler: "8",
+    silo: "9",
+}
+
 //var allbuttons = buildbuttons + otherbuttons
 function updatebuttons() {
     var struct = structures[gamestate.buildindex(you.x)]
     var grounded = you.y === 0
-    if (you.y > 0 || struct) {
-        buildbuttons.forEach(disablebutton)
-    } else {
-        buildbuttons.forEach(enablebutton)
-    }
-    setbutton("removestructure", grounded && struct)
-    setbutton("upgradestructure", grounded && struct && struct.canupgrade())
 
-//    document.getElementById("upgradestructure").value =
-//        "Upgrade structure" + (struct ? ": $" + struct.upgradecost() : "")
+    for (var sname in buildnames) {
+        if (!gamestate.buildunlocked[sname]) {
+            hidebutton("build" + sname)
+            continue
+        }
+        var cost = mechanics.buildcost[sname]
+        var text = buildkeys[sname] + ": Place " + buildnames[sname] + " $" + cost + ""
+        if (struct || !grounded || cost > gamestate.bank) {
+            disablebutton("build" + sname, text)
+        } else {
+            enablebutton("build" + sname, text)
+        }
+    }
+
+    // Upgrade structure button
+    if (!gamestate.unlocked.upgradestruct) {
+        hidebutton("upgradestructure")
+    } else {
+        if (!struct || !grounded) {
+            disablebutton("upgradestructure", "1: Upgrade structure")
+        } else {
+            cost = struct.upgradeamount()
+            var text = "1: Upgrade structure" + (cost ? " $" + cost : "")
+            if (cost && cost <= gamestate.bank) {
+                enablebutton("upgradestructure", text)
+            } else {
+                disablebutton("upgradestructure", text)
+            }
+        }
+    }
+    
+    // Remove structure button
+    if (!gamestate.unlocked.structures) {
+        hidebutton("removestructure")
+    } else {
+        if (!struct || !grounded) {
+            disablebutton("removestructure", "0: Remove structure")
+        } else {
+            enablebutton("removestructure", "0: Remove structure")
+        }
+    }
+    
+    // Upgrade jump button
+    if (gamestate.njumps >= gamestate.unlocked.jumps) {
+        hidebutton("upgradejump")
+    } else {
+        var cost = mechanics.upgradejumpcosts[gamestate.njumps]
+        var text = "2: Upgrade jump $" + cost + ""
+        if (cost <= gamestate.bank) {
+            enablebutton("upgradejump", text)
+        } else {
+            disablebutton("upgradejump", text)
+        }
+    }
+
+    // Upgrade kick button
+    if (gamestate.shocklevel >= gamestate.unlocked.shock) {
+        hidebutton("upgradekick")
+    } else {
+        var cost = mechanics.upgradekickcosts[gamestate.shocklevel]
+        var text = "3: Upgrade kick $" + cost + ""
+        if (cost <= gamestate.bank) {
+            enablebutton("upgradekick", text)
+        } else {
+            disablebutton("upgradekick", text)
+        }
+    }
+
+    // Grow button
+    if (!gamestate.unlocked.grow) {
+        hidebutton("upgradeworld")
+    } else {
+        var cost = growcost()
+        var text = "4: Grow $" + cost + ""
+        if (!cost) {
+            disablebutton("upgradeworld", "5: Grow")
+        } else if (cost <= gamestate.bank) {
+            enablebutton("upgradeworld", text)
+        } else {
+            disablebutton("upgradeworld", text)
+        }
+    }
+
+
 }
 function disableall() {
-//    allbuttons.forEach(disablebutton)
+    buildbuttons.forEach(disablebutton)
+    otherbuttons.forEach(disablebutton)
 }
 
 
+function growcost() {
+    for (var j = 0 ; j < mechanics.worldsizes.length ; ++j) {
+        var s = mechanics.worldsizes[j], c = mechanics.growcosts[j]
+        if (s > gamestate.worldsize) {
+            return c
+        }
+    }
+    return 0
+}
+
 function cangrow() {
+    if (gamestate.hp < 90) return 0
     for (var j = 0 ; j < mechanics.worldsizes.length ; ++j) {
         var s = mechanics.worldsizes[j], c = mechanics.growcosts[j]
         if (s > gamestate.worldsize && c <= gamestate.bank) {
@@ -141,30 +263,34 @@ function shrinkto() {
     return 0
 }
 function canupgradekick() {
-    if (!gamestate.canshock) return false
-    if (gamestate.shocklevel >= mechanics.shockwavevs.length - 1) return false
+    if (!gamestate.unlocked.shock) return false
+    if (gamestate.shocklevel >= gamestate.unlocked.shock) return false
     return mechanics.upgradekickcosts[gamestate.shocklevel]
 }
 
 
 function upgrade(button) {
-    if (button.id === "upgradekick") {
+    if (typeof button !== "string") button = button.id
+    if (button === "upgradekick") {
         var c = canupgradekick()
         if (c) {
             gamestate.shocklevel += 1
             gamestate.bank -= c
         }
     }
-    if (button.id === "upgradejump") {
-        mechanics.launchspeed += 50
-        gamestate.bank -= 10
+    if (button === "upgradejump") {
+        if (gamestate.njumps >= gamestate.unlocked.jumps) return
+        var cost = mechanics.upgradejumpcosts[gamestate.njumps]
+        if (cost > gamestate.bank) return
+        gamestate.bank -= cost
+        gamestate.njumps += 1
     }
-    if (button.id === "upgraderun") {
+    if (button === "upgraderun") {
         mechanics.runspeed += 30
         mechanics.jumphspeed = mechanics.runspeed
         gamestate.bank -= 10
     }
-    if (button.id === "upgradeworld") {
+    if (button === "upgradeworld") {
         var sizecost = cangrow()
         if (sizecost) {
             gamestate.bank -= sizecost[1]
@@ -172,27 +298,47 @@ function upgrade(button) {
             UFX.scene.push(GrowScene)
         }
     }
-    if (button.id === "downgradeworld") {
+    if (button === "downgradeworld") {
         GrowScene.newsize = shrinkto()
         UFX.scene.push(GrowScene)
     }
 }
 
 function build(button) {
-    if (button.id === "buildspring") {
+    var struct = structures[gamestate.buildindex(you.x)]
+    var grounded = you.y === 0
+    if (struct || !grounded) return
+
+    if (typeof button !== "string") button = button.id
+    if (button === "buildspring") {
+        var cost = mechanics.buildcost.spring
+        if (cost > gamestate.bank) return
         gamestate.addstructure(new Springboard())
+        gamestate.bank -= cost
     }
-    if (button.id === "buildbubbler") {
+    if (button === "buildbubbler") {
+        var cost = mechanics.buildcost.bubbler
+        if (cost > gamestate.bank) return
         gamestate.addstructure(new Bubbler())
+        gamestate.bank -= cost
     }
-    if (button.id === "buildsilo") {
+    if (button === "buildsilo") {
+        var cost = mechanics.buildcost.silo
+        if (cost > gamestate.bank) return
         gamestate.addstructure(new Silo())
+        gamestate.bank -= cost
     }
-    if (button.id === "buildhospital") {
+    if (button === "buildhospital") {
+        var cost = mechanics.buildcost.hospital
+        if (cost > gamestate.bank) return
         gamestate.addstructure(new Hospital())
+        gamestate.bank -= cost
     }
-    if (button.id === "buildtower") {
+    if (button === "buildtower") {
+        var cost = mechanics.buildcost.tower
+        if (cost > gamestate.bank) return
         gamestate.addstructure(new Tower())
+        gamestate.bank -= cost
     }
 }
 

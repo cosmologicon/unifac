@@ -35,7 +35,7 @@ GameScene.start = function () {
 
     structures = []
     gamestate.setworldsize(450)    
-    gamestate.addstructure(new Springboard())
+    gamestate.addstructure(new Tower())
 
 }
 
@@ -44,10 +44,10 @@ GameScene.think = function (dt) {
 
     // Handle keyboard input
     var mkeys = {
-        up: !!(UFX.key.ispressed.up || UFX.key.ispressed.W),
-        down: !!(UFX.key.ispressed.down || UFX.key.ispressed.S),
+        up: !!(UFX.key.ispressed.up || UFX.key.ispressed.W || UFX.key.ispressed.comma),
+        down: !!(UFX.key.ispressed.down || UFX.key.ispressed.S || UFX.key.ispressed.O),
         left: !!(UFX.key.ispressed.left || UFX.key.ispressed.A),
-        right: !!(UFX.key.ispressed.right || UFX.key.ispressed.D),
+        right: !!(UFX.key.ispressed.right || UFX.key.ispressed.D || UFX.key.ispressed.E),
         act: !!(UFX.key.ispressed.space || UFX.key.ispressed.enter),
     }
     mkeys.act == mkeys.act || mkeys.down
@@ -57,21 +57,32 @@ GameScene.think = function (dt) {
             nkeys[event.name] = true
         }
     })
-    nkeys.up = nkeys.up || nkeys.W
-    nkeys.down = nkeys.down || nkeys.S
+    nkeys.up = nkeys.up || nkeys.W || nkeys.comma
+    nkeys.down = nkeys.down || nkeys.S || nkeys.O
     nkeys.left = nkeys.left || nkeys.A
-    nkeys.right = nkeys.right || nkeys.D
+    nkeys.right = nkeys.right || nkeys.D || nkeys.E
     nkeys.act = nkeys.space || nkeys.enter || nkeys.down
     you.move(mkeys, nkeys)
 
+    if (nkeys["1"]) gamestate.upgradestructure()
+    if (nkeys["2"]) upgrade("upgradejump")
+    if (nkeys["3"]) upgrade("upgradekick")
+    if (nkeys["4"]) upgrade("upgradeworld")
+    if (nkeys["5"]) build("buildtower")
+    if (nkeys["6"]) build("buildhospital")
+    if (nkeys["7"]) build("buildspring")
+    if (nkeys["8"]) build("buildbubbler")
+    if (nkeys["9"]) build("buildsilo")
+    if (nkeys["0"]) gamestate.removestructure()
+
     if (UFX.random(10) < dt) {
-        hitters.push(new Token(UFX.random(tau), 400))
-    }
-    if (UFX.random(6) < dt) {
         monsters.push(new Fly(UFX.random(tau), 200))
     }
-    if (UFX.random(6) < dt) {
+    if (UFX.random(10) < dt) {
         monsters.push(new Gnat(UFX.random(tau), 200))
+    }
+    if (UFX.random(10) < dt) {
+        monsters.push(new Mite(UFX.random(tau), 200))
     }
 
     var n = settings.tickmult
@@ -213,7 +224,7 @@ GameScene.drawstatus = function () {
     }
     puttext("health: " + Math.floor(gamestate.hp) + "/100")
     puttext("bank: $" + gamestate.bank)
-    if (gamestate.canshock) {
+    if (gamestate.unlocked.shock) {
         var f = you.shockfrac()
         var x0 = settings.sx - 10, y0 = 90
         context.beginPath()
@@ -278,6 +289,7 @@ GrowScene.think = function (dt) {
     }
     if (this.t > 2 && gamestate.worldsize !== this.newsize) {
         gamestate.setworldsize(this.newsize)
+        GameScene.think(0)
     }
 
     camera.mode = "planet"
