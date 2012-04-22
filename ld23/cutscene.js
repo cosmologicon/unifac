@@ -72,7 +72,7 @@ tip[7] = [
 ]
 
 story[8] = [
-    "Tondie now grew so large that the Lord of all Invaders became jealous. The Invader's capital ship was dispatched to cut Tondie back down to size.",
+    "Tondie now grew so large that the Lord of All Invaders became jealous. The Invader's capital ship was dispatched to cut Tondie back down to size.",
     "Zupe knew that this was her ultimate test. If they defeated the capital ship, they would never be bothered again.",
     "Tondie said nothing."
 ]
@@ -86,8 +86,8 @@ story[9] = [
     "Tondie was no longer the tiny world that Zupe knew. Tondie was a full planet now. And planets live differently than you and I.",
     "Planets don't feel the passage of time, or the course of events on their surface.",
     "Planets don't have friends.",
-    "",
-    "News spread throughout the galaxy of the planet where the Lord of the Invaders was defeated.",
+    "...",
+    "News spread throughout space of the planet where the Lord of All Invaders was defeated.",
     "Before long, Zupe was not the only one living on Tondie. She saw many weary people come to this world of peace and happiness.",
     "Tondie might never be her friend again, but it would forever be her home.",
 ]

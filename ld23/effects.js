@@ -50,7 +50,7 @@ var ExpandingLines = {
         this.nlines = 20
 
         this.lines = new Array(200)
-        for (var j = 0 ; j < this.nlines ; ++j) {
+        for (var j = 0 ; j < 200 ; ++j) {
             var c = UFX.random.rand(0, 192)
             var color = "rgb(" + c + "," + c + "," + c + ")"
             this.lines[j] = [UFX.random(-1, 1), UFX.random(-1, 1), UFX.random(5, 10), UFX.random(100), color]

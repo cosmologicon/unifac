@@ -7,7 +7,7 @@ var CanNab = {
     nab: function (objs) {
         for (var j = 0 ; j < objs.length ; ++j) {
             var dx = getdx(this.x, objs[j].x) * this.xfactor
-            var dy = this.y - objs[j].y
+            var dy = this.y + 24 - objs[j].y
             if (dx * dx + dy * dy < this.radius * this.radius) {
                 objs[j].benabbed(this)
             }
