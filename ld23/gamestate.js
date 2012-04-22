@@ -142,7 +142,7 @@ function setbutton(bname, enabled) {
 
 
 var buildbuttons = ["buildspring", "buildbubbler", "buildsilo", "buildhospital", "buildtower"]
-var otherbuttons = ["removestructure", "upgradestructure", "upgradeworld", "downgradeworld", "upgradejump", "upgradekick"]
+var otherbuttons = ["removestructure", "upgradestructure", "upgradeworld", "upgradejump", "upgradekick"]
 
 var buildnames = {
     tower: "Tower",
@@ -248,8 +248,8 @@ function updatebuttons() {
     }
 }
 function disableall() {
-    buildbuttons.forEach(disablebutton)
-    otherbuttons.forEach(disablebutton)
+    buildbuttons.forEach(hidebutton)
+    otherbuttons.forEach(hidebutton)
 }
 
 function checklevel() {
@@ -266,27 +266,27 @@ function checklevel() {
             advancelevel()
         }
     } else if (gamestate.level === 3) {
-        if (gamestate.worldsize >= 700) {
+        if (gamestate.worldsize >= 600) {
             advancelevel()
         }
     } else if (gamestate.level === 4) {
-        if (gamestate.worldsize >= 1000) {
+        if (gamestate.worldsize >= 800) {
             advancelevel()
         }
     } else if (gamestate.level === 5) {
-        if (gamestate.worldsize >= 1350) {
+        if (gamestate.worldsize >= 1000) {
             advancelevel()
         }
     } else if (gamestate.level === 6) {
-        if (gamestate.worldsize >= 1750) {
+        if (gamestate.worldsize >= 1200) {
             advancelevel()
         }
     } else if (gamestate.level === 7) {
-        if (gamestate.worldsize >= 2200) {
+        if (gamestate.worldsize >= 1400) {
             advancelevel()
         }
     } else if (gamestate.level === 8) {
-        if (gamestate.worldsize >= 2700) {
+        if (!Overlord.alive) {
             advancelevel()
         }
     }
@@ -294,7 +294,6 @@ function checklevel() {
 
 }
 function advancelevel() {
-    return
     gamestate.level += 1
     if (gamestate.level === 1) {
         gamestate.unlocked.structures = true
@@ -306,23 +305,23 @@ function advancelevel() {
     } else if (gamestate.level === 3) {
         gamestate.unlocked.grow = true
     } else if (gamestate.level === 4) {
-        gamestate.unlocked.shock = 3
-        gamestate.unlocked.jumps = 2
+        gamestate.unlocked.shock = 2
+        gamestate.unlocked.jumps = 3
         gamestate.unlocked.upgradestruct = 1
     } else if (gamestate.level === 5) {
         gamestate.buildunlocked.bubbler = true
-        gamestate.unlocked.shock = 4
-        gamestate.unlocked.jumps = 3
+        gamestate.unlocked.shock = 3
+        gamestate.unlocked.jumps = 4
         gamestate.unlocked.upgradestruct = 3
     } else if (gamestate.level === 6) {
         gamestate.buildunlocked.spring = true
         gamestate.unlocked.shock = 5
-        gamestate.unlocked.jumps = 4
+        gamestate.unlocked.jumps = 5
         gamestate.unlocked.upgradestruct = 5
     } else if (gamestate.level === 7) {
         gamestate.buildunlocked.silo = true
-        gamestate.unlocked.shock = 6
-        gamestate.unlocked.jumps = 5
+        gamestate.unlocked.shock = 7
+        gamestate.unlocked.jumps = 7
         gamestate.unlocked.upgradestruct = 7
     } else if (gamestate.level === 8) {
         gamestate.unlocked.shock = 10
@@ -398,10 +397,10 @@ function upgrade(button) {
             UFX.scene.push(GrowScene)
         }
     }
-    if (button === "downgradeworld") {
+/*    if (button === "downgradeworld") {
         GrowScene.newsize = shrinkto()
         UFX.scene.push(GrowScene)
-    }
+    }*/
 }
 
 function build(button) {

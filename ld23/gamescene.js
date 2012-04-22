@@ -35,10 +35,16 @@ GameScene.start = function () {
 
     structures = []
     gamestate.setworldsize(450)
-/*    var s = new Springboard()
-    s.level = 3
-    gamestate.addstructure(s)
-  monsters.push(Overlord) */
+
+    gamestate.setworldsize(1200)
+    gamestate.level = 8
+    for (var j = 5 ; j < 24 ; j += 4) {
+        var s = new Springboard()
+        s.level = 8
+        gamestate.addstructure(s, j)
+    }
+    monsters.push(Overlord)
+  
 
 }
 
@@ -82,10 +88,9 @@ GameScene.think = function (dt) {
 
 
     if (gamestate.level === 0) {
-        if (UFX.random(6) < dt) monsters.push(new FastFly(UFX.random(tau), 400))
-//        if (UFX.random(4) < dt) monsters.push(new Fly(UFX.random(tau), 140))
+        if (UFX.random(4) < dt || monsters.length < 1) monsters.push(new Fly(UFX.random(tau), 140))
     } else if (gamestate.level === 1) {
-        if (UFX.random(6) < dt) monsters.push(new Fly(UFX.random(tau), 200))
+        if (UFX.random(6) < dt || monsters.length < 2) monsters.push(new Fly(UFX.random(tau), 200))
         if (UFX.random(6) < dt) monsters.push(new Gnat(UFX.random(tau), 200))
     } else if (gamestate.level === 2) {
         if (UFX.random(7) < dt) monsters.push(new Fly(UFX.random(tau), 300))
@@ -97,28 +102,25 @@ GameScene.think = function (dt) {
         if (UFX.random(12) < dt) monsters.push(new Mite(UFX.random(tau), 400))
         if (UFX.random(6) < dt) monsters.push(new FastFly(UFX.random(tau), 400))
     } else if (gamestate.level === 4) {
-        if (UFX.random(6) < dt) monsters.push(new FastFly(UFX.random(tau), 500))
-        if (UFX.random(6) < dt) monsters.push(new FastGnat(UFX.random(tau), 500))
-        if (UFX.random(6) < dt) monsters.push(new FastMite(UFX.random(tau), 500))
+        if (UFX.random(12) < dt) monsters.push(new FastFly(UFX.random(tau), 500))
+        if (UFX.random(12) < dt) monsters.push(new FastGnat(UFX.random(tau), 500))
+        if (UFX.random(12) < dt) monsters.push(new FastMite(UFX.random(tau), 500))
     } else if (gamestate.level === 5) {
-        if (UFX.random(5) < dt) monsters.push(new FastFly(UFX.random(tau), 600))
-        if (UFX.random(5) < dt) monsters.push(new FastGnat(UFX.random(tau), 600))
-        if (UFX.random(5) < dt) monsters.push(new FastMite(UFX.random(tau), 600))
+        if (UFX.random(10) < dt) monsters.push(new FastFly(UFX.random(tau), 600))
+        if (UFX.random(10) < dt) monsters.push(new FastGnat(UFX.random(tau), 600))
+        if (UFX.random(10) < dt) monsters.push(new FastMite(UFX.random(tau), 600))
     } else if (gamestate.level === 6) {
-        if (UFX.random(10) < dt) monsters.push(new FastFly(UFX.random(tau), 700))
-        if (UFX.random(10) < dt) monsters.push(new FastGnat(UFX.random(tau), 700))
-        if (UFX.random(10) < dt) monsters.push(new FastMite(UFX.random(tau), 700))
-        if (UFX.random(10) < dt) monsters.push(new FasterFly(UFX.random(tau), 700))
-        if (UFX.random(10) < dt) monsters.push(new FasterGnat(UFX.random(tau), 700))
-        if (UFX.random(10) < dt) monsters.push(new FasterMite(UFX.random(tau), 700))
+        if (UFX.random(8) < dt) monsters.push(new FastFly(UFX.random(tau), 700))
+        if (UFX.random(8) < dt) monsters.push(new FastGnat(UFX.random(tau), 700))
+        if (UFX.random(8) < dt) monsters.push(new FastMite(UFX.random(tau), 700))
     } else if (gamestate.level === 7) {
-        if (UFX.random(6) < dt) monsters.push(new FasterFly(UFX.random(tau), 700))
-        if (UFX.random(6) < dt) monsters.push(new FasterGnat(UFX.random(tau), 700))
-        if (UFX.random(6) < dt) monsters.push(new FasterMite(UFX.random(tau), 700))
+        if (UFX.random(12) < dt) monsters.push(new FasterFly(UFX.random(tau), 700))
+        if (UFX.random(12) < dt) monsters.push(new FasterGnat(UFX.random(tau), 700))
+        if (UFX.random(12) < dt) monsters.push(new FasterMite(UFX.random(tau), 700))
     } else if (gamestate.level === 8) {
-        if (UFX.random(5) < dt) monsters.push(new FasterFly(UFX.random(tau), 800))
-        if (UFX.random(5) < dt) monsters.push(new FasterGnat(UFX.random(tau), 800))
-        if (UFX.random(5) < dt) monsters.push(new FasterMite(UFX.random(tau), 800))
+        if (UFX.random(10) < dt) monsters.push(new FasterFly(UFX.random(tau), 800))
+        if (UFX.random(10) < dt) monsters.push(new FasterGnat(UFX.random(tau), 800))
+        if (UFX.random(10) < dt) monsters.push(new FasterMite(UFX.random(tau), 800))
     }
 /*
     if (UFX.random(10) < dt) {
