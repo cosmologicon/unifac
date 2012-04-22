@@ -365,7 +365,3 @@ GameOverScene.drawstatus = function () {
     context.restore()
 }
 
-
-
-
-
