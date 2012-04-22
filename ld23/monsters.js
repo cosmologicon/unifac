@@ -50,6 +50,8 @@ var DrawGnat = {
         context.lineTo(-S, -C)
         context.moveTo(S, -C)
         context.lineTo(-S, C)
+        context.strokeStyle = "black"
+        context.lineWidth = 1
         context.stroke()
 
         context.lineWidth = 0.6

@@ -20,8 +20,13 @@ var mechanics = {
     healtime: [30, 25, 20, 15],
 
 
-    shockspeed: 140,
-    shocktime: 0.5,
+    shockwavevs: [120, 140, 160, 180, 200],
+    shockwavesizes: [50, 60, 70, 85, 100],
+    shocktimes: [4, 3, 2, 1, 0.5],  // shock recharge times
+    shocktime: 0.5,  // Time spent kicking
+    shockspeed: 80,  // speed while kicking
+
+    upgradekickcosts: [1, 1, 1, 1, 1],
 
     clonkvy: 200,
     
@@ -47,6 +52,9 @@ var mechanics = {
         tower: 3,
         mine: 3,
     },
+    
+    worldsizes: [100, 250, 450, 700, 1000, 1350, 1750, 2200, 2700],
+    growcosts: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 
 }
 

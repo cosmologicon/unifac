@@ -33,9 +33,20 @@ var CanNab = {
 
 
 var CanShock = {
+    init: function () {
+        this.shockt = 0
+    },
+    think: function (dt) {
+        this.shockt += dt
+    },
+    shockfrac: function () {
+        if (!gamestate.canshock) return 0
+        return Math.min(1, this.shockt / mechanics.shocktimes[gamestate.shocklevel])
+    },
     move: function (mkeys, nkeys) {
-        if (nkeys.act) {
+        if (nkeys.act && this.shockt >= mechanics.shocktimes[gamestate.shocklevel]) {
             this.nextstate = ShockState
+            this.shockt = 0
         }
     },
 }
@@ -238,7 +249,9 @@ var ShockState = {
     enter: function () {
         this.vy = Math.max(this.vy, mechanics.shockspeed)
         this.t = 0
-        ehitters.push(new Wave(this.x, this.y + 20))
+        var vs = mechanics.shockwavevs[gamestate.shocklevel]
+        var smax = mechanics.shockwavesizes[gamestate.shocklevel]
+        ehitters.push(new Wave(this.x, this.y + 24, smax, vs))
     },
     exit: function () {
     },

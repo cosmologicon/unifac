@@ -105,10 +105,11 @@ td {
 <button type=button class=HUDbutton id=buildtower onclick="build(this)">Place Tower</button><br>
 <button type=button class=HUDbutton id=removestructure onclick="gamestate.removestructure()">Remove structure</button><br>
 <button type=button class=HUDbutton id=upgradestructure onclick="gamestate.upgradestructure()">Upgrade structure</button><br>
-<button type=button class=upgradebutton id=upgradejump onclick="upgrade(this)">Upgrade jump ($10)</button>
-<button type=button class=upgradebutton id=upgraderun onclick="upgrade(this)">Upgrade run ($10)</button>
-<button type=button class=upgradebutton id=upgradeworld onclick="upgrade(this)">Upgrade world</button>
-<button type=button class=upgradebutton id=downgradeworld onclick="upgrade(this)">Upgrade world</button>
+<button type=button class=upgradekick id=upgradekick onclick="upgrade(this)">Upgrade kick</button>
+<button type=button class=upgradebutton id=upgradejump onclick="upgrade(this)">Upgrade jump</button>
+<button type=button class=upgradebutton id=upgraderun onclick="upgrade(this)">Upgrade run</button>
+<button type=button class=HUDbutton id=upgradeworld onclick="upgrade(this)">Grow</button>
+<button type=button class=HUDbutton id=downgradeworld onclick="upgrade(this)">Shrink</button>
 <button type=button onclick="gamestate.reset()">Reset saved game</button>
 
 </table>
