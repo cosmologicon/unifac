@@ -32,7 +32,9 @@ var Clonkable = {
 
 var Retreats = {
     takedamage: function(dhp) {
-        this.ymax = this.y + 200
+        this.ymax = this.y + 50
+        effects.push(new Shatter(this.x, this.y, 300, 100))
+        if (this.y >= 550) this.alive = false
     },
 }
 
@@ -113,8 +115,8 @@ var DartsAbout = {
 
 var SmacksYou = {
     draw: function () {
-        context.strokeStyle = "orange"
-        context.strokeRect(-200, -120, 400, 90)
+//        context.strokeStyle = "orange"
+//        context.strokeRect(-200, -120, 400, 90)
     },
 
     think: function (dt) {
@@ -413,7 +415,7 @@ Fly.prototype = UFX.Thing()
                     .addcomp(DrawFly)
                     .addcomp(Drifts)
                     .addcomp(HasHealth, 1)
-                    .addcomp(Clonkable, 15, 15)
+                    .addcomp(Clonkable, 45, 45)
                     .addcomp(CarriesReward, 10)
                     .addcomp(Shatters)
 function FastFly(x, y) {
@@ -522,13 +524,14 @@ FasterMite.prototype = UFX.Thing()
 
 Overlord = UFX.Thing()
             .addcomp(WorldBound, 0, 600)
-            .addcomp(SeeksOrbit, 200)
+            .addcomp(SeeksOrbit, 350)
             .addcomp(Retreats)
             .addcomp(FadesIn, 6)
             .addcomp(DrawOverlord)
-            .addcomp(Drifts, 40, 0)
             .addcomp(Clonkable, 15, 15)
             .addcomp(SmacksYou)
 
 Overlord.alive = true
+Overlord.scale = 1
+Overlord.vx = 60
 

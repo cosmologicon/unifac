@@ -113,14 +113,18 @@ GameScene.think = function (dt) {
         if (UFX.random(8) < dt) monsters.push(new FastFly(UFX.random(tau), 700))
         if (UFX.random(8) < dt) monsters.push(new FastGnat(UFX.random(tau), 700))
         if (UFX.random(8) < dt) monsters.push(new FastMite(UFX.random(tau), 700))
-    } else if (gamestate.level === 7) {
+    } else if (gamestate.level === 7 || gamestate.level === 9) {
         if (UFX.random(12) < dt) monsters.push(new FasterFly(UFX.random(tau), 700))
         if (UFX.random(12) < dt) monsters.push(new FasterGnat(UFX.random(tau), 700))
         if (UFX.random(12) < dt) monsters.push(new FasterMite(UFX.random(tau), 700))
     } else if (gamestate.level === 8) {
-        if (UFX.random(10) < dt) monsters.push(new FasterFly(UFX.random(tau), 800))
-        if (UFX.random(10) < dt) monsters.push(new FasterGnat(UFX.random(tau), 800))
-        if (UFX.random(10) < dt) monsters.push(new FasterMite(UFX.random(tau), 800))
+        if (UFX.random(20) < dt) monsters.push(new FasterFly(UFX.random(tau), 800))
+        if (UFX.random(20) < dt) monsters.push(new FasterGnat(UFX.random(tau), 800))
+        if (UFX.random(20) < dt) monsters.push(new FasterMite(UFX.random(tau), 800))
+        var x = Overlord.x + UFX.random(0, 0.5), y = Overlord.y + UFX.random(-10, 150)
+        if (UFX.random(6) < dt) monsters.push(new Fly(x, y))
+        if (UFX.random(6) < dt) monsters.push(new Gnat(x, y))
+        if (UFX.random(6) < dt) monsters.push(new Mite(x, y))
     }
 /*
     if (UFX.random(10) < dt) {
@@ -321,7 +325,8 @@ GameScene.draw = function () {
 
     this.drawstatus()
 
-    document.title = UFX.ticker.getfpsstr()
+//    document.title = UFX.ticker.getfpsstr()
+    document.title = [Overlord.x, Overlord.y, Overlord.vy, Overlord.ymax]
 }
 
 
