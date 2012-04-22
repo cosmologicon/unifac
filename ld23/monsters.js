@@ -36,6 +36,48 @@ var CarriesReward = {
     },
 }
 
+var EludesYou = {
+    init: function (vx, vy, accel, vxmax) {
+        this.vx = vx || 0
+        this.vy = vy || 0
+        this.accel = accel || 400
+        this.vxmax = vxmax || 60
+    },
+    think: function (dt) {
+        var dx = getdx(you.x, this.x) * this.xfactor
+        if (Math.abs(dx) < 400) {
+            this.vx += (dx > 0 ? 1 : -1) * dt * this.accel
+            this.vx = Math.max(Math.min(this.vx, this.vxmax), -this.vxmax)
+        }
+        this.x += this.vx * dt / this.xfactor
+        this.y += this.vy * dt
+    },
+}
+
+var DartsAbout = {
+    init: function (vx0, vy0, k) {
+        this.vx0 = vx0 || 150
+        this.vy0 = vy0 || 10
+        this.vx = 0
+        this.vy = 0
+        this.k = k || 0.3
+    },
+    think: function (dt) {
+        var f = Math.exp(-this.k * dt)
+        this.vx *= f
+        this.vy *= f
+        if (Math.abs(this.vx) < 10) {
+            this.vx = UFX.random(-this.vx0, this.vx0)
+            this.vy = UFX.random(-this.vy0, this.vy0/3)
+        }
+        this.x += this.vx * dt / this.xfactor
+        this.y += this.vy * dt
+    },
+}
+
+
+
+
 var DrawGnat = {
     init: function () {
         this.t = 0
@@ -182,7 +224,8 @@ Gnat.prototype = UFX.Thing()
                     .addcomp(CrashDamage, 1)
                     .addcomp(FadesIn, 5)
                     .addcomp(DrawGnat)
-                    .addcomp(Drifts)
+//                    .addcomp(EludesYou, 0, -10, 100, 40)
+                    .addcomp(DartsAbout, 250, 20, 1)
                     .addcomp(HasHealth, 1)
                     .addcomp(Clonkable, 15, 15)
                     .addcomp(CarriesReward, 1)
