@@ -34,7 +34,7 @@ GameScene.start = function () {
 
 
     structures = []
-    gamestate.setworldsize(400)    
+    gamestate.setworldsize(450)    
     gamestate.addstructure(new Springboard())
 
 }
@@ -207,12 +207,38 @@ GameScene.drawstatus = function () {
     context.lineWidth = 1
     var y = 18
     function puttext(text) {
-        context.strokeText(text, settings.sx - 10, y)
-        context.fillText(text, settings.sx - 10, y)
+        context.strokeText(text, settings.sx - 30, y)
+        context.fillText(text, settings.sx - 30, y)
         y += 28
     }
     puttext("health: " + Math.floor(gamestate.hp) + "/100")
     puttext("bank: $" + gamestate.bank)
+    if (gamestate.canshock) {
+        var f = you.shockfrac()
+        var x0 = settings.sx - 10, y0 = 90
+        context.beginPath()
+        context.moveTo(x0, y0)
+        context.lineTo(x0, y0 - 80)
+        context.strokeStyle = "rbga(0, 0, 0, 0.4)"
+        context.lineWidth = 10
+        context.stroke()
+        context.beginPath()
+        context.moveTo(x0, y0)
+        context.lineTo(x0, y0 - 80*f)
+        context.strokeStyle = "blue"
+        context.lineWidth = 8
+        context.stroke()
+        context.lineWidth = 1
+    }
+    for (var j = 0 ; j < gamestate.njumps ; ++j) {
+        context.beginPath()
+        context.arc(settings.sx - 16, 104 + 22 * j, 9, 0, tau)
+        context.fillStyle = j < you.jumps ? "rgba(0, 0, 0, 0.4)" : "green"
+        context.strokeStyle = "white"
+        context.lineWidth = 1
+        context.fill()
+        context.stroke()
+    }
 }
 
 

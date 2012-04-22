@@ -73,6 +73,8 @@ gamestate = Object.create({
 gamestate.njumps = 2  // How many jumps can you perform
 gamestate.bank = 100
 gamestate.hp = 100
+gamestate.canshock = true
+gamestate.shocklevel = 0
 
 
 function disablebutton(bname) {
@@ -122,8 +124,37 @@ function disableall() {
 }
 
 
+function cangrow() {
+    for (var j = 0 ; j < mechanics.worldsizes.length ; ++j) {
+        var s = mechanics.worldsizes[j], c = mechanics.growcosts[j]
+        if (s > gamestate.worldsize && c <= gamestate.bank) {
+            return [s, c]
+        }
+    }
+    return 0
+}
+function shrinkto() {
+    for (var j = mechanics.worldsizes.length - 1 ; j >= 0 ; --j) {
+        var s = mechanics.worldsizes[j]
+        if (s < gamestate.worldsize) return s
+    }
+    return 0
+}
+function canupgradekick() {
+    if (!gamestate.canshock) return false
+    if (gamestate.shocklevel >= mechanics.shockwavevs.length - 1) return false
+    return mechanics.upgradekickcosts[gamestate.shocklevel]
+}
+
 
 function upgrade(button) {
+    if (button.id === "upgradekick") {
+        var c = canupgradekick()
+        if (c) {
+            gamestate.shocklevel += 1
+            gamestate.bank -= c
+        }
+    }
     if (button.id === "upgradejump") {
         mechanics.launchspeed += 50
         gamestate.bank -= 10
@@ -134,11 +165,15 @@ function upgrade(button) {
         gamestate.bank -= 10
     }
     if (button.id === "upgradeworld") {
-        GrowScene.newsize = gamestate.worldsize + 100
-        UFX.scene.push(GrowScene)
+        var sizecost = cangrow()
+        if (sizecost) {
+            gamestate.bank -= sizecost[1]
+            GrowScene.newsize = sizecost[0]
+            UFX.scene.push(GrowScene)
+        }
     }
     if (button.id === "downgradeworld") {
-        GrowScene.newsize = gamestate.worldsize - 100
+        GrowScene.newsize = shrinkto()
         UFX.scene.push(GrowScene)
     }
 }
