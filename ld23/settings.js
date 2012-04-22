@@ -18,12 +18,12 @@ var mechanics = {
     bubbletime: [20, 15, 10, 5, 4],
     maxbombs: [1, 2, 3, 4],
     bombtime: [60, 30, 30, 30],
-    healtime: [30, 25, 20, 15],
+    healtime: [20, 10, 7, 5, 4, 3, 2.5, 2, 1.5, 1.2, 1, 0.8],
 
 
-    shockwavevs: [120, 140, 160, 180, 200],
-    shockwavesizes: [50, 60, 70, 85, 100],
-    shocktimes: [4, 3, 2, 1, 0.5],  // shock recharge times
+    shockwavevs: [140, 140, 150, 150, 160, 170, 180, 200, 220, 250, 300, 350],
+    shockwavesizes: [50, 54, 60, 67, 77, 87, 97, 107, 117, 130],
+    shocktimes: [10, 8, 6.5, 5, 4, 3, 2.5, 2, 1.5, 1],  // shock recharge times
     shocktime: 0.5,  // Time spent kicking
     shockspeed: 80,  // speed while kicking
 
@@ -38,23 +38,23 @@ var mechanics = {
     lookahead: 100,
 
     buildcost: {
-        tower: 3,
-        hospital: 3,
+        tower: 50,
+        hospital: 120,
         spring: 3,
         bubbler: 3,
         silo: 3,
     },
 
     upgradecost: {   // cost to upgrade buildings
-        tower: [10, 20, 30, 40, 50, 60],
-        hospital: [10, 20, 30, 40, 50, 60],
+        tower: [100, 150, 200, 250, 300, 350, 400, 500, 600, 700, 800, 1000],
+        hospital: [100, 110, 120, 140, 160, 180, 200, 240, 300, 400, 500],
         spring: [10, 20, 30, 40, 50, 60],
         bubbler: [10, 20, 30, 40, 50, 60],
         silo: [10, 20, 30, 40, 50, 60],
     },
     
     worldsizes: [100, 250, 450, 700, 1000, 1350, 1750, 2200, 2700],
-    growcosts: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    growcosts: [100, 200, 300, 400, 500],
 
 }
 

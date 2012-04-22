@@ -34,13 +34,11 @@ GameScene.start = function () {
 
 
     structures = []
-    gamestate.setworldsize(450)    
-    var s = new Springboard()
+    gamestate.setworldsize(450)
+/*    var s = new Springboard()
     s.level = 3
     gamestate.addstructure(s)
-
-
-    monsters.push(Overlord)
+  monsters.push(Overlord) */
 
 }
 
@@ -80,15 +78,28 @@ GameScene.think = function (dt) {
     if (nkeys["9"]) build("buildsilo")
     if (nkeys["0"]) gamestate.removestructure()
 
-    if (UFX.random(10) < dt) {
-        monsters.push(new Fly(UFX.random(tau), 200))
+
+    if (gamestate.level === 0) {
+        if (UFX.random(5) < dt) monsters.push(new Fly(UFX.random(tau), 140))
+    } else if (gamestate.level === 1) {
+        if (UFX.random(6) < dt) monsters.push(new Fly(UFX.random(tau), 200))
+        if (UFX.random(6) < dt) monsters.push(new Gnat(UFX.random(tau), 200))
+    } else if (gamestate.level === 2) {
+        if (UFX.random(7) < dt) monsters.push(new Fly(UFX.random(tau), 300))
+        if (UFX.random(7) < dt) monsters.push(new Gnat(UFX.random(tau), 300))
+        if (UFX.random(7) < dt) monsters.push(new Mite(UFX.random(tau), 300))
+    } else if (gamestate.level === 3) {
+        if (UFX.random(6) < dt) monsters.push(new Fly(UFX.random(tau), 400))
+        if (UFX.random(6) < dt) monsters.push(new Gnat(UFX.random(tau), 400))
+        if (UFX.random(6) < dt) monsters.push(new Mite(UFX.random(tau), 400))
     }
+/*
     if (UFX.random(10) < dt) {
         monsters.push(new Gnat(UFX.random(tau), 200))
     }
     if (UFX.random(10) < dt) {
         monsters.push(new Mite(UFX.random(tau), 200))
-    }
+    }*/
 
     var n = settings.tickmult
     dt /= n

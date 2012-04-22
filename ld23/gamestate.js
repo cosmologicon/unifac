@@ -108,6 +108,7 @@ gamestate.buildunlocked = {
 
 
 
+
 function namebutton(bname, text) {
     var b = document.getElementById(bname)
     b.childNodes[0].nodeValue = text
@@ -253,7 +254,15 @@ function disableall() {
 
 function checklevel() {
     if (gamestate.level === 0) {
-        if (gamestate.bank >= 4) {
+        if (gamestate.bank >= 50) {
+            advancelevel()
+        }
+    } else if (gamestate.level === 1) {
+        if (gamestate.bank >= 120) {
+            advancelevel()
+        }
+    } else if (gamestate.level === 2) {
+        if (gamestate.bank >= 250 && gamestate.hp >= 90) {
             advancelevel()
         }
     }
@@ -263,6 +272,13 @@ function advancelevel() {
     gamestate.level += 1
     if (gamestate.level === 1) {
         gamestate.unlocked.structures = true
+        gamestate.buildunlocked.tower = true
+    } else if (gamestate.level === 2) {
+        gamestate.buildunlocked.hospital = true
+    } else if (gamestate.level === 2) {
+        gamestate.buildunlocked.hospital = true
+    } else if (gamestate.level === 3) {
+        gamestate.unlocked.grow = true
     }
     if (settings.showcutscenes) {
         UFX.scene.push(CutScene)

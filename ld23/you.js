@@ -22,9 +22,9 @@ var CanNab = {
         if (this.vy >= 0) return
         for (var j = 0 ; j < objs.length ; ++j) {
             var dx = Math.abs(getdx(this.x, objs[j].x)) * this.xfactor
-            if (dx > objs[j].width) continue
+            if (dx > objs[j].width * objs[j].scale) continue
             var dy = Math.abs(this.y - objs[j].y)
-            if (dy > objs[j].height) continue
+            if (dy > objs[j].height * objs[j].scale) continue
             objs[j].clonk(this, 1)
             this.vy = mechanics.clonkvy
         }
@@ -132,6 +132,7 @@ var StandState = {
         this.vy = 0
         this.y = 0
         this.jumps = 0  // Number of times you've jumped
+        this.bounces = 0
     },
     exit: function () {
     },
@@ -306,6 +307,7 @@ var ClimbState = Object.create(StandState)
 ClimbState.enter = function () {
     this.jumps = 0
     this.vy = 0
+    this.bounces = 0
 }
 ClimbState.think = function (dt) {
     StandState.think.call(this, dt)
