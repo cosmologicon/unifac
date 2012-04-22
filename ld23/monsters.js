@@ -36,6 +36,12 @@ var CarriesReward = {
     },
 }
 
+var Shatters = {
+    die: function () {
+        effects.push(new Shatter(this.x, this.y, 100))
+    },
+}
+
 var EludesYou = {
     init: function (vx, vy, accel, vxmax) {
         this.vx = vx || 0
@@ -316,6 +322,7 @@ Gnat.prototype = UFX.Thing()
                     .addcomp(HasHealth, 1)
                     .addcomp(Clonkable, 15, 15)
                     .addcomp(CarriesReward, 1)
+                    .addcomp(Shatters)
 
 function Fly(x, y) {
     this.x = x
@@ -334,6 +341,7 @@ Fly.prototype = UFX.Thing()
                     .addcomp(HasHealth, 1)
                     .addcomp(Clonkable, 15, 15)
                     .addcomp(CarriesReward, 1)
+                    .addcomp(Shatters)
 
 function Mite(x, y) {
     this.x = x
@@ -352,6 +360,7 @@ Mite.prototype = UFX.Thing()
                     .addcomp(HasHealth, 1)
                     .addcomp(Clonkable, 15, 15)
                     .addcomp(CarriesReward, 1)
+                    .addcomp(Shatters)
 
 Overlord = UFX.Thing()
             .addcomp(WorldBound, 0, 400)

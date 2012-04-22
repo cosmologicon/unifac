@@ -155,6 +155,22 @@ var Crashes = {
         this.alive = this.alive && this.y > 0
     },
 }
+var FadesAway = {
+    init: function (tmax) {
+        this.fadetmax = tmax || 1
+        this.fadet = 0
+    },
+    think: function (dt) {
+        this.fadet += dt
+        this.alive = this.alive && this.fadet < this.fadetmax
+    },
+    draw: function () {
+        var a = Math.max(0, Math.min(1, 1 - this.fadet / this.fadetmax))
+        context.globalAlpha *= a
+    },
+}
+
+
 var FadesUpward = {
     init: function (ymax) {
         this.ymax = ymax
