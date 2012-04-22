@@ -273,6 +273,34 @@ var ShockState = {
         drawhead()
     },
 }
+var ReelState = {
+    enter: function () {
+        this.t = 0
+        this.vx = getdx(this.x, Overlord.x) > 0 ? -500 : 500
+        this.vy = 200
+    },
+    exit: function () {
+    },
+    move: function (mkeys, nkeys) {
+    },
+    think: function (dt) {
+        this.t += dt
+        this.vy -= mechanics.gravity * dt
+        if (this.y <= 0) {
+            this.nextstate = StandState
+        }
+        this.x += this.vx * dt / this.xfactor
+        this.y += this.vy * dt
+    },
+    draw: function () {
+        if (!this.facingright) context.scale(-1, 1)
+        context.translate(0, 24)
+        context.rotate(this.t * 15)
+        drawbody()
+        drawhead()
+    },
+}
+
 
 var ClimbState = Object.create(StandState)
 ClimbState.enter = function () {

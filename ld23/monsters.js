@@ -76,6 +76,23 @@ var DartsAbout = {
 }
 
 
+var SmacksYou = {
+    draw: function () {
+        context.strokeStyle = "orange"
+        context.strokeRect(-200, -120, 400, 90)
+    },
+
+    think: function (dt) {
+        var dx = Math.abs(getdx(this.x, you.x)) * this.xfactor
+        if (dx > 200) return
+        if (you.y > this.y - 30 || you.y < this.y - 120) return
+        if (you.state !== ReelState) {
+            you.nextstate = ReelState
+        }
+    },
+
+}
+
 
 
 var DrawGnat = {
@@ -211,6 +228,76 @@ var DrawMite = {
 }
 
 
+var DrawOverlord = {
+    init: function () {
+        this.propt = 0
+    },
+    think: function (dt) {
+        this.propt += dt
+    },
+    draw: function () {
+        context.fillStyle = "gray"
+        context.strokeStyle = "black"
+        context.lineWidth = 2
+
+
+        function drawpoly(ps) {
+            context.beginPath()
+            context.moveTo(ps[0], ps[1])
+            for (var j = 2 ; j < ps.length ; j += 2) {
+                context.lineTo(ps[j], ps[j+1])
+            }
+            context.closePath()
+            context.fill()
+            context.stroke()
+        }
+
+        // Dome on top
+        context.fillStyle = "#AAF"
+        context.beginPath()
+        context.arc(0, 0, 40, 0, tau)
+        context.fill()
+        context.stroke()
+
+
+        // Main body
+        context.fillStyle = "#888"
+        drawpoly([40, 0, 200, -40, -200, -40, -40, 0])
+        context.fillStyle = "#555"
+        drawpoly([180, -120, 200, -40, -200, -40, -180, -120])
+        context.fillStyle = "#333"
+        drawpoly([180, -120, 0, -140, -180, -120])
+
+
+        // Propellors
+        context.fillStyle = "#AFA"
+        function drawprop(x, s, a) {
+            context.save()
+            context.translate(x, -80)
+            context.scale(s, 1)
+            context.rotate(a)
+            for (var j = 0 ; j < 3 ; ++j) {
+                context.beginPath()
+                context.moveTo(0, 0)
+                context.lineTo(-10, 60)
+                context.lineTo(0, 70)
+                context.lineTo(10, 60)
+                context.closePath()
+                context.fill()
+                context.stroke()
+                context.rotate(tau/3)
+            }
+            context.restore()
+        }
+        drawprop(0, 1, this.propt)
+        drawprop(110, 0.8, -1.2 * this.propt)
+        drawprop(180, 0.5, 1.1 * this.propt)
+        drawprop(-110, 0.8, -1.3 * this.propt)
+        drawprop(-180, 0.5, 0.9 * this.propt)
+    },
+}
+
+
 function Gnat(x, y) {
     this.x = x
     this.y = y
@@ -266,5 +353,14 @@ Mite.prototype = UFX.Thing()
                     .addcomp(Clonkable, 15, 15)
                     .addcomp(CarriesReward, 1)
 
+Overlord = UFX.Thing()
+            .addcomp(WorldBound, 0, 400)
+            .addcomp(CrashDamage, 1)
+            .addcomp(FadesIn, 1)
+            .addcomp(DrawOverlord)
+            .addcomp(Drifts, 40, 0)
+            .addcomp(Clonkable, 15, 15)
+            .addcomp(SmacksYou)
 
+Overlord.alive = true
 
