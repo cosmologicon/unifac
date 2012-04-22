@@ -8,6 +8,7 @@ var CrashDamage = {
             this.alive = false
             gamestate.hurtworld(this.dhp)
             effects.push(new EntryPoint(this.x, this.y))
+            effects.push(new DamageBox(this.dhp, this.x, this.y))
         }
     },
 }

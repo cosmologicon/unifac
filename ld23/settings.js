@@ -29,6 +29,7 @@ var mechanics = {
         springboard: [10, 20, 30, 40],
         bubbler: [10, 20, 30],
         silo: [10, 20, 30],
+        hospital: [10, 20, 30],
     },
 
 }

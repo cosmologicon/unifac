@@ -34,7 +34,7 @@ GameScene.start = function () {
 
 
     structures = []
-    gamestate.setworldsize(100)    
+    gamestate.setworldsize(400)    
     gamestate.addstructure(new Springboard())
 
 }
@@ -207,7 +207,8 @@ GameScene.drawstatus = function () {
         context.fillText(text, settings.sx - 10, y)
         y += 28
     }
-    puttext("health: " + gamestate.hp + "/100")
+    puttext("health: " + Math.floor(gamestate.hp) + "/100")
+    puttext("bank: $" + gamestate.bank)
 }
 
 

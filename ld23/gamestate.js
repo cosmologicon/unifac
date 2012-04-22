@@ -56,6 +56,11 @@ gamestate = Object.create({
             UFX.scene.push(GrowScene)
         }
     },
+    
+    healworld: function (dhp) {
+        this.hp += dhp
+        if (this.hp > 100) this.hp = 100
+    },
 })
 
 // Abilities
@@ -80,7 +85,7 @@ function enablebutton(bname) {
     b.disabled = false
 }
 
-var allbuttons = ["buildspring", "buildbubbler", "buildsilo"]
+var allbuttons = ["buildspring", "buildbubbler", "buildsilo", "buildhospital"]
 function updatebuttons() {
     if (you.y > 0 || structures[gamestate.buildindex(you.x)]) {
         allbuttons.forEach(disablebutton)
@@ -123,6 +128,9 @@ function build(button) {
     }
     if (button.id === "buildsilo") {
         gamestate.addstructure(new Silo())
+    }
+    if (button.id === "buildhospital") {
+        gamestate.addstructure(new Hospital())
     }
 }
 

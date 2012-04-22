@@ -111,6 +111,35 @@ MoneyBox.prototype = UFX.Thing()
                         .addcomp(Fades)
                         .addcomp(SolidText, "", "yellow")
 
+function DamageBox (amount, px, py) {
+    this.alpha = 1
+    this.x = px
+    this.y = py
+    this.settext("-" + amount)
+    this.alive = true
+    this.think(0)
+}
+DamageBox.prototype = UFX.Thing()
+                        .addcomp(WorldBound)
+                        .addcomp(Floats, 100)
+                        .addcomp(Fades)
+                        .addcomp(SolidText, "", "red")
+
+function HealBox (amount, px, py) {
+    this.alpha = 1
+    this.x = px
+    this.y = py
+    this.settext("+" + amount)
+    this.alive = true
+    this.think(0)
+}
+HealBox.prototype = UFX.Thing()
+                        .addcomp(WorldBound)
+                        .addcomp(Floats, 100)
+                        .addcomp(Fades)
+                        .addcomp(SolidText, "", "green")
+
+
 var GameOverTitle = {
     alpha: 0,
     t: 0,
