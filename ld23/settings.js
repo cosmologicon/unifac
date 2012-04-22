@@ -7,8 +7,8 @@ var settings = {
 }
 
 var mechanics = {
-    runspeed: 120,
-    jumphspeed: 120,
+    runspeed: 160,
+    jumphspeed: 160,
     launchspeed: 140,
     launchaccel: 2000,
     
@@ -27,6 +27,7 @@ var mechanics = {
     shockspeed: 80,  // speed while kicking
 
     upgradekickcosts: [1, 1, 1, 1, 1],
+    upgradejumpcosts: [0, 10, 20, 30, 40],
 
     clonkvy: 200,
     
@@ -35,22 +36,20 @@ var mechanics = {
     
     lookahead: 100,
 
-    upgradecost: {   // cost to upgrade buildings
-        springboard: [10, 20, 30, 40],
-        bubbler: [10, 20, 30],
-        silo: [10, 20, 30],
-        hospital: [10, 20, 30],
-        tower: [10, 20, 30],
-        mine: [10, 20, 30],
-    },
-    
-    maxlevel: {
-        springboard: 3,
+    buildcost: {
+        tower: 3,
+        hospital: 3,
+        spring: 3,
         bubbler: 3,
         silo: 3,
-        hospital: 3,
-        tower: 3,
-        mine: 3,
+    },
+
+    upgradecost: {   // cost to upgrade buildings
+        tower: [10, 20, 30, 40, 50, 60],
+        hospital: [10, 20, 30, 40, 50, 60],
+        spring: [10, 20, 30, 40, 50, 60],
+        bubbler: [10, 20, 30, 40, 50, 60],
+        silo: [10, 20, 30, 40, 50, 60],
     },
     
     worldsizes: [100, 250, 450, 700, 1000, 1350, 1750, 2200, 2700],

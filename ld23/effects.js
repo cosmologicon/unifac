@@ -139,6 +139,20 @@ HealBox.prototype = UFX.Thing()
                         .addcomp(Fades)
                         .addcomp(SolidText, "", "green")
 
+function UpgradeBox (px, py) {
+    this.alpha = 1
+    this.x = px
+    this.y = py
+    this.alive = true
+    this.think(0)
+}
+UpgradeBox.prototype = UFX.Thing()
+                        .addcomp(WorldBound)
+                        .addcomp(Floats, 60)
+                        .addcomp(Fades, 0.5)
+                        .addcomp(SolidText, "upgrade!", "white")
+
+
 
 var GameOverTitle = {
     alpha: 0,

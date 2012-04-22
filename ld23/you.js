@@ -40,7 +40,7 @@ var CanShock = {
         this.shockt += dt
     },
     shockfrac: function () {
-        if (!gamestate.canshock) return 0
+        if (!gamestate.unlocked.shock) return 0
         return Math.min(1, this.shockt / mechanics.shocktimes[gamestate.shocklevel])
     },
     move: function (mkeys, nkeys) {
