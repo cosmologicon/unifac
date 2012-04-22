@@ -22,6 +22,7 @@ var Clonkable = {
 //        context.strokeRect(-this.width, 0, 2*this.width, this.height)
     },
     clonk: function (you, dhp) {
+        alert("clonk")
         if (this.hp <= this.dhp) {
             this.reward += 2 * you.bounces
             you.bounces += 1
@@ -342,10 +343,51 @@ Gnat.prototype = UFX.Thing()
                     .addcomp(CrashDamage, 1)
                     .addcomp(FadesIn, 5)
                     .addcomp(DrawGnat)
-                    .addcomp(DartsAbout, 250, 20, 1)
+                    .addcomp(DartsAbout, 120, 20, 1)
                     .addcomp(HasHealth, 1)
                     .addcomp(Clonkable, 15, 15)
                     .addcomp(CarriesReward, 10)
+                    .addcomp(Shatters)
+
+function FastGnat(x, y, scale) {
+    this.x = x
+    this.y = y
+    this.vy = -18
+    this.vx = UFX.random(-40, 40)
+    this.alive = true
+    this.setscale(scale || 1)
+    this.think(0)
+}
+FastGnat.prototype = UFX.Thing()
+                    .addcomp(WorldBound)
+                    .addcomp(HasScale)
+                    .addcomp(CrashDamage, 3)
+                    .addcomp(FadesIn, 5)
+                    .addcomp(DrawGnat)
+                    .addcomp(DartsAbout, 200, 35, 1)
+                    .addcomp(HasHealth, 1)
+                    .addcomp(Clonkable, 15, 15)
+                    .addcomp(CarriesReward, 30)
+                    .addcomp(Shatters)
+function FasterGnat(x, y, scale) {
+    this.x = x
+    this.y = y
+    this.vy = -18
+    this.vx = UFX.random(-40, 40)
+    this.alive = true
+    this.setscale(scale || 1)
+    this.think(0)
+}
+FasterGnat.prototype = UFX.Thing()
+                    .addcomp(WorldBound)
+                    .addcomp(HasScale)
+                    .addcomp(CrashDamage, 8)
+                    .addcomp(FadesIn, 5)
+                    .addcomp(DrawGnat)
+                    .addcomp(DartsAbout, 200, 35, 1)
+                    .addcomp(HasHealth, 1)
+                    .addcomp(Clonkable, 15, 15)
+                    .addcomp(CarriesReward, 30)
                     .addcomp(Shatters)
 
 // hexagonal bug that just drifts downward
@@ -353,7 +395,7 @@ function Fly(x, y, scale) {
     this.x = x
     this.y = y
     this.vy = -10
-    this.vx = UFX.random(-60, 60)
+    this.vx = UFX.random(-30, 30)
     this.alive = true
     this.setscale(scale || 1)
     this.think(0)
@@ -369,6 +411,48 @@ Fly.prototype = UFX.Thing()
                     .addcomp(Clonkable, 15, 15)
                     .addcomp(CarriesReward, 10)
                     .addcomp(Shatters)
+function FastFly(x, y) {
+    this.x = x
+    this.y = y
+    this.vy = -18
+    this.vx = UFX.random(-60, 60)
+    this.alive = true
+    this.setscale(1)
+    this.think(0)
+}
+FastFly.prototype = UFX.Thing()
+                    .addcomp(WorldBound)
+                    .addcomp(HasScale)
+                    .addcomp(CrashDamage, 3)
+                    .addcomp(FadesIn, 5)
+                    .addcomp(DrawFly)
+                    .addcomp(Drifts)
+                    .addcomp(HasHealth, 1)
+                    .addcomp(Clonkable, 15, 15)
+                    .addcomp(CarriesReward, 30)
+                    .addcomp(Shatters)
+
+function FasterFly(x, y) {
+    this.x = x
+    this.y = y
+    this.vy = -30
+    this.vx = UFX.random(-120, 120)
+    this.alive = true
+    this.setscale(1)
+    this.think(0)
+}
+FasterFly.prototype = UFX.Thing()
+                    .addcomp(WorldBound)
+                    .addcomp(HasScale)
+                    .addcomp(CrashDamage, 8)
+                    .addcomp(FadesIn, 5)
+                    .addcomp(DrawFly)
+                    .addcomp(Drifts)
+                    .addcomp(HasHealth, 1)
+                    .addcomp(Clonkable, 15, 15)
+                    .addcomp(CarriesReward, 60)
+                    .addcomp(Shatters)
+
 
 function Mite(x, y, scale) {
     this.x = x
@@ -385,10 +469,50 @@ Mite.prototype = UFX.Thing()
                     .addcomp(CrashDamage, 1)
                     .addcomp(FadesIn, 5)
                     .addcomp(DrawMite)
-                    .addcomp(EludesYou, 0, -10, 100, 40)
+                    .addcomp(EludesYou, 0, -10, 50, 20)
                     .addcomp(HasHealth, 1)
                     .addcomp(Clonkable, 15, 15)
                     .addcomp(CarriesReward, 10)
+                    .addcomp(Shatters)
+function FastMite(x, y, scale) {
+    this.x = x
+    this.y = y
+    this.vy = -10
+    this.vx = UFX.random(-40, 40)
+    this.alive = true
+    this.setscale(scale || 1)
+    this.think(0)
+}
+FastMite.prototype = UFX.Thing()
+                    .addcomp(WorldBound)
+                    .addcomp(HasScale)
+                    .addcomp(CrashDamage, 3)
+                    .addcomp(FadesIn, 5)
+                    .addcomp(DrawMite)
+                    .addcomp(EludesYou, 0, -20, 100, 40)
+                    .addcomp(HasHealth, 1)
+                    .addcomp(Clonkable, 15, 15)
+                    .addcomp(CarriesReward, 30)
+                    .addcomp(Shatters)
+function FasterMite(x, y, scale) {
+    this.x = x
+    this.y = y
+    this.vy = -10
+    this.vx = UFX.random(-40, 40)
+    this.alive = true
+    this.setscale(scale || 1)
+    this.think(0)
+}
+FasterMite.prototype = UFX.Thing()
+                    .addcomp(WorldBound)
+                    .addcomp(HasScale)
+                    .addcomp(CrashDamage, 8)
+                    .addcomp(FadesIn, 5)
+                    .addcomp(DrawMite)
+                    .addcomp(EludesYou, 0, -40, 100, 40)
+                    .addcomp(HasHealth, 1)
+                    .addcomp(Clonkable, 15, 15)
+                    .addcomp(CarriesReward, 60)
                     .addcomp(Shatters)
 
 Overlord = UFX.Thing()

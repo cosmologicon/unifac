@@ -43,6 +43,8 @@ GameScene.start = function () {
 }
 
 GameScene.think = function (dt) {
+    if (UFX.key.ispressed.backspace) dt *= 3
+
     if (dt > 0.1) dt = 0.1
 
     // Handle keyboard input
@@ -80,7 +82,8 @@ GameScene.think = function (dt) {
 
 
     if (gamestate.level === 0) {
-        if (UFX.random(5) < dt) monsters.push(new Fly(UFX.random(tau), 140))
+        if (UFX.random(6) < dt) monsters.push(new FastFly(UFX.random(tau), 400))
+//        if (UFX.random(4) < dt) monsters.push(new Fly(UFX.random(tau), 140))
     } else if (gamestate.level === 1) {
         if (UFX.random(6) < dt) monsters.push(new Fly(UFX.random(tau), 200))
         if (UFX.random(6) < dt) monsters.push(new Gnat(UFX.random(tau), 200))
@@ -89,9 +92,33 @@ GameScene.think = function (dt) {
         if (UFX.random(7) < dt) monsters.push(new Gnat(UFX.random(tau), 300))
         if (UFX.random(7) < dt) monsters.push(new Mite(UFX.random(tau), 300))
     } else if (gamestate.level === 3) {
-        if (UFX.random(6) < dt) monsters.push(new Fly(UFX.random(tau), 400))
-        if (UFX.random(6) < dt) monsters.push(new Gnat(UFX.random(tau), 400))
-        if (UFX.random(6) < dt) monsters.push(new Mite(UFX.random(tau), 400))
+        if (UFX.random(12) < dt) monsters.push(new Fly(UFX.random(tau), 400))
+        if (UFX.random(12) < dt) monsters.push(new Gnat(UFX.random(tau), 400))
+        if (UFX.random(12) < dt) monsters.push(new Mite(UFX.random(tau), 400))
+        if (UFX.random(6) < dt) monsters.push(new FastFly(UFX.random(tau), 400))
+    } else if (gamestate.level === 4) {
+        if (UFX.random(6) < dt) monsters.push(new FastFly(UFX.random(tau), 500))
+        if (UFX.random(6) < dt) monsters.push(new FastGnat(UFX.random(tau), 500))
+        if (UFX.random(6) < dt) monsters.push(new FastMite(UFX.random(tau), 500))
+    } else if (gamestate.level === 5) {
+        if (UFX.random(5) < dt) monsters.push(new FastFly(UFX.random(tau), 600))
+        if (UFX.random(5) < dt) monsters.push(new FastGnat(UFX.random(tau), 600))
+        if (UFX.random(5) < dt) monsters.push(new FastMite(UFX.random(tau), 600))
+    } else if (gamestate.level === 6) {
+        if (UFX.random(10) < dt) monsters.push(new FastFly(UFX.random(tau), 700))
+        if (UFX.random(10) < dt) monsters.push(new FastGnat(UFX.random(tau), 700))
+        if (UFX.random(10) < dt) monsters.push(new FastMite(UFX.random(tau), 700))
+        if (UFX.random(10) < dt) monsters.push(new FasterFly(UFX.random(tau), 700))
+        if (UFX.random(10) < dt) monsters.push(new FasterGnat(UFX.random(tau), 700))
+        if (UFX.random(10) < dt) monsters.push(new FasterMite(UFX.random(tau), 700))
+    } else if (gamestate.level === 7) {
+        if (UFX.random(6) < dt) monsters.push(new FasterFly(UFX.random(tau), 700))
+        if (UFX.random(6) < dt) monsters.push(new FasterGnat(UFX.random(tau), 700))
+        if (UFX.random(6) < dt) monsters.push(new FasterMite(UFX.random(tau), 700))
+    } else if (gamestate.level === 8) {
+        if (UFX.random(5) < dt) monsters.push(new FasterFly(UFX.random(tau), 800))
+        if (UFX.random(5) < dt) monsters.push(new FasterGnat(UFX.random(tau), 800))
+        if (UFX.random(5) < dt) monsters.push(new FasterMite(UFX.random(tau), 800))
     }
 /*
     if (UFX.random(10) < dt) {
@@ -150,7 +177,16 @@ GameScene.think = function (dt) {
     camera.think(dt * n)
     
     updatebuttons()
-    checklevel()
+    if (dt) {
+        checklevel()
+    }
+    
+    if (nkeys.F7) {
+        gamestate.bank = Math.min(gamestate.bank * 2, 1000000)
+    }
+    if (nkeys.F8) {
+        advancelevel()
+    }
 }
 
 
