@@ -25,7 +25,7 @@ var CanNab = {
             if (dx > objs[j].width) continue
             var dy = Math.abs(this.y - objs[j].y)
             if (dy > objs[j].height) continue
-            objs[j].clonk(this)
+            objs[j].clonk(this, 1)
             this.vy = mechanics.clonkvy
         }
     },

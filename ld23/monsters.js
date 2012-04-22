@@ -118,6 +118,54 @@ var DrawFly = {
 
 }
 
+var DrawMite = {
+    init: function () {
+        this.t = 0
+    },
+    think: function (dt) {
+        this.t += dt
+    },
+    draw: function () {
+        context.save()
+        context.rotate(this.t * 1.4)
+        context.lineWidth = 1
+        context.strokeStyle = "black"
+        context.beginPath()
+        context.moveTo(0, 12)
+        context.lineTo(0, 18)
+        context.moveTo(0, -12)
+        context.lineTo(0, -18)
+        context.stroke()
+
+        context.lineWidth = 4
+        context.beginPath()
+        context.arc(0, 0, 10, 0, tau)
+        context.stroke()
+        context.lineWidth = 2
+        context.strokeStyle = "gray"
+        context.stroke()
+        context.restore()
+        
+        context.rotate(0.5 * Math.sin(this.t))
+        context.lineWidth = 1
+        context.strokeStyle = "black"
+        context.beginPath()
+        context.moveTo(0, 20)
+        context.lineTo(0, -20)
+        context.stroke()
+        context.beginPath()
+        context.fillStyle = "black"
+        context.arc(0, 0, 6, 0, tau)
+        context.fill()
+        context.beginPath()
+        context.fillStyle = "#CCC"
+        context.arc(0, 0, 5, 0, tau)
+        context.fill()
+        
+    },
+
+}
+
 
 function Gnat(x, y) {
     this.x = x
@@ -150,6 +198,24 @@ Fly.prototype = UFX.Thing()
                     .addcomp(CrashDamage, 1)
                     .addcomp(FadesIn, 5)
                     .addcomp(DrawFly)
+                    .addcomp(Drifts)
+                    .addcomp(HasHealth, 1)
+                    .addcomp(Clonkable, 15, 15)
+                    .addcomp(CarriesReward, 1)
+
+function Mite(x, y) {
+    this.x = x
+    this.y = y
+    this.vy = -10
+    this.vx = UFX.random(-40, 40)
+    this.alive = true
+    this.think(0)
+}
+Mite.prototype = UFX.Thing()
+                    .addcomp(WorldBound)
+                    .addcomp(CrashDamage, 1)
+                    .addcomp(FadesIn, 5)
+                    .addcomp(DrawMite)
                     .addcomp(Drifts)
                     .addcomp(HasHealth, 1)
                     .addcomp(Clonkable, 15, 15)
