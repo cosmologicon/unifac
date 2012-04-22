@@ -76,6 +76,23 @@ TossesBombs = {
     },
 }
 
+HealsTheWorld = {
+    init: function () {
+        this.theal = 0
+        this.rechargetime = 3
+    },
+    think: function (dt) {
+        this.theal += dt
+        if (gamestate.hp < 100 && this.theal > this.rechargetime) {
+            gamestate.healworld(1)
+            this.theal = 0
+            effects.push(new HealBox(1, this.x, this.y + 40))
+            this.wobble()
+        }
+    },
+}
+
+
 
 DrawSpringboard = {
     draw: function () {
@@ -150,7 +167,20 @@ DrawSilo = {
     },
 }
 
-
+DrawHospital = {
+    draw: function () {
+        context.beginPath()
+        context.moveTo(0, 12)
+        context.lineTo(8, 24)
+        context.lineTo(0, 36)
+        context.lineTo(-8, 24)
+        context.closePath()
+        context.fillStyle = "red"
+        context.strokeStyle = "black"
+        context.fill()
+        context.stroke()
+    },
+}
 
 
 function Springboard (x) {
@@ -199,6 +229,21 @@ Silo.prototype = UFX.Thing()
                     .addcomp(Wobbles, 25, 0.6)
                     .addcomp(TossesBombs)
                     .addcomp(DrawSilo)
+
+function Hospital (x) {
+    this.x = x
+    this.y = 0
+    this.alive = true
+    this.think(0)
+}
+Hospital.prototype = UFX.Thing()
+                    .definemethod("interact")
+                    .addcomp(WorldBound)
+                    .addcomp(CanUpgrade, "hospital")
+                    .addcomp(CanDemolish)
+                    .addcomp(HealsTheWorld)
+                    .addcomp(Wobbles, 25, 0.6)
+                    .addcomp(DrawHospital)
 
 
 
