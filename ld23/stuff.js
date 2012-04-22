@@ -107,7 +107,20 @@ var Wobbles = {
     },
 }
 
-
+var FadesIn = {
+    init: function (fadetime) {
+        this.fadetime = fadetime || 1.0
+        this.fadetimer = 0.
+    },
+    think: function (dt) {
+        this.fadetimer += dt
+    },
+    draw: function () {
+        if (this.fadetimer < this.fadetime) {
+            context.globalAlpha *= this.fadetimer / this.fadetime
+        }
+    },
+}
 
 
 var Drifts = {
@@ -305,7 +318,7 @@ function Wave (x0, y0, smax, vs) {
 }
 Wave.prototype = UFX.Thing()
                     .addcomp(WorldBound)
-                    .addcomp(FadesOutward, 50, 200)
+                    .addcomp(FadesOutward, 100, 200)
                     .addcomp(HitsWithin, 1)
 
 
