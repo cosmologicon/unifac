@@ -216,7 +216,6 @@ var FallState = {
 var SpringState = {
     enter: function () {
         this.vx = 0
-        this.vy = mechanics.springspeed
         this.t = 0
     },
     exit: function () {
@@ -225,7 +224,7 @@ var SpringState = {
     },
     think: function (dt) {
         this.t += dt
-        if (this.t > mechanics.springtime) {
+        if (this.t > this.springtime) {
             this.nextstate = FallState
         }
         this.x += this.vx * dt / this.xfactor
@@ -261,6 +260,21 @@ var ShockState = {
         drawhead()
     },
 }
+
+var ClimbState = Object.create(StandState)
+ClimbState.enter = function () {
+    this.jumps = 0
+    this.vy = 0
+}
+ClimbState.think = function (dt) {
+    StandState.think.call(this, dt)
+    if (!this.tower.holds(this)) {
+        this.jumps = 1
+        this.nextstate = FallState
+    }
+}
+
+
 
 
 

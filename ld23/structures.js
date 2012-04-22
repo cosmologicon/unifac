@@ -1,12 +1,22 @@
 
 CanUpgrade = {
-    init: function (sched) {
-        this.level = 1
-        this.schedule = mechanics.upgrades[sched]
-        this.maxlevel = this.schedule.length
+    init: function (stype) {
+        this.level = 0
+        this.stype = stype
+    },
+    canupgrade: function () {
+        if (this.level >= mechanics.maxlevel[this.stype]) return false
+        var amount = mechanics.upgradecost[this.stype][this.level]
+        if (gamestate.bank < amount) return false
+        return true
+    },
+    upgrade: function () {
+        if (!this.canupgrade()) return
+        gamestate.bank -= mechanics.upgradecost[this.stype][this.level]
+        this.level += 1
     },
     draw: function () {
-        var n = this.maxlevel
+        var n = mechanics.maxlevel[this.stype]
         for (var j = 0 ; j < n ; ++j) {
             var x = 5 * (j - (n - 1) / 2.), y = -8
             if (n > 6) {
@@ -39,34 +49,63 @@ SpringsYou = {
             if (dx * this.xfactor < 20) {
                 you.y = 40
                 you.nextstate = SpringState
+                you.vy = mechanics.springspeed[this.level]
+                you.springtime = mechanics.springtime[this.level]
+
                 this.wobble()
             }
         }
     },
 }
 
+CatchesYou = {
+    interact: function (you) {
+        if (you.vy >= 0) return
+        var dx = Math.abs(getdx(this.x, you.x))
+        if (dx * you.xfactor > 24) return
+        for (var j = 0 ; j <= this.level ; ++j) {
+            var y = (j + 1) * 50
+            if (you.y < y && you.y + 10 > y) {
+                you.tower = this
+                you.nextstate = ClimbState
+                you.y = y
+            }
+        }
+    },
+    holds: function (you) {
+        var dx = Math.abs(getdx(this.x, you.x))
+        return dx * you.xfactor < 28
+    },
+}
+
+
 
 BlowsBubbles = {
+    init: function () {
+        this.bubblet = mechanics.bubbletime[this.level] - 1
+    },
     think: function (dt) {
-        if (UFX.random(10) < dt) {
+        this.bubblet += dt
+        if (this.bubblet > mechanics.bubbletime[this.level]) {
             hitters.push(new Bubble(this.x, this.y + 30))
             this.wobble()
+            this.bubblet = 0
         }
     },
 }
 
 TossesBombs = {
     init: function () {
-        this.maxbombs = 3
         this.tbomb = 0
-        this.rechargetime = 3
     },
     think: function (dt) {
         this.tbomb += dt
         var nbombs = []
         this.bombs.forEach(function (b) { if (b.alive) nbombs.push(b) } )
         this.bombs = nbombs
-        if (this.bombs.length < this.maxbombs && this.tbomb > this.rechargetime) {
+        var maxbombs = mechanics.maxbombs[this.level]
+        var rechargetime = mechanics.bombtime[this.level]
+        if (this.bombs.length < maxbombs && this.tbomb > rechargetime) {
             var bomb = new Bomb(this.x, this.y + 40)
             hitters.push(bomb)
             this.bombs.push(bomb)
@@ -79,11 +118,11 @@ TossesBombs = {
 HealsTheWorld = {
     init: function () {
         this.theal = 0
-        this.rechargetime = 3
     },
     think: function (dt) {
         this.theal += dt
-        if (gamestate.hp < 100 && this.theal > this.rechargetime) {
+        rechargetime = mechanics.healtime[this.level]
+        if (gamestate.hp < 100 && this.theal > rechargetime) {
             gamestate.healworld(1)
             this.theal = 0
             effects.push(new HealBox(1, this.x, this.y + 40))
@@ -182,6 +221,31 @@ DrawHospital = {
     },
 }
 
+DrawTower = {
+    draw: function () {
+        for (var j = this.level ; j >= 0 ; --j) {
+            context.save()
+            context.translate(0, j * 50)
+            context.fillStyle = "#060"
+            context.strokeStyle = "black"
+            context.lineWidth = 1
+            context.strokeRect(-22, 22, 44, 4)
+            context.fillRect(-22, 22, 44, 4)
+            context.strokeRect(-4, -4, 8, 44)
+            context.fillRect(-4, -4, 8, 44)
+            context.strokeRect(-20, -3, 4, 48)
+            context.strokeRect(16, -3, 4, 48)
+            context.fillRect(-20, -3, 4, 48)
+            context.fillRect(16, -3, 4, 48)
+            context.fillStyle = "#0A0"
+            context.strokeRect(-24, 40, 48, 10)
+            context.fillRect(-24, 40, 48, 10)
+            context.restore()
+        }
+    },
+}
+
+
 
 function Springboard (x) {
     this.x = x
@@ -244,6 +308,20 @@ Hospital.prototype = UFX.Thing()
                     .addcomp(HealsTheWorld)
                     .addcomp(Wobbles, 25, 0.6)
                     .addcomp(DrawHospital)
+
+function Tower (x) {
+    this.x = x
+    this.y = 0
+    this.alive = true
+    this.think(0)
+}
+Tower.prototype = UFX.Thing()
+                    .addcomp(WorldBound)
+                    .addcomp(CatchesYou)
+                    .addcomp(CanUpgrade, "tower")
+                    .addcomp(CanDemolish)
+                    .addcomp(Wobbles, 25, 0.6)
+                    .addcomp(DrawTower)
 
 
 

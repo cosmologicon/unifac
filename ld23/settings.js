@@ -12,8 +12,13 @@ var mechanics = {
     launchspeed: 140,
     launchaccel: 2000,
     
-    springspeed: 400,
-    springtime: 0.8,
+    springspeed: [250, 300, 350, 400],
+    springtime: [0.1, 0.4, 0.5, 0.6, 0.8],
+    bubbletime: [20, 15, 10, 5, 4],
+    maxbombs: [1, 2, 3, 4],
+    bombtime: [60, 30, 30, 30],
+    healtime: [30, 25, 20, 15],
+
 
     shockspeed: 140,
     shocktime: 0.5,
@@ -25,11 +30,22 @@ var mechanics = {
     
     lookahead: 100,
 
-    upgrades: {   // cost to upgrade buildings
+    upgradecost: {   // cost to upgrade buildings
         springboard: [10, 20, 30, 40],
         bubbler: [10, 20, 30],
         silo: [10, 20, 30],
         hospital: [10, 20, 30],
+        tower: [10, 20, 30],
+        mine: [10, 20, 30],
+    },
+    
+    maxlevel: {
+        springboard: 3,
+        bubbler: 3,
+        silo: 3,
+        hospital: 3,
+        tower: 3,
+        mine: 3,
     },
 
 }
