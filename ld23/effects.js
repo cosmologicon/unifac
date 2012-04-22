@@ -174,7 +174,6 @@ var GameOverTitle = {
 }
 
 
-
 function EntryPoint (px, py, size) {
     this.x = px
     this.y = py
