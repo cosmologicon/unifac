@@ -1,29 +1,33 @@
 
 story = []
+tip = []
+
 
 story[0] = [
     "Once upon a time in deep space there was a world named Tonde. Tonde was a friendly world, but very small. It was so small, in fact, that only one creature lived on Tonde. Her name was Zupe.",
-    "Tonde and Zupe were the very best of friends, and not only because they didn't know anyone else. The fact is that they needed each other",
+    "Tonde and Zupe were the very best of friends, and not only because they didn't know anyone else. The fact is that they needed each other.",
     "Zupe needed a place to stand, after all. And Tonde needed Zupe to protect it from the gray creatures from space that would come to hurt it."
 ]
-
-
-tip = []
-
 tip[0] = [
-    "Control Zupe with the arrow keys or WASD (works on Dvorak too). You can double-jump in the air, and kick by pressing down, space, or enter.",
+    "Control Zupe with the arrow keys or WASD. You can double-jump in the air, and kick by pressing down, space, or enter.",
     "Kicking takes time to recharge. You can see the meter in the upper-right. You can destroy the invaders by kicking them, or jumping on them.",
     "Zupe can't be hurt, but Tonde can!",
 ]
 
+story[1] = [
+    "Zupe was doing it to protect Tonde, of course, but it was also great fun! She soon discovered clever ways to help her ward off the invaders."
+]
+tip[1] = [
+    "Structure unlocked: Tower."
+]
 
 
 var CutScene = Object.create(GameScene)
 
 CutScene.start = function () {
-    this.story = story[0]
+    this.story = story[gamestate.level]
     this.storyj = 0
-    this.tip = tip[0]
+    this.tip = tip[gamestate.level]
     this.tipj = -1
     CutSceneText.reset(this.story[this.storyj])
     this.t = 0

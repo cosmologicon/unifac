@@ -70,8 +70,9 @@ gamestate = Object.create({
 })
 
 // Abilities
+gamestate.level = 0  // overall game scene
 gamestate.njumps = 2  // How many jumps can you perform
-gamestate.bank = 100
+gamestate.bank = 0
 gamestate.hp = 100
 gamestate.unlocked = {
     grow: true,
@@ -80,7 +81,7 @@ gamestate.unlocked = {
     upgradestruct: 4,
     structures: true,
 }
-gamestate.shocklevel = 0
+gamestate.shocklevel = 1
 gamestate.buildunlocked = {
     tower: true,
     hospital: true,
@@ -88,6 +89,24 @@ gamestate.buildunlocked = {
     bubbler: true,
     silo: true,
 }
+
+gamestate.unlocked = {
+    grow: false,
+    shock: 1,
+    jumps: 2,
+    upgradestruct: 0,
+    structures: false,
+}
+gamestate.buildunlocked = {
+    tower: true,
+    hospital: false,
+    springboard: false,
+    bubbler: false,
+    silo: false,
+}
+
+
+
 
 function namebutton(bname, text) {
     var b = document.getElementById(bname)
@@ -145,7 +164,7 @@ function updatebuttons() {
     var grounded = you.y === 0
 
     for (var sname in buildnames) {
-        if (!gamestate.buildunlocked[sname]) {
+        if (!gamestate.unlocked.structures || !gamestate.buildunlocked[sname]) {
             hidebutton("build" + sname)
             continue
         }
@@ -226,12 +245,28 @@ function updatebuttons() {
             disablebutton("upgradeworld", text)
         }
     }
-
-
 }
 function disableall() {
     buildbuttons.forEach(disablebutton)
     otherbuttons.forEach(disablebutton)
+}
+
+function checklevel() {
+    if (gamestate.level === 0) {
+        if (gamestate.bank >= 4) {
+            advancelevel()
+        }
+    }
+
+}
+function advancelevel() {
+    gamestate.level += 1
+    if (gamestate.level === 1) {
+        gamestate.unlocked.structures = true
+    }
+    if (settings.showcutscenes) {
+        UFX.scene.push(CutScene)
+    }
 }
 
 

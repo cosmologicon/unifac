@@ -35,7 +35,12 @@ GameScene.start = function () {
 
     structures = []
     gamestate.setworldsize(450)    
-    gamestate.addstructure(new Tower())
+    var s = new Springboard()
+    s.level = 3
+    gamestate.addstructure(s)
+
+
+    monsters.push(Overlord)
 
 }
 
@@ -44,7 +49,7 @@ GameScene.think = function (dt) {
 
     // Handle keyboard input
     var mkeys = {
-        up: !!(UFX.key.ispressed.up || UFX.key.ispressed.W || UFX.key.ispressed.comma),
+        up: !!(UFX.key.ispressed.up || UFX.key.ispressed.W || UFX.key.ispressed.comma || UFX.key.ispressed["key#188"]),
         down: !!(UFX.key.ispressed.down || UFX.key.ispressed.S || UFX.key.ispressed.O),
         left: !!(UFX.key.ispressed.left || UFX.key.ispressed.A),
         right: !!(UFX.key.ispressed.right || UFX.key.ispressed.D || UFX.key.ispressed.E),
@@ -57,7 +62,7 @@ GameScene.think = function (dt) {
             nkeys[event.name] = true
         }
     })
-    nkeys.up = nkeys.up || nkeys.W || nkeys.comma
+    nkeys.up = nkeys.up || nkeys.W || nkeys.comma || nkeys["key#188"]
     nkeys.down = nkeys.down || nkeys.S || nkeys.O
     nkeys.left = nkeys.left || nkeys.A
     nkeys.right = nkeys.right || nkeys.D || nkeys.E
@@ -134,6 +139,7 @@ GameScene.think = function (dt) {
     camera.think(dt * n)
     
     updatebuttons()
+    checklevel()
 }
 
 
