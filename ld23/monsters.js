@@ -22,7 +22,27 @@ var Clonkable = {
 //        context.strokeRect(-this.width, 0, 2*this.width, this.height)
     },
     clonk: function (you, dhp) {
+        if (this.hp <= this.dhp) {
+            this.reward += 2 * you.bounces
+            you.bounces += 1
+        }
         this.takedamage(dhp)
+    },
+}
+
+var HasScale = {
+    init: function () {
+        this.scale = 1
+    },
+    setscale: function (scale) {
+        this.scale = scale
+        this.reward = Math.floor(this.reward * this.scale)
+        this.hp = Math.floor(this.hp * this.scale * this.scale)
+        this.dhp = Math.floor(this.dhp * this.scale * this.scale)
+    },
+
+    draw: function () {
+        context.scale(this.scale, this.scale)
     },
 }
 
@@ -30,15 +50,18 @@ var CarriesReward = {
     init: function (reward) {
         this.reward = reward || 1
     },
-    die: function () { 
+    die: function () {
         gamestate.bank += this.reward
         effects.push(new MoneyBox(this.reward, this.x, this.y))
     },
 }
 
 var Shatters = {
+    takedamage: function () {
+        effects.push(new Shatter(this.x, this.y, 80 * this.scale, 5))
+    },
     die: function () {
-        effects.push(new Shatter(this.x, this.y, 100))
+        effects.push(new Shatter(this.x, this.y, 100 * this.scale))
     },
 }
 
@@ -304,62 +327,68 @@ var DrawOverlord = {
 }
 
 
-function Gnat(x, y) {
+function Gnat(x, y, scale) {
     this.x = x
     this.y = y
     this.vy = -10
     this.vx = UFX.random(-40, 40)
     this.alive = true
+    this.setscale(scale || 1)
     this.think(0)
 }
 Gnat.prototype = UFX.Thing()
                     .addcomp(WorldBound)
+                    .addcomp(HasScale)
                     .addcomp(CrashDamage, 1)
                     .addcomp(FadesIn, 5)
                     .addcomp(DrawGnat)
-//                    .addcomp(EludesYou, 0, -10, 100, 40)
                     .addcomp(DartsAbout, 250, 20, 1)
                     .addcomp(HasHealth, 1)
                     .addcomp(Clonkable, 15, 15)
-                    .addcomp(CarriesReward, 1)
+                    .addcomp(CarriesReward, 10)
                     .addcomp(Shatters)
 
-function Fly(x, y) {
+// hexagonal bug that just drifts downward
+function Fly(x, y, scale) {
     this.x = x
     this.y = y
     this.vy = -10
-    this.vx = UFX.random(-40, 40)
+    this.vx = UFX.random(-60, 60)
     this.alive = true
+    this.setscale(scale || 1)
     this.think(0)
 }
 Fly.prototype = UFX.Thing()
                     .addcomp(WorldBound)
+                    .addcomp(HasScale)
                     .addcomp(CrashDamage, 1)
                     .addcomp(FadesIn, 5)
                     .addcomp(DrawFly)
                     .addcomp(Drifts)
                     .addcomp(HasHealth, 1)
                     .addcomp(Clonkable, 15, 15)
-                    .addcomp(CarriesReward, 1)
+                    .addcomp(CarriesReward, 10)
                     .addcomp(Shatters)
 
-function Mite(x, y) {
+function Mite(x, y, scale) {
     this.x = x
     this.y = y
     this.vy = -10
     this.vx = UFX.random(-40, 40)
     this.alive = true
+    this.setscale(scale || 1)
     this.think(0)
 }
 Mite.prototype = UFX.Thing()
                     .addcomp(WorldBound)
+                    .addcomp(HasScale)
                     .addcomp(CrashDamage, 1)
                     .addcomp(FadesIn, 5)
                     .addcomp(DrawMite)
-                    .addcomp(Drifts)
+                    .addcomp(EludesYou, 0, -10, 100, 40)
                     .addcomp(HasHealth, 1)
                     .addcomp(Clonkable, 15, 15)
-                    .addcomp(CarriesReward, 1)
+                    .addcomp(CarriesReward, 10)
                     .addcomp(Shatters)
 
 Overlord = UFX.Thing()

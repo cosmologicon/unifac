@@ -51,16 +51,18 @@ var ExpandingLines = {
 
         this.lines = new Array(200)
         for (var j = 0 ; j < this.nlines ; ++j) {
-            this.lines[j] = [UFX.random(-1, 1), UFX.random(-1, 1), UFX.random(5, 10), UFX.random(100)]
+            var c = UFX.random.rand(0, 192)
+            var color = "rgb(" + c + "," + c + "," + c + ")"
+            this.lines[j] = [UFX.random(-1, 1), UFX.random(-1, 1), UFX.random(5, 10), UFX.random(100), color]
         }
     },
     think: function (dt) {
         this.linet += dt
     },
     draw: function () {
-        context.strokeStyle = "gray"
         for (var j = 0 ; j < this.nlines ; ++j) {
             var line = this.lines[j]
+            context.strokeStyle = line[4]
             context.save()
             context.translate(line[0] * this.linet * this.size, line[1] * this.linet * this.size)
             context.rotate(line[2] * this.linet + line[3])
@@ -231,10 +233,11 @@ Rubble.prototype = UFX.Thing()
                       .addcomp(WorldBound)
                       .addcomp(FadesOutward, 40, 60, 0, "brown")
 
-function Shatter(px, py, size) {
+function Shatter(px, py, size, n) {
     this.x = px
     this.y = py
     this.size = size
+    this.nlines = n || 20
     this.alive = true
     this.think(0)
 }
