@@ -67,7 +67,7 @@ GameScene.think = function (dt) {
         hitters.push(new Token(UFX.random(tau), 400))
     }
     if (UFX.random(1) < dt) {
-        monsters.push(new Gnat(UFX.random(tau), 200))
+        monsters.push(new Fly(UFX.random(tau), 200))
     }
 
     var n = settings.tickmult
