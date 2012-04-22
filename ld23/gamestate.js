@@ -48,6 +48,12 @@ gamestate = Object.create({
         if (!structures[slot]) return
         structures[slot].die()
     },
+
+    upgradestructure: function (slot) {
+        if (typeof slot !== "number") slot = this.buildindex(you.x)
+        if (!structures[slot]) return
+        structures[slot].upgrade()
+    },
     
     hurtworld: function (dhp) {
         this.hp -= dhp
@@ -84,17 +90,35 @@ function enablebutton(bname) {
     b.className = "HUDbutton"
     b.disabled = false
 }
-
-var allbuttons = ["buildspring", "buildbubbler", "buildsilo", "buildhospital"]
-function updatebuttons() {
-    if (you.y > 0 || structures[gamestate.buildindex(you.x)]) {
-        allbuttons.forEach(disablebutton)
-    } else {
-        allbuttons.forEach(enablebutton)
+function setbutton(bname, enabled) {
+    if (enabled) {
+        enablebutton(bname)
+    }
+    if (!enabled) {
+        disablebutton(bname)
     }
 }
+
+
+var buildbuttons = ["buildspring", "buildbubbler", "buildsilo", "buildhospital", "buildtower"]
+var otherbuttons = ["removestructure", "upgradestructure"]
+//var allbuttons = buildbuttons + otherbuttons
+function updatebuttons() {
+    var struct = structures[gamestate.buildindex(you.x)]
+    var grounded = you.y === 0
+    if (you.y > 0 || struct) {
+        buildbuttons.forEach(disablebutton)
+    } else {
+        buildbuttons.forEach(enablebutton)
+    }
+    setbutton("removestructure", grounded && struct)
+    setbutton("upgradestructure", grounded && struct && struct.canupgrade())
+
+//    document.getElementById("upgradestructure").value =
+//        "Upgrade structure" + (struct ? ": $" + struct.upgradecost() : "")
+}
 function disableall() {
-    allbuttons.forEach(disablebutton)
+//    allbuttons.forEach(disablebutton)
 }
 
 
@@ -131,6 +155,9 @@ function build(button) {
     }
     if (button.id === "buildhospital") {
         gamestate.addstructure(new Hospital())
+    }
+    if (button.id === "buildtower") {
+        gamestate.addstructure(new Tower())
     }
 }
 
