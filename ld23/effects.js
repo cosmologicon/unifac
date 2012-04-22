@@ -43,6 +43,36 @@ var SolidText = {
     },
 }
 
+var ExpandingLines = {
+    init: function (size) {
+        this.size = size || 100
+        this.linet = 0
+        this.nlines = 20
+
+        this.lines = new Array(200)
+        for (var j = 0 ; j < this.nlines ; ++j) {
+            this.lines[j] = [UFX.random(-1, 1), UFX.random(-1, 1), UFX.random(5, 10), UFX.random(100)]
+        }
+    },
+    think: function (dt) {
+        this.linet += dt
+    },
+    draw: function () {
+        context.strokeStyle = "gray"
+        for (var j = 0 ; j < this.nlines ; ++j) {
+            var line = this.lines[j]
+            context.save()
+            context.translate(line[0] * this.linet * this.size, line[1] * this.linet * this.size)
+            context.rotate(line[2] * this.linet + line[3])
+            context.beginPath()
+            context.moveTo(0, this.size / 5)
+            context.lineTo(0, -this.size / 5)
+            context.stroke()
+            context.restore()
+        }
+    }
+}
+
 var IsDart = {
     init: function () {
         this.t = 0
@@ -200,4 +230,16 @@ function Rubble(px, py) {
 Rubble.prototype = UFX.Thing()
                       .addcomp(WorldBound)
                       .addcomp(FadesOutward, 40, 60, 0, "brown")
+
+function Shatter(px, py, size) {
+    this.x = px
+    this.y = py
+    this.size = size
+    this.alive = true
+    this.think(0)
+}
+Shatter.prototype = UFX.Thing()
+                      .addcomp(WorldBound)
+                      .addcomp(FadesAway, 0.5)
+                      .addcomp(ExpandingLines)
 
