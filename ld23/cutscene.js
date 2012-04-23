@@ -15,7 +15,7 @@ tip[0] = [
 ]
 
 story[1] = [
-    "Zupe wanted to protect Tonide, of course, but it was also great fun! She soon discovered clever ways to help her ward off the invaders."
+    "Zupe wanted to protect Tondie, of course, but it was also great fun! She soon discovered clever ways to help her ward off the invaders."
 ]
 tip[1] = [
     "Structure unlocked: Tower. Place a tower to reach new heights!"
