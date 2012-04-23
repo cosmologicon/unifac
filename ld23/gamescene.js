@@ -14,10 +14,10 @@ GameScene.start = function () {
         this.ptexture.addColorStop(a + 0.18, "green")
         this.ptexture.addColorStop(a + 0.19, "black")
     }
+    this.ptexture.addColorStop(1, "green")
     this.stexture = context.createRadialGradient(0, 0.5, 0, 0, 0.5, 1.5)
     this.stexture.addColorStop(0, "rgba(0,0,0,0)")
     this.stexture.addColorStop(1, "rgba(0,0,0,1)")
-
 
 
     var stars = this.stars = []
@@ -36,6 +36,7 @@ GameScene.start = function () {
     structures = []
     gamestate.setworldsize(450)
 
+/*
     gamestate.setworldsize(1200)
     gamestate.level = 8
     for (var j = 5 ; j < 24 ; j += 4) {
@@ -44,7 +45,7 @@ GameScene.start = function () {
         gamestate.addstructure(s, j)
     }
     monsters.push(Overlord)
-  
+*/
 
 }
 
@@ -85,6 +86,10 @@ GameScene.think = function (dt) {
     if (nkeys["8"]) build("buildbubbler")
     if (nkeys["9"]) build("buildsilo")
     if (nkeys["0"]) gamestate.removestructure()
+
+    if (nkeys.esc) {
+        UFX.scene.push(PauseScene)
+    }
 
 
     if (gamestate.level === 0) {
@@ -283,6 +288,7 @@ GameScene.drawstatus = function () {
     }
     puttext("health: " + Math.floor(gamestate.hp) + "/100")
     puttext("bank: $" + gamestate.bank)
+    puttext(UFX.ticker.getfpsstr())
     if (gamestate.unlocked.shock) {
         var f = you.shockfrac()
         var x0 = settings.sx - 10, y0 = 90
@@ -326,7 +332,7 @@ GameScene.draw = function () {
     this.drawstatus()
 
 //    document.title = UFX.ticker.getfpsstr()
-    document.title = [Overlord.x, Overlord.y, Overlord.vy, Overlord.ymax]
+//    document.title = [Overlord.x, Overlord.y, Overlord.vy, Overlord.ymax]
 }
 
 
@@ -424,4 +430,28 @@ GameOverScene.drawstatus = function () {
     GameScene.drawstatus.call(this)
     context.restore()
 }
+
+PauseScene = Object.create(UFX.scene.Scene)
+
+PauseScene.think = function (dt) {
+    UFX.key.events().forEach(function (event) {
+        if (event.type === "down" && event.name === "esc") {
+            UFX.scene.pop()
+        }
+    })
+}
+PauseScene.draw = function () {
+    context.fillStyle = "gray"
+    context.fillRect(0, 0, settings.sx, settings.sy)
+    context.fillStyle = "black"
+    context.font = "40px Viga"
+    context.textAlign = "center"
+    context.textBaseline = "middle"
+    context.fillText("Esc to resume", settings.sx/2, settings.sy/2)
+}
+
+
+
+
+
 
