@@ -415,7 +415,7 @@ Fly.prototype = UFX.Thing()
                     .addcomp(DrawFly)
                     .addcomp(Drifts)
                     .addcomp(HasHealth, 1)
-                    .addcomp(Clonkable, 45, 45)
+                    .addcomp(Clonkable, 15, 15)
                     .addcomp(CarriesReward, 10)
                     .addcomp(Shatters)
 function FastFly(x, y) {
