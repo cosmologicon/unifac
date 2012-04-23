@@ -327,6 +327,7 @@ function advancelevel() {
         gamestate.unlocked.shock = 10
         gamestate.unlocked.jumps = 10
         gamestate.unlocked.upgradestruct = 11
+        monsters.push(Overlord)
     } else if (gamestate.level === 9) {
         gamestate.shocklevel = 12
     }
