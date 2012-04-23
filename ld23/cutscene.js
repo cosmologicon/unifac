@@ -120,7 +120,7 @@ CutScene.start = function () {
 CutScene.think = function (dt) {
     var that = this
     UFX.key.events().forEach(function (event) {
-        if (event.type === "down" && (event.name === "enter" || event.name === "space")) {
+        if (event.type === "down" && (event.name === "enter" || event.name === "space" || event.name === "down" || event.name === "S")) {
             that.storyj += 1
             if (that.story[that.storyj]) {
                 CutSceneText.reset(that.story[that.storyj])
@@ -134,6 +134,9 @@ CutScene.think = function (dt) {
                     UFX.scene.pop()
                 }
             }
+        }
+        if (event.type === "down" && event.name === "esc") {
+            UFX.scene.pop()
         }
     })
     this.t += dt
