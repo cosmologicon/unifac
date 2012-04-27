@@ -63,12 +63,14 @@ for (var sname in skelspecs) {
 UFX.resource.onload = function () {
     UFX.ticker.register(think, null, {maxups: 60})
 }
-UFX.resource.base = "skeleton"
+var imagelist = {}
 for (var sname in skeletons) {
     for (var partname in skeletons[sname].partmap) {
-        UFX.resource.load({ partname: partname + ".png" })
+        imagelist[partname] = partname + ".png"
     }
 }
+UFX.resource.base = "skeleton"
+UFX.resource.load(imagelist)
 UFX.key.init()
 UFX.key.watchlist = "comma period".split(" ")
 UFX.mouse.init(canvas)
@@ -77,7 +79,12 @@ UFX.mouse.capture.wheel = true
 
 var zoom = 0.5, x0 = 0, y0 = 0
 var dragx0 = 0, dragy0 = 0  // where x0 and y0 were when we started dragging
+var current = {
+    skelname: "mortimer",
+}
 function think(dt) {
+    // HANDLE MOUSE AND KEYBOARD CONTROLS
+    
     UFX.key.events().forEach(function (event) {
         // zoom in/out with comma/period
         if (event.type === "up" && event.name === "comma") zoom /= 1.2
@@ -100,12 +107,11 @@ function think(dt) {
     context.translate(sx/2, sy/2)
     context.scale(zoom, zoom)
     context.translate(-x0, -y0)
-    // Draw the background grid
+
+    // DRAW BACKGROUND GRID
     var xmin = x0 - sx/2 / zoom, xmax = x0 + sx/2 / zoom
     var ymin = y0 - sx/2 / zoom, ymax = y0 + sy/2 / zoom
     var majorstep = Math.pow(10, Math.floor(Math.log(sx / zoom / 5) / Math.log(10)))
-
-    
     function drawline(x0, y0, x1, y1, color) {
         context.beginPath()
         context.moveTo(x0, y0)
@@ -121,6 +127,9 @@ function think(dt) {
     drawline(xmin, 0, xmax, 0, "#AFA")
     drawline(0, ymin, 0, ymax, "#AFA")
 
+    // DRAW CHARACTER
+    var skeleton = skeletons[current.skelname]
+    skeleton.draw()
 
 
     context.restore()

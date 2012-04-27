@@ -58,17 +58,19 @@ Skeleton.prototype = {
         var layer = this.partmap[nodename][1]
         var parent = this.addpartfromspec(parentname)
         var part = this.parts[nodename] = {
+            name: nodename,
             parent: parent,
             layer: layer,
             children: []
         }
-        parent.children.push(part[nodename])
+        parent.children.push(part)
         parent.children.sort(function (p1, p2) { return p1.layer - p2.layer })
         return part
     },
     buildtree: function () {
         this.parts = {
             root: {
+                name: "root",
                 parent: null,
                 layer: 0,
                 children: [],
@@ -104,6 +106,22 @@ Skeleton.prototype = {
             defaultpose: this.defaultpose,
             animations: animations,
         }
+    },
+    
+    
+    // draw a part and all its children
+    drawpart: function (part) {
+        if (part.name in UFX.resource.images) {
+            context.drawImage(UFX.resource.images[part.name], 0, 0)
+        }
+        var dpart = this.drawpart
+        for (var j = 0 ; j < part.children.length ; ++j) {
+            this.drawpart(part.children[j])
+        }
+    },
+    // draw
+    draw: function () {
+        this.drawpart(this.parts.root)
     },
 }
 
