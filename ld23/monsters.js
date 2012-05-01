@@ -141,33 +141,9 @@ var DrawGnat = {
     },
     draw: function () {
         var S = 20 * Math.sin(this.t * 2), C = 20 * Math.cos(this.t * 2)
-        context.beginPath()
-        context.moveTo(S, C)
-        context.lineTo(-S, -C)
-        context.moveTo(S, -C)
-        context.lineTo(-S, C)
-        context.strokeStyle = "black"
-        context.lineWidth = 1
-        context.stroke()
-
-        context.lineWidth = 0.6
-        context.beginPath()
-        context.moveTo(0, 16)
-        context.lineTo(-10, 0)
-        context.lineTo(0, -16)
-        context.lineTo(10, 0)
-        context.closePath()
-        context.fillStyle = "gray"
-        context.fill()
-
-        context.moveTo(0, 16)
-        context.lineTo(0, -16)
-        context.moveTo(10, 0)
-        context.lineTo(-10, 0)
-        context.stroke()
-        context.strokeStyle = "black"
-        context.stroke()
-        
+        UFX.draw("b m", S, C, "l", -S, -C, "m", S, -C, "l", -S, C, "ss black lw 1 s")
+        UFX.draw("[ m 0 16 l -10 0 l 0 -16 l 10 0 ] lw 1.6 fs gray f")
+        UFX.draw("b m 0 16 l 0 -16 m 10 0 l -10 0 ss black s")
     },
 
 }
@@ -184,34 +160,11 @@ var DrawFly = {
         var r0 = 12 + 10 * Math.sin(this.t * 2)
         var r1 = 24 - r0
         var s3 = 0.83
-        context.lineWidth = 0.6
-        context.strokeStyle = "black"
-
-        context.beginPath()
-        context.moveTo(0, r0)
-        context.lineTo(s3*r1, 0.5*r1)
-        context.lineTo(s3*r0, -0.5*r0)
-        context.lineTo(0, -r1)
-        context.lineTo(-s3*r0, -0.5*r0)
-        context.lineTo(-s3*r1, 0.5*r1)
-        context.closePath()
-
-        context.fillStyle = "white"
-        context.fill()
-        context.stroke()
-
-        context.beginPath()
-        context.moveTo(0, r1)
-        context.lineTo(s3*r0, 0.5*r0)
-        context.lineTo(s3*r1, -0.5*r1)
-        context.lineTo(0, -r0)
-        context.lineTo(-s3*r1, -0.5*r1)
-        context.lineTo(-s3*r0, 0.5*r0)
-        context.closePath()
-
-        context.fillStyle = "gray"
-        context.fill()
-        context.stroke()
+        
+        UFX.draw("( m", 0, r0, "l", s3*r1, 0.5*r1, "l", s3*r0, -0.5*r0, "l", 0, -r1,
+                 "l", -s3*r0, -0.5*r0, "l", -s3*r1, 0.5*r1, ") fs white f lw 0.6 ss black s")
+        UFX.draw("( m", 0, r1, "l", s3*r0, 0.5*r0, "l", s3*r1, -0.5*r1, "l", 0, -r0,
+                 "l", -s3*r1, -0.5*r1, "l", -s3*r0, 0.5*r0, ") fs gray f lw 0.6 ss black s")
     },
 
 }
@@ -224,42 +177,13 @@ var DrawMite = {
         this.t += dt
     },
     draw: function () {
-        context.save()
-        context.rotate(this.t * 1.4)
-        context.lineWidth = 1
-        context.strokeStyle = "black"
-        context.beginPath()
-        context.moveTo(0, 12)
-        context.lineTo(0, 18)
-        context.moveTo(0, -12)
-        context.lineTo(0, -18)
-        context.stroke()
-
-        context.lineWidth = 4
-        context.beginPath()
-        context.arc(0, 0, 10, 0, tau)
-        context.stroke()
-        context.lineWidth = 2
-        context.strokeStyle = "gray"
-        context.stroke()
-        context.restore()
-        
-        context.rotate(0.5 * Math.sin(this.t))
-        context.lineWidth = 1
-        context.strokeStyle = "black"
-        context.beginPath()
-        context.moveTo(0, 20)
-        context.lineTo(0, -20)
-        context.stroke()
-        context.beginPath()
-        context.fillStyle = "black"
-        context.arc(0, 0, 6, 0, tau)
-        context.fill()
-        context.beginPath()
-        context.fillStyle = "#CCC"
-        context.arc(0, 0, 5, 0, tau)
-        context.fill()
-        
+        UFX.draw("[ r", this.t * 1.4,
+                 "b m 0 12 l 0 18 m 0 -12 l 0 -18 lw 1 ss black s",
+                 "b o 0 0 10 lw 4 s lw 2 ss gray s ]",
+                 "r", 0.5*Math.sin(this.t),
+                 "b m 0 20 l 0 -20 lw 1 ss black s",
+                 "b o 0 0 6 fs black f",
+                 "b o 0 0 5 fs #CCC f")
     },
 
 }

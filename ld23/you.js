@@ -52,50 +52,21 @@ var CanShock = {
 }
 
 
-function drawantenna() {
-    context.lineCap = "round"
-    context.strokeStyle = "green"
-    context.lineWidth = 1.5
-    context.beginPath()
-    context.moveTo(-7, 4)
-    context.quadraticCurveTo(-14, 16, 2, 22)
-    context.stroke()
-}
 function drawhead() {
-    drawantenna()
-
-    context.beginPath()
-    context.arc(0, 0, 12, 0, tau)
-    context.fillStyle = "#AA0"
-    context.fill()
-    context.strokeStyle = "#FF7"
-    context.stroke()
-    context.strokeStyle = "black"
-    context.lineWidth = 2
-    context.beginPath()
-    context.moveTo(4, -4)
-    context.lineTo(4, 4)
-    context.stroke()
-    context.beginPath()
-    context.moveTo(8, -4)
-    context.lineTo(8, 4)
-    context.stroke()
-
-    context.rotate(0.4)
-    drawantenna()
+    var astring = "lc round ss green lw 2.5 b m -7 4 q -14 16 2 22 s"
+    // Back antenna
+    UFX.draw(astring)
+    // Head
+    UFX.draw("b o 0 0 12 fs #AA0 f ss #FF7 lw 1 s")
+    // eyes
+    UFX.draw("lc round ss black lw 2 b m 4 -4 l 4 4 s b m 8 -4 l 8 4 s")
+    // front antenna
+    UFX.draw("r 0.4", astring)
 }
 
 function drawbody() {
-    var ps = [[-4, -8], [-6, -16], [-12, -24], [-4, -28], [4, -28], [12, -24], [6, -16], [4, -8]]
-    context.lineWidth = 1
-    context.beginPath()
-    context.moveTo(0, -8)
-    ps.forEach(function (p) { context.lineTo(p[0], p[1]) })
-    context.closePath()
-    context.fillStyle = "#F70"
-    context.fill()
-    context.strokeStyle = "#FA7"
-    context.stroke()
+    UFX.draw("( m 0 -8 l -4 -8 l -6 -16 l -12 -24 l -4 -28 l 4 -28 l 12 -24 l 6 -16 l 4 -8 )",
+             "fs #F70 f lw 1 ss #FA7 s") 
 }
 
 

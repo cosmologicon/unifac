@@ -75,6 +75,7 @@ td {
 <script src="../UFX/src/mouse.js"></script>
 <script src="../UFX/src/key.js"></script>
 <script src="../UFX/src/Thing.js"></script>
+<script src="../UFX/src/draw.js"></script>
 <script src="../UFX/src/random.js"></script>
 
 <!-- game code -->
@@ -151,6 +152,7 @@ UFX.key.init()
 UFX.key.qup = false
 UFX.key.qdown = true
 UFX.key.watchlist = "up down left right W A S D comma key#188 O E space enter esc shift 1 2 3 4 5 6 7 8 9 0 backspace F7 F8".split(" ")
+UFX.draw.setcontext(context)
 UFX.scene.init()
 UFX.scene.push(GameScene)
 if (settings.showcutscenes) {

@@ -219,42 +219,15 @@ GameScene.drawstars = function () {
 
 GameScene.drawworld = function () {
     if (gamestate.worldsize < 1) return
+    context.save()
     // Draw world
-    context.save()
     var s = gamestate.worldr + 50 / Math.max(gamestate.worldr, 15)
-    context.scale(s, s)
-    context.beginPath()
-    context.arc(0, 0, 1, 0, tau)
-    context.fillStyle = this.ptexture
-    context.fill()
+    UFX.draw("z", s, s, "b o 0 0 1 fs", this.ptexture, "f")
     // draw the eyes
-    context.save()
-    context.lineWidth = 0.03
-    context.scale(1, 2)
-    context.fillStyle = "black"
-    context.beginPath()
-    context.arc(0.4, 0.1, 0.18, 0, tau)
-    context.fill()
-    context.beginPath()
-    context.arc(-0.4, 0.1, 0.18, 0, tau)
-    context.fill()
-    context.restore()
-    context.fillStyle = "white"
-    context.beginPath()
-    context.arc(0.35, 0.3, 0.05, 0, tau)
-    context.fill()
-    context.beginPath()
-    context.arc(-0.45, 0.3, 0.05, 0, tau)
-    context.fill()
-
+    UFX.draw("[ lw 0.03 z 1 2 fs black b o 0.4 0.1 0.18 f b o -0.4 0.1 0.18 f ]")
+    UFX.draw("fs white b o 0.35 0.3 0.05 f b o -0.45 0.3 0.05 f")
     // draw the shadow
-    context.beginPath()
-    context.arc(0, 0, 1, 0, tau)
-    context.fillStyle = this.stexture
-    context.fill()
-    context.lineWidth = 0.01
-    context.strokeStyle = "black"
-    context.stroke()
+    UFX.draw("b o 0 0 1 fs", this.stexture, "f lw 0.01 ss black s")
     context.restore()
 }
 
