@@ -13,10 +13,15 @@ def initpos():
     global mapx, mapy, mapsx, mapsy, techx, techy, techsx, techsy
     global mode, ftrans
     global zoomx, zoomy, vx0, vy0
+    global winrect, minirect
     mapx, mapy = settings.wx0, settings.wy0
     techx, techy = settings.mx0, settings.my0
     mapsx, mapsy = settings.wsize
     techsx, techsy = settings.msize
+    winrect = pygame.Rect((0, 0, settings.wx, settings.wy))
+    winrect.center = settings.wx0, settings.wy0
+    minirect = pygame.Rect((0, 0, settings.mx, settings.my))
+    minirect.center = settings.mx0, settings.my0
     mode = True  # true for map mode, false for tech mode
     ftrans = 0      # transition fraction
     zoomx, zoomy = 20, 10
@@ -27,6 +32,8 @@ def swapmode():
     if ftrans: return
     mode = not mode
     ftrans = settings.transtime
+    import gamemap
+    gamemap.mode = None
 
 def think(dt):
     global mapx, mapy, mapsx, mapsy, techx, techy, techsx, techsy
