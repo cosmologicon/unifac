@@ -5,8 +5,8 @@ def init():
     global screen, mapwindow, techwindow, minimapwindow
     screen = pygame.display.set_mode(settings.ssize)
     pygame.display.set_caption(settings.gamename)
-    mapwindow = pygame.Surface(settings.wsize)
-    techwindow = pygame.Surface(settings.wsize)
+    mapwindow = pygame.Surface(settings.wsize).convert_alpha()
+    techwindow = pygame.Surface(settings.wsize).convert_alpha()
     initpos()
 
 def initpos():
