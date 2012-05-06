@@ -1,9 +1,9 @@
 import pygame
-import vista, gamemap, tech
+import vista, gamemap, tech, gamestate
 
 class GameScene():
     def __init__(self):
-        pass
+        gamestate.loadlevel()
     
     def think(self, dt, events):
         vista.think(dt)
