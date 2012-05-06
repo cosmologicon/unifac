@@ -6,6 +6,9 @@ msize = mx, my = 144, 144  # mini window size
 wx0, wy0 = sy//2, sy//2    # main gameplay window center
 mx0, my0 = 600, 80         # mini window position
 
+buttonsize = 40
+buttonspace = 2
+
 transtime = 0.5  # transition time
 
 maxfps = 60
