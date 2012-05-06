@@ -85,17 +85,24 @@ def think(dt, events):
 
 def draw():
     vista.mapwindow.fill((100, 0, 0))
-    vista.mapwindow.blit(mapimg(vista.zoomx, vista.zoomy), vista.mappos((0, 0)))
+    p0 = vista.mappos((0, 0))
+    vista.mapwindow.blit(mapimg(vista.zoomx, vista.zoomy), p0)
 
-    # cursor grid coordinates
-    cx, cy = vista.worldpos(pygame.mouse.get_pos())
-    rect = pygame.Rect(0, 0, vista.zoomx + 1, vista.zoomy + 1)
     if mode and mode in gamestate.rbindings:
         tech = gamestate.rbindings[mode]
-        footprint = mechanics.footprints[tech.split()[1]]
+        element, invention = tech.split()
+        size = gamestate.mapx * vista.zoomx, gamestate.mapy * vista.zoomy
+        mask = pygame.transform.scale(gamestate.buildmasks[invention], size)
+        vista.mapwindow.blit(mask, p0)
+
+        # cursor grid coordinates
+        cx, cy = vista.worldpos(pygame.mouse.get_pos())
+        rect = pygame.Rect(0, 0, vista.zoomx + 1, vista.zoomy + 1)
+        footprint = mechanics.footprints[invention]
+        color = (255, 255, 255) if gamestate.canbuild(invention, (cx, cy)) else (255, 0, 0)
         for dx, dy in footprint:
             rect.topleft = vista.mappos((cx+dx, cy+dy))
-            pygame.draw.rect(vista.mapwindow, (255, 255, 255), rect, 1)
+            pygame.draw.rect(vista.mapwindow, color, rect, 1)
 
 
     
