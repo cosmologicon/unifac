@@ -3,7 +3,7 @@
 import pygame
 import vista, gamestate, data, settings
 
-font = None
+font, bfont = None, None
 drag = None
 dragpos = None
 dragz0, dragz = None, None
@@ -58,20 +58,19 @@ def rects():
 def aerects():
     for element, y in rows():
         rect = pygame.Rect(0, 0, 30, 30)
-        rect.midleft = tablex0 + 4 + w * len(gamestate.elements), y
+        rect.midleft = tablex0 + 4 + w * len(gamestate.inventions), y
         yield element, rect
 
 def airects():
     for invention, x in cols():
         rect = pygame.Rect(0, 0, 30, 30)
-        rect.midtop = x, tabley0 + 4 + w * len(gamestate.inventions)
+        rect.midtop = x, tabley0 + 4 + w * len(gamestate.elements)
         yield invention, rect
 
 def think(dt, events):
     global drag, dragpos, dragz, dragz0
     for event in events:
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            print event.pos
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             for elem, rect in aerects():
                 if rect.collidepoint(event.pos):
                     drag = elem
@@ -89,27 +88,40 @@ def think(dt, events):
             elif drag in gamestate.inventions:
                 dragpos = event.pos[0]
                 dragz = min(max(int((dragpos - tablex0) / w + 0.5), 0), len(gamestate.inventions) - 1)
-        if event.type == pygame.MOUSEBUTTONUP:
-            if drag in gamestate.elements:
-                gamestate.elements.remove(drag)
-                gamestate.elements.insert(dragz, drag)
-            elif drag in gamestate.inventions:
-                gamestate.inventions.remove(drag)
-                gamestate.inventions.insert(dragz, drag)
-            drag = None
+        if drag:
+            if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                if drag in gamestate.elements:
+                    gamestate.elements.remove(drag)
+                    gamestate.elements.insert(dragz, drag)
+                elif drag in gamestate.inventions:
+                    gamestate.inventions.remove(drag)
+                    gamestate.inventions.insert(dragz, drag)
+                drag = None
+        else:
+            if event.type == pygame.MOUSEBUTTONUP and 1 <= event.button <= 3:
+                bname = ["LMB", "MMB", "RMB"][event.button - 1]
+                for obj, rect in rects():
+                    if rect.collidepoint(event.pos):
+                        gamestate.bind(obj, bname)
+
 
 
 
 def draw():
-    global font
+    global font, bfont
     if font is None:
         font = pygame.font.Font(data.filename("Gorditas-Regular.ttf"), 20)
+    if bfont is None:
+        bfont = pygame.font.Font(None, 16)
 
     vista.techwindow.fill((0, 20, 0))
 
     for tech, rect in rects():
         vista.techwindow.fill((100, 100, 100), rect)
         pygame.draw.rect(vista.techwindow, (200, 200, 200), rect, 2)
+        if tech in gamestate.bindings:
+            text = bfont.render(gamestate.bindings[tech], True, (255, 255, 255))
+            vista.techwindow.blit(text, rect.move(3, 3))
 
     for element, y in rows():
         text = font.render(element, True, (255, 255, 255))
