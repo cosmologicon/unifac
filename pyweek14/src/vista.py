@@ -1,5 +1,5 @@
 import pygame
-import settings
+import settings, gamestate
 
 def init():
     global screen, mapwindow, techwindow, minimapwindow
@@ -12,12 +12,15 @@ def init():
 def initpos():
     global mapx, mapy, mapsx, mapsy, techx, techy, techsx, techsy
     global mode, ftrans
+    global zoomx, zoomy, vx0, vy0
     mapx, mapy = settings.wx0, settings.wy0
     techx, techy = settings.mx0, settings.my0
     mapsx, mapsy = settings.wsize
     techsx, techsy = settings.msize
     mode = True  # true for map mode, false for tech mode
     ftrans = 0      # transition fraction
+    zoomx, zoomy = 20, 10
+    vx0, vy0 = 10, 20
 
 def swapmode():
     global mode, ftrans
@@ -45,6 +48,16 @@ def think(dt):
         else:
             techx, techy, techsx, techsy = wx, wy, wsx, wsy
             mapx, mapy, mapsx, mapsy = mx, my, msx, msy
+
+
+def worldpos((x, y)):
+    return vx0 + int((x - settings.wx0) / zoomx), vy0 + int((y - settings.wy0) / zoomy)
+
+# coordinates within the map window
+def mappos((x, y)):
+    px = int(settings.wx/2 - zoomx * (gamestate.mapx/2 - x))
+    py = int(settings.wy/2 - zoomy * (gamestate.mapy/2 - y))
+    return px, py
 
 def clear(color = (0, 0, 0)):
     screen.fill(color)

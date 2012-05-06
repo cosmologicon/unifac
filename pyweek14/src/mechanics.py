@@ -1,6 +1,13 @@
 
 elements = ["laser", "freeze", "fire", "plague", "atomic"]
-inventions = ["beam", "monkey", "shark", "corpse"]
+inventions = ["stone", "monkey", "shark", "corpse"]
+
+footprints = {
+    "stone": [(0,0), (0,1), (1,0), (0,-1), (-1,0)],
+    "monkey": [(0,0), (0,1), (1,0), (0,-1), (-1,0)],
+    "shark": [(0,0), (0,1), (1,0), (0,-1), (-1,0)],
+    "corpse": [(0,0), (0,1), (1,0), (0,-1), (-1,0)],
+}
 
 
 
