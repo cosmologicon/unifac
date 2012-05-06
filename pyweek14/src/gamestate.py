@@ -1,5 +1,5 @@
 import pygame
-import mechanics, data
+import mechanics, data, tower
 
 
 def save():
@@ -42,6 +42,20 @@ def canbuild(invention, (x, y)):
         if mask.get_at((px, py))[3]:
             return False
     return True
+
+def build(tech, (x, y)):
+    element, invention = tech.split()
+    if not canbuild(invention, (x, y)):
+        return
+    towers.append(tower.Tower((x, y)))
+    footprint = mechanics.footprints[invention]
+    mask = buildmasks[invention]
+    for dx, dy in footprint:
+        px, py = x+dx, y+dy
+        for mask in buildmasks.values():
+            mask.set_at((px, py), (255, 0, 0, 100))
+    return True
+
 
 def loadlevel():
     global elements, inventions, map0, mapx, mapy, bindings, rbindings, towers

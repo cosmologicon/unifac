@@ -10,11 +10,17 @@ class GameScene():
         for event in events:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
                 vista.swapmode()
+            if event.type == pygame.MOUSEBUTTONUP and vista.minirect.collidepoint(event.pos):
+                vista.swapmode()
+                
         if not vista.ftrans:  # not transitioning
             if vista.mode:
                 gamemap.think(dt, events)
             else:
                 tech.think(dt, events)
+        
+        for tower in gamestate.towers:
+            tower.think(dt)
 
     def draw(self):
         gamemap.draw()

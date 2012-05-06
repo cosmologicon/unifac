@@ -66,9 +66,6 @@ def mapimg(zoomx, zoomy, cache = {}):
     cache[key] = img
     return img
 
-def build(obj):
-    print "building", obj
-
 def think(dt, events):
     global mode
     for event in events:
@@ -80,13 +77,21 @@ def think(dt, events):
         ename = upeventname(event)
         if ename == mode:
             if mode in gamestate.rbindings:
-                build(gamestate.rbindings[mode])
+                pos = vista.worldpos(pygame.mouse.get_pos())
+                gamestate.build(gamestate.rbindings[mode], pos)
             mode = None
 
 def draw():
     vista.mapwindow.fill((100, 0, 0))
     p0 = vista.mappos((0, 0))
     vista.mapwindow.blit(mapimg(vista.zoomx, vista.zoomy), p0)
+
+    for tower in gamestate.towers:
+        tower.draw()
+
+
+    if not vista.mode:
+        return
 
     if mode and mode in gamestate.rbindings:
         tech = gamestate.rbindings[mode]
