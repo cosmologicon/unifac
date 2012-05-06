@@ -19,7 +19,7 @@ def bind(objname, key):
     rbindings = dict((o,k) for k,o in bindings.items())
 
 def loadlevel():
-    global elements, inventions, map0, bindings, rbindings
+    global elements, inventions, map0, mapx, mapy, bindings, rbindings
 
     # available (researched) elements and inventions
     elements = list(mechanics.elements)
@@ -27,6 +27,7 @@ def loadlevel():
     
     # initial map (with nothing built on it)
     map0 = pygame.image.load(data.filename("map-0.png"))
+    mapx, mapy = map0.get_size()
     bindings = {}
     rbindings = {}
 
