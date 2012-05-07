@@ -14,7 +14,10 @@ class Tower(object):
         self.t = 0
 
     def attack(self, who):
-        who.hurt(self.damage)
+        if self.element == "laser":
+            who.hurt(self.damage)
+        elif self.element == "freeze":
+            who.freezetime += 3
         self.chargetimer = 0
 
     def gettarget(self):

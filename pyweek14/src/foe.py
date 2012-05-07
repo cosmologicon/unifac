@@ -17,6 +17,7 @@ class Foe(object):
         self.hp = self.hp0
         self.vx, self.vy = 0, 0
         self.stept = 0
+        self.freezetime = 0
 
     def die(self):
         gamestate.foes.remove(self)
@@ -31,6 +32,8 @@ class Foe(object):
     
     def think(self, dt):
         self.stept += dt * random.uniform(0.8, 1.2)
+        if self.freezetime:
+            self.freezetime = max(self.freezetime - dt, 0)
         tx, ty = self.path[0]
         dx, dy = tx - self.x, ty - self.y
         if dx ** 2 + dy ** 2 < 0.5 ** 2:
@@ -47,12 +50,15 @@ class Foe(object):
             if v > self.v:
                 self.vx /= v
                 self.vy /= v
-        
-        self.x += dt * self.vx
-        self.y += dt * self.vy
+
+        f = 0.25 if self.freezetime else 1        
+        self.x += dt * self.vx * f
+        self.y += dt * self.vy * f
 
     def draw(self):
         px, py = vista.mappos((self.x, self.y))
         h = 8 * abs(3 * self.stept % 1 - 0.5)
+        if self.freezetime:
+            pygame.draw.rect(vista.mapwindow, (0, 0, 255), (px-6, py-12-h, 12, 16))
         pygame.draw.line(vista.mapwindow, self.color, (px, py-h), (px, py-10-h), 5)
 
