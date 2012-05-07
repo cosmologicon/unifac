@@ -89,6 +89,9 @@ def draw():
     for tower in gamestate.towers:
         tower.draw()
 
+    for foe in gamestate.foes:
+        foe.draw()
+
 
     if not vista.mode:
         return
