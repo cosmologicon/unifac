@@ -1,12 +1,13 @@
 # Who's the REAL monster, ya'll?
 
 import pygame, math, random
-import vista, gamestate
+import vista, gamestate, data
 
 class Foe(object):
     v = 8.0
     hp0 = 10
     color = 0, 0, 0
+    anchor = "center"
     
     def __init__(self):
         self.path = [(-3, 29), (7, 31), (14, 30), (16, 25), (14, 19), (7, 18), (2, 14), (3, 8),
@@ -18,6 +19,9 @@ class Foe(object):
         self.vx, self.vy = 0, 0
         self.stept = 0
         self.freezetime = 0
+        self.imgname = "foe-%s" % random.choice((0,1,2,3))
+        if random.random() < 0.5:
+            self.imgname += "-R"
 
     def die(self):
         gamestate.foes.remove(self)
@@ -60,5 +64,6 @@ class Foe(object):
         h = 8 * abs(3 * self.stept % 1 - 0.5)
         if self.freezetime:
             pygame.draw.rect(vista.mapwindow, (0, 0, 255), (px-6, py-12-h, 12, 16))
-        pygame.draw.line(vista.mapwindow, self.color, (px, py-h), (px, py-10-h), 5)
+#        pygame.draw.line(vista.mapwindow, self.color, (px, py-h), (px, py-10-h), 5)
+        data.draw(vista.mapwindow, self.imgname, (px, py-h), self.anchor)
 
