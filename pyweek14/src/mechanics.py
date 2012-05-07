@@ -9,11 +9,14 @@ footprints = {
     "corpse": [(0,0), (0,1), (1,0), (0,-1), (-1,0)],
 }
 
+
+# map colors
 okterrain = {
     (0, 0, 255): "shark".split(),  # water
     (0, 255, 0): "monkey stone".split(), # grass
     (128, 128, 128): "monkey stone corpse".split(), # graveyard
 }
+homecolor = 255, 255, 255
 
 
 

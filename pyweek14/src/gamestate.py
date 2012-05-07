@@ -19,7 +19,7 @@ def bind(objname, key):
     rbindings = dict((o,k) for k,o in bindings.items())
 
 def makebuildmasks():
-    global buildmasks
+    global buildmasks, homex, homey
     buildmasks = dict((invention, pygame.Surface((mapx, mapy)).convert_alpha())
                     for invention in inventions)
     for mask in buildmasks.values():    
@@ -28,6 +28,8 @@ def makebuildmasks():
         for y in range(mapy):
             c = map0.get_at((x, y))
             c = c[0], c[1], c[2]
+            if c == mechanics.homecolor:
+                homex, homey = x, y
             if c not in mechanics.okterrain: continue
             for inv in mechanics.okterrain[c]:
                 buildmasks[inv].set_at((x, y), (255, 0, 0, 0))
@@ -47,7 +49,7 @@ def build(tech, (x, y)):
     element, invention = tech.split()
     if not canbuild(invention, (x, y)):
         return
-    towers.append(tower.Tower((x, y)))
+    towers.append(tower.Tower(tech, (x, y)))
     footprint = mechanics.footprints[invention]
     mask = buildmasks[invention]
     for dx, dy in footprint:
@@ -58,7 +60,8 @@ def build(tech, (x, y)):
 
 
 def loadlevel():
-    global elements, inventions, map0, mapx, mapy, bindings, rbindings, towers
+    global elements, inventions, map0, mapx, mapy, bindings, rbindings
+    global towers, foes
 
     # available (researched) elements and inventions
     elements = list(mechanics.elements)
@@ -69,6 +72,7 @@ def loadlevel():
     mapx, mapy = map0.get_size()
     bindings, rbindings = {}, {}
     towers = []
+    foes = []
     
     makebuildmasks()
 

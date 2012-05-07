@@ -1,5 +1,5 @@
-import pygame
-import vista, gamemap, tech, gamestate
+import pygame, random
+import vista, gamemap, tech, gamestate, foe
 
 class GameScene():
     def __init__(self):
@@ -18,9 +18,14 @@ class GameScene():
                 gamemap.think(dt, events)
             else:
                 tech.think(dt, events)
+
+        if random.random() < dt * 1.:
+            gamestate.foes.append(foe.Foe())
         
-        for tower in gamestate.towers:
-            tower.think(dt)
+        for t in gamestate.towers:
+            t.think(dt)
+        for f in gamestate.foes:
+            f.think(dt)
 
     def draw(self):
         gamemap.draw()
