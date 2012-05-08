@@ -15,7 +15,9 @@ class Tower(object):
         self.range = 3
         self.t = 0
         self.cfilter = mechanics.ecolors[self.element]
-        self.imgname = "tower"
+        self.imgname = self.invention
+        if self.invention == "stone": self.imgname = "tower"
+        self.h = { "stone": 40, "monkey": 30, "shark": 30, "corpse": 30 }[self.invention]
 
     def attack(self, who):
         if self.element == "laser":
@@ -23,7 +25,7 @@ class Tower(object):
         elif self.element == "freeze":
             who.freezetime += 3
         self.chargetimer = 0
-        beam = effect.Beam((self.x, self.y, 40), (who.x, who.y, 10), self.cfilter)
+        beam = effect.Beam((self.x, self.y, self.h), (who.x, who.y, 20), self.cfilter)
         gamestate.effects.append(beam)
 
     def gettarget(self):
@@ -60,8 +62,19 @@ class Tower(object):
         px, py = vista.mappos((self.x, self.y))
         if self.invention == "stone":
             self.drawglow((px, py-39))
-        img = data.img(self.imgname, cfilter=self.cfilter)
-        data.draw(vista.mapwindow, img, (px, py), self.anchor)
+            img = data.img(self.imgname, cfilter=self.cfilter)
+            data.draw(vista.mapwindow, img, (px, py), self.anchor)
+        elif self.invention == "monkey":
+            data.draw(vista.mapwindow, data.img("shadow"), (px, py), "center")
+            h = 3 * math.sin(self.t * 7)
+            alpha = (3+h)*15
+            py -= 30 + h
+            img = data.img("wing", alpha=alpha, cfilter=self.cfilter)
+            data.draw(vista.mapwindow, img, (px, py-3), self.anchor)
+            img = data.img("wing", flip=True, alpha=alpha, cfilter=self.cfilter)
+            data.draw(vista.mapwindow, img, (px, py-3), self.anchor)
+            img = data.img(self.imgname, cfilter=self.cfilter)
+            data.draw(vista.mapwindow, img, (px, py), self.anchor)
 
 
 
