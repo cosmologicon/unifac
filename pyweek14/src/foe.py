@@ -1,7 +1,7 @@
 # Who's the REAL monster, ya'll?
 
 import pygame, math, random
-import vista, gamestate, data
+import vista, gamestate, data, effect
 
 class Foe(object):
     v = 8.0
@@ -20,9 +20,11 @@ class Foe(object):
         self.stept = 0
         self.freezetime = 0
         self.imgname = "foe-%s" % random.choice((0,1,2,3))
+        self.imgflip = random.choice((True,False))
 
     def die(self):
         gamestate.foes.remove(self)
+        gamestate.effects.append(effect.Smoke((self.x, self.y)))
 
     def hurt(self, dhp):
         self.hp -= dhp
@@ -59,10 +61,16 @@ class Foe(object):
 
     def draw(self):
         px, py = vista.mappos((self.x, self.y))
-        h = 8 * abs(3 * self.stept % 1 - 0.5)
+        h = 8 * abs(2.5 * self.stept % 1 - 0.5)
+        alpha = 20 * ((2.5 * self.stept + 0.5) % 1 - 0.5)
+        flip = self.imgflip
+        if flip:
+            alpha = -alpha
+        if self.vx < 0:
+            flip = not flip
         if self.freezetime:
             pygame.draw.rect(vista.mapwindow, (0, 0, 255), (px-6, py-12-h, 12, 16))
-        img = data.img(self.imgname)
+        img = data.img(self.imgname, flip=flip, alpha=alpha)
         data.draw(vista.mapwindow, img, (px, py-h), self.anchor)
 
 
