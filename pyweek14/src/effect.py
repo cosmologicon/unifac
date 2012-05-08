@@ -19,9 +19,7 @@ class Beam(object):
         
     def draw(self):
         px0, py0 = vista.mappos((self.x0, self.y0))
-        py0 -= self.z0
         px1, py1 = vista.mappos((self.x1, self.y1))
-        py1 -= self.z1
-        pygame.draw.line(vista.mapwindow, self.color, (px0, py0), (px1, py1))
+        pygame.draw.line(vista.mapwindow, self.color, (px0, py0-self.z0), (px1, py1-self.z1))
 
 
