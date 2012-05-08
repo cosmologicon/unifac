@@ -7,17 +7,24 @@ def filename(name):
 
 imgcache = {}
 
-def draw(surf, imgname, pos, anchor="center"):
-    if imgname not in imgcache:
-        flip = imgname.endswith("-R")
-        iname = imgname[:-2] if flip else imgname
-        img = pygame.image.load(filename(iname + ".png")).convert_alpha()
+def img(imgname, flip=False, cfilter=None):
+    key = imgname, flip, cfilter
+    if key not in imgcache:
+        i = pygame.image.load(filename(imgname + ".png")).convert_alpha()
         if flip:
-            img = pygame.transform.flip(img, True, False)
-        imgcache[imgname] = img
-    img = imgcache[imgname]
-    rect = img.get_rect()
+            i = pygame.transform.flip(i, True, False)
+        if cfilter:
+            pix = pygame.surfarray.pixels3d(i)
+            for c in (0,1,2):
+                print cfilter[c]
+                pix[:,:,c] = pix[:,:,c] * (cfilter[c] / 255.)
+        imgcache[key] = i
+    return imgcache[key]
+
+
+def draw(surf, i, pos, anchor="center"):
+    rect = i.get_rect()
     setattr(rect, anchor, pos)
-    surf.blit(img, rect)
+    surf.blit(i, rect)
 
 
