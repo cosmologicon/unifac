@@ -92,6 +92,9 @@ def draw():
     for foe in gamestate.foes:
         foe.draw()
 
+    for effect in gamestate.effects:
+        effect.draw()
+
 
     if not vista.mode:
         return

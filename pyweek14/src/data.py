@@ -16,7 +16,6 @@ def img(imgname, flip=False, cfilter=None):
         if cfilter:
             pix = pygame.surfarray.pixels3d(i)
             for c in (0,1,2):
-                print cfilter[c]
                 pix[:,:,c] = pix[:,:,c] * (cfilter[c] / 255.)
         imgcache[key] = i
     return imgcache[key]
