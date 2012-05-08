@@ -86,15 +86,10 @@ def draw():
     p0 = vista.mappos((0, 0))
     vista.mapwindow.blit(mapimg(vista.zoomx, vista.zoomy), p0)
 
-    for tower in gamestate.towers:
-        tower.draw()
-
-    for foe in gamestate.foes:
-        foe.draw()
-
-    for effect in gamestate.effects:
-        effect.draw()
-
+    entities = gamestate.towers + gamestate.foes + gamestate.effects
+    entities.sort(key = lambda e: e.y)
+    for e in entities:
+        e.draw()
 
     if not vista.mode:
         return

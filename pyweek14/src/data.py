@@ -8,7 +8,8 @@ def filename(name):
 imgcache = {}
 
 def img(imgname, flip=False, alpha=0, cfilter=None):
-    alpha = int(alpha/5) * 5
+#    alpha = int(alpha/2) * 2
+    alpha = int(alpha)
     key = imgname, flip, cfilter, alpha
     if key not in imgcache:
         i = pygame.image.load(filename(imgname + ".png")).convert_alpha()
@@ -19,7 +20,7 @@ def img(imgname, flip=False, alpha=0, cfilter=None):
         if cfilter:
             pix = pygame.surfarray.pixels3d(i)
             for c in (0,1,2):
-                pix[:,:,c] = pix[:,:,c] * (cfilter[c] / 255.)
+                pix[:,:,c] = pix[:,:,c] * (cfilter[c] / 400.)
         imgcache[key] = i
     return imgcache[key]
 
