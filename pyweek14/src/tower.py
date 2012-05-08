@@ -1,5 +1,5 @@
 import pygame, math
-import vista, foe, gamestate, mechanics, data
+import vista, foe, gamestate, mechanics, data, effect
 
 
 class Tower(object):
@@ -23,6 +23,8 @@ class Tower(object):
         elif self.element == "freeze":
             who.freezetime += 3
         self.chargetimer = 0
+        beam = effect.Beam((self.x, self.y, 40), (who.x, who.y, 10), self.cfilter)
+        gamestate.effects.append(beam)
 
     def gettarget(self):
         if not gamestate.foes: return None
@@ -38,20 +40,28 @@ class Tower(object):
             self.chargetimer = self.chargetime
             target = self.gettarget()
             if target: self.attack(target)
+        
+    def drawglow(self, (px, py)):
+        if self.chargetimer < 0.5:
+            pass
+        elif self.chargetimer < self.chargetime:
+            for j in range(30):
+                theta = j * math.pi / 15
+                r = (73 * theta ** 2 - 22 * self.t) % (12 * self.chargetimer / self.chargetime + theta/2)
+                pos = px + int(r * math.sin(theta)), py + int(r * math.cos(theta))
+                vista.mapwindow.set_at(pos, self.cfilter)
+        else:
+            theta, r = self.t * 4, 8 + 6 * math.sin(2.2 * self.t)
+            s, c = int(r * math.sin(theta)), int(r * math.cos(theta))
+            pygame.draw.line(vista.mapwindow, self.cfilter, (px+s,py+c), (px-s,py-c))
+            pygame.draw.line(vista.mapwindow, self.cfilter, (px+s,py-c), (px-s,py+c))
 
     def draw(self):
         px, py = vista.mappos((self.x, self.y))
+        if self.invention == "stone":
+            self.drawglow((px, py-39))
         img = data.img(self.imgname, cfilter=self.cfilter)
         data.draw(vista.mapwindow, img, (px, py), self.anchor)
-        
 
 
-#        h = 25 * self.chargetimer / self.chargetime
-#        for dtheta in (0, 2*math.pi/3, 4*math.pi/3):
-#            theta = 10 * self.t + dtheta
-#            dx, dy = 7 * math.sin(theta), 4 * math.cos(theta)
-#            vista.mapwindow.set_at((int(px+dx), int(py+dy-h)), (255, 255, 255))
-#        pygame.draw.line(vista.mapwindow, self.color, (px, py), (px, py-25), 5)
-
-    
 

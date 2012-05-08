@@ -26,6 +26,8 @@ class GameScene():
             t.think(dt)
         for f in gamestate.foes:
             f.think(dt)
+        for f in gamestate.effects:
+            f.think(dt)
 
     def draw(self):
         gamemap.draw()
