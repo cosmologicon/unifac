@@ -31,3 +31,31 @@ def draw(surf, i, pos, anchor="center"):
     surf.blit(i, rect)
 
 
+# sound channel 0 : speech
+# sound channels 1+ : sound effects
+
+soundcache = {}
+def initsound():
+    global speechchannel
+    pygame.mixer.set_reserved(0)
+    speechchannel = pygame.mixer.Channel(0)
+
+def playsfx(sname):
+    if sname not in soundcache:
+        soundcache[sname] = pygame.mixer.Sound(filename(sname + ".ogg"))
+    sound = soundcache[sname]
+    pygame.mixer.play(sound)
+
+def playspeech(sname, queue=False):
+    if not queue and speechchannel.get_busy():
+        return
+    if sname not in soundcache:
+        soundcache[sname] = pygame.mixer.Sound(filename(sname + ".ogg"))
+    sound = soundcache[sname]
+    speechchannel.queue(sound)
+
+def playmusic(sname):
+    pygame.mixer.music.load(filename(sname + ".ogg"))
+    pygame.mixer.music.play(-1)
+
+

@@ -1,8 +1,10 @@
 import pygame
-import scene, vista, settings, gamescene, gamestate
+import scene, vista, settings, gamescene, gamestate, data
 
 def main():
+    pygame.mixer.pre_init(11000, -16, 2, 0)
     pygame.init()
+    data.initsound()
     vista.init()
     scene.push(gamescene.GameScene())
     clock = pygame.time.Clock()
