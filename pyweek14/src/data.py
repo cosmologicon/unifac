@@ -1,8 +1,8 @@
 # data loader
 import os.path, pygame
 
-def filename(name):
-    return os.path.join("data", name)
+def filename(*args):
+    return os.path.join("data", *args)
 
 
 imgcache = {}

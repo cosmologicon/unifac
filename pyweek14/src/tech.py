@@ -110,7 +110,7 @@ def think(dt, events):
 def draw():
     global font, bfont
     if font is None:
-        font = pygame.font.Font(data.filename("Gorditas-Regular.ttf"), 20)
+        font = pygame.font.Font(settings.fonts.table, 20)
     if bfont is None:
         bfont = pygame.font.Font(None, 16)
 

@@ -1,3 +1,5 @@
+import data
+
 gamename = "Mad Science TD 101"
 
 ssize = sx, sy = 854, 480  # screen size
@@ -14,6 +16,7 @@ transtime = 0.5  # transition time
 maxfps = 60
 minfps = 10
 
-
+class fonts:
+    table = data.filename("fonts", "Gorditas", "Gorditas-Regular.ttf")
 
 
