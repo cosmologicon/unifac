@@ -1,9 +1,10 @@
 import pygame, random
-import vista, gamemap, tech, gamestate, foe
+import vista, gamemap, tech, gamestate, foe, data
 
 class GameScene():
     def __init__(self):
         gamestate.loadlevel()
+        data.playspeech("lame-monster-party")
     
     def think(self, dt, events):
         vista.think(dt)
