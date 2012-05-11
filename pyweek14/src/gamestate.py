@@ -61,7 +61,7 @@ def build(tech, (x, y)):
 
 def loadlevel():
     global elements, inventions, map0, mapx, mapy, bindings, rbindings
-    global towers, foes, effects
+    global towers, foes, effects, castle
 
     # available (researched) elements and inventions
     elements = list(mechanics.elements)
@@ -76,5 +76,6 @@ def loadlevel():
     effects = []
     
     makebuildmasks()
+    castle = tower.Castle((homex, homey))
 
 

@@ -86,7 +86,7 @@ def draw():
     p0 = vista.mappos((0, 0))
     vista.mapwindow.blit(mapimg(vista.zoomx, vista.zoomy), p0)
 
-    entities = gamestate.towers + gamestate.foes + gamestate.effects
+    entities = gamestate.towers + gamestate.foes + gamestate.effects + [gamestate.castle]
     entities.sort(key = lambda e: e.y)
     for e in entities:
         e.draw()

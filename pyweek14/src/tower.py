@@ -77,4 +77,13 @@ class Tower(object):
             data.draw(vista.mapwindow, img, (px, py), self.anchor)
 
 
+class Castle(object):
+    def __init__(self, (x, y)):
+        self.x, self.y = x + 0.5, y + 0.5
+        self.img = pygame.transform.smoothscale(data.img("castle"), (120, 248))
+
+    def draw(self):
+        px, py = vista.mappos((self.x, self.y))
+        data.draw(vista.mapwindow, self.img, (px, py), "center")
+
 
