@@ -21,5 +21,7 @@ def main():
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 gamestate.save()
                 return
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_F12:
+                pygame.image.save(vista.screen, "screenshot.png")
 
 
