@@ -1,7 +1,7 @@
 # Who's the REAL monster, ya'll?
 
 import pygame, math, random
-import vista, gamestate, data, effect
+import vista, gamestate, data, effect, settings
 
 class Foe(object):
     v = 2.0
@@ -64,8 +64,8 @@ class Foe(object):
             
             v = math.sqrt(self.vx ** 2 + self.vy ** 2)
             if v > self.v:
-                self.vx /= v
-                self.vy /= v
+                self.vx *= self.v / v
+                self.vy *= self.v / v
 
         f = 0.25 if self.freezetime else 1
         self.x += dt * self.vx * f
@@ -91,7 +91,7 @@ class Foe(object):
 
 
 class Villager(Foe):
-    v = 2.0
+    v = 1.0
     dhp = 1
     hp0 = 10
     reward = 2
@@ -100,5 +100,40 @@ class Villager(Foe):
         Foe.__init__(self, path)
         self.imgname = "foe-%s" % random.choice((0,1,2,3))
         self.imgflip = random.choice((True,False))
+
+class Dog(Foe):
+    v = 2.0
+    dhp = 1
+    hp0 = 6
+    reward = 2
+    imgname = "dog"
+
+    def __init__(self, path):
+        Foe.__init__(self, path)
+        if not settings.animals:
+            self.imgname = "foe-%s" % random.choice((0,1,2,3))
+            self.imgflip = random.choice((True,False))
+
+
+class Soldier(Foe):
+    v = 1.0
+    dhp = 2
+    hp0 = 20
+    reward = 4
+    imgname = "soldier"
+    def __init__(self, path):
+        Foe.__init__(self, path)
+        self.imgflip = random.choice((True,False))
+
+class Horseman(Foe):
+    v = 2.5
+    dhp = 2
+    hp0 = 20
+    reward = 6
+    imgname = "horseman"
+    def __init__(self, path):
+        if not settings.animals:
+            Foe.__init__(self, path)
+            self.imgflip = random.choice((True,False))
 
 

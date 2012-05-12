@@ -23,8 +23,14 @@ class GameScene(object):
             else:
                 tech.think(dt, events)
 
-        if random.random() < dt * 1.:
+        if random.random() * 4 < dt:
             gamestate.foes.append(foe.Villager(random.choice(gamestate.paths)))
+        if random.random() * 4 < dt:
+            gamestate.foes.append(foe.Dog(random.choice(gamestate.paths)))
+        if random.random() * 4 < dt:
+            gamestate.foes.append(foe.Soldier(random.choice(gamestate.paths)))
+        if random.random() * 4 < dt:
+            gamestate.foes.append(foe.Horseman(random.choice(gamestate.paths)))
         
         for t in gamestate.towers:
             t.think(dt)

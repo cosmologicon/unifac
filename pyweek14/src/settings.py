@@ -11,6 +11,7 @@ wx0, wy0 = wx//2, wy//2    # main gameplay window center
 mx0, my0 = sx-mx/2, my/2         # mini window position
 doubleview = False   # Need to fix input if this is going to work
 
+animals = True  # whether animal appear (and can be killed) in the game
 
 buttonsize = 60
 buttonspace = 2
