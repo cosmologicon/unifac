@@ -50,7 +50,7 @@ def mapimg(zoomx, zoomy, cache = {}):
         return layer
 
     road = makelayer((yellow,), 80, 20, 80, 20, 10, 0)
-    water = makelayer((blue, black), 0, 0, 0, 0, 80, 10)
+    water = makelayer((blue, black), 0, 0, 0, 0, 140, 10)
     grave = makelayer((gray,), 80, 10, 80, 10, 80, 10)
 
 

@@ -96,7 +96,7 @@ def loadlevel():
     inventions = list(mechanics.inventions)
     
     # initial map (with nothing built on it)
-    map0 = pygame.image.load(data.filename("map-0.png"))
+    map0 = pygame.image.load(data.filename("map-1.png"))
     mapx, mapy = map0.get_size()
     bindings, rbindings = {}, {}
     towers = []
@@ -107,10 +107,21 @@ def loadlevel():
     bank = 100
     sortmode = False
 
+    def parsepath(s):
+        c = map(int, s.split())
+        return zip(c[0::2], c[1::2])
+        
+
     paths = [
-        [(-3, 29), (7, 31), (14, 30), (16, 25), (14, 19), (7, 18), (2, 14), (3, 8),
-                     (9, 3), (14, 4)]
+        parsepath("-5 27 2 28 8 32 11 36 17 38 20 37 24 31 25 28 22 23 18 19 12 21 5 19 1 15 2 9 4 5 7 2 11 0 18 3 17 5 15 8")
     ]
+    
+    paths = [
+        parsepath("-4 26 3 27 6 28 13 29 20 26 24 23 25 20 22 13 19 10"),
+        parsepath("10 44 9 36 7 28 4 20 2 11 6 3 10 1 13 3 15 7"),
+    
+    ]
+    
     
     makebuildmasks()
     castle = tower.Castle((homex, homey))
