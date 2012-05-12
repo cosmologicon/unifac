@@ -1,25 +1,32 @@
 import pygame
 
 elements = ["laser", "freeze", "fire", "plague", "atomic"]
-inventions = ["tower", "monkey", "shark", "corpse"]
+inventions = ["spire", "monkey", "shark", "corpse", "glyph"]
 
 footprints = {
-    "tower": [(-1,-2), (0,-2), (-2,-1), (-1,-1), (0,-1), (1,-1), (-2,0), (-1,0), (0,0), (1,0), (-1,1), (0,1)],
+    "spire": [(-1,-2), (0,-2), (-2,-1), (-1,-1), (0,-1), (1,-1), (-2,0), (-1,0), (0,0), (1,0), (-1,1), (0,1)],
     "monkey": [(0,0), (0,1), (1,0), (0,-1), (-1,0)],
     "shark": [(0,0), (0,1), (1,0), (1, 1)],
     "corpse": [(0,0), (0,1), (0,-1), (0,-2)],
+    "glyph": [(-1,-2), (0,-2), (1,-2),
+     (-2,-1), (-1,-1), (0,-1), (1,-1), (2,-1),
+     (-2, 0), (-1, 0), (0, 0), (1, 0), (2, 0),
+     (-2, 1), (-1, 1), (0, 1), (1, 1), (2, 1),
+              (-1, 2), (0, 2), (1, 2)],
 }
 footoffs = {
-    "tower": (0, 0),
+    "spire": (0, 0),
     "monkey": (0.5, 0.5),
     "shark": (1, 1),
     "corpse": (0.5, 0),
+    "glyph": (0.5, 0.5),
 }
 ranges = {
-    "tower": 7,
+    "spire": 7,
     "monkey": 4,
     "shark": 5,
     "corpse": 4,
+    "glyph": 2.5,
 }
 ecolors = {
     "laser": (255, 255, 0),
@@ -45,8 +52,9 @@ sortcost = 50
 # map colors
 okterrain = {
     (0, 0, 255): "shark".split(),  # water
-    (0, 255, 0): "monkey tower".split(), # grass
-    (128, 128, 128): "monkey tower corpse".split(), # graveyard
+    (0, 255, 0): "monkey spire glyph".split(), # grass
+    (128, 128, 128): "monkey spire corpse glyph".split(), # graveyard
+    (255, 255, 0): "glyph".split(), # road
 }
 homecolor = 255, 255, 255
 
