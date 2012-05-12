@@ -22,6 +22,7 @@ class Foe(object):
         self.vx, self.vy = 0, 0
         self.stept = 0
         self.freezetime = 0
+        self.flametime = 0
 
     def die(self):
         gamestate.foes.remove(self)
@@ -41,9 +42,16 @@ class Foe(object):
         self.stept += dt * random.uniform(0.8, 1.2)
         if self.freezetime:
             self.freezetime = max(self.freezetime - dt, 0)
+        if self.flametime:
+            self.flametime = max(self.flametime - dt, 0)
         tx, ty = self.path[0]
         dx, dy = tx - self.x, ty - self.y
-        if dx ** 2 + dy ** 2 < 0.5 ** 2:
+        if self.flametime:
+            if random.uniform(0, 0.3) < dt:
+                theta = random.uniform(0, 2*math.pi)
+                self.vx = 2 * self.v * math.sin(theta)
+                self.vy = 2 * self.v * math.cos(theta)
+        elif dx ** 2 + dy ** 2 < 0.5 ** 2:
             self.path.pop(0)
             if not self.path:
                 self.arrive()
@@ -58,7 +66,7 @@ class Foe(object):
                 self.vx /= v
                 self.vy /= v
 
-        f = 0.25 if self.freezetime else 1        
+        f = 0.25 if self.freezetime else 1
         self.x += dt * self.vx * f
         self.y += dt * self.vy * f
 
@@ -73,6 +81,10 @@ class Foe(object):
             flip = not flip
         if self.freezetime:
             pygame.draw.rect(vista.mapwindow, (0, 0, 255), (px-6, py-12-h, 12, 16))
+        if self.flametime:
+            flip = random.choice([True, False])
+            alpha = random.uniform(-10, 10)
+            data.draw(vista.mapwindow, data.img("flame", flip=flip, alpha=alpha), (px, py-h), self.anchor)
         img = data.img(self.imgname, flip=flip, alpha=alpha)
         data.draw(vista.mapwindow, img, (px, py-h), self.anchor)
 
