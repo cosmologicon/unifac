@@ -41,6 +41,7 @@ class Title(object):
 
 class Beam(object):
     lifetime = 0.25
+    layer = 0
     def __init__(self, (x0, y0, z0), (x1, y1, z1), color):
         self.x = (x0 + x1) / 2
         self.y = (y0 + y1) / 2
@@ -63,6 +64,7 @@ class Beam(object):
 class Smoke(object):
     lifetime = 1.
     vz = 40
+    layer = 0
     def __init__(self, (x, y)):
         self.x, self.y = x, y
         self.t = 0

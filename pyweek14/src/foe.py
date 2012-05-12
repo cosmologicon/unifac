@@ -12,6 +12,7 @@ class Foe(object):
     imgname = None
     imgflip = False
     reward = 2
+    layer = 0
     
     def __init__(self, path):
         self.path = list(path)
