@@ -5,6 +5,7 @@ import vista, foe, gamestate, mechanics, data, effect
 class Tower(object):
     color = 50, 125, 200
     anchor = "center"
+    layer = 0
     def __init__(self, tech, (x, y)):
         self.element, self.invention = tech.split()
         dx, dy = mechanics.footoffs[self.invention]
@@ -20,6 +21,8 @@ class Tower(object):
         self.h = { "spire": 40, "monkey": 30, "shark": 0, "corpse": 40, "glyph": 0 }[self.invention]
         
         self.vh = 30  # you know, for sharks
+        self.x0, self.y0 = self.x, self.y  # you know, for monkeys
+        if self.invention == "glyph": self.layer = -1
 
     def attack(self, who):
         if self.element == "laser":
@@ -54,6 +57,10 @@ class Tower(object):
         if self.invention == "shark" and self.h > 0:
             self.h += self.vh * dt
             self.vh -= 160 * dt
+
+        if self.invention == "monkey":
+            r, theta = 2 * math.sin(self.t), 0.2 * self.t + 2 * math.sin(self.t)
+            self.x, self.y = self.x0 + r * math.sin(theta), self.y0 + r * math.cos(theta)
 
         if self.chargetimer >= self.chargetime:
             if self.invention == "shark":
@@ -131,6 +138,7 @@ class Tower(object):
 
 
 class Castle(object):
+    layer = 0
     def __init__(self, (x, y)):
         self.x, self.y = x + 0.5, y + 0.5
         self.img = pygame.transform.smoothscale(data.img("castle"), (120, 248))
