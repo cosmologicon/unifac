@@ -1,7 +1,7 @@
 # the tech tree
 
 import pygame
-import vista, gamestate, data, settings
+import vista, gamestate, data, settings, mechanics
 
 font, bfont = None, None
 drag = None
@@ -70,7 +70,7 @@ def airects():
 def think(dt, events):
     global drag, dragpos, dragz, dragz0
     for event in events:
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and gamestate.cansort():
             for elem, rect in aerects():
                 if rect.collidepoint(event.pos):
                     drag = elem
@@ -93,9 +93,15 @@ def think(dt, events):
                 if drag in gamestate.elements:
                     gamestate.elements.remove(drag)
                     gamestate.elements.insert(dragz, drag)
+                    if dragz != dragz0 and not gamestate.sortmode:
+                        gamestate.sortmode = True
+                        gamestate.bank -= mechanics.sortcost
                 elif drag in gamestate.inventions:
                     gamestate.inventions.remove(drag)
                     gamestate.inventions.insert(dragz, drag)
+                    if dragz != dragz0 and not gamestate.sortmode:
+                        gamestate.sortmode = True
+                        gamestate.bank -= mechanics.sortcost
                 drag = None
         else:
             if event.type == pygame.MOUSEBUTTONUP and 1 <= event.button <= 3:

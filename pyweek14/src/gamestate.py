@@ -38,7 +38,24 @@ def makebuildmasks():
             for inv in mechanics.okterrain[c]:
                 buildmasks[inv].set_at((x, y), (255, 0, 0, 0))
 
-def canbuild(invention, (x, y)):
+def cost(tech):
+    element, invention = tech.split()
+    if element not in elements: return None
+    if invention not in inventions: return None
+    inc = elements.index(element) + inventions.index(invention)
+    return mechanics.basecost + mechanics.incrementcost * inc
+
+def sortcost():
+    return 0 if sortmode else mechanics.sortcost
+
+def cansort():
+    return sortcost() <= bank
+
+def canbuild(tech, (x, y)):
+    c = cost(tech)
+    if c is None or c > bank:
+        return False
+    element, invention = tech.split()
     footprint = mechanics.footprints[invention]
     mask = buildmasks[invention]
     for dx, dy in footprint:
@@ -50,9 +67,11 @@ def canbuild(invention, (x, y)):
     return True
 
 def build(tech, (x, y)):
-    element, invention = tech.split()
-    if not canbuild(invention, (x, y)):
+    global bank, sortmode
+    if not canbuild(tech, (x, y)):
         return
+    bank -= cost(tech)
+    element, invention = tech.split()
     towers.append(tower.Tower(tech, (x, y)))
     footprint = mechanics.footprints[invention]
     mask = buildmasks[invention]
@@ -60,12 +79,13 @@ def build(tech, (x, y)):
         px, py = x+dx, y+dy
         for mask in buildmasks.values():
             mask.set_at((px, py), (255, 0, 0, 100))
+    sortmode = False
     return True
 
 
 def loadlevel():
     global elements, inventions, map0, mapx, mapy, bindings, rbindings
-    global towers, foes, effects, castle, paths, hp
+    global towers, foes, effects, castle, paths, hp, hp0, bank, sortmode
 
     # available (researched) elements and inventions
     elements = list(mechanics.elements)
@@ -79,7 +99,9 @@ def loadlevel():
     foes = []
     effects = []
     
-    hp = 20
+    hp = hp0 = 20
+    bank = 100
+    sortmode = False
 
     paths = [
         [(-3, 29), (7, 31), (14, 30), (16, 25), (14, 19), (7, 18), (2, 14), (3, 8),
@@ -94,7 +116,10 @@ def drawHUD():
     global HUDfont
     if HUDfont is None:
         HUDfont = pygame.font.Font(settings.fonts.HUD, 28)
-    text = HUDfont.render("Castle health: %s/20" % max(0, hp), True, (0, 128, 0))
+    text = HUDfont.render("Funds: %s gp" % bank, True, (0, 128, 0))
+    rect = text.get_rect(bottomright = (settings.sx - 8, settings.sy - 50))
+    vista.screen.blit(text, rect)
+    text = HUDfont.render("Castle walls: %s/%s" % (max(0, hp), hp0), True, (0, 128, 0))
     rect = text.get_rect(bottomright = (settings.sx - 8, settings.sy - 8))
     vista.screen.blit(text, rect)
 

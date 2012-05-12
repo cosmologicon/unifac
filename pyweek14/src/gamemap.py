@@ -105,10 +105,16 @@ def draw():
         cx, cy = vista.worldpos(pygame.mouse.get_pos())
         rect = pygame.Rect(0, 0, vista.zoomx + 1, vista.zoomy + 1)
         footprint = mechanics.footprints[invention]
-        color = (255, 255, 255) if gamestate.canbuild(invention, (cx, cy)) else (255, 0, 0)
+        color = (255, 255, 255) if gamestate.canbuild(tech, (cx, cy)) else (255, 0, 0)
         for dx, dy in footprint:
             rect.topleft = vista.mappos((cx+dx, cy+dy))
             pygame.draw.rect(vista.mapwindow, color, rect, 1)
+        # range circle
+        ox, oy = mechanics.footoffs[invention]
+        r = mechanics.ranges[invention]
+        rect = pygame.Rect(0, 0, 2*r*vista.zoomx, 2*r*vista.zoomy)
+        rect.center = vista.mappos((cx+ox, cy+oy))
+        pygame.draw.ellipse(vista.mapwindow, mechanics.ecolors[element], rect, 1)
 
 
     
