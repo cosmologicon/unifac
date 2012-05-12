@@ -17,7 +17,9 @@ class Tower(object):
         self.cfilter = mechanics.ecolors[self.element]
         self.imgname = self.invention
         if self.invention == "stone": self.imgname = "tower"
-        self.h = { "stone": 40, "monkey": 30, "shark": 30, "corpse": 30 }[self.invention]
+        self.h = { "stone": 40, "monkey": 30, "shark": 0, "corpse": 50 }[self.invention]
+        
+        self.vh = 30  # for sharks
 
     def attack(self, who):
         if self.element == "laser":
@@ -42,10 +44,24 @@ class Tower(object):
     def think(self, dt):
         self.chargetimer += dt
         self.t += dt
+        if self.invention == "shark" and self.h > 0:
+            self.h += self.vh * dt
+            self.vh -= 160 * dt
+
         if self.chargetimer >= self.chargetime:
-            self.chargetimer = self.chargetime
-            target = self.gettarget()
-            if target: self.attack(target)
+            if self.invention == "shark":
+                if self.h <= 0:
+                    self.h = 0.1
+                    self.vh = 120
+                elif self.vh < 0:
+                    self.chargetimer = 0
+                    target = self.gettarget()
+                    if target: self.attack(target)
+            else:
+                self.chargetimer = self.chargetime
+                target = self.gettarget()
+                if target: self.attack(target)
+        
         
     def drawglow(self, (px, py)):
         if self.chargetimer < 0.5:
@@ -78,6 +94,14 @@ class Tower(object):
             img = data.img("wing", flip=True, alpha=alpha, cfilter=self.cfilter)
             data.draw(vista.mapwindow, img, (px, py-3), self.anchor)
             img = data.img(self.imgname, cfilter=self.cfilter)
+            data.draw(vista.mapwindow, img, (px, py), self.anchor)
+        elif self.invention == "shark":
+            if self.h > 0:
+                img = data.img("shark", alpha=2*self.vh, cfilter=self.cfilter)
+                data.draw(vista.mapwindow, img, (px, int(py - self.h)), self.anchor)
+        elif self.invention == "corpse":
+            n = 0 if self.chargetimer > self.chargetime - 0.4 else int(self.chargetimer * 4) % 2 + 1
+            img = data.img("arm-%s" % n, cfilter=self.cfilter)
             data.draw(vista.mapwindow, img, (px, py), self.anchor)
 
 
