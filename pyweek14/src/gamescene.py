@@ -4,7 +4,8 @@ import vista, gamemap, tech, gamestate, foe, data, scene, effect, settings
 class GameScene(object):
     def __init__(self):
         gamestate.loadlevel()
-        data.playspeech("wander")
+        data.playspeech("level0", queue=True)
+#        data.playmusic("wander")
         self.title = effect.Title(settings.gamename)
         self.wintitle = effect.Title("Victory!")
         self.losetitle = effect.Title("Defeat!")
