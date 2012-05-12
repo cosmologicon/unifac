@@ -24,6 +24,7 @@ class Foe(object):
         self.stept = 0
         self.freezetime = 0
         self.flametime = 0
+        self.atomtime = 0
 
     def die(self):
         gamestate.foes.remove(self)
@@ -35,6 +36,13 @@ class Foe(object):
             gamestate.effects.append(effect.Smoke((self.x, self.y)))
             self.die()
 
+    def explode(self):
+        self.die()
+        for f in gamestate.foes:
+            if (f.x - self.x) ** 2 + (f.y - self.y) ** 2 < 2 ** 2:
+                f.hurt(5)
+        gamestate.effects.append(effect.Bomb((self.x, self.y)))
+
     def arrive(self):  # reach the castle
         gamestate.damage(self.dhp)
         self.die()
@@ -45,6 +53,10 @@ class Foe(object):
             self.freezetime = max(self.freezetime - dt, 0)
         if self.flametime:
             self.flametime = max(self.flametime - dt, 0)
+        if self.atomtime:
+            self.atomtime -= dt
+            if self.atomtime <= 0:
+                self.explode()
         tx, ty = self.path[0]
         dx, dy = tx - self.x, ty - self.y
         if self.flametime:
@@ -67,7 +79,7 @@ class Foe(object):
                 self.vx *= self.v / v
                 self.vy *= self.v / v
 
-        f = 0.25 if self.freezetime else 1
+        f = 0.15 if self.freezetime else 1
         self.x += dt * self.vx * f
         self.y += dt * self.vy * f
 
@@ -86,6 +98,9 @@ class Foe(object):
             flip = random.choice([True, False])
             alpha = random.uniform(-10, 10)
             data.draw(vista.mapwindow, data.img("flame", flip=flip, alpha=alpha), (px, py-h), self.anchor)
+        if self.atomtime:
+            img = effect.bordertext(str(int(self.atomtime)), settings.fonts.atom, 18, (255, 0, 255), (0, 0, 0))
+            data.draw(vista.mapwindow, img, (px, py-h-22), "midbottom")
         img = data.img(self.imgname, flip=flip, alpha=alpha)
         data.draw(vista.mapwindow, img, (px, py-h), self.anchor)
 
@@ -94,7 +109,7 @@ class Villager(Foe):
     v = 1.0
     dhp = 1
     hp0 = 10
-    reward = 4
+    reward = 15
 
     def __init__(self, path):
         Foe.__init__(self, path)
@@ -105,7 +120,7 @@ class Dog(Foe):
     v = 1.8
     dhp = 1
     hp0 = 6
-    reward = 5
+    reward = 25
     imgname = "dog"
 
     def __init__(self, path):
@@ -118,7 +133,7 @@ class Dog(Foe):
 class Soldier(Foe):
     v = 1.0
     dhp = 2
-    hp0 = 20
+    hp0 = 40
     reward = 10
     imgname = "soldier"
     def __init__(self, path):
@@ -129,7 +144,7 @@ class Horseman(Foe):
     v = 2.2
     dhp = 2
     hp0 = 20
-    reward = 25
+    reward = 60
     imgname = "horseman"
     def __init__(self, path):
         Foe.__init__(self, path)

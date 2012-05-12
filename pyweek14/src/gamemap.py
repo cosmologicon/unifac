@@ -70,8 +70,6 @@ def mapimg(zoomx, zoomy, cache = {}):
 def think(dt, events):
     global mode
     for event in events:
-        if event.type == pygame.MOUSEBUTTONUP:
-            print event.pos, vista.worldpos(event.pos)
         ename = mechanics.downeventname(event)
         if ename:
             mode = ename

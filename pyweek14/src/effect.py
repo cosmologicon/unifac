@@ -22,11 +22,13 @@ def bordertext(text, fontname, fontsize, color0, color1=(255,255,255), d=1, cach
 
 class Title(object):
     def __init__(self, text):
-        self.surf = bordertext(text, settings.fonts.title, 110, (64, 128, 64), (255, 255, 255), 2)
+        self.text = text
+        self.surf = bordertext(text, settings.fonts.title, 60, (64, 128, 64), (255, 255, 255), 2)
         self.t = 0
 
     def think(self, dt):
-        self.t += dt
+        if self.t < 1 or "Thank you" not in self.text:
+            self.t += dt
     
     def draw(self):
         s = min(self.t * 4, (2 - self.t) * 4, 1)
@@ -82,4 +84,24 @@ class Smoke(object):
         sx, sy = img.get_size()
         img = pygame.transform.scale(img, (int(sx*(1+3*f)), int(sy/(1+3*f))))
         data.draw(vista.mapwindow, img, (px, py - h))
+
+class Bomb(object):
+    lifetime = 0.5
+    layer = -1
+    def __init__(self, (x, y)):
+        self.x, self.y = x, y
+        self.t = 0
+    
+    def think(self, dt):
+        self.t += dt
+        if self.t > self.lifetime:
+            gamestate.effects.remove(self)
+    
+    def draw(self):
+        f = self.t / self.lifetime
+        if f < 0.3: return
+        rect = pygame.Rect(0, 0, int(4*f*vista.zoomx), int(4*f*vista.zoomy))
+        rect.center = vista.mappos((self.x, self.y))
+        pygame.draw.ellipse(vista.mapwindow, (255, 0, 255), rect, 1)
+
 

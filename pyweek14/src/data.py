@@ -4,7 +4,6 @@ import os.path, pygame
 def filename(*args):
     return os.path.join("data", *args)
 
-
 imgcache = {}
 
 def img(imgname, flip=False, alpha=0, cfilter=None):
