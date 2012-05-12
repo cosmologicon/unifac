@@ -2,6 +2,9 @@ import pygame
 import mechanics, data, tower, settings, vista, effect
 
 
+level = 0
+
+
 def save():
     pass
 
@@ -25,7 +28,7 @@ def damage(dhp):
 def makebuildmasks():
     global buildmasks, homex, homey
     buildmasks = dict((invention, pygame.Surface((mapx, mapy)).convert_alpha())
-                    for invention in inventions)
+                    for invention in mechanics.inventions)
     for mask in buildmasks.values():    
         mask.fill((255, 0, 0, 100))
     for x in range(mapx):
@@ -92,11 +95,11 @@ def loadlevel():
     global towers, foes, effects, castle, paths, hp, hp0, bank, sortmode
 
     # available (researched) elements and inventions
-    elements = list(mechanics.elements)
-    inventions = list(mechanics.inventions)
+    elements = [e for e in mechanics.elements if e in mechanics.unlocks[level]]
+    inventions = [i for i in mechanics.inventions if i in mechanics.unlocks[level]]
     
     # initial map (with nothing built on it)
-    map0 = pygame.image.load(data.filename("map-3.png"))
+    map0 = pygame.image.load(data.filename("map-%s.png" % level))
     mapx, mapy = map0.get_size()
     bindings, rbindings = {}, {}
     towers = []
@@ -104,40 +107,10 @@ def loadlevel():
     effects = []
     
     hp = hp0 = 20
-    bank = 100
+    bank = mechanics.bank0[level]
     sortmode = False
 
-    def parsepath(s):
-        c = map(int, s.split())
-        return zip(c[0::2], c[1::2])
-        
-
-    paths = [
-        parsepath("-5 27 2 28 8 32 11 36 17 38 20 37 24 31 25 28 22 23 18 19 12 21 5 19 1 15 2 9 4 5 7 2 11 0 18 3 17 5 15 8")
-    ]
-    
-    paths = [
-        parsepath("-4 26 3 27 6 28 13 29 20 26 24 23 25 20 22 13 19 10"),
-        parsepath("10 44 9 36 7 28 4 20 2 11 6 3 10 1 13 3 15 7"),
-    
-    ]
-
-    paths = [
-        parsepath("-5 31 5 29 10 26 14 23 18 19 20 12 17 5 13 2 6 4 3 8 2 12 6 20 11 25 17 26 24 35"),
-    
-    ]
-    
-    paths = [
-        parsepath("23 -2 11 1 6 5 1 16 3 21 7 23 11 21"),
-        parsepath("28 37 24 19 22 12 18 9 11 13"),
-        parsepath("-3 30 1 34 10 37 17 34 21 28 17 21"),
-    ]
-    
-    paths = [
-        parsepath("-5 9 6 11 14 14 18 17 23 21 25 26 23 31 19 34 13 31 15 16 13 10"),
-        parsepath("31 8 20 11 14 13 8 17 2 22 0 28 3 33 8 35 14 32 14 23 14 13 13 10"),
-    ]
-
+    paths = mechanics.paths[level]
     
     makebuildmasks()
     castle = tower.Castle((homex, homey))

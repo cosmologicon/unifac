@@ -7,7 +7,7 @@ import vista, gamestate, settings, mechanics
 mode = None  # current button mode
 
 def mapimg(zoomx, zoomy, cache = {}):
-    key = zoomx, zoomy
+    key = zoomx, zoomy, gamestate.level
     if key in cache: return cache[key]
     zoomx /= 4
     zoomy /= 2
