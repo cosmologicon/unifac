@@ -6,14 +6,6 @@ import vista, gamestate, settings, mechanics
 
 mode = None  # current button mode
 
-def downeventname(event):
-    if event.type == pygame.MOUSEBUTTONDOWN and 1 <= event.button <= 3:
-        return ["LMB", "MMB", "RMB"][event.button-1]
-
-def upeventname(event):
-    if event.type == pygame.MOUSEBUTTONUP and 1 <= event.button <= 3:
-        return ["LMB", "MMB", "RMB"][event.button-1]
-
 def mapimg(zoomx, zoomy, cache = {}):
     key = zoomx, zoomy
     if key in cache: return cache[key]
@@ -71,10 +63,10 @@ def think(dt, events):
     for event in events:
         if event.type == pygame.MOUSEBUTTONUP:
             print event.pos, vista.worldpos(event.pos)
-        ename = downeventname(event)
+        ename = mechanics.downeventname(event)
         if ename:
             mode = ename
-        ename = upeventname(event)
+        ename = mechanics.upeventname(event)
         if ename == mode:
             if mode in gamestate.rbindings:
                 pos = vista.worldpos(pygame.mouse.get_pos())
