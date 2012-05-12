@@ -16,8 +16,8 @@ class Tower(object):
         self.t = 0
         self.cfilter = mechanics.ecolors[self.element]
         self.imgname = self.invention
-        if self.invention == "tower": self.imgname = "tower"
-        self.h = { "tower": 40, "monkey": 30, "shark": 0, "corpse": 40 }[self.invention]
+        if self.invention == "spire": self.imgname = "spire"
+        self.h = { "spire": 40, "monkey": 30, "shark": 0, "corpse": 40, "glyph": 0 }[self.invention]
         
         self.vh = 30  # you know, for sharks
 
@@ -35,7 +35,10 @@ class Tower(object):
             who.freezetime = 0
             data.playsfx("flame")
         self.chargetimer = 0
-        beam = effect.Beam((self.x, self.y, self.h), (who.x, who.y, 20), self.cfilter)
+        if self.invention == "glyph":
+            beam = effect.Beam((who.x, who.y+0.1, 0), (who.x, who.y+0.1, 40), self.cfilter)
+        else:
+            beam = effect.Beam((self.x, self.y, self.h), (who.x, who.y, 20), self.cfilter)
         gamestate.effects.append(beam)
 
     def gettarget(self):
@@ -61,6 +64,11 @@ class Tower(object):
                     self.chargetimer = 0
                     target = self.gettarget()
                     if target: self.attack(target)
+            elif self.invention == "glyph":
+                for f in gamestate.foes:
+                    if (f.x - self.x) ** 2 + (f.y - self.y) ** 2 < self.range ** 2:
+                        self.attack(f)
+                self.chargetimer = 0
             else:
                 self.chargetimer = self.chargetime
                 target = self.gettarget()
@@ -84,7 +92,7 @@ class Tower(object):
 
     def draw(self):
         px, py = vista.mappos((self.x, self.y))
-        if self.invention == "tower":
+        if self.invention == "spire":
             self.drawglow((px, py-39))
             img = data.img(self.imgname, cfilter=self.cfilter)
             data.draw(vista.mapwindow, img, (px, py), self.anchor)
@@ -107,6 +115,19 @@ class Tower(object):
             n = 0 if self.chargetimer > self.chargetime - 0.4 else int(self.chargetimer * 4) % 2 + 1
             img = data.img("arm-%s" % n, cfilter=self.cfilter)
             data.draw(vista.mapwindow, img, (px, py), self.anchor)
+        elif self.invention == "glyph":
+            r = mechanics.ranges["glyph"]
+            f = self.chargetimer / self.chargetime
+            color = [int(c*f) for c in self.cfilter]
+            rect = pygame.Rect(0, 0, 2*r*vista.zoomx, 2*r*vista.zoomy)
+            rect.center = px, py
+            pygame.draw.ellipse(vista.mapwindow, color, rect, 1)
+            rect = pygame.Rect(0, 0, 1.8*r*vista.zoomx, 1.8*r*vista.zoomy)
+            rect.center = px, py
+            pygame.draw.ellipse(vista.mapwindow, color, rect, 1)
+            alphas = [(f*2+j*4)*math.pi/5 for j in range(5)]
+            ps = [vista.mappos((self.x + 0.9 * r * math.sin(alpha), self.y + 0.9 * r * math.cos(alpha))) for alpha in alphas]
+            pygame.draw.lines(vista.mapwindow, color, True, ps, 1)
 
 
 class Castle(object):
