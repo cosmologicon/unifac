@@ -12,14 +12,14 @@ class Tower(object):
         self.chargetime = 3
         self.chargetimer = 0
         self.damage = 10
-        self.range = 3
+        self.range = mechanics.ranges[self.invention]
         self.t = 0
         self.cfilter = mechanics.ecolors[self.element]
         self.imgname = self.invention
-        if self.invention == "stone": self.imgname = "tower"
-        self.h = { "stone": 40, "monkey": 30, "shark": 0, "corpse": 50 }[self.invention]
+        if self.invention == "tower": self.imgname = "tower"
+        self.h = { "tower": 40, "monkey": 30, "shark": 0, "corpse": 40 }[self.invention]
         
-        self.vh = 30  # for sharks
+        self.vh = 30  # you know, for sharks
 
     def attack(self, who):
         if self.element == "laser":
@@ -80,7 +80,7 @@ class Tower(object):
 
     def draw(self):
         px, py = vista.mappos((self.x, self.y))
-        if self.invention == "stone":
+        if self.invention == "tower":
             self.drawglow((px, py-39))
             img = data.img(self.imgname, cfilter=self.cfilter)
             data.draw(vista.mapwindow, img, (px, py), self.anchor)

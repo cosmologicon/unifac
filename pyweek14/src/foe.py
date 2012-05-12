@@ -11,6 +11,7 @@ class Foe(object):
     anchor = "center"
     imgname = None
     imgflip = False
+    reward = 2
     
     def __init__(self, path):
         self.path = list(path)
@@ -29,6 +30,7 @@ class Foe(object):
     def hurt(self, dhp):
         self.hp -= dhp
         if self.hp <= 0:
+            gamestate.bank += self.reward
             self.die()
 
     def arrive(self):  # reach the castle
@@ -77,6 +79,9 @@ class Foe(object):
 
 class Villager(Foe):
     v = 2.0
+    dhp = 1
+    hp0 = 10
+    reward = 2
 
     def __init__(self, path):
         Foe.__init__(self, path)    
