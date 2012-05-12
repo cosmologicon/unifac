@@ -1,0 +1,38 @@
+
+Master, the villagers are revolting!
+You're one to talk, Igor. Have you looked in the mirror lately?
+No master, you must use your inventions to keep them from reaching the castle!
+
+Igor, you know that stupid monkey in the lab you used to play with?
+Yes Master... wait, what do you mean, used to?
+Well I had to lobotomize him.
+Mister Bubbles, no! But why Master?
+Science, Igor! Without experimenting, you can never create... these!
+Flying monkeys?! They're hideous! I LOVE them!
+
+Igor, you know those people taking up space in our graveyard?
+You mean the corpses, Master?
+Don't you think it's about time they started pulling their weight around here?
+Those freeloaders!
+
+Here's all that colored chalk you asked for, Master. Planning to decorate the sidewalk?
+No Igor.
+Going to play Four Square?
+No Igor!
+Hopscotch?
+For the last time, Igor, I'm not going to play hopscotch with you as long as you keep cheating!
+Yes Master.
+
+Master, the villagers have recruited an army! We'll never hold them off.
+I suppose this is our last stand, Igor. Have you any regrets?
+No Master! Have you?
+Just one, Igor... just one....
+
+Scientist laughs
+Noooo!
+
+
+elements = ["laser", "freeze", "fire", "plague", "atomic"]
+inventions = ["spire", "monkey", "shark", "corpse", "glyph"]
+complete
+
