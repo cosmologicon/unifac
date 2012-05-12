@@ -1,18 +1,18 @@
 import pygame
-import settings
+import settings, foe
 
 elements = ["laser", "freeze", "fire", "plague", "atomic"]
 inventions = ["spire", "monkey", "shark", "corpse", "glyph"]
 
 unlocks = [
-    "laser freeze fire spire",
+    "laser freeze spire",
     "laser freeze fire spire monkey shark",
-    "laser freeze fire plague spire monkey shark corpse",
-    "laser freeze fire plague atomic spire monkey shark corpse glyph",
-    "laser freeze fire plague atomic spire monkey shark corpse glyph",
+    "laser freeze fire spire monkey shark corpse",
+    "laser freeze fire atomic spire monkey shark corpse glyph",
+    "laser freeze fire atomic spire monkey shark corpse glyph",
 ]
 
-bank0 = [120, 200, 260, 400, 1000]
+bank0 = [240, 280, 400, 1000, 2000]
 
 
 footprints = {
@@ -37,7 +37,7 @@ ranges = {
     "spire": 7,
     "monkey": 4,
     "shark": 5,
-    "corpse": 4,
+    "corpse": 5,
     "glyph": 2.5,
 }
 ecolors = {
@@ -45,19 +45,31 @@ ecolors = {
     "freeze": (128, 128, 255),
     "fire": (255, 128, 0),
     "plague": (80, 160, 80),
-    "atomic": (0, 255, 255),
+    "atomic": (255, 0, 255),
 }
 damages = {
-    "laser": 10,
+    "laser": 5,
     "freeze": 0,
-    "fire": 5,
-    "plague": 2,
-    "atomic": 4,
+    "fire": 4,
+    "plague": 1,
+    "atomic": 2,
+}
+chargets = {
+    "laser": 10,
+    "freeze": 1,
+    "fire": 7,
+    "plague": 10,
+    "atomic": 10,
+    "spire": 1,
+    "monkey": 0.5,
+    "shark": 1,
+    "corpse": 0.5,
+    "glyph": 1.5,
 }
 
 basecost = 30
 incrementcost = 10
-sortcost = 50
+sortcost = 20
 
 
 
@@ -96,6 +108,38 @@ paths = [
         parsepath("-3 30 1 34 10 37 17 34 21 28 17 21"),
     ],
 ]
+
+foequeues = [None] * 5
+
+foequeues[0] = [(t, foe.Villager, paths[0][0]) for t in range(10, 160, 3)]
+foequeues[0] += [(t+ 1.5, foe.Villager, paths[0][0]) for t in range(70, 160, 2)]
+
+foequeues[1] = [(t, foe.Villager, paths[1][0]) for t in range(10, 160, 3)]
+foequeues[1] += [(t+ 1.5, foe.Villager, paths[1][0]) for t in range(70, 160, 2)]
+foequeues[1] += [(t+ 1.5, foe.Dog, paths[1][0]) for t in range(70, 160, 3)]
+
+foequeues[2] = [(t, foe.Villager, paths[2][t%2]) for t in range(10, 160, 3)]
+foequeues[2] += [(t+ 1.5, foe.Villager, paths[2][t/2%2]) for t in range(70, 160, 2)]
+foequeues[2] += [(t+ 2.5, foe.Dog, paths[2][t%2]) for t in range(70, 160, 3)]
+foequeues[2] += [(t+ 3.5, foe.Soldier, paths[2][t%2]) for t in range(10, 160, 5)]
+
+foequeues[3] = [(t, foe.Villager, paths[3][t%2]) for t in range(10, 160, 3)]
+foequeues[3] += [(t+ 1.5, foe.Villager, paths[3][t/2%2]) for t in range(70, 160, 2)]
+foequeues[3] += [(t+ 2.5, foe.Dog, paths[3][t%2]) for t in range(70, 160, 3)]
+foequeues[3] += [(t+ 3.5, foe.Soldier, paths[3][t%2]) for t in range(10, 160, 5)]
+foequeues[3] += [(t+ 3.5, foe.Horseman, paths[3][t%2]) for t in range(13, 160, 5)]
+
+foequeues[4] = [(t, foe.Villager, paths[4][t%3]) for t in range(20, 1600, 2)]
+foequeues[4] += [(t+ 1.5, foe.Villager, paths[4][t%3]) for t in range(40, 1600, 2)]
+foequeues[4] += [(t+ 2.5, foe.Dog, paths[4][t%3]) for t in range(50, 1600, 2)]
+foequeues[4] += [(t+ 3.5, foe.Soldier, paths[4][t%3]) for t in range(20, 1600, 5)]
+foequeues[4] += [(t+ 3.5, foe.Horseman, paths[4][t%3]) for t in range(23, 1600, 5)]
+foequeues[4] += [(t+ 3.5, foe.Soldier, paths[4][t%3]) for t in range(60, 1600, 2)]
+foequeues[4] += [(t+ 3.5, foe.Horseman, paths[4][t%3]) for t in range(80, 1600, 2)]
+foequeues[4] += [(t+ 3.5, foe.Horseman, paths[4][t%3]) for t in range(120, 1600, 1)]
+
+
+
 
 titles = [
     settings.gamename,

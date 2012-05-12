@@ -10,7 +10,7 @@ class Tower(object):
         self.element, self.invention = tech.split()
         dx, dy = mechanics.footoffs[self.invention]
         self.x, self.y = x + dx, y + dy
-        self.chargetime = 3
+        self.chargetime = mechanics.chargets[self.element] * mechanics.chargets[self.invention]
         self.chargetimer = 0
         self.damage = mechanics.damages[self.element]
         self.range = mechanics.ranges[self.invention]
@@ -29,7 +29,7 @@ class Tower(object):
             who.hurt(self.damage)
             data.playsfx("laser")
         elif self.element == "freeze":
-            who.freezetime += 3
+            who.freezetime += 5
             who.flametime = 0
             data.playsfx("freeze")
         elif self.element == "fire":
@@ -37,6 +37,11 @@ class Tower(object):
             who.flametime = 3
             who.freezetime = 0
             data.playsfx("flame")
+        elif self.element == "atomic":
+            who.flametime = 0
+            who.freezetime = 0
+            data.playsfx("laser")
+            who.atomtime = 5
         self.chargetimer = 0
         if self.invention == "glyph":
             beam = effect.Beam((who.x, who.y+0.1, 0), (who.x, who.y+0.1, 40), self.cfilter)
@@ -46,7 +51,12 @@ class Tower(object):
 
     def gettarget(self):
         if not gamestate.foes: return None
-        f = min(gamestate.foes, key = lambda f: (f.x - self.x) ** 2 + (f.y - self.y) ** 2)
+        foes = gamestate.foes
+        if self.element == "freeze":
+            foes = [f for f in foes if not f.freezetime]
+        if not foes:
+            return None
+        f = min(foes, key = lambda f: (f.x - self.x) ** 2 + (f.y - self.y) ** 2)
         if (f.x - self.x) ** 2 + (f.y - self.y) ** 2 < self.range ** 2:
             return f
         return None
