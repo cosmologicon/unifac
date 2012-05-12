@@ -132,8 +132,9 @@ class Horseman(Foe):
     reward = 6
     imgname = "horseman"
     def __init__(self, path):
+        Foe.__init__(self, path)
         if not settings.animals:
-            Foe.__init__(self, path)
+            self.imgname = "soldier"
             self.imgflip = random.choice((True,False))
 
 
