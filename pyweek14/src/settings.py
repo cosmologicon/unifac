@@ -1,6 +1,6 @@
 import data
 
-gamename = "Mad Science TD 101"
+gamename = "Uslingborg Defense"
 showfps = True
 
 ssize = sx, sy = 854, 480  # screen size
@@ -11,7 +11,7 @@ mx0, my0 = 600, 80         # mini window position
 doubleview = False   # Need to fix input if this is going to work
 
 
-buttonsize = 40
+buttonsize = 60
 buttonspace = 2
 
 transtime = 0.5  # transition time
@@ -22,6 +22,7 @@ minfps = 10
 class fonts:
     table = data.filename("fonts", "Gorditas", "Gorditas-Regular.ttf")
     cells = data.filename("fonts", "Bangers", "Bangers.ttf")
+    title = data.filename("fonts", "Creepster", "Creepster-Regular.ttf")
     HUD = data.filename("fonts", "Fontdiner_Swanky", "FontdinerSwanky.ttf")
 
 
