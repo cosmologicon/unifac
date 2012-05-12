@@ -45,6 +45,10 @@ def cost(tech):
     inc = elements.index(element) + inventions.index(invention)
     return mechanics.basecost + mechanics.incrementcost * inc
 
+def costfrac(tech):
+    f = float(bank + mechanics.incrementcost - cost(tech)) / mechanics.incrementcost
+    return min(max(f, 0), 1)
+
 def sortcost():
     return 0 if sortmode else mechanics.sortcost
 

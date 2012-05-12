@@ -28,8 +28,8 @@ def initpos():
     minirect.center = settings.mx0, settings.my0
     mode = True  # true for map mode, false for tech mode
     ftrans = 0      # transition fraction
-    zoomx, zoomy = 20, 10
-    vx0, vy0 = 10, 20
+    zoomx, zoomy = 24, 12
+    vx0, vy0 = 0, 0
 
 def swapmode():
     global mode, ftrans

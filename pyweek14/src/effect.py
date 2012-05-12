@@ -21,8 +21,8 @@ def bordertext(text, fontname, fontsize, color0, color1=(255,255,255), d=1, cach
     return img
 
 class Title(object):
-    def __init__(self):
-        self.surf = bordertext(settings.gamename, settings.fonts.title, 110, (64, 128, 64), (255, 255, 255), 2)
+    def __init__(self, text):
+        self.surf = bordertext(text, settings.fonts.title, 110, (64, 128, 64), (255, 255, 255), 2)
         self.t = 0
 
     def think(self, dt):
@@ -35,6 +35,9 @@ class Title(object):
         rect.center = settings.sx//2, settings.sy//2
         area = 0, 0, int(rect.width * s), rect.height
         vista.screen.blit(self.surf, rect, area)
+
+    def __nonzero__(self):
+        return self.t < 4
 
 class Beam(object):
     lifetime = 0.25
