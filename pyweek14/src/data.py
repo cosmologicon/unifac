@@ -44,7 +44,7 @@ def playsfx(sname):
     if sname not in soundcache:
         soundcache[sname] = pygame.mixer.Sound(filename(sname + ".ogg"))
     sound = soundcache[sname]
-    pygame.mixer.play(sound)
+    sound.play()
 
 def playspeech(sname, queue=False):
     if not queue and speechchannel.get_busy():

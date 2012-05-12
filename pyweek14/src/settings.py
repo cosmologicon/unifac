@@ -18,5 +18,6 @@ minfps = 10
 
 class fonts:
     table = data.filename("fonts", "Gorditas", "Gorditas-Regular.ttf")
+    HUD = data.filename("fonts", "Fontdiner_Swanky", "FontdinerSwanky.ttf")
 
 

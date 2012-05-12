@@ -2,7 +2,7 @@ import pygame
 import scene, vista, settings, gamescene, gamestate, data
 
 def main():
-    pygame.mixer.pre_init(11000, -16, 2, 0)
+    pygame.mixer.pre_init(11000, -16, 1, 256)
     pygame.init()
     data.initsound()
     vista.init()
