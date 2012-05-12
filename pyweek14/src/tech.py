@@ -104,11 +104,11 @@ def think(dt, events):
                         gamestate.bank -= mechanics.sortcost
                 drag = None
         else:
-            if event.type == pygame.MOUSEBUTTONUP and 1 <= event.button <= 3:
-                bname = ["LMB", "MMB", "RMB"][event.button - 1]
+            ename = mechanics.upeventname(event)
+            if ename:
                 for obj, rect in rects():
-                    if rect.collidepoint(event.pos):
-                        gamestate.bind(obj, bname)
+                    if rect.collidepoint(pygame.mouse.get_pos()):
+                        gamestate.bind(obj, ename)
 
 
 
@@ -118,7 +118,7 @@ def draw():
     if font is None:
         font = pygame.font.Font(settings.fonts.table, 20)
     if bfont is None:
-        bfont = pygame.font.Font(None, 16)
+        bfont = pygame.font.Font(settings.fonts.cells, 20)
 
     vista.techwindow.fill((0, 20, 0))
 
@@ -126,8 +126,9 @@ def draw():
         vista.techwindow.fill((100, 100, 100), rect)
         pygame.draw.rect(vista.techwindow, (200, 200, 200), rect, 2)
         if tech in gamestate.bindings:
-            text = bfont.render(gamestate.bindings[tech], True, (255, 255, 255))
-            vista.techwindow.blit(text, rect.move(3, 3))
+            for j, t in enumerate(gamestate.bindings[tech].split()):
+                text = bfont.render(t, True, (255, 255, 255))
+                vista.techwindow.blit(text, rect.move(3, 3 + j*20))
 
     for element, y in rows():
         text = font.render(element, True, (255, 255, 255))

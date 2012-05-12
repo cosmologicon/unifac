@@ -1,3 +1,4 @@
+import pygame
 
 elements = ["laser", "freeze", "fire", "plague", "atomic"]
 inventions = ["tower", "monkey", "shark", "corpse"]
@@ -41,4 +42,15 @@ okterrain = {
 }
 homecolor = 255, 255, 255
 
+def upeventname(event):
+    if event.type == pygame.MOUSEBUTTONUP and 1 <= event.button <= 3:
+        return ["LMB", "MMB", "RMB"][event.button - 1]
+    elif event.type == pygame.KEYUP:
+        return pygame.key.name(event.key).upper()
+
+def downeventname(event):
+    if event.type == pygame.MOUSEBUTTONDOWN and 1 <= event.button <= 3:
+        return ["LMB", "MMB", "RMB"][event.button-1]
+    elif event.type == pygame.KEYDOWN:
+        return pygame.key.name(event.key).upper()
 
