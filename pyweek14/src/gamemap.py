@@ -26,40 +26,42 @@ def mapimg(zoomx, zoomy, cache = {}):
     bgaussian.fill((0,0,0,0))
     pygame.surfarray.pixels_alpha(bgaussian)[:,:] = pygame.surfarray.pixels_alpha(gaussian)
     
-    road = pygame.Surface(size).convert_alpha()
-    water = pygame.Surface(size).convert_alpha()
-    road.fill((255, 255, 255))
-    water.fill((255, 255, 255))
     yellow = 255, 255, 0
     black = 0, 0, 0
     blue = 0, 0, 255
+    gray = 128, 128, 128
 
     ps = [(x, y) for x in range(gamestate.map0.get_width()) for y in range(gamestate.map0.get_height())]
     random.shuffle(ps)
-    for x,y in ps:
-        p0 = int((x - 1) * zoomx), int((y - 1) * zoomy)
-        c = gamestate.map0.get_at((x, y))
-        road.blit((gaussian if c == yellow else bgaussian), p0)
-        water.blit((gaussian if c in (black, blue) else bgaussian), p0)
-    ralpha = pygame.surfarray.array3d(road)[:,:,0]
-    ralpha = numpy.maximum(numpy.minimum(ralpha * 1.8 - 120 - (numpy.random.rand(*size) * 80), 255), 0)
-    pygame.surfarray.pixels_alpha(road)[:,:] = ralpha
-    rpix = pygame.surfarray.pixels3d(road)
-    rpix[:,:,0] = numpy.random.rand(*size) * 20 + 100
-    rpix[:,:,1] = numpy.random.rand(*size) * 20 + 100
-    rpix[:,:,2] = numpy.random.rand(*size) * 10
-    del rpix
-    walpha = pygame.surfarray.array3d(water)[:,:,0]
-    water.fill((0, 0, 128))
-    pygame.surfarray.pixels_alpha(water)[:] = walpha
-    
+    def makelayer(colors, r0, dr, g0, dg, b0, db):
+        layer = pygame.Surface(size).convert_alpha()
+        layer.fill((255, 255, 255))
+        for x,y in ps:
+            p0 = int((x - 1) * zoomx), int((y - 1) * zoomy)
+            c = gamestate.map0.get_at((x, y))
+            layer.blit((gaussian if c in colors else bgaussian), p0)
+        alpha = pygame.surfarray.array3d(layer)[:,:,0]
+        alpha = numpy.maximum(numpy.minimum(alpha * 1.8 - 120 - (numpy.random.rand(*size) * 80), 255), 0)
+        pygame.surfarray.pixels_alpha(layer)[:,:] = alpha
+        pix = pygame.surfarray.pixels3d(layer)
+        pix[:,:,0] = numpy.random.rand(*size) * dr + r0
+        pix[:,:,1] = numpy.random.rand(*size) * dg + g0
+        pix[:,:,2] = numpy.random.rand(*size) * db + b0
+        return layer
+
+    road = makelayer((yellow,), 80, 20, 80, 20, 10, 0)
+    water = makelayer((blue, black), 0, 0, 0, 0, 80, 10)
+    grave = makelayer((gray,), 80, 10, 80, 10, 80, 10)
+
+
     img = pygame.transform.smoothscale(gamestate.map0, size)
     cpix = pygame.surfarray.pixels3d(img)
     cpix[:,:,0] = numpy.random.rand(*size) * 10
-    cpix[:,:,1] = numpy.random.rand(*size) * 20 + 100
+    cpix[:,:,1] = numpy.random.rand(*size) * 15 + 70
     cpix[:,:,2] = numpy.random.rand(*size) * 10
     del cpix
     img.blit(water, (0, 0))
+    img.blit(grave, (0, 0))
     img.blit(road, (0, 0))
     img = pygame.transform.smoothscale(img, (size[0]*4, size[1]*2))
     cache[key] = img
