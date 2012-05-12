@@ -3,6 +3,15 @@ import pygame
 elements = ["laser", "freeze", "fire", "plague", "atomic"]
 inventions = ["spire", "monkey", "shark", "corpse", "glyph"]
 
+unlocks = [
+    "laser freeze fire spire",
+    "laser freeze fire spire monkey shark",
+    "laser freeze fire plague spire monkey shark corpse",
+    "laser freeze fire plague atomic spire monkey shark corpse glyph",
+    "laser freeze fire plague atomic spire monkey shark corpse glyph",
+]
+
+
 footprints = {
     "spire": [(-1,-2), (0,-2), (-2,-1), (-1,-1), (0,-1), (1,-1), (-2,0), (-1,0), (0,0), (1,0), (-1,1), (0,1)],
     "monkey": [(0,0), (0,1), (1,0), (0,-1), (-1,0)],
