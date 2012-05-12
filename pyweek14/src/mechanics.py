@@ -28,6 +28,14 @@ ecolors = {
     "plague": (80, 160, 80),
     "atomic": (0, 255, 255),
 }
+damages = {
+    "laser": 10,
+    "freeze": 0,
+    "fire": 5,
+    "plague": 2,
+    "atomic": 4,
+}
+
 basecost = 30
 incrementcost = 10
 sortcost = 50

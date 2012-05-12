@@ -11,7 +11,7 @@ class Tower(object):
         self.x, self.y = x + dx, y + dy
         self.chargetime = 3
         self.chargetimer = 0
-        self.damage = 10
+        self.damage = mechanics.damages[self.element]
         self.range = mechanics.ranges[self.invention]
         self.t = 0
         self.cfilter = mechanics.ecolors[self.element]
@@ -27,8 +27,12 @@ class Tower(object):
             data.playsfx("laser")
         elif self.element == "freeze":
             who.freezetime += 3
+            who.flametime = 0
             data.playsfx("freeze")
         elif self.element == "fire":
+            who.hurt(self.damage)
+            who.flametime = 3
+            who.freezetime = 0
             data.playsfx("flame")
         self.chargetimer = 0
         beam = effect.Beam((self.x, self.y, self.h), (who.x, who.y, 20), self.cfilter)
