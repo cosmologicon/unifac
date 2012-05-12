@@ -94,7 +94,7 @@ class Villager(Foe):
     v = 1.0
     dhp = 1
     hp0 = 10
-    reward = 2
+    reward = 4
 
     def __init__(self, path):
         Foe.__init__(self, path)
@@ -102,10 +102,10 @@ class Villager(Foe):
         self.imgflip = random.choice((True,False))
 
 class Dog(Foe):
-    v = 2.0
+    v = 1.8
     dhp = 1
     hp0 = 6
-    reward = 2
+    reward = 5
     imgname = "dog"
 
     def __init__(self, path):
@@ -119,17 +119,17 @@ class Soldier(Foe):
     v = 1.0
     dhp = 2
     hp0 = 20
-    reward = 4
+    reward = 10
     imgname = "soldier"
     def __init__(self, path):
         Foe.__init__(self, path)
         self.imgflip = random.choice((True,False))
 
 class Horseman(Foe):
-    v = 2.5
+    v = 2.2
     dhp = 2
     hp0 = 20
-    reward = 6
+    reward = 25
     imgname = "horseman"
     def __init__(self, path):
         Foe.__init__(self, path)

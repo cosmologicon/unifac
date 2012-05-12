@@ -56,7 +56,7 @@ def playspeech(sname, queue=False):
 
 def playmusic(sname):
     pygame.mixer.music.load(filename(sname + ".ogg"))
-    pygame.mixer.music.play(-1)
+    pygame.mixer.music.play(100)
 
 def fademusic(dt):
     v0 = pygame.mixer.music.get_volume()
