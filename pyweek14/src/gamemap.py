@@ -13,27 +13,34 @@ def mapimg(zoomx, zoomy, cache = {}):
     zoomy /= 2
     size = gamestate.mapx * zoomx, gamestate.mapy * zoomy
     
-    gx, gy = 7 * zoomx, 7 * zoomy
+    gx, gy = 3 * zoomx, 3 * zoomy
     gaussian = pygame.Surface((gx, gy)).convert_alpha()
     gaussian.fill((255, 255, 255, 0))
     for x in range(gx):
         for y in range(gy):
-            dx, dy = (x - gx/2.) / zoomx / 1.3, (y - gy/2.) / zoomy / 1.3
+            dx, dy = (x - gx/2.) / gx * 3, (y - gy/2.) / gy * 3
             a = math.exp(-(dx ** 2 + dy ** 2))
             gaussian.set_at((x, y), (255, 255, 255, 255*a))
+
+    bgaussian = pygame.Surface((gx, gy)).convert_alpha()
+    bgaussian.fill((0,0,0,0))
+    pygame.surfarray.pixels_alpha(bgaussian)[:,:] = pygame.surfarray.pixels_alpha(gaussian)
     
-    # The road layer
     road = pygame.Surface(size).convert_alpha()
     water = pygame.Surface(size).convert_alpha()
-    road.fill((0, 0, 0))
-    water.fill((0, 0, 0))
-    for x in range(gamestate.map0.get_width()):
-        for y in range(gamestate.map0.get_height()):
-            c = gamestate.map0.get_at((x, y))
-            if c == (255, 255, 0):
-                road.blit(gaussian, ((x - 3) * zoomx, (y - 3) * zoomy))
-            elif c == (0, 0, 255):
-                water.blit(gaussian, ((x - 3) * zoomx, (y - 3) * zoomy))
+    road.fill((255, 255, 255))
+    water.fill((255, 255, 255))
+    yellow = 255, 255, 0
+    black = 0, 0, 0
+    blue = 0, 0, 255
+
+    ps = [(x, y) for x in range(gamestate.map0.get_width()) for y in range(gamestate.map0.get_height())]
+    random.shuffle(ps)
+    for x,y in ps:
+        p0 = int((x - 1) * zoomx), int((y - 1) * zoomy)
+        c = gamestate.map0.get_at((x, y))
+        road.blit((gaussian if c == yellow else bgaussian), p0)
+        water.blit((gaussian if c in (black, blue) else bgaussian), p0)
     ralpha = pygame.surfarray.array3d(road)[:,:,0]
     ralpha = numpy.maximum(numpy.minimum(ralpha * 1.8 - 120 - (numpy.random.rand(*size) * 80), 255), 0)
     pygame.surfarray.pixels_alpha(road)[:,:] = ralpha
