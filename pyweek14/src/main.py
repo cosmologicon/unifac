@@ -10,6 +10,8 @@ def main():
     clock = pygame.time.Clock()
     while True:
         dt = min(0.001 * clock.tick(settings.maxfps), 1. / settings.minfps)
+        if settings.showfps:
+            pygame.display.set_caption("%.1fps" % clock.get_fps())
         s = scene.top()
         if not s: break
         events = pygame.event.get()
