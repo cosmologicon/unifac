@@ -2,8 +2,12 @@ import pygame
 import settings, gamestate
 
 def init():
-    global screen, mapwindow, techwindow, minimapwindow
-    screen = pygame.display.set_mode(settings.ssize)
+    global screen, mapwindow, techwindow, minimapwindow, _screen
+    if settings.doubleview:
+        _screen = pygame.display.set_mode((settings.sx*2, settings.sy*2))
+        screen = pygame.Surface(settings.ssize).convert()
+    else:
+        screen = pygame.display.set_mode(ssize)
     pygame.display.set_caption(settings.gamename)
     mapwindow = pygame.Surface(settings.wsize).convert_alpha()
     techwindow = pygame.Surface(settings.wsize).convert_alpha()
@@ -58,6 +62,8 @@ def think(dt):
 
 
 def worldpos((x, y)):
+    if settings.doubleview:
+        x, y = x//2, y//2
     return vx0 + int((x - settings.wx0) / zoomx), vy0 + int((y - settings.wy0) / zoomy)
 
 # coordinates within the map window
@@ -79,6 +85,8 @@ def drawwindows():
     screen.blit(w, r)
 
 def flip():
+    if settings.doubleview:
+        pygame.transform.scale2x(screen, _screen)
     pygame.display.flip()
 
 
