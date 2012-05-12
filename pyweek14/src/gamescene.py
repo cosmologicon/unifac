@@ -1,11 +1,13 @@
 import pygame, random
-import vista, gamemap, tech, gamestate, foe, data, scene, effect
+import vista, gamemap, tech, gamestate, foe, data, scene, effect, settings
 
 class GameScene(object):
     def __init__(self):
         gamestate.loadlevel()
         data.playspeech("wander")
-        self.title = effect.Title()
+        self.title = effect.Title(settings.gamename)
+        self.wintitle = effect.Title("Victory!")
+        self.losetitle = effect.Title("Defeat!")
     
     def think(self, dt, events):
         vista.think(dt)
@@ -24,16 +26,18 @@ class GameScene(object):
         if random.random() < dt * 1.:
             gamestate.foes.append(foe.Villager(random.choice(gamestate.paths)))
         
+        for t in gamestate.towers:
+            t.think(dt)
+        for f in gamestate.foes:
+            f.think(dt)
+        for f in gamestate.effects:
+            f.think(dt)
         if gamestate.hp:
-            for t in gamestate.towers:
-                t.think(dt)
-            for f in gamestate.foes:
-                f.think(dt)
-            for f in gamestate.effects:
-                f.think(dt)
             self.title.think(dt)
         else:
-            scene.pop()
+            self.losetitle.think(dt)
+            if not self.losetitle:
+                scene.pop()
 
     def draw(self):
         gamemap.draw()
@@ -42,6 +46,7 @@ class GameScene(object):
         gamestate.drawHUD()
         
         self.title.draw()
+        self.losetitle.draw()
         
         vista.flip()
 
