@@ -29,7 +29,7 @@ def initpos():
     mode = True  # true for map mode, false for tech mode
     ftrans = 0      # transition fraction
     zoomx, zoomy = 24, 12
-    vx0, vy0 = 0, 0
+    vx0, vy0 = 13, 20
 
 def swapmode():
     global mode, ftrans
