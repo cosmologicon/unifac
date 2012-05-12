@@ -1,5 +1,5 @@
 import pygame
-import mechanics, data, tower
+import mechanics, data, tower, settings, vista
 
 
 def save():
@@ -17,6 +17,10 @@ def bind(objname, key):
             del bindings[rbindings[key]]
         bindings[objname] = key
     rbindings = dict((o,k) for k,o in bindings.items())
+
+def damage(dhp):
+    global hp
+    hp -= dhp
 
 def makebuildmasks():
     global buildmasks, homex, homey
@@ -61,7 +65,7 @@ def build(tech, (x, y)):
 
 def loadlevel():
     global elements, inventions, map0, mapx, mapy, bindings, rbindings
-    global towers, foes, effects, castle
+    global towers, foes, effects, castle, paths, hp
 
     # available (researched) elements and inventions
     elements = list(mechanics.elements)
@@ -75,7 +79,23 @@ def loadlevel():
     foes = []
     effects = []
     
+    hp = 20
+
+    paths = [
+        [(-3, 29), (7, 31), (14, 30), (16, 25), (14, 19), (7, 18), (2, 14), (3, 8),
+                     (9, 3), (14, 4)]
+    ]
+    
     makebuildmasks()
     castle = tower.Castle((homex, homey))
+
+HUDfont = None
+def drawHUD():
+    global HUDfont
+    if HUDfont is None:
+        HUDfont = pygame.font.Font(settings.fonts.HUD, 28)
+    text = HUDfont.render("Castle health: %s/20" % max(0, hp), True, (0, 128, 0))
+    rect = text.get_rect(bottomright = (settings.sx - 8, settings.sy - 8))
+    vista.screen.blit(text, rect)
 
 

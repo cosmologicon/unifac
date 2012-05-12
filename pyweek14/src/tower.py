@@ -22,8 +22,12 @@ class Tower(object):
     def attack(self, who):
         if self.element == "laser":
             who.hurt(self.damage)
+            data.playsfx("laser")
         elif self.element == "freeze":
             who.freezetime += 3
+            data.playsfx("freeze")
+        elif self.element == "fire":
+            data.playsfx("flame")
         self.chargetimer = 0
         beam = effect.Beam((self.x, self.y, self.h), (who.x, who.y, 20), self.cfilter)
         gamestate.effects.append(beam)

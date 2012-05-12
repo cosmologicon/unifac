@@ -4,23 +4,23 @@ import pygame, math, random
 import vista, gamestate, data, effect
 
 class Foe(object):
-    v = 8.0
+    v = 2.0
     hp0 = 10
+    dhp = 1
     color = 0, 0, 0
     anchor = "center"
+    imgname = None
+    imgflip = False
     
-    def __init__(self):
-        self.path = [(-3, 29), (7, 31), (14, 30), (16, 25), (14, 19), (7, 18), (2, 14), (3, 8),
-                     (9, 3), (14, 4)]
+    def __init__(self, path):
+        self.path = list(path)
+        self.path = [(x + random.uniform(0, 1), y + random.uniform(0, 1)) for x, y in self.path]
         self.path.append((gamestate.homex, gamestate.homey))
-        self.path = [(x + 0.5, y + 0.5) for x, y in self.path]
         self.x, self.y = self.path[0]
         self.hp = self.hp0
         self.vx, self.vy = 0, 0
         self.stept = 0
         self.freezetime = 0
-        self.imgname = "foe-%s" % random.choice((0,1,2,3))
-        self.imgflip = random.choice((True,False))
 
     def die(self):
         gamestate.foes.remove(self)
@@ -32,6 +32,7 @@ class Foe(object):
             self.die()
 
     def arrive(self):  # reach the castle
+        gamestate.damage(self.dhp)
         self.die()
     
     def think(self, dt):
@@ -74,6 +75,12 @@ class Foe(object):
         data.draw(vista.mapwindow, img, (px, py-h), self.anchor)
 
 
+class Villager(Foe):
+    v = 2.0
 
+    def __init__(self, path):
+        Foe.__init__(self, path)    
+        self.imgname = "foe-%s" % random.choice((0,1,2,3))
+        self.imgflip = random.choice((True,False))
 
 

@@ -1,5 +1,5 @@
 import pygame, random
-import vista, gamemap, tech, gamestate, foe, data
+import vista, gamemap, tech, gamestate, foe, data, scene
 
 class GameScene():
     def __init__(self):
@@ -21,19 +21,23 @@ class GameScene():
                 tech.think(dt, events)
 
         if random.random() < dt * 1.:
-            gamestate.foes.append(foe.Foe())
+            gamestate.foes.append(foe.Villager(random.choice(gamestate.paths)))
         
-        for t in gamestate.towers:
-            t.think(dt)
-        for f in gamestate.foes:
-            f.think(dt)
-        for f in gamestate.effects:
-            f.think(dt)
+        if gamestate.hp:
+            for t in gamestate.towers:
+                t.think(dt)
+            for f in gamestate.foes:
+                f.think(dt)
+            for f in gamestate.effects:
+                f.think(dt)
+        else:
+            scene.pop()
 
     def draw(self):
         gamemap.draw()
         tech.draw()
         vista.drawwindows()
+        gamestate.drawHUD()
         
         vista.flip()
 
