@@ -7,7 +7,7 @@ def init():
         _screen = pygame.display.set_mode((settings.sx*2, settings.sy*2))
         screen = pygame.Surface(settings.ssize).convert()
     else:
-        screen = pygame.display.set_mode(ssize)
+        screen = pygame.display.set_mode(settings.ssize)
     pygame.display.set_caption(settings.gamename)
     mapwindow = pygame.Surface(settings.wsize).convert_alpha()
     techwindow = pygame.Surface(settings.wsize).convert_alpha()
