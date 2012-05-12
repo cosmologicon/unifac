@@ -4,7 +4,7 @@ import vista, gamemap, tech, gamestate, foe, data, scene
 class GameScene():
     def __init__(self):
         gamestate.loadlevel()
-        data.playspeech("lame-monster-party")
+        data.playspeech("wander")
     
     def think(self, dt, events):
         vista.think(dt)

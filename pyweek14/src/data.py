@@ -58,4 +58,10 @@ def playmusic(sname):
     pygame.mixer.music.load(filename(sname + ".ogg"))
     pygame.mixer.music.play(-1)
 
+def fademusic(dt):
+    v0 = pygame.mixer.music.get_volume()
+    if speechchannel.get_busy():
+        pygame.mixer.music.set_volume(min(v0 + dt, 1.0))
+    else:
+        pygame.mixer.music.set_volume(max(v0 - dt, 0.0))
 
