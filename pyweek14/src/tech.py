@@ -1,9 +1,8 @@
 # the tech tree
 
 import pygame
-import vista, gamestate, data, settings, mechanics
+import vista, gamestate, data, settings, mechanics, effect
 
-font, bfont = None, None
 drag = None
 dragpos = None
 dragz0, dragz = None, None
@@ -114,11 +113,6 @@ def think(dt, events):
 
 
 def draw():
-    global font, bfont
-    if font is None:
-        font = pygame.font.Font(settings.fonts.table, 20)
-    if bfont is None:
-        bfont = pygame.font.Font(settings.fonts.cells, 20)
 
     vista.techwindow.fill((0, 20, 0))
 
@@ -127,15 +121,15 @@ def draw():
         pygame.draw.rect(vista.techwindow, (200, 200, 200), rect, 2)
         if tech in gamestate.bindings:
             for j, t in enumerate(gamestate.bindings[tech].split()):
-                text = bfont.render(t, True, (255, 255, 255))
-                vista.techwindow.blit(text, rect.move(3, 3 + j*20))
+                text = effect.bordertext(t, settings.fonts.cells, 28, (255, 255, 255), (0, 0, 0))
+                vista.techwindow.blit(text, rect.move(2, 2 + j*20))
 
     for element, y in rows():
-        text = font.render(element, True, (255, 255, 255))
+        text = effect.bordertext(element, settings.fonts.table, 24, mechanics.ecolors[element], (0, 0, 0))
         vista.techwindow.blit(text, text.get_rect(midright = (tablex0 - 5, y)))
 
     for invention, x in cols():
-        text = font.render(invention, True, (255, 255, 255))
+        text = effect.bordertext(invention, settings.fonts.table, 24, (255,255,255), (0,0,0))
         text = pygame.transform.rotate(text, 90)
         vista.techwindow.blit(text, text.get_rect(midbottom = (x, tabley0 - 5)))
 

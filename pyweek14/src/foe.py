@@ -25,12 +25,12 @@ class Foe(object):
 
     def die(self):
         gamestate.foes.remove(self)
-        gamestate.effects.append(effect.Smoke((self.x, self.y)))
 
     def hurt(self, dhp):
         self.hp -= dhp
         if self.hp <= 0:
             gamestate.bank += self.reward
+            gamestate.effects.append(effect.Smoke((self.x, self.y)))
             self.die()
 
     def arrive(self):  # reach the castle
@@ -84,7 +84,7 @@ class Villager(Foe):
     reward = 2
 
     def __init__(self, path):
-        Foe.__init__(self, path)    
+        Foe.__init__(self, path)
         self.imgname = "foe-%s" % random.choice((0,1,2,3))
         self.imgflip = random.choice((True,False))
 

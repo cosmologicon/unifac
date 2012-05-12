@@ -1,6 +1,40 @@
 import pygame
-import vista, gamestate, data
+import vista, gamestate, data, settings
 
+def bordertext(text, fontname, fontsize, color0, color1=(255,255,255), d=1, cache={}):
+    key = text, fontname, fontsize, color0, color1
+    if key in cache: return cache[key]
+    fontkey = fontname, fontsize
+    if fontkey not in cache:
+        cache[fontkey] = pygame.font.Font(fontname, fontsize)
+    font = cache[fontkey]
+    surf0 = font.render(text, True, color0)
+    surf1 = font.render(text, True, color1)
+    img = pygame.Surface((surf0.get_width() + 2*d, surf0.get_height() + 2*d)).convert_alpha()
+    img.fill((0,0,0,0))
+    img.blit(surf1, (d, 0))
+    img.blit(surf1, (d, 2*d))
+    img.blit(surf1, (0, d))
+    img.blit(surf1, (2*d, d))
+    img.blit(surf0, (d, d))
+    cache[key] = img
+    return img
+
+class Title(object):
+    def __init__(self):
+        self.surf = bordertext(settings.gamename, settings.fonts.title, 110, (64, 128, 64), (255, 255, 255), 2)
+        self.t = 0
+
+    def think(self, dt):
+        self.t += dt
+    
+    def draw(self):
+        s = min(self.t * 4, (2 - self.t) * 4, 1)
+        if s <= 0: return
+        rect = self.surf.get_rect()
+        rect.center = settings.sx//2, settings.sy//2
+        area = 0, 0, int(rect.width * s), rect.height
+        vista.screen.blit(self.surf, rect, area)
 
 class Beam(object):
     lifetime = 0.25

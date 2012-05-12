@@ -1,5 +1,5 @@
 import pygame
-import mechanics, data, tower, settings, vista
+import mechanics, data, tower, settings, vista, effect
 
 
 def save():
@@ -113,13 +113,10 @@ def loadlevel():
 
 HUDfont = None
 def drawHUD():
-    global HUDfont
-    if HUDfont is None:
-        HUDfont = pygame.font.Font(settings.fonts.HUD, 28)
-    text = HUDfont.render("Funds: %s gp" % bank, True, (0, 128, 0))
+    text = effect.bordertext("Funds: %s gp" % bank, settings.fonts.HUD, 32, (40, 160, 40), (0, 0, 0))
     rect = text.get_rect(bottomright = (settings.sx - 8, settings.sy - 50))
     vista.screen.blit(text, rect)
-    text = HUDfont.render("Castle walls: %s/%s" % (max(0, hp), hp0), True, (0, 128, 0))
+    text = effect.bordertext("Castle walls: %s/%s" % (max(0, hp), hp0), settings.fonts.HUD, 32, (40, 160, 40), (0, 0, 0))
     rect = text.get_rect(bottomright = (settings.sx - 8, settings.sy - 8))
     vista.screen.blit(text, rect)
 

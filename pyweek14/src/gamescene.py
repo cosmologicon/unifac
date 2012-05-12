@@ -1,10 +1,11 @@
 import pygame, random
-import vista, gamemap, tech, gamestate, foe, data, scene
+import vista, gamemap, tech, gamestate, foe, data, scene, effect
 
-class GameScene():
+class GameScene(object):
     def __init__(self):
         gamestate.loadlevel()
         data.playspeech("wander")
+        self.title = effect.Title()
     
     def think(self, dt, events):
         vista.think(dt)
@@ -30,6 +31,7 @@ class GameScene():
                 f.think(dt)
             for f in gamestate.effects:
                 f.think(dt)
+            self.title.think(dt)
         else:
             scene.pop()
 
@@ -38,6 +40,8 @@ class GameScene():
         tech.draw()
         vista.drawwindows()
         gamestate.drawHUD()
+        
+        self.title.draw()
         
         vista.flip()
 

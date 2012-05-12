@@ -109,9 +109,19 @@ class Castle(object):
     def __init__(self, (x, y)):
         self.x, self.y = x + 0.5, y + 0.5
         self.img = pygame.transform.smoothscale(data.img("castle"), (120, 248))
+        self.alive = True
+
+    def think(self, dt):
+        if self.alive and gamestate.hp < 0:
+            self.alive = False
+            for j in range(50):
+                dy = random.uniform(-4, 4)
+                dx = random.uniform(-4, 4)
+                gamestate.effects.append(effect.Smoke((self.x + dx, self.y + dy)))
 
     def draw(self):
-        px, py = vista.mappos((self.x, self.y))
-        data.draw(vista.mapwindow, self.img, (px, py), "center")
+        if self.alive:
+            px, py = vista.mappos((self.x, self.y))
+            data.draw(vista.mapwindow, self.img, (px, py), "center")
 
 
