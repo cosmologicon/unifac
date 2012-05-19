@@ -12,10 +12,11 @@ GameScene.start = function () {
     })
     effects = []
     ships = [Ship(1000, 1000)]
-    
+    saucers = [Saucer(800, 700, ["Welcome", "to the game!"])]
     planets[0].distressed = true
     
     mask.make([1000,2000], [1000,1600], [800,800])
+    
 }
 
 GameScene.think = function (dt) {
@@ -31,12 +32,30 @@ GameScene.think = function (dt) {
         }
     })
 
-    var think = function (e) { e.think(dt) }
 
+
+    ships.forEach(function (ship) {
+        var x = ship.x, y = ship.y
+        planets.forEach(function (planet) {
+            var dx = x - planet.x, dy = y - planet.y
+            if (dx * dx + dy * dy < 100 * 100) {
+                planet.interact(ship)
+            }
+        })
+        saucers.forEach(function (saucer) {
+            var dx = x - saucer.x, dy = y - saucer.y
+            if (dx * dx + dy * dy < 100 * 100) {
+                saucer.interact(ship)
+            }
+        })
+    })
+
+    var think = function (e) { e.think(dt) }
     camera.think(dt)
     planets.forEach(think)
     effects.forEach(think)
     ships.forEach(think)
+    saucers.forEach(think)
 }
 
 GameScene.drawtitle = function () {
@@ -74,10 +93,11 @@ GameScene.draw = function () {
 
     var draw = function (e) { context.save() ; e.draw() ; context.restore() }
     planets.forEach(draw)
+    saucers.forEach(draw)
     ships.forEach(draw)
     effects.forEach(draw)
     
-    draw(mask)
+//    draw(mask)
 }
 
 
