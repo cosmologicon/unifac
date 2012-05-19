@@ -3,26 +3,15 @@ var GameScene = Object.create(UFX.scene.Scene)
 
 
 GameScene.start = function () {
-    this.stars = UFX.random.spread(500, settings.sx, settings.sy)
+    this.stars = UFX.random.spread(2000, settings.sx, settings.sy)
 
-    this.x = []
-    this.y = []
-    this.vx = []
-    this.vy = []
-    for (var j = 0 ; j < 500 ; ++j) {
-        this.x.push(UFX.random(settings.sx))
-        this.y.push(UFX.random(settings.sy))
-        this.vx.push(UFX.random(-100, 100))
-        this.vy.push(UFX.random(-100, 100))
-    }
-    this.texttheta = 0
-    
     planets = []
     UFX.random.spread(100, settings.sx, settings.sy).forEach(function (p) {
         var color = UFX.random.choice("red yellow green blue gray".split(" "))
         planets.push(Planet(p[0], p[1], UFX.random(20, 40), color))
     })
     effects = []
+    ships = [Ship(1000, 1000)]
     
     planets[0].distressed = true
     
@@ -31,9 +20,23 @@ GameScene.start = function () {
 
 GameScene.think = function (dt) {
     document.title = UFX.ticker.getfpsstr()
+
+    UFX.mouse.events().forEach(function (event) {
+        if (event.type == "down") {
+            if (event.button == 0) {
+                ships[0].settarget(event.pos[0], event.pos[1])
+            }
+            camera.settarget(event.pos[0], event.pos[1])
+            effects.push(ClickBox(event.pos[0], event.pos[1]))
+        }
+    })
+
     var think = function (e) { e.think(dt) }
+
+    camera.think(dt)
     planets.forEach(think)
     effects.forEach(think)
+    ships.forEach(think)
 }
 
 GameScene.drawtitle = function () {
@@ -52,21 +55,26 @@ GameScene.drawtitle = function () {
     context.restore()
 }
 
-GameScene.drawstars = function () {
+GameScene.drawbackground = function () {
     context.fillStyle = "black"
     context.fillRect(0, 0, settings.sx, settings.sy)
     this.drawtitle()
     context.fillStyle = "white"
-    this.stars.forEach(function (star) {
+    this.stars.forEach(function (star, j, stars) {
+        if (j % 100 == 0) {
+            var k = 32 + Math.floor(j * 196 / stars.length)
+            context.fillStyle = "rgb(" + k + "," + k + "," + k + ")"
+        }
         context.fillRect(star[0], star[1], 2, 2)
     })
 }
 
 GameScene.draw = function () {
-    this.drawstars()
+    this.drawbackground()
 
     var draw = function (e) { context.save() ; e.draw() ; context.restore() }
     planets.forEach(draw)
+    ships.forEach(draw)
     effects.forEach(draw)
     
     draw(mask)

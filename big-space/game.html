@@ -6,13 +6,14 @@
 <link href='http://fonts.googleapis.com/css?family=Syncopate:700|Russo+One' rel='stylesheet' type='text/css'>
 <style>
 body {
-    background: black; color: white;
+    background: #003; color: white;
     font-family: 'Viga';
     font-size: 110%;
     margin: 0;
+    text-align: center;
 }
 #canvas {
-    margin: 0;
+    margin: 0 auto 0;
     border: 0;
     padding: 0;
 }
@@ -36,6 +37,7 @@ body {
 <!-- game objects -->
 <script src="entity.js"></script>
 <script src="mask.js"></script>
+<script src="camera.js"></script>
 
 <body>
 <canvas id=canvas></canvas>
@@ -47,6 +49,8 @@ var context = canvas.getContext("2d")
 
 window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
                                window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
+UFX.mouse.init(canvas)
+UFX.mouse.capture.right = true
 // UFX.key.init()
 // UFX.key.watchlist = "up down left right W A S D comma key#188 O E space enter esc shift 1 2 3 4 5 6 7 8 9 0 backspace F7 F8".split(" ")
 UFX.draw.setcontext(context)

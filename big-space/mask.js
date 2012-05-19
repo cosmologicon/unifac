@@ -1,7 +1,7 @@
 // Shroud mask
 
 var mask = {
-    factor: 8,
+    factor: 4,
     surf: undefined,
 
     
@@ -16,7 +16,7 @@ var mask = {
             var x = xs[j]/this.factor, y = ys[j]/this.factor, r = rs[j]/this.factor
             var grad = con.createRadialGradient(x, y, 0, x, y, r)
             grad.addColorStop(0, "black")
-            grad.addColorStop(0.65, "black")
+            grad.addColorStop(0.8, "black")
             grad.addColorStop(1, "rgba(0,0,0,0)")
             con.fillStyle = grad
             con.fillRect(0, 0, px, py)
@@ -24,10 +24,10 @@ var mask = {
         var idata = con.getImageData(0, 0, px, py)
         var data = idata.data
         for (var j = 0 ; j < 4*px*py ; j += 4) {
-            data[j+3] = data[j]
-            data[j+1] = 24
-            data[j+2] = 24
-            data[j] = 24
+            var d = data[j]
+//            data[j+3] = d == 0 ? 0 : d == 255 ? 255 : data[j] + UFX.random.rand(-30, 30)
+            data[j+3] = d
+            data[j] = data[j+1] = data[j+2] = UFX.random.rand(18, 22)
         }
         con.putImageData(idata, 0, 0)
         this.surf = document.createElement("canvas")
