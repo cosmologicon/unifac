@@ -25,6 +25,8 @@ GameScene.start = function () {
     effects = []
     
     planets[0].distressed = true
+    
+    mask.make([1000,2000], [1000,1600], [800,800])
 }
 
 GameScene.think = function (dt) {
@@ -66,6 +68,8 @@ GameScene.draw = function () {
     var draw = function (e) { context.save() ; e.draw() ; context.restore() }
     planets.forEach(draw)
     effects.forEach(draw)
+    
+    draw(mask)
 }
 
 
