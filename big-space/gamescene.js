@@ -11,9 +11,14 @@ GameScene.start = function () {
         planets.push(Planet(p[0], p[1], UFX.random(20, 40), color))
     })
     effects = []
-    ships = [Ship(1000, 1000)]
-    saucers = [Saucer(800, 700, ["Welcome", "to the game!"])]
+    ships = [Ship(100, 100), Ship(300, 300)]
+    this.jship = 0
+    saucers = [
+        Saucer(600, 400, "Use your browser's zoom|function to get a wide view,|or close up to read info!|Ctrl+0 to return to normal zoom."),
+        Saucer(1000, 400, "Hey you. Want to help me explore?|Just park your ship at this planet|here until it reaches 100%. Then|come back and talk to me again."),
+    ]
     planets[0].distressed = true
+    planets[1].meteors = true
     
     mask.make([1000,2000], [1000,1600], [800,800])
     
@@ -22,29 +27,37 @@ GameScene.start = function () {
 GameScene.think = function (dt) {
     document.title = UFX.ticker.getfpsstr()
 
+    var ship = ships[this.jship], gscene = this
     UFX.mouse.events().forEach(function (event) {
         if (event.type == "down") {
             if (event.button == 0) {
-                ships[0].settarget(event.pos[0], event.pos[1])
+                ship.settarget(event.pos[0], event.pos[1])
             }
             camera.settarget(event.pos[0], event.pos[1])
             effects.push(ClickBox(event.pos[0], event.pos[1]))
+        }
+    })
+    UFX.key.events().forEach(function (event) {
+        if (event.type == "up" && event.name == "tab") {
+            gscene.jship++
+            gscene.jship %= ships.length
         }
     })
 
 
 
     ships.forEach(function (ship) {
+        if (ship.x != ship.targetx) return
         var x = ship.x, y = ship.y
         planets.forEach(function (planet) {
             var dx = x - planet.x, dy = y - planet.y
-            if (dx * dx + dy * dy < 100 * 100) {
+            if (dx * dx + dy * dy < 80 * 80) {
                 planet.interact(ship)
             }
         })
         saucers.forEach(function (saucer) {
             var dx = x - saucer.x, dy = y - saucer.y
-            if (dx * dx + dy * dy < 100 * 100) {
+            if (dx * dx + dy * dy < 50 * 50) {
                 saucer.interact(ship)
             }
         })
@@ -72,6 +85,15 @@ GameScene.drawtitle = function () {
     context.font = "24px 'Russo One'"
     context.fillText("by Christopher Night", 92, 50)
     context.restore()
+
+    context.save()
+    context.translate(200, 200)
+    context.rotate(0.3)
+    context.font = "30px 'Russo One'"
+    context.fillStyle = "rgb(0,0,64)"
+    context.fillText("Left click: move ship", 0, -30)
+    context.fillText("Right click: pan", 0, 0)
+    context.restore()
 }
 
 GameScene.drawbackground = function () {
@@ -88,9 +110,18 @@ GameScene.drawbackground = function () {
     })
 }
 
+GameScene.drawguideline = function () {
+    var p = UFX.mouse.pos
+    if (p) {
+        var s = ships[this.jship]
+        UFX.draw(context, "b m", s.x, s.y, "l", p[0], p[1], "lw 0.1 ss white s")
+    }
+}
+
 GameScene.draw = function () {
     this.drawbackground()
-
+    this.drawguideline()
+    
     var draw = function (e) { context.save() ; e.draw() ; context.restore() }
     planets.forEach(draw)
     saucers.forEach(draw)
