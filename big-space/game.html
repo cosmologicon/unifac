@@ -29,6 +29,7 @@ body {
 <script src="../UFX/src/draw.js"></script>
 <script src="../UFX/src/random.js"></script>
 <script src="../UFX/src/noise.js"></script>
+<script src="../UFX/src/resource.js"></script>
 
 <script src="settings.js"></script>
 
@@ -56,10 +57,19 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequest
 UFX.mouse.init(canvas)
 UFX.mouse.capture.right = true
 UFX.key.init()
-UFX.key.watchlist = "tab".split(" ")
+UFX.key.watchlist = "tab space".split(" ")
 UFX.draw.setcontext(context)
-UFX.scene.init()
-UFX.scene.push(GameScene)
+
+UFX.resource.onload = function () {
+    UFX.resource.sounds.music.addEventListener('ended', function() {
+        this.currentTime = 0;
+        this.play();
+    }, false)
+    UFX.scene.push(GameScene)
+    UFX.scene.init()
+}
+UFX.resource.load({music: "big-space.ogg", chime: "chime.wav"})
+
 
 </script>
 
