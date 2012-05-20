@@ -259,7 +259,7 @@ function Saucer(x, y, tip) {
               .addcomp(InSpace, x, y)
               .addcomp(OscillatesWhenIdle, 2.5)
               .addcomp(DrawSaucer)
-              .addcomp(ShowsSpeechBubble, tip.split("|"))
+              .addcomp(ShowsSpeechBubble, (tip || "").split("|"))
 }
 
 

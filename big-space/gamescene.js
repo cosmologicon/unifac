@@ -16,11 +16,14 @@ GameScene.start = function () {
     saucers = [
         Saucer(600, 400, "Use your browser's zoom|function to get a wide view,|or close up to read info!|Ctrl+0 to return to normal zoom."),
         Saucer(1000, 400, "Hey you. Want to help me explore?|Just park your ship at this planet|here until it reaches 100%. Then|come back and talk to me again."),
+        qsaucers.rescuer,
     ]
     planets[0].distressed = true
     planets[1].meteors = true
     
     mask.make([1000,2000], [1000,1600], [800,800])
+    
+    this.initsun()
     
 }
 
@@ -73,7 +76,7 @@ GameScene.think = function (dt) {
 
 GameScene.drawtitle = function () {
     context.save()
-    context.translate(settings.sx/3, 2*settings.sy/3)
+    context.translate(settings.sx/3, 0.8*settings.sy)
     context.scale(settings.sy/1000, settings.sy/1000)
     context.rotate(-0.5)
     context.textAlign = "center"
@@ -108,6 +111,7 @@ GameScene.drawbackground = function () {
         }
         context.fillRect(star[0], star[1], 2, 2)
     })
+    this.drawsun()
 }
 
 GameScene.drawguideline = function () {
@@ -116,6 +120,47 @@ GameScene.drawguideline = function () {
         var s = ships[this.jship]
         UFX.draw(context, "b m", s.x, s.y, "l", p[0], p[1], "lw 0.1 ss white s")
     }
+}
+
+GameScene.initsun = function () {
+    var s = this.suns = 64
+    this.sunrs = []
+    this.sunthetas = []
+    this.sunidata = context.createImageData(s, s)
+    this.suncanvas = document.createElement("canvas")
+    this.suncanvas.width = this.suncanvas.height = s
+    for (var y = 0, j = 0, k = 0 ; y < s ; ++y) {
+        for (var x = 0 ; x < s; ++x, j += 4, ++k) {
+            var dx = ((x - s/2) + 0.5) / s * 10, dy = ((y - s/2) + 0.5) / s * 10
+            var r = Math.sqrt(dx * dx + dy * dy)
+            var theta = Math.atan2(dy, dx) * 16 / Math.PI
+            this.sunrs.push(r)
+            this.sunthetas.push(theta)
+        }
+    }
+}
+
+GameScene.drawsun = function () {
+    var data = this.sunidata.data
+    var t = Date.now() * 0.001
+    var jmax = this.suns * this.suns
+    for (var j = 0, k = 0 ; j < jmax ; ++j) {
+        var r = this.sunrs[j], theta = this.sunthetas[j]
+        var v = UFX.noise([3*r - 1*t, theta, 0.5*t], [256, 32, 256])
+        v += 1.5 -0.5 * r
+//                v1 = 2 * v1 - 1 + (y - s/3) * 0.03
+//                var color = flamemap(v)
+        data[k++] = 255
+        data[k++] = 196 + 300 * v
+        data[k++] = 400 * v
+        data[k++] = Math.min(Math.max(128 + 600 * v, 0), 255)
+    }
+    this.suncanvas.getContext("2d").putImageData(this.sunidata, 0, 0)
+    context.save()
+    context.translate(settings.sx/2, settings.sy/2)
+    context.scale(600/this.suns, 600/this.suns)
+    context.drawImage(this.suncanvas, -this.suns/2, -this.suns/2)
+    context.restore()
 }
 
 GameScene.draw = function () {
