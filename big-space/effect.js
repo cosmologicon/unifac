@@ -178,6 +178,18 @@ var DrawInfo = {
     },
 }
 
+function splittext(text, w) {
+    w = w || 60
+    var texts = [text]
+    while (texts[texts.length - 1].length > w) {
+        var t = texts[texts.length - 1]
+        var a = t.lastIndexOf(" ", 60)
+        texts[texts.length - 1] = t.substr(0, a)
+        texts.push(t.substr(a))
+    }
+    return texts
+}
+
 var DrawSpeech = {
     init: function (talker) {
         this.talker = talker
@@ -189,6 +201,7 @@ var DrawSpeech = {
         context.fillStyle = "white"
         var w = 0, h = 0, d = 4
         var texts = this.talker.info
+        if (typeof texts == "string") texts = splittext(texts)
         texts.forEach(function (text) {
             var m = context.measureText(text)
             w = Math.max(w, m.width)

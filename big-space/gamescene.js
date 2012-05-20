@@ -3,23 +3,17 @@ var GameScene = Object.create(UFX.scene.Scene)
 
 
 GameScene.start = function () {
+    qinit()
     this.stars = UFX.random.spread(2000, settings.sx, settings.sy)
 
-    planets = []
-    UFX.random.spread(100, settings.sx, settings.sy).forEach(function (p) {
-        var color = UFX.random.choice("red yellow green blue gray".split(" "))
-        planets.push(Planet(p[0], p[1], UFX.random(20, 40), color))
-    })
+    planets = [qplanets.first]
     effects = []
-    ships = [Ship(100, 100), Ship(300, 300)]
+    ships = [Ship(100, 100)]
     this.jship = 0
     saucers = [
-        Saucer(600, 400, "Use your browser's zoom|function to get a wide view,|or close up to read info!|Ctrl+0 to return to normal zoom."),
-        Saucer(1000, 400, "Hey you. Want to help me explore?|Just park your ship at this planet|here until it reaches 100%. Then|come back and talk to me again."),
-        qsaucers.rescuer,
+        qsaucers.mothership,
+        qsaucers.greeter,
     ]
-    planets[0].distressed = true
-    planets[1].meteors = true
     
     mask.make([1000,2000], [1000,1600], [800,800])
     
@@ -28,6 +22,7 @@ GameScene.start = function () {
 }
 
 GameScene.think = function (dt) {
+    dt *= settings.speedfactor
     document.title = UFX.ticker.getfpsstr()
 
     var ship = ships[this.jship], gscene = this
@@ -96,7 +91,18 @@ GameScene.drawtitle = function () {
     context.fillStyle = "rgb(0,0,64)"
     context.fillText("Left click: move ship", 0, -30)
     context.fillText("Right click: pan", 0, 0)
+    context.fillText("Space: center on ship", 0, 0)
     context.restore()
+
+    if (ships.length > 1) {
+        context.save()
+        context.translate(2100, 1800)
+        context.rotate(0.1)
+        context.font = "30px 'Russo One'"
+        context.fillStyle = "rgb(0,0,64)"
+        context.fillText("Tab: select different ship", 0, 0)
+        context.restore()
+    }
 }
 
 GameScene.drawbackground = function () {

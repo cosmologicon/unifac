@@ -55,6 +55,15 @@ var ApproachesTarget = {
     },
 }
 
+var Scales = {
+    init: function (s) {
+        this.scale = s
+    },
+    draw: function () {
+        context.scale(this.scale, this.scale)
+    },
+}
+
 var IsRound = {
     init: function (r, color) {
         this.r = r
@@ -108,6 +117,27 @@ var OscillatesWhenIdle = {
         context.rotate(0.15 * Math.cos(this.beta))
     },
 }
+
+var CirclesSun = {
+    init: function () {
+        this.beta = UFX.random(100)
+        this.psi = 0.2
+        this.x0 = settings.sx/2
+        this.y0 = settings.sy/2
+        this.r = 400
+    },
+    think: function (dt) {
+        if (!this.interacting) {
+            this.beta += this.psi * dt
+        }
+        this.x = this.x0 + this.r * Math.cos(this.beta)
+        this.y = this.y0 + this.r * Math.sin(this.beta)
+    },
+    draw: function () {
+        context.rotate(0.25 * Math.cos(6 * this.beta + 1))
+    },
+}
+
 
 
 var SendsDistress = {
@@ -176,7 +206,7 @@ var ShowsPlanetInfo = {
         this.infoeffect = undefined
         this.interacting = false
         this.explored = 0
-        this.exploretime = 20.0
+        this.exploretime = 60.0
     },
     interact: function (ship) {
         this.interacting = true
@@ -195,7 +225,13 @@ var ShowsPlanetInfo = {
             if (!this.infoeffect || effects.indexOf(this.infoeffect) < 0) {
                 this.infoeffect = PlanetInfoBox(this)
             }
-            this.explored += dt / this.exploretime
+            if (this.explored < 1) {
+                this.explored += dt / this.exploretime
+                if (this.explored >= 1) {
+                    state.explored.push(this)
+                    this.explored = 1
+                }
+            }
         } else {
             if (this.infoeffect) {
                 this.infoeffect.disappear()
@@ -217,9 +253,12 @@ var ShowsSpeechBubble = {
     interact: function (ship) {
         this.interacting = true
     },
+    setinfo: function () {
+    },
     think: function (dt) {
         if (this.interacting) {
             if (!this.bubble || effects.indexOf(this.bubble) < 0) {
+                this.setinfo()
                 this.bubble = SpeechBubble(this)
             }
         } else {
@@ -259,8 +298,6 @@ function Saucer(x, y, tip) {
               .addcomp(InSpace, x, y)
               .addcomp(OscillatesWhenIdle, 2.5)
               .addcomp(DrawSaucer)
-              .addcomp(ShowsSpeechBubble, (tip || "").split("|"))
+              .addcomp(ShowsSpeechBubble, (tip || ""))
 }
-
-
 
