@@ -43,6 +43,10 @@ var ApproachesTarget = {
         this.alpha = Math.atan2(dx, -dy)
         var d = Math.sqrt(dx*dx + dy*dy)
         var d0 = this.vmax * dt
+        var adx = this.x - qplanets.slower.x, ady = this.y - qplanets.slower.y
+        if (adx * adx + ady * ady < 120 * 120) {
+            d0 /= 3
+        }
         if (d <= d0) {
             this.x = this.targetx
             this.y = this.targety
@@ -65,13 +69,21 @@ var Scales = {
 }
 
 var IsRound = {
-    init: function (r, color) {
+    init: function (r, color, swap) {
         this.r = r
         this.color = color || "white"
-        this.grad0 = context.createRadialGradient(-0.5, -0.5, 0, -0.5, -0.5, 1.8)
+        var dx = settings.sx / 2 - this.x
+        var dy = settings.sy / 2 - this.y
+        var d = Math.sqrt(dx*dx + dy*dy)
+        var ax = dx/d, ay = dy/d
+        if (swap) {
+            ax = -ax
+            ay = -ay
+        }
+        this.grad0 = context.createRadialGradient(ax, ay, 0, ax, ay, 2.0)
         this.grad0.addColorStop(0, "#333")
         this.grad0.addColorStop(1, "black")
-        this.grad1 = context.createRadialGradient(-0.5, -0.5, 0, -0.5, -0.5, 1.8)
+        this.grad1 = context.createRadialGradient(ax, ay, 0, ax, ay, 2.0)
         this.grad1.addColorStop(0, this.color)
         this.grad1.addColorStop(1, "black")
     },
@@ -207,29 +219,43 @@ var ShowsPlanetInfo = {
         this.interacting = false
         this.explored = 0
         this.exploretime = 60.0
+        this.exploremax = 1
+        this.worldname = {blue: "Ocean", red: "Rust", yellow: "Fruit", green: "Acid", white: "Dust",
+                          orange: "Flame", brown: "Dirt", purple: "Mineral"}[this.color] + " planet"
+        this.coordinates = "Location: " +
+            Math.floor((this.x - settings.sx/2) * 200 / settings.sx + 0.5) + ", " +
+            Math.floor((-this.y + settings.sy/2) * 200 / settings.sy + 0.5)
+        this.chimes = false
     },
     interact: function (ship) {
         this.interacting = true
     },
     getinfo: function () {
         if (this.distressed) {
-            return ["Planet in distress"]
+            return [this.worldname + " in distress",
+                    "" + Math.floor(this.explored * 100) + "% explored",
+                    this.coordinates]
         } else if (this.explored < 1) {
-            return ["Unexplored planet", "" + Math.floor(this.explored * 100) + "% explored"]
+            return ["Unexplored planet",
+                    "" + Math.floor(this.explored * 100) + "% explored",
+                    this.coordinates]
         } else {
-            return [this.color + " planet"]
+            return [this.worldname,
+                    "" + Math.floor(this.explored * 100) + "% explored",
+                    this.coordinates]
         }
     },
     think: function (dt) {
         if (this.interacting) {
             if (!this.infoeffect || effects.indexOf(this.infoeffect) < 0) {
                 this.infoeffect = PlanetInfoBox(this)
+                if (this.chimes) UFX.resource.sounds.chime.play()
             }
-            if (this.explored < 1) {
+            if (this.explored < this.exploremax) {
                 this.explored += dt / this.exploretime
-                if (this.explored >= 1) {
+                if (this.explored >= this.exploremax) {
                     state.explored.push(this)
-                    this.explored = 1
+                    this.explored = this.exploremax
                 }
             }
         } else {
@@ -240,7 +266,6 @@ var ShowsPlanetInfo = {
                 }
             }
         }
-        this.interacting = false
     },
 }
 
@@ -273,7 +298,25 @@ var ShowsSpeechBubble = {
     },
 }
 
+var Squished = {
+    init: function (sx) {
+        this.squishx = sx || 1
+    },
+    draw: function () {
+        if (this.squishx != 1) {
+            context.scale(this.squishx, 1/this.squishx)
+        }
+    },
+}
 
+var Reversable = {
+    draw: function () {
+        var dx = this.x - qplanets.reverser.x, dy = this.y - qplanets.reverser.y
+        if (dx * dx + dy * dy < 100 * 100) {
+            context.scale(-1, -1)
+        }
+    }
+}
 
 function Planet(x, y, r, color) {
     return UFX.Thing()
@@ -289,6 +332,7 @@ function Ship(x, y) {
     return UFX.Thing()
               .addcomp(InSpace, x, y)
               .addcomp(ApproachesTarget, vmax)
+              .addcomp(Reversable)
               .addcomp(DrawShip)
 }
 

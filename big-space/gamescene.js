@@ -3,9 +3,10 @@ var GameScene = Object.create(UFX.scene.Scene)
 
 
 GameScene.start = function () {
-    qinit()
-    this.stars = UFX.random.spread(2000, settings.sx, settings.sy)
+    UFX.resource.sounds.music.play(-1)
+    stars = UFX.random.spread(2000, settings.sx, settings.sy)
 
+    qinit()
     planets = [qplanets.first]
     effects = []
     ships = [Ship(100, 100)]
@@ -14,6 +15,9 @@ GameScene.start = function () {
         qsaucers.mothership,
         qsaucers.greeter,
     ]
+    
+    qcomplete("first")
+    planets.forEach(function (p) { p.explored = 1 })
     
     mask.make([1000,2000], [1000,1600], [800,800])
     
@@ -39,10 +43,14 @@ GameScene.think = function (dt) {
         if (event.type == "up" && event.name == "tab") {
             gscene.jship++
             gscene.jship %= ships.length
+        } else if (event.type == "up" && event.name == "space") {
+            camera.settarget(ship.x, ship.y)
         }
     })
 
 
+    planets.forEach(function (planet) { planet.interacting = false })
+    saucers.forEach(function (saucer) { saucer.interacting = false })
 
     ships.forEach(function (ship) {
         if (ship.x != ship.targetx) return
@@ -91,7 +99,7 @@ GameScene.drawtitle = function () {
     context.fillStyle = "rgb(0,0,64)"
     context.fillText("Left click: move ship", 0, -30)
     context.fillText("Right click: pan", 0, 0)
-    context.fillText("Space: center on ship", 0, 0)
+    context.fillText("Space: center on ship", 0, 30)
     context.restore()
 
     if (ships.length > 1) {
@@ -110,7 +118,7 @@ GameScene.drawbackground = function () {
     context.fillRect(0, 0, settings.sx, settings.sy)
     this.drawtitle()
     context.fillStyle = "white"
-    this.stars.forEach(function (star, j, stars) {
+    stars.forEach(function (star, j, stars) {
         if (j % 100 == 0) {
             var k = 32 + Math.floor(j * 196 / stars.length)
             context.fillStyle = "rgb(" + k + "," + k + "," + k + ")"
