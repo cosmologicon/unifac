@@ -59,13 +59,17 @@ var IsRound = {
     init: function (r, color) {
         this.r = r
         this.color = color || "white"
-        this.grad = context.createRadialGradient(-0.5, -0.5, 0, -0.5, -0.5, 1.8)
-        this.grad.addColorStop(0, this.color)
-        this.grad.addColorStop(1, "black")
+        this.grad0 = context.createRadialGradient(-0.5, -0.5, 0, -0.5, -0.5, 1.8)
+        this.grad0.addColorStop(0, "#333")
+        this.grad0.addColorStop(1, "black")
+        this.grad1 = context.createRadialGradient(-0.5, -0.5, 0, -0.5, -0.5, 1.8)
+        this.grad1.addColorStop(0, this.color)
+        this.grad1.addColorStop(1, "black")
     },
     draw: function () {
         context.scale(this.r, this.r)
-        UFX.draw.circle(context, 0, 0, 1, this.grad)
+        var color = this.explored < 1 ? this.grad0 : this.grad1
+        UFX.draw.circle(context, 0, 0, 1, color)
     },
 }
 
@@ -90,18 +94,18 @@ var DrawSaucer = {
 
 var OscillatesWhenIdle = {
     init: function (psi) {
-        this.beta = 0
-        this.psi = psi || 1
+        this.beta = UFX.random(100)
+        this.psi = (psi || 1) * UFX.random(0.85, 1.15)
         this.y0 = this.y
     },
     think: function (dt) {
         if (!this.interacting) {
             this.beta += this.psi * dt
         }
-        this.y = this.y0 + 40 * Math.sin(this.beta)
+        this.y = this.y0 + 20 * Math.sin(this.beta)
     },
     draw: function () {
-        context.rotate(0.3 * Math.cos(this.beta))
+        context.rotate(0.15 * Math.cos(this.beta))
     },
 }
 
@@ -115,8 +119,8 @@ var SendsDistress = {
     think: function (dt) {
         if (this.distressed) {
             this.distresst += dt
-            while (this.distresst > 0.4) {
-                this.distresst -= 0.4
+            while (this.distresst > 1) {
+                this.distresst -= 1
                 var a = this.distressj * 2.39996
                 this.distressj += 1
                 DistressCall(this.x, this.y, a)
@@ -125,14 +129,22 @@ var SendsDistress = {
     },
 }
 
-var AtAngle = {
-    init: function (a) {
-        this.alpha = a || 0
+var PullsMeteors = {
+    init: function () {
+        this.meteors = false
+        this.meteort = 0
     },
-    draw: function () {
-        context.rotate(this.alpha)
+    think: function (dt) {
+        if (this.meteors) {
+            this.meteort += dt
+            while (this.meteort > 0.02) {
+                this.meteort -= 0.02
+                Meteor(this.x, this.y)
+            }
+        }
     },
 }
+
 
 var Spins = {
     init: function (omega) {
@@ -145,19 +157,6 @@ var Spins = {
     draw: function () {
         context.rotate(this.theta)
     }
-}
-
-var Ascends = {
-    init: function (vh) {
-        this.h = 0
-        this.vh = vh || 0
-    },
-    think: function (dt) {
-        this.h += this.vh * dt
-    },
-    draw: function () {
-        context.translate(0, -Math.pow(this.h, 0.75)*3)
-    },
 }
 
 var TimesOut = {
@@ -176,15 +175,27 @@ var ShowsPlanetInfo = {
     init: function () {
         this.infoeffect = undefined
         this.interacting = false
+        this.explored = 0
+        this.exploretime = 20.0
     },
     interact: function (ship) {
         this.interacting = true
+    },
+    getinfo: function () {
+        if (this.distressed) {
+            return ["Planet in distress"]
+        } else if (this.explored < 1) {
+            return ["Unexplored planet", "" + Math.floor(this.explored * 100) + "% explored"]
+        } else {
+            return [this.color + " planet"]
+        }
     },
     think: function (dt) {
         if (this.interacting) {
             if (!this.infoeffect || effects.indexOf(this.infoeffect) < 0) {
                 this.infoeffect = PlanetInfoBox(this)
             }
+            this.explored += dt / this.exploretime
         } else {
             if (this.infoeffect) {
                 this.infoeffect.disappear()
@@ -230,6 +241,7 @@ function Planet(x, y, r, color) {
               .addcomp(InSpace, x, y)
               .addcomp(IsRound, r, color)
               .addcomp(SendsDistress)
+              .addcomp(PullsMeteors)
               .addcomp(ShowsPlanetInfo)
 }
 
@@ -247,7 +259,7 @@ function Saucer(x, y, tip) {
               .addcomp(InSpace, x, y)
               .addcomp(OscillatesWhenIdle, 2.5)
               .addcomp(DrawSaucer)
-              .addcomp(ShowsSpeechBubble, ["blah", "blah blah blah"])
+              .addcomp(ShowsSpeechBubble, tip.split("|"))
 }
 
 
