@@ -179,8 +179,8 @@ var DrawInfo = {
 }
 
 var DrawSpeech = {
-    init: function (texts) {
-        this.texts = texts || ["planet or something", "isn't it pretty?"]
+    init: function (talker) {
+        this.talker = talker
     },
     draw: function () {
         context.textAlign = "center"
@@ -188,7 +188,8 @@ var DrawSpeech = {
         context.font = "12px 'Chau Philomene One'"
         context.fillStyle = "white"
         var w = 0, h = 0, d = 4
-        this.texts.forEach(function (text) {
+        var texts = this.talker.info
+        texts.forEach(function (text) {
             var m = context.measureText(text)
             w = Math.max(w, m.width)
             h += 16
@@ -198,7 +199,7 @@ var DrawSpeech = {
                     "l -3", d, "q -3 12 -12 12 q 3 12 3", d, "l", x0, d, "q", x1, d, x1, 0,
                     "l", x1, -y0, "q", x1, -y1, x0, -y1, ") f")
         context.fillStyle = "black"
-        this.texts.forEach(function (text, j) {
+        texts.forEach(function (text, j) {
             context.fillText(text, 0, -h + 16 + j * 16)
         })
     },
@@ -272,7 +273,7 @@ function SpeechBubble(talker) {
               .addcomp(Follows, talker)
               .addcomp(Offset, 30, -30)
               .addcomp(Fades)
-              .addcomp(DrawSpeech, talker.info)
+              .addcomp(DrawSpeech, talker)
 }
 
 
