@@ -6,19 +6,10 @@ function qinit() {
 
 qsaucers.greeter = Saucer(300, 400, "Use your browser's zoom function to zoom out and get a wide view. Or zoom in if you need to read small text! Press Ctrl+0 (zero) to return to the default zoom.")
 
-qsaucers.rescuer = Saucer(600, 600, "")
-    .addcomp({
-        interact: function (ship) {
-            if (state.rescues == 0) {
-                this.info = "This is a rescue ship. You want to help us out? I'll give you the universal distress frequency. If you ever find a planet giving off|a distress call, park a ship at the distressed planet and bring another ship back to talk to us.".split("|")
-            } else {
-                this.info = ["You've helped us with " + state.rescues + " rescues."]
-            }
-        },
-    })
 
 // Mothership
 
+var nextship = 3  // 6 10 15 21
 qsaucers.mothership = UFX.Thing()
     .addcomp(InSpace, 0, 0)
     .addcomp(CirclesSun)
@@ -31,14 +22,53 @@ qsaucers.mothership = UFX.Thing()
                 if (state.explored.length) {
                     this.info = "Wow, you did a good job exploring that planet. I think that deserves a reward. Take another ship. That will help you explore even faster!"
                     qcomplete("first")
+                    ships.push(Ship(settings.sx/2, settings.sy/2))
+                    addmissions()
                 } else {
                     this.info = "Hey, you want to try your hand at exploring a planet? Just park your ship in front of that planet over there until it reaches 100%. We've already done most of it for you."
                 }
+            } else if (state.missions.length == 21) {
+                this.info = "You've completed every mission we have! Thanks for playing!"
+            } else if (state.missions.length >= nextship) {
+                this.info = "You've completed at least " + nextship + " exploration missions for us. That deserves a new ship!"
+                ships.push(Ship(settings.sx/2, settings.sy/2))
+                nextship += ships.length
+                addmissions()
             } else {
-                this.info = "You've completed " + state.missions.length + " exploration missions for us. Go talk to some more ships and find out how you can complete more missions! Come back when you've done " + 10 + " for a reward."
+                this.info = "You've completed " + state.missions.length + " exploration missions for us. Go talk to some more ships and find out how you can complete more missions! Come back when you've done " + nextship + " for a reward."
             }
         }
     })
+
+distressed = undefined
+qsaucers.rescuer = UFX.Thing()
+    .addcomp(InSpace, 2600, 1600)
+    .addcomp(OscillatesWhenIdle, 2.5)
+    .addcomp(Scales, 2)
+    .addcomp(DrawSaucer)
+    .addcomp(ShowsSpeechBubble)
+    .addcomp({
+        setinfo: function () {
+            if (state.unlocked.rescuer) {
+                if (distressed && distressed.interacting) {
+                    state.rescues++
+                    this.info = "Thanks! We see the planet in distress. We're on it. You've helped us make " + state.rescues + " rescues so far!"
+                    distressed.distressed = false
+                    distressed = undefined
+                    qcomplete("rescue" + state.rescues)
+                } else if (state.rescues == 5) {
+                    this.info = "You've helped us make 5 rescues! I don't think we'll be hearing any more distress calls any time soon."
+                } else {
+                    this.info = "You've helped us make " + state.rescues + " so far. If you ever hear any distress calls, find the planet giving them off. Park a ship there and bring another ship back here to talk to us."
+                }
+            } else {
+                this.info = "Hi there explorer. This is a rescue ship. You want to help out? We'll give the universal distress frequency. If you ever hear any distress calls, find the planet giving them off. Park a ship there and bring another ship back here to talk to us."
+                state.unlocked.rescuer = true
+            }
+        }
+    })
+
+
 
 qplanets.first = Planet(2600, 2500, 20, "blue")
 qplanets.first.explored = 0.9
@@ -153,7 +183,7 @@ qsaucers.antipode = seeker(1200, 1000, "antipode", qplanets.antipodes,
 qplanets.renamed = Planet(1000, 1500, 20, "blue")
 qplanets.renamed.worldname = "Billy Bob's planet - no tresspassing"
 qsaucers.renamed = seeker(3500, 300, "renamed", [qplanets.renamed],
-    "How you doin'? My name's Billy Bob. You think you could help me out? I have a planet somewhere around here, but I can't find it! You'll know it's mine because when you park a ship there, it says so. If you could park a ship at my planet and bring another ship back to talk to me, I'd be much obliged. What color is it?... I don't remember!",
+    "How you doin'? My name's Billy Bob. You think you could help me out? I have a planet somewhere around here, but I can't find it! You'll know it's mine because when you finish exploring it, it says so. If you could park a ship at my planet and bring another ship back to talk to me, I'd be much obliged. What color is it?... I don't remember!",
     "Yay, you found my planet! Thank you kindly!",
     "Thanks again!"
 )
@@ -254,23 +284,53 @@ qsaucers.chimer = seeker(1800, 300, "chimer", [qplanets.chimer],
     "Thanks again!"
 )
 
+pspares = []
+var bcoords = []
+for (var p in qplanets) {
+    if (qplanets[p].length) {
+        for (var j = 0 ; j < qplanets[p].length ; ++j) {
+            bcoords.push([qplanets[p][j].x, qplanets[p][j].y])
+        }
+    } else {
+        bcoords.push([qplanets[p].x, qplanets[p].y])
+    }
+}
+for (var s in qsaucers) {
+    bcoords.push([qsaucers[s].x, qsaucers[s].y0])
+}
+
+while (pspares.length < 40) {
+    var x = UFX.random(100, settings.sx - 100)
+    var y = UFX.random(100, settings.sy - 100)
+    var dx = x - settings.sx / 2, dy = y - settings.sy / 2
+    if (dx*dx + dy*dy < 600*600) continue
+    var good = true
+    bcoords.forEach(function (p) {
+        var dx = x - p[0], dy = y - p[1]
+        if (dx*dx + dy*dy < 220*220) good = false
+    })
+    if (!good) continue
+    bcoords.push([x, y])
+
+    var color = UFX.random.choice("red orange yellow green blue purple white brown".split(" "))
+    pspares.push(Planet(x, y, 20, color))
+}
+
+
 } // end of qinit
+
 
 
 function qcomplete(qname) {
     state.missions.push(qname)
-    if (qname == "first") {
-        ships.push(Ship(settings.sx/2, settings.sy/2))
+}
+
+function addmissions() {
+    if (ships.length == 2) {
         planets.push(qplanets.swapper)
         saucers.push(qsaucers.swapper)
         planets.push(qplanets.squished)
         saucers.push(qsaucers.squished)
-        for (var j = 0 ; j < 4 ; ++j) planets.push(qplanets.squares[j])
-        saucers.push(qsaucers.square)
-        for (var j = 0 ; j < 4 ; ++j) planets.push(qplanets.collinears[j])
-        saucers.push(qsaucers.collinear)
-        for (var j = 0 ; j < 2 ; ++j) planets.push(qplanets.antipodes[j])
-        saucers.push(qsaucers.antipode)
         planets.push(qplanets.nostars)
         saucers.push(qsaucers.nostars)
         planets.push(qplanets.renamed)
@@ -282,15 +342,29 @@ function qcomplete(qname) {
         planets.push(qplanets.starcrown)
         saucers.push(qsaucers.starcrown)
         planets.push(qplanets.overexplore)
-        saucers.push(qsaucers.overexplore)
         planets.push(qplanets.blinker)
         saucers.push(qsaucers.blinker)
         planets.push(qplanets.reverser)
-        saucers.push(qsaucers.reverser)
         planets.push(qplanets.slower)
         saucers.push(qsaucers.slower)
         planets.push(qplanets.chimer)
         saucers.push(qsaucers.chimer)
+        for (var j = 0 ; j < 2 ; ++j) planets.push(qplanets.antipodes[j])
+        for (var j = 0 ; j < 4 ; ++j) planets.push(qplanets.squares[j])
+        for (var j = 0 ; j < 4 ; ++j) planets.push(qplanets.collinears[j])
+        for (var j = 0 ; j < 10 ; ++j) planets.push(pspares[j])
+    } else if (ships.length == 3) {
+        saucers.push(qsaucers.antipode)
+        saucers.push(qsaucers.rescuer)
+        for (var j = 10 ; j < 20 ; ++j) planets.push(pspares[j])
+    } else if (ships.length == 4) {
+        saucers.push(qsaucers.overexplore)
+        saucers.push(qsaucers.reverser)
+        for (var j = 20 ; j < 30 ; ++j) planets.push(pspares[j])
+    } else if (ships.length == 5) {
+        saucers.push(qsaucers.square)
+        saucers.push(qsaucers.collinear)
+        for (var j = 30 ; j < 40 ; ++j) planets.push(pspares[j])
     }
 }
 
