@@ -16,10 +16,10 @@ GameScene.start = function () {
         qsaucers.greeter,
     ]
     
-    qcomplete("first")
-    planets.forEach(function (p) { p.explored = 1 })
+//    qcomplete("first")
+//    planets.forEach(function (p) { p.explored = 1 })
     
-    mask.make([1000,2000], [1000,1600], [800,800])
+//    mask.make([1000,2000], [1000,1600], [800,800])
     
     this.initsun()
     
@@ -63,7 +63,7 @@ GameScene.think = function (dt) {
         })
         saucers.forEach(function (saucer) {
             var dx = x - saucer.x, dy = y - saucer.y
-            if (dx * dx + dy * dy < 50 * 50) {
+            if (dx * dx + dy * dy < 100 * 100) {
                 saucer.interact(ship)
             }
         })
@@ -75,6 +75,15 @@ GameScene.think = function (dt) {
     effects.forEach(think)
     ships.forEach(think)
     saucers.forEach(think)
+    
+    if (state.unlocked.rescuer && state.rescues < 5 && !distressed && UFX.random(60) < dt) {
+        var planet = UFX.random.choice(planets)
+        if (planet.explored >= 1) {
+            distressed = planet
+            distressed.distressed = true
+            planet.distresst = 0
+        }
+    }
 }
 
 GameScene.drawtitle = function () {
