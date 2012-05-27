@@ -74,7 +74,7 @@ GameScene.think = function (dt) {
     nkeys.left = nkeys.left || nkeys.A
     nkeys.right = nkeys.right || nkeys.D || nkeys.E
     nkeys.act = nkeys.space || nkeys.enter || nkeys.down
-    you.move(mkeys, nkeys)
+    you.move(mkeys, nkeys, dt)
 
     if (nkeys["1"]) gamestate.upgradestructure()
     if (nkeys["2"]) upgrade("upgradejump")

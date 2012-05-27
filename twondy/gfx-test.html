@@ -53,7 +53,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequest
 UFX.key.init()
 UFX.key.qup = false
 UFX.key.qdown = true
-UFX.key.watchlist = "up down left right 1 2".split(" ")
+UFX.key.watchlist = "up down left right 1 2 F12 shift".split(" ")
 UFX.draw.setcontext(context)
 
 
@@ -74,6 +74,8 @@ GameScene.start()
 var zoom = 4
 
 UFX.ticker.register(function (dt) {
+
+    if (UFX.key.ispressed.shift) dt *= 0.2
     // Handle keyboard input
     var mkeys = {
         up: !!(UFX.key.ispressed.up || UFX.key.ispressed.W || UFX.key.ispressed.comma || UFX.key.ispressed["key#188"]),
@@ -91,11 +93,13 @@ UFX.ticker.register(function (dt) {
                 zoom *= 0.9
             } else if (event.name === "2") {
                 zoom /= 0.9
+            } else if (event.name === "F12") {
+                window.open("data:image/png;" + canvas.toDataURL())
             }
         }
     })
     nkeys.act = nkeys.down
-    you.move(mkeys, nkeys)
+    you.move(mkeys, nkeys, dt)
     
     you.think(dt)
     you.updatestate()

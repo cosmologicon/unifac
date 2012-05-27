@@ -8,7 +8,13 @@ var settings = {
 }
 
 var mechanics = {
-    runspeed: 160,
+    // Running
+    xspeed: 160, // max horizontal run speed
+    xfaccel: 800, // Acceleration (toward xspeed) if you hold forward and speed < xspeed
+    xfdecel: 400, // Deceleration (toward xspeed) if you hold forward and speed > xspeed
+    xdecel: 800, // Deceleration (toward 0) if you don't hold anything
+    xbdecel: 1600, // Deceleration (toward 0) if you hold backward
+
     jumphspeed: 160,
     launchspeed: 140,
     launchaccel: 2000,
