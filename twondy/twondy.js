@@ -27,7 +27,7 @@ var Twondy = {
                 var h = (-ax + ay + 2 * az) * 0.3 + 0.3
                 if (v > 0) {
                     data[j] = 0
-                    data[j+1] = Math.min(4000 * v, 255) * h * (1 + 0.01 * dv)
+                    data[j+1] = Math.min(4000 * v, 255) * h * (1 + 0.02 * dv)
                     data[j+2] = 0
                 } else {
                     data[j+2] = Math.min(-4000 * v, 255) * h * Math.max(Math.min(1, 2 + 2 * v), 0.3)

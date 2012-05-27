@@ -5,10 +5,13 @@ var GameScene = Object.create(UFX.scene.Scene)
 GameScene.start = function () {
 
     Twondy.init()
-    var stars = this.stars = []
-    UFX.random.spread(400).forEach(function (p) {
-        stars.push([p[0] * 1600 - 800, p[1] * 1600 - 800])
-    })
+    this.stars = UFX.random.spread(200, 1, 1600, 1600, -800, -800)
+    this.starcolors = []
+    this.starrs = []
+    while (this.starcolors.length < this.stars.length) {
+        this.starcolors.push(UFX.random.choice("#112 #020 #211 #210 #220 #202".split(" ")))
+        this.starrs.push(UFX.random.choice([4, 5, 7, 9]))
+    }
 
     // Yes these are supposed to be globals
     hitters = []  // objects that the player can run into
@@ -188,16 +191,20 @@ GameScene.think = function (dt) {
 
 GameScene.drawstars = function () {
     // Draw stars
+    var t = Date.now() * 0.001
     context.save()
     var s = Math.pow(camera.zoom, -0.85)
     context.scale(s, s)
-    context.fillStyle = "white"
-    this.stars.forEach(function (star) {
-        context.beginPath()
-//        context.arc(star[0], star[1], 1, 0, tau)
-//        context.fill()
-        context.fillRect(star[0], star[1], 2, 2)
-    })
+    // coords = [([2, 1][j % 2], j * math.pi / 5) for j in range(10)]
+    // " ".join("l %.2f %.2f" % (r * math.cos(theta), r * math.sin(theta)) for r, theta in coords)
+    var path = "( m 2.00 0.00 l 0.81 0.59 l 0.62 1.90 l -0.31 0.95 l -1.62 1.18 l -1.00 0.00 l -1.62 -1.18 l -0.31 -0.95 l 0.62 -1.90 l 0.81 -0.59 )"
+    context.strokeStyle = "#333"
+    for (var j = 0 ; j < this.stars.length ; ++j) {
+        UFX.draw("[ t", this.stars[j][0], this.stars[j][1], "z", this.starrs[j], this.starrs[j])
+        if (j % 2) UFX.draw("hflip")
+        UFX.draw("r", (0.2 + 0.001 * j) * t % tau)
+        UFX.draw(path, "fs", this.starcolors[j], "lw", 0.6/this.starrs[j], "f s ]")
+    }
     context.restore()
 }
 
@@ -262,7 +269,7 @@ GameScene.drawstatus = function () {
 
 
 GameScene.draw = function () {
-    context.fillStyle = "#333"
+    context.fillStyle = "#111"
     context.fillRect(0, 0, settings.sx, settings.sy)
 
     context.save()
