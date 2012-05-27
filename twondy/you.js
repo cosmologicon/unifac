@@ -53,20 +53,48 @@ var CanShock = {
 
 
 function drawhead() {
-    var astring = "lc round ss green lw 2.5 b m -7 4 q -14 16 2 22 s"
+    UFX.draw("[ z 1 -1")
     // Back antenna
-    UFX.draw(astring)
+    UFX.draw("[ t 3 -7 z -1 1 r 0.2 b M 0.82 -0.15 C -0.52 -18.17 -5.85 -20.11 -8.62 -19.89 C -17.41 -18.89 -15.41 2.31 -8.27 -0.00 C -5.39 -1.01 -3.67 -5.63 -8.22 -12.10 C -7.05 -10.48 -4.57 -2.75 -8.60 -1.22 C -13.93 0.47 -15.65 -17.52 -8.46 -18.92 C -0.35 -19.01 -0.34 2.28 -0.48 1.94 fs #A80 ss #630 lw 0.3 f s ]")
+
     // Head
-    UFX.draw("b o 0 0 12 fs #AA0 f ss #FF7 lw 1 s")
+    var headpath = "M 4.07 -12.79 C -3.43 -13.37 -8.72 -8.64 -7.85 -1.51 C -6.67 8.20 -0.05 9.83 3.36 11.39 C 7.21 13.14 9.77 11.60 11.18 9.57 C 13.74 5.89 14.88 -0.57 13.25 -5.56 C 12.31 -8.44 10.63 -11.70 4.07 -12.79"
+    // Filled area and clipping region
+    UFX.draw("[ b", headpath, "fs #AA0 f clip")
+    // Facial spots
+    UFX.draw("[ r -0.3 z 0.7 -1 b o 9 0 7 o 20 0 7 o 0 0 4 o 4 -11 6 o -4 -6 1.5 o 2 7 1.5 o 10 -10 8 fs #A80 f")
+    UFX.draw("b o 14.2 2 1.5 o 13 -6 1 fs #AA0 f ]")
+    
+    // shading and outline
+    var grad = UFX.draw.radgrad(-4, -8, 0, -4, -8, 35, 0, "rgba(0,0,0,0)", 1, "rgba(0,0,0,0.5)")
+    UFX.draw("] b", headpath, "fs", grad, "f ss #CC6 lw 0.5 s")
+    
     // eyes
-    UFX.draw("lc round ss black lw 2 b m 4 -4 l 4 4 s b m 8 -4 l 8 4 s")
+    UFX.draw("[ r -0.15 [ z 0.4 1 fs #008 ss black lw 0.4 b o 18 0 4 f s b o 30 0 4 f s ]")
+    UFX.draw("fs white b o 6.4 -2 0.5 o 11.2 -2 0.5 f ]")
     // front antenna
-    UFX.draw("r 0.4", astring)
+    UFX.draw("t -3 -5")
+    UFX.draw("r -0.3 b M 0.82 -0.15 C -0.52 -18.17 -5.85 -20.11 -8.62 -19.89 C -17.41 -18.89 -15.41 2.31 -8.27 -0.00 C -5.39 -1.01 -3.67 -5.63 -8.22 -12.10 C -7.05 -10.48 -4.57 -2.75 -8.60 -1.22 C -13.93 0.47 -15.65 -17.52 -8.46 -18.92 C -0.35 -19.01 -0.34 2.28 -0.48 1.94 fs #A80 ss #630 lw 0.3 f s")
+    UFX.draw("]")
 }
 
 function drawbody() {
-    UFX.draw("( m 0 -8 l -4 -8 l -6 -16 l -12 -24 l -4 -28 l 4 -28 l 12 -24 l 6 -16 l 4 -8 )",
-             "fs #F70 f lw 1 ss #FA7 s") 
+    var bodypath = "M -4.46 3.97 C -6.43 16.11 -9.11 11.29 -9.46 23.97 C -2.50 29.33 4.29 28.61 11.07 24.86 C 12.50 14.33 4.11 17.36 4.11 3.61 C 3.21 -0.32 -3.75 -1.57 -4.46 3.97"
+
+    UFX.draw("[ z 1 -1")    
+    UFX.draw("[ b", bodypath, "fs #AA0 f clip")
+
+    // body spots
+    UFX.draw("[ r -0.25 z 0.7 -1 b o 0 -12 5 o -8 -20 5 o 0 -22 6 o 8 -20 5 o -8 -12 2 o -12 -28 6 o -15 -20 1 fs #A80 f")
+    UFX.draw("b o -5 -26 4 o 5 -26 4 o 0 -20 1.5 fs #AA0 f")
+    UFX.draw("]")
+
+    // shading and outline
+    var grad = UFX.draw.lingrad(0, 0, 30, 10, 0, "rgba(0,0,0,0)", 1, "rgba(0,0,0,0.8)")
+    UFX.draw("] b", bodypath, "fs", grad, "f ss #CC6 lw 0.5 s")
+
+
+    UFX.draw("]")
 }
 
 
