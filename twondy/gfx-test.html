@@ -22,6 +22,7 @@ body {
 <script src="../UFX/src/draw.js"></script>
 <script src="../UFX/src/random.js"></script>
 <script src="../UFX/src/scene.js"></script>
+<script src="../UFX/src/noise.js"></script>
 
 <!-- game code -->
 <script src="settings.js"></script>
@@ -30,6 +31,7 @@ body {
 
 <!-- game objects -->
 <script src="stuff.js"></script>
+<script src="twondy.js"></script>
 <script src="structures.js"></script>
 <script src="monsters.js"></script>
 <script src="you.js"></script>
@@ -113,7 +115,7 @@ UFX.ticker.register(function (dt) {
     context.fillRect(0, 0, settings.sx, settings.sy)
     context.save()
     camera.orient()
-    GameScene.drawworld()
+    Twondy.draw()
     you.draw()
     context.restore()
 })

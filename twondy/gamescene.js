@@ -4,22 +4,7 @@ var GameScene = Object.create(UFX.scene.Scene)
 
 GameScene.start = function () {
 
-    this.ptexture = context.createRadialGradient(0, 2, 1, 2, 0, 3)
-    for (var j = 0 ; j < 5 ; ++j) {
-        var a = j * 0.2
-        this.ptexture.addColorStop(a, "blue")
-        this.ptexture.addColorStop(a + 0.08, "blue")
-        this.ptexture.addColorStop(a + 0.09, "black")
-        this.ptexture.addColorStop(a + 0.1, "green")
-        this.ptexture.addColorStop(a + 0.18, "green")
-        this.ptexture.addColorStop(a + 0.19, "black")
-    }
-    this.ptexture.addColorStop(1, "green")
-    this.stexture = context.createRadialGradient(0, 0.5, 0, 0, 0.5, 1.5)
-    this.stexture.addColorStop(0, "rgba(0,0,0,0)")
-    this.stexture.addColorStop(1, "rgba(0,0,0,1)")
-
-
+    Twondy.init()
     var stars = this.stars = []
     UFX.random.spread(400).forEach(function (p) {
         stars.push([p[0] * 1600 - 800, p[1] * 1600 - 800])
@@ -216,21 +201,6 @@ GameScene.drawstars = function () {
     context.restore()
 }
 
-
-GameScene.drawworld = function () {
-    if (gamestate.worldsize < 1) return
-    context.save()
-    // Draw world
-    var s = gamestate.worldr + 50 / Math.max(gamestate.worldr, 15)
-    UFX.draw("z", s, s, "b o 0 0 1 fs", this.ptexture, "f")
-    // draw the eyes
-    UFX.draw("[ lw 0.03 z 1 2 fs black b o 0.4 0.1 0.18 f b o -0.4 0.1 0.18 f ]")
-    UFX.draw("fs white b o 0.35 0.3 0.05 f b o -0.45 0.3 0.05 f")
-    // draw the shadow
-    UFX.draw("b o 0 0 1 fs", this.stexture, "f lw 0.01 ss black s")
-    context.restore()
-}
-
 GameScene.drawobjs = function () {
     function draw(obj) {
         context.save()
@@ -298,14 +268,11 @@ GameScene.draw = function () {
     context.save()
     camera.orient()
     this.drawstars()
-    this.drawworld()
+    Twondy.draw()
     this.drawobjs()
     context.restore()
 
     this.drawstatus()
-
-//    document.title = UFX.ticker.getfpsstr()
-//    document.title = [Overlord.x, Overlord.y, Overlord.vy, Overlord.ymax]
 }
 
 
@@ -345,7 +312,7 @@ GrowScene.drawworld = function () {
         context.rotate(-this.t * 10)
     }
 //    context.scale(s, s)
-    GameScene.drawworld.call(this)
+    Twondy.draw()
     context.restore()
 }
 
@@ -385,7 +352,7 @@ GameOverScene.draw = function () {
     context.save()
     camera.orient()
     this.drawstars()
-    this.drawworld()
+    Twondy.draw()
     you.draw()
     context.restore()
     context.globalAlpha = this.alpha
