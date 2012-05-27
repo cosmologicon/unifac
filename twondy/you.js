@@ -66,6 +66,7 @@ var DrawZoop = {
     },
     drawzoop: function (opts) {
         var spin = opts.spin || 0
+        // TODO: refactor this into an update pose method - shouldn't be solving for dt in draw
         var t = Date.now() * 0.001
         var f = 1 - Math.exp(-8 * (t - this.lastdraw))
         this.lastdraw = t
