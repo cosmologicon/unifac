@@ -9,6 +9,42 @@ def screenpos((x, y)):
 def worldpos((x, y)):
     return x - sx/2, -(y - 0.85*sy)
 
+class Xform(object):
+    def __init__(self, xyA = None, dxyA = None):
+        self.x, self.y, self.A = xyA or (0,0,0)
+        self.dx, self.dy, self.dA = dxyA or (0,0,0)
+        self.S0 = math.sin(self.A)
+        self.C0 = math.cos(self.A)
+        self.S1 = math.sin(self.A + self.dA)
+        self.C1 = math.cos(self.A + self.dA)
+    def getSC(self, zeta=1):
+        if zeta == 0: return self.S0, self.C0
+        if zeta == 1: return self.S1, self.C1
+        A = self.A + zeta * self.dA
+        return math.sin(A), math.cos(A)
+    def worldpos(self, (x, y), zeta=1):
+        S, C = self.getSC(zeta)
+        px = self.x + zeta * self.dx + C * x + S * y
+        py = self.y + zeta * self.dy - S * x + C * y
+        return px, py
+    def localpos(self, (x, y), zeta=1):
+        S, C = self.getSC(zeta)
+        px = x - self.x - zeta * self.dx
+        py = y - self.y - zeta * self.dy
+        return C * px - S * py, S * px + C * py
+    def worldvec(self, (x, y), zeta=1):
+        S, C = self.getSC(zeta)
+        return x * C + y * S, -x * S + y * C
+    def localvec(self, (x, y), zeta=1):
+        S, C = self.getSC(zeta)
+        return x * C + -y * S, x * S + y * C
+    def add(self, (x,y,A), (dx,dy,dA), zeta=1):
+        x, y = self.worldpos((x, y), zeta)
+        A += self.A + zeta * self.dA
+        dx, dy = self.worldvec((dx, dy), zeta)
+        return Xform((x,y,A), (dx,dy,dA))
+
+
 class Block(object):
     def __init__(self, parent=None, anchor=None, zeta=1):
         self.parent = parent
@@ -28,10 +64,12 @@ class Block(object):
 #        self.wx, self.wy, self.wA = 20, 20, 20  # spring angular frequency (omega)
 #        self.bx, self.by, self.bA = 4, 4, 4  # spring decay factor (beta)
 #        self.bx, self.by, self.bA = 0.4, 0.4, 0.4
-        self.wx, self.wy, self.wA = random.uniform(25, 55), random.uniform(25, 55), random.uniform(25, 55)
-        self.bx, self.by, self.bA = random.uniform(2, 5), random.uniform(2, 5), random.uniform(2, 5)
+        self.wx, self.wy, self.wA = random.uniform(15, 25), random.uniform(25, 55), random.uniform(25, 55)
+        self.bx, self.by, self.bA = random.uniform(1, 2), random.uniform(2, 5), random.uniform(2, 5)
 #        self.bx, self.by, self.bA = self.bx/2, self.by/2, self.bA/2
         self.wx, self.wy, self.wA = self.wx*2, self.wy*2, self.wA*2
+        self.xform = (self.parent or Ground).xform.add((self.x, self.y, self.A), (self.px, self.py, self.pA), self.zeta)
+        self.oldxform = self.xform
         self.sprout()
 
     def sprout(self):
@@ -40,34 +78,7 @@ class Block(object):
         self.vpA = -4
         self.dpA = 1
         if self.parent:
-            self.parent.takeimpulse(self.worldvec((0, -500), 0), self.worldpos((0, 0), 0))
-
-    def worldpos(self, (x, y), zeta=1):  # world position of given local position
-        # zeta is the fraction of the current offset to include in the calculation
-        A = self.A + zeta * self.pA
-        S, C = math.sin(A), math.cos(A)
-        px = self.x + zeta * self.px + C * x + S * y
-        py = self.y + zeta * self.py - S * x + C * y
-        return self.parent.worldpos((px, py), self.zeta) if self.parent else (px, py)
-
-    def localpos(self, (x, y), zeta=1):  # local position of given world position
-        if self.parent:
-            x, y = self.parent.localpos((x, y), self.zeta)
-        A = self.A + zeta * self.pA
-        S, C = math.sin(A), math.cos(A)
-        px = x - self.x - zeta * self.px
-        py = y - self.y - zeta * self.py
-        return C * px - S * py, S * px + C * py
-
-    def worldvec(self, (x, y), zeta=1):
-        A = self.totalA(zeta)
-        S, C = math.sin(A), math.cos(A)
-        return x * C + y * S, -x * S + y * C
-
-    def localvec(self, (x, y), zeta=1):
-        A = self.totalA(zeta)
-        S, C = math.sin(A), math.cos(A)
-        return x * C + -y * S, x * S + y * C
+            self.parent.takeimpulse(self.xform.worldvec((0, -500), 0), self.xform.worldpos((0, 0), 0))
 
     def totalA(self, zeta = 1):
         return zeta * self.pA + (self.parent.totalA(self.zeta) if self.parent else 0)
@@ -85,6 +96,8 @@ class Block(object):
         self.vpA *= math.exp(-self.bA * dt)
         self.dpA += self.vpA * dt
         self.pA = self.pA0 + min(max(self.dpA, -1), 1)
+        self.oldxform = self.xform
+        self.xform = (self.parent or Ground).xform.add((self.x, self.y, self.A), (self.px, self.py, self.pA), self.zeta)
 
     # Apply the impulse (ix, iy) at point (x, y)
     def takeimpulse(self, (ix, iy), (x, y), zeta=1, source=None):
@@ -94,11 +107,11 @@ class Block(object):
             self.parent.takeimpulse((ix*(1-f), iy*(1-f)), (x, y), self.zeta, source=self)
         for block in self.children:
             g = 0.4 if self.parent and source is self.parent else -0.4
-            p = self.worldpos((0, 0), 0)
+            p = self.xform.worldpos((0, 0), 0)
             if block is not source:
                 block.takeimpulse((ix*g, iy*g), p, 0, source=self)
-        ix, iy = self.localvec((ix*f, iy*f), zeta=0)
-        x, y = self.localpos((x, y))
+        ix, iy = self.xform.localvec((ix*f, iy*f), zeta=0)
+        x, y = self.xform.localpos((x, y))
         self.vpx += ix
         self.vpy += iy
         self.vpA += (ix * y - iy * x) * 0.0002
@@ -108,25 +121,25 @@ class Block(object):
         f = 0.2 if passdown else 1  # fraction of the force taken by this block
         if passdown:
             self.parent.takeforce((fx*(1-f), fy*(1-f)), (x, y), self.zeta, source=self)
-        fx, fy = self.localvec((fx*f, fy*f), zeta=0)
-        x, y = self.localpos((x, y))
+        fx, fy = self.xform.localvec((fx*f, fy*f), zeta=0)
+        x, y = self.xform.localpos((x, y))
         self.apx += fx
         self.apy += fy
         self.apA += (fx * y - fy * x) * 0.0002
 
     def draw(self, highlight=False):
         for rx0, rx1 in ((-0.4, 0), (0, 0.4), (0, -0.4), (0.4, 0)):
-            p0 = screenpos(self.worldpos((self.w * rx0, 0), zeta=0))
-            p1 = screenpos(self.worldpos((self.w * rx1, 0), zeta=1))
+            p0 = screenpos(self.xform.worldpos((self.w * rx0, 0), zeta=0))
+            p1 = screenpos(self.xform.worldpos((self.w * rx1, 0), zeta=1))
             pygame.draw.line(screen, (255, 255, 255), p0, p1, 1)
 
-        p0 = screenpos(self.worldpos((-self.w/2, 0)))
-        p1 = screenpos(self.worldpos((self.w/2, 0)))
+        p0 = screenpos(self.xform.worldpos((-self.w/2, 0)))
+        p1 = screenpos(self.xform.worldpos((self.w/2, 0)))
         pygame.draw.line(screen, ((255, 255, 128) if highlight else (255, 128, 0)), p0, p1, 2)
 
     def catches(self, sprite):
-        x0, y0 = self.localpos((sprite.oldx, sprite.oldy))
-        x1, y1 = self.localpos((sprite.x, sprite.y))
+        x0, y0 = self.oldxform.localpos((sprite.oldx, sprite.oldy))
+        x1, y1 = self.xform.localpos((sprite.x, sprite.y))
         return y0 > 0 and y1 <= 0 and -self.w/2 <= x1 <= self.w/2
 
     def holds(self, sprite):
@@ -137,6 +150,7 @@ class Block(object):
 
 
 class Ground:
+    xform = Xform()
     @staticmethod
     def catches(sprite):
         return sprite.oldy > 0 and sprite.y <= 0
@@ -146,18 +160,6 @@ class Ground:
     @staticmethod
     def constrain(sprite):
         sprite.y = 0
-    @staticmethod
-    def worldpos((x, y)):
-        return x, y
-    @staticmethod
-    def worldvec((x, y)):
-        return x, y
-    @staticmethod
-    def localpos((x, y)):
-        return x, y
-    @staticmethod
-    def localvec((x, y)):
-        return x, y
     @staticmethod
     def takeimpulse(i, p, zeta=1, source=None):
         pass
@@ -170,17 +172,17 @@ class Stand:
     def enter(self):
         ix, iy = self.vx, self.vy
         self.parent.takeimpulse((ix, iy), (self.x, self.y))
-        self.oldx, self.oldy = self.x, self.y = self.parent.localpos((self.x, self.y))
+        self.oldx, self.oldy = self.x, self.y = self.parent.xform.localpos((self.x, self.y))
         self.parent.constrain(self)
         self.vy = 0
 
     @staticmethod
     def draw(self):
-        p0 = screenpos(self.parent.worldpos((self.x, self.y)))
-        p1 = screenpos(self.parent.worldpos((self.x, self.y + 40)))
+        p0 = screenpos(self.parent.xform.worldpos((self.x, self.y)))
+        p1 = screenpos(self.parent.xform.worldpos((self.x, self.y + 40)))
         pygame.draw.line(screen, (255, 0, 0), p0, p1, 1)
-        p0 = screenpos(self.parent.worldpos((self.x + 10, self.y + 20)))
-        p1 = screenpos(self.parent.worldpos((self.x - 10, self.y + 20)))
+        p0 = screenpos(self.parent.xform.worldpos((self.x + 10, self.y + 20)))
+        p1 = screenpos(self.parent.xform.worldpos((self.x - 10, self.y + 20)))
         pygame.draw.line(screen, (255, 0, 0), p0, p1, 1)
     
     @staticmethod
@@ -189,20 +191,21 @@ class Stand:
         move = mkeys[pygame.K_RIGHT] - mkeys[pygame.K_LEFT]
         self.vx = 160 * move
         self.x += self.vx * dt
-        self.parent.takeforce((0, -200), self.parent.worldpos((self.x, self.y)))
+        self.parent.takeforce((0, -200), self.parent.xform.worldpos((self.x, self.y)))
+        self.parent.takeimpulse((-3 * self.vx * dt, 0), self.parent.xform.worldpos((self.x, self.y)))
         self.parent.constrain(self)
         if not self.parent.holds(self):
             self.nextstate = Fall
         elif pygame.K_UP in nkeys:
-            vx, vy = self.parent.worldvec((0, 200))
-            self.parent.takeimpulse((vx, vy), self.parent.worldpos((self.x, self.y)))
+            vx, vy = self.parent.xform.worldvec((0, 200))
+            self.parent.takeimpulse((-vx, -vy), self.parent.xform.worldpos((self.x, self.y)))
             self.nextstate = Fall
             self.vx += vx
             self.vy += vy
 
     @staticmethod
     def exit(self):
-        self.x, self.y = self.parent.worldpos((self.x, self.y))
+        self.x, self.y = self.parent.xform.worldpos((self.x, self.y))
         self.parent = None
         
 
@@ -335,8 +338,7 @@ while True:
     pygame.display.flip()
     
     block = blocks[-1]
-    x0, y0 = block.worldpos((100, 70))
-    x1, y1 = block.worldpos((101, 71))
-    dx, dy = block.worldvec((1, 1))
-#    print (x1 - x0) - dx, (y1 - y0) - dy
+#    x0, y0 = block.localvec((100, 70))
+#    x1, y1 = block.xform.localvec((100, 70))
+#    print round(x1 - x0, 8), round(y1 - y0, 8)
 
