@@ -194,7 +194,7 @@ var StandState = {
         this.drawzoop({
             bodyxshear: a,
             headtilt: 0.4 * a,
-            antennastretch: a
+            antennastretch: 1.4 * a
         })
     },
 }
@@ -257,7 +257,7 @@ var FallState = {
             bodystretch: 0.1 - 0.6 * yfac,
             bodyyshear: 0.5 * yfac,
             headtilt: yfac,
-            antennastretch: xfac,
+            antennastretch: 1.4 * xfac,
             antennaspread: yfac,
         })
     },
