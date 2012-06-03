@@ -32,7 +32,7 @@ body {
 <!-- game objects -->
 <script src="stuff.js"></script>
 <script src="twondy.js"></script>
-<script src="structures.js"></script>
+<script src="towers.js"></script>
 <script src="monsters.js"></script>
 <script src="you.js"></script>
 <script src="effects.js"></script>
@@ -55,7 +55,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequest
 UFX.key.init()
 UFX.key.qup = false
 UFX.key.qdown = true
-UFX.key.watchlist = "up down left right 1 2 F12 shift".split(" ")
+UFX.key.watchlist = "up down left right 1 2 3 4 F12 shift".split(" ")
 UFX.draw.setcontext(context)
 
 
@@ -72,6 +72,8 @@ var gamestate = {
     
 }
 GameScene.start()
+
+var towers = [BlockTower(0.5), BlockTower(2.5), BlockTower(4.3), BlockTower(6)]
 
 var zoom = 4
 
@@ -95,6 +97,18 @@ UFX.ticker.register(function (dt) {
                 zoom *= 0.9
             } else if (event.name === "2") {
                 zoom /= 0.9
+            } else if (event.name === "3") {
+                towers[0].blocks.forEach(function (block) {
+                    block.vpx = UFX.random(-120, 120)
+                    block.vpy = UFX.random(-120, 120)
+                    block.vpA = UFX.random(-6, 6)
+                })
+            } else if (event.name === "4") {
+                towers.forEach(function (tower) {
+                    var block = tower.blocks[6]
+                    var p = block.xform.worldpos(0, 0, 1)
+                    block.takeimpulse(0, -500, p[0], p[1])
+                })
             } else if (event.name === "F12") {
                 window.open("data:image/png;" + canvas.toDataURL())
             }
@@ -105,6 +119,8 @@ UFX.ticker.register(function (dt) {
     
     you.think(dt)
     you.updatestate()
+    towers.forEach(function (tower) { tower.think(dt) })
+
 
     camera.x = you.x
     camera.y = you.y + 20
@@ -115,8 +131,10 @@ UFX.ticker.register(function (dt) {
     context.fillRect(0, 0, settings.sx, settings.sy)
     context.save()
     camera.orient()
-    Twondy.draw()
-    you.draw()
+    function draw(obj) { context.save() ; obj.draw() ; context.restore() }
+    draw(Twondy)
+    towers.forEach(draw)
+    draw(you)
     context.restore()
 })
 

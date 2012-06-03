@@ -45,17 +45,38 @@ class Xform(object):
         return Xform((x,y,A), (dx,dy,dA))
 
 
+class Ground:
+    xform = Xform()
+    children = []
+    passfrac = 1
+    @staticmethod
+    def catches(sprite):
+        return sprite.oldy > 0 and sprite.y <= 0
+    @staticmethod
+    def holds(sprite):
+        return True
+    @staticmethod
+    def constrain(sprite):
+        sprite.y = 0
+    @staticmethod
+    def takeimpulse(i, p, zeta=1, source=None):
+        pass
+    @staticmethod
+    def takeforce(f, p, zeta=1, source=None):
+        pass
+
 class Block(object):
-    def __init__(self, parent=None, anchor=None, zeta=1):
+    passfrac = 0.5
+    def __init__(self, parent=Ground, anchor=None, zeta=1):
         self.parent = parent
-        if self.parent:
-            self.parent.children.append(self)
+        self.parent.children.append(self)
         self.children = []
         self.zeta = zeta  # fraction of parent's offset that's transferred to self
-        self.x, self.y, self.A = anchor or (0, 0, 0)
+        self.x, self.y, self.A = self.anchor = anchor or (0, 0, 0)
         self.w = 50  # width of platform
         # base platform position
-        self.px0, self.py0, self.pA0 = random.uniform(-20, 20), random.uniform(40, 60), random.uniform(-0.2, 0.2)
+        A0 = 0 if self.parent is Ground else -0.8 * (self.parent.xform.A + self.parent.pA0 * self.zeta)
+        self.px0, self.py0, self.pA0 = random.uniform(-20, 20), random.uniform(40, 60), A0 + random.uniform(-0.001, 0.001)
         self.dpx, self.dpy, self.dpA = 0, 0, 0   # current additional offset
         self.px, self.py, self.pA = self.px0, self.py0, self.pA0  # current position
         self.vpx, self.vpy, self.vpA = 0, 0, 0   # current velocity
@@ -64,24 +85,22 @@ class Block(object):
 #        self.wx, self.wy, self.wA = 20, 20, 20  # spring angular frequency (omega)
 #        self.bx, self.by, self.bA = 4, 4, 4  # spring decay factor (beta)
 #        self.bx, self.by, self.bA = 0.4, 0.4, 0.4
-        self.wx, self.wy, self.wA = random.uniform(15, 25), random.uniform(25, 55), random.uniform(25, 55)
-        self.bx, self.by, self.bA = random.uniform(1, 2), random.uniform(2, 5), random.uniform(2, 5)
+        self.wx, self.wy, self.wA = random.uniform(25, 55), random.uniform(25, 55), random.uniform(25, 55)
+        self.bx, self.by, self.bA = random.uniform(2, 5), random.uniform(2, 5), random.uniform(2, 5)
 #        self.bx, self.by, self.bA = self.bx/2, self.by/2, self.bA/2
-        self.wx, self.wy, self.wA = self.wx*2, self.wy*2, self.wA*2
-        self.xform = (self.parent or Ground).xform.add((self.x, self.y, self.A), (self.px, self.py, self.pA), self.zeta)
+        self.bx, self.by, self.bA = self.bx*2, self.by*2, self.bA*2
+        self.wx, self.wy, self.wA = self.wx*5, self.wy*5, self.wA*5
+        self.xform = self.parent.xform.add(self.anchor, (self.px, self.py, self.pA), self.zeta)
         self.oldxform = self.xform
         self.sprout()
+        print A0, self.pA0, self.xform.A
 
     def sprout(self):
         self.dpy = -40
         self.vpy = 500
-        self.vpA = -4
+        self.vpA = -8
         self.dpA = 1
-        if self.parent:
-            self.parent.takeimpulse(self.xform.worldvec((0, -500), 0), self.xform.worldpos((0, 0), 0))
-
-    def totalA(self, zeta = 1):
-        return zeta * self.pA + (self.parent.totalA(self.zeta) if self.parent else 0)
+        self.parent.takeimpulse(self.xform.worldvec((0, -500), 0), self.xform.worldpos((0, 0), 0))
 
     def think(self, dt):
         self.vpx += (self.apx - self.dpx * self.wx) * dt
@@ -97,35 +116,32 @@ class Block(object):
         self.dpA += self.vpA * dt
         self.pA = self.pA0 + min(max(self.dpA, -1), 1)
         self.oldxform = self.xform
-        self.xform = (self.parent or Ground).xform.add((self.x, self.y, self.A), (self.px, self.py, self.pA), self.zeta)
+        self.xform = self.parent.xform.add(self.anchor, (self.px, self.py, self.pA), self.zeta)
 
     # Apply the impulse (ix, iy) at point (x, y)
     def takeimpulse(self, (ix, iy), (x, y), zeta=1, source=None):
-        passdown = self.parent and self.parent is not source
-        f = 0.5 if passdown else 1  # fraction of the impulse taken by this block
-        if passdown:
+        f = self.parent.passfrac  # fraction of the impulse taken by this block
+        if self.parent is not source:
             self.parent.takeimpulse((ix*(1-f), iy*(1-f)), (x, y), self.zeta, source=self)
         for block in self.children:
-            g = 0.4 if self.parent and source is self.parent else -0.4
+            if block is source: continue
+            g = 0.5 if source is self.parent else -0.5
             p = self.xform.worldpos((0, 0), 0)
-            if block is not source:
-                block.takeimpulse((ix*g, iy*g), p, 0, source=self)
+            block.takeimpulse((ix*g, iy*g), p, 0, source=self)
         ix, iy = self.xform.localvec((ix*f, iy*f), zeta=0)
         x, y = self.xform.localpos((x, y))
         self.vpx += ix
         self.vpy += iy
-        self.vpA += (ix * y - iy * x) * 0.0002
+        self.vpA += (ix * y - iy * x) * 0.0005
 
     def takeforce(self, (fx, fy), (x, y), zeta=1, source=None):
-        passdown = self.parent and self.parent is not source
-        f = 0.2 if passdown else 1  # fraction of the force taken by this block
-        if passdown:
-            self.parent.takeforce((fx*(1-f), fy*(1-f)), (x, y), self.zeta, source=self)
+        f = self.parent.passfrac
+        self.parent.takeforce((fx*(1-f), fy*(1-f)), (x, y), self.zeta, source=self)
         fx, fy = self.xform.localvec((fx*f, fy*f), zeta=0)
         x, y = self.xform.localpos((x, y))
         self.apx += fx
         self.apy += fy
-        self.apA += (fx * y - fy * x) * 0.0002
+        self.apA += (fx * y - fy * x) * 0.0005
 
     def draw(self, highlight=False):
         for rx0, rx1 in ((-0.4, 0), (0, 0.4), (0, -0.4), (0.4, 0)):
@@ -147,25 +163,6 @@ class Block(object):
     
     def constrain(self, sprite):
         sprite.y = 0
-
-
-class Ground:
-    xform = Xform()
-    @staticmethod
-    def catches(sprite):
-        return sprite.oldy > 0 and sprite.y <= 0
-    @staticmethod
-    def holds(sprite):
-        return True
-    @staticmethod
-    def constrain(sprite):
-        sprite.y = 0
-    @staticmethod
-    def takeimpulse(i, p, zeta=1, source=None):
-        pass
-    @staticmethod
-    def takeforce(f, p, zeta=1, source=None):
-        pass
 
 class Stand:
     @staticmethod
@@ -192,7 +189,7 @@ class Stand:
         self.vx = 160 * move
         self.x += self.vx * dt
         self.parent.takeforce((0, -200), self.parent.xform.worldpos((self.x, self.y)))
-        self.parent.takeimpulse((-3 * self.vx * dt, 0), self.parent.xform.worldpos((self.x, self.y)))
+        self.parent.takeimpulse((-2 * self.vx * dt, 0), self.parent.xform.worldpos((self.x, self.y)))
         self.parent.constrain(self)
         if not self.parent.holds(self):
             self.nextstate = Fall
@@ -265,7 +262,7 @@ class You(object):
 
 you = You()
 
-blocks = [Block(None)]
+blocks = [Block()]
 clock = pygame.time.Clock()
 cursor = 0
 while True:
