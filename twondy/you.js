@@ -377,7 +377,6 @@ ClimbState.think = function (dt) {
 }
 ClimbState.draw = function () {
     var a = Math.min(Math.abs(this.vx), 160) / 500
-    context.save()
     this.drawzoop({
         bodyxshear: a,
         headtilt: 0.4 * a,

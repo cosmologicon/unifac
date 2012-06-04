@@ -171,15 +171,42 @@ var HasPlatform = {
         return sprite.blockx > -this.w/2 && sprite.blockx < this.w/2
     },
     draw: function () {
-        var p0 = this.xform.worldpos(-this.w*0.4, 0, 0)
+/*        var p0 = this.xform.worldpos(-this.w*0.4, 0, 0)
         var p1 = this.xform.worldpos(this.w*0.4, 0, 1)
         var p2 = this.xform.worldpos(this.w*0.4, 0, 0)
         var p3 = this.xform.worldpos(-this.w*0.4, 0, 1)
         UFX.draw("ss white lw 1 b m", p0[0], p0[1], "l", p1[0], p1[1],
-                                 "m", p2[0], p2[1], "l", p3[0], p3[1], "s")
-        var p0 = this.xform.worldpos(-this.w/2, 0)
+                                 "m", p2[0], p2[1], "l", p3[0], p3[1], "s")*/
+
+/*        var p0 = this.xform.worldpos(-this.w/2, 0)
         var p1 = this.xform.worldpos(this.w/2, 0)
-        UFX.draw("ss green lw 4 b m", p0[0], p0[1], "l", p1[0], p1[1], "s")
+        UFX.draw("ss green lw 4 b m", p0[0], p0[1], "l", p1[0], p1[1], "s")*/
+        var p = this.xform.worldpos(0, 0)
+        var A = this.xform.A + this.xform.dA
+        var sline = "b o 0 0 0.5 m -0.5 0 l -0.5 -0.5 a 0 -0.5 0.5 3.14 6.28 l 0.5 0"
+        UFX.draw("[ t", p[0], p[1], "r", -A, "z", this.w, this.w/8, sline, "fs gray f")
+//        UFX.draw("b o 0.2 0.3 0.1 o -0.1 -0.3 0.1 fs green f")
+        
+        UFX.draw(sline, "] ss white lw 0.6 s")
+    },
+}
+
+var HasSupports = {
+    draw: function () {
+        var p0 = this.xform.worldpos(-this.w*0.4, 2, 0)
+        var p1 = this.xform.worldpos(0, 2, 1)
+        var p2 = this.xform.worldpos(this.w*0.4, 2, 0)
+        var pc = this.xform.worldpos(0, 2, 0.65)
+        UFX.draw("b m", p0[0], p0[1], "q", pc[0], pc[1], p1[0], p1[1],
+            "q", pc[0], pc[1], p2[0], p2[1])
+        UFX.draw("ss black lw 4 s ss gray lw 3 s")
+        var p0 = this.xform.worldpos(-this.w*0.4, -2, 1)
+        var p1 = this.xform.worldpos(0, -2, 0)
+        var p2 = this.xform.worldpos(this.w*0.4, -2, 1)
+        var pc = this.xform.worldpos(0, -2, 0.65)
+        UFX.draw("b m", p0[0], p0[1], "q", pc[0], pc[1], p1[0], p1[1],
+            "q", pc[0], pc[1], p2[0], p2[1])
+        UFX.draw("ss black lw 4 s ss gray lw 3 s")
     },
 }
 
@@ -197,7 +224,7 @@ function NormalBlock(tower, parent, dx) {
     block.tower = tower
     block.initchildren()
     block.setparent(parent, 1)  // zeta = 1
-    block.setxform0(UFX.random(-10, 10) + (dx || 0), UFX.random(40, 60), UFX.random(-0.3, 0.3))
+    block.setxform0(UFX.random(-20, 20) + (dx || 0), UFX.random(40, 60), UFX.random(-0.5, 0.5))
     block.setwobbleparams()
     return block
 }
@@ -206,6 +233,7 @@ NormalBlock.prototype = UFX.Thing()
                            .addcomp(HoldsBlocks)
                            .addcomp(BlockWobbles)
                            .addcomp(TakesImpulse)
+                           .addcomp(HasSupports)
                            .addcomp(HasPlatform)
                            .addcomp(HasXform)
 
