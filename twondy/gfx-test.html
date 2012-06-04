@@ -117,10 +117,9 @@ UFX.ticker.register(function (dt) {
     nkeys.act = nkeys.down
     you.move(mkeys, nkeys, dt)
     
+    towers.forEach(function (tower) { tower.think(dt) })
     you.think(dt)
     you.updatestate()
-    towers.forEach(function (tower) { tower.think(dt) })
-
 
     camera.x = you.x
     camera.y = you.y + 20
@@ -135,8 +134,24 @@ UFX.ticker.register(function (dt) {
     draw(Twondy)
     towers.forEach(draw)
     draw(you)
+
+
+/*    var block = this.towers[0].blocks[2]
+    for (var blockx = -50 ; blockx <= 50 ; blockx += 10) {
+        var pos = block.xform.worldpos(blockx, 0, 1)
+        var dy = block.tower.y + gamestate.worldr
+        var x = pos[0], y = pos[1] + dy
+        var px = block.tower.x + Math.atan2(x, y)
+        var py = Math.sqrt(x*x + y*y) - dy
+        context.save()
+        UFX.draw("fs white b o 0 0 2 f r",  0, //(this.block.xform.A + this.block.xform.dA) * (this.facingright ? -1 : 1),
+                 "ss white lw 1 b m 0 -10 l 0 10 s")
+        context.restore()
+    }*/
+
+
     context.restore()
-})
+}, null, {maxups: 100})
 
 
 </script>

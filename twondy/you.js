@@ -61,26 +61,32 @@ var DrawZoop = {
             headtilt: 0,
             antennaspread: 0,
             antennastretch: 0,
+            spin: 0,  // Rotation about center of mass (for aerial maneuvers)
+            tilt: 0,  // Rotation about anchor point (for standing on tilted platforms)
         }
         this.lastdraw = Date.now() * 0.001
     },
     drawzoop: function (opts) {
-        var spin = opts.spin || 0
         // TODO: refactor this into an update pose method - shouldn't be solving for dt in draw
         var t = Date.now() * 0.001
         var f = 1 - Math.exp(-8 * (t - this.lastdraw))
         this.lastdraw = t
         for (var attrib in this.pose) {
-            this.pose[attrib] = (1-f) * this.pose[attrib] + f * (opts[attrib] || 0)
+            if (attrib !== "spin" && attrib !== "tilt") {
+                this.pose[attrib] = (1-f) * this.pose[attrib] + f * (opts[attrib] || 0)
+            }
         }
+        this.pose.spin += f * getdx(this.pose.spin, (opts.spin || 0))
+        this.pose.tilt += f * getdx(this.pose.tilt, (opts.tilt || 0))
         var p = this.pose
         
+        context.rotate(this.pose.tilt)
         if (!this.facingright) UFX.draw("hflip")
 
         // Draw body
         var bodypath = "M -4.46 3.97 C -6.43 16.11 -9.11 11.29 -9.46 23.97 C -2.50 29.33 4.29 28.61 11.07 24.86 C 12.50 14.33 4.11 17.36 4.11 3.61 C 3.21 -0.32 -3.75 -1.57 -4.46 3.97"
 
-        UFX.draw("[ t", 24*p.bodyxshear, 24, "r", spin, "vflip")
+        UFX.draw("[ t", 18*p.bodyxshear, 18, "r", p.spin, "t", 6*p.bodyxshear, 6, "vflip")
         UFX.draw("[ x 1", p.bodyyshear, -p.bodyxshear, "1 0 0 r", p.bodytilt, "zy", 1+p.bodystretch, "b", bodypath, "fs #AA0 f [ clip")
 
         // body spots
@@ -225,6 +231,7 @@ var LeapState = {
     },
 }
 var FallState = {
+    catchable: true,
     enter: function () {
     },
     exit: function () {
@@ -305,12 +312,13 @@ var ShockState = {
     },
     draw: function () {
         this.drawzoop({
-            spin: this.t / mechanics.shocktime * tau,
+            spin: (0.3 + 0.7 * this.t / mechanics.shocktime) * tau,
             headtilt: -1,
         })
     },
 }
 var ReelState = {
+    catchable: true,
     enter: function () {
         this.t = 0
         this.vx = getdx(this.x, Overlord.x) > 0 ? -500 : 500
@@ -343,14 +351,39 @@ var ClimbState = Object.create(StandState)
 ClimbState.enter = function () {
     this.jumps = 0
     this.vy = 0
+    this.blocky = 0
     this.bounces = 0
 }
+ClimbState.move = function (mkeys, nkeys, dt) {
+    StandState.move.call(this, mkeys, nkeys, dt)
+    // TODO: also dismount on kick
+    if (this.nextstate === LeapState) this.block.dismount(this)
+}
 ClimbState.think = function (dt) {
-    StandState.think.call(this, dt)
-    if (!this.tower.holds(this)) {
+    this.blockx += this.vx * dt
+    this.blocky = 0
+    var pos = this.block.xform.worldpos(this.blockx, 0, 1)
+    var dy = this.block.tower.y + gamestate.worldr
+    var x = pos[0], y = pos[1] + dy
+    var dx = Math.atan2(x, y)
+    this.x = this.block.tower.x + dx
+    this.y = Math.sqrt(x*x + y*y) - dy
+    this.xfactor = Math.max(gamestate.worldr + this.y, 1)
+    if (!this.block.holds(this)) {
         this.jumps = 1
         this.nextstate = FallState
     }
+    this.tilt = -(this.block.xform.A + this.block.xform.dA) + dx
+}
+ClimbState.draw = function () {
+    var a = Math.min(Math.abs(this.vx), 160) / 500
+    context.save()
+    this.drawzoop({
+        bodyxshear: a,
+        headtilt: 0.4 * a,
+        antennastretch: 1.4 * a,
+        tilt: this.tilt,
+    })
 }
 
 

@@ -146,9 +146,29 @@ var RefusesImpulse = {
     },
 }
 
-var DrawBlock = {
+var HasPlatform = {
     init: function () {
         this.w = 50
+    },
+    interact: function (sprite, oldx, oldy, x, y) {
+        if (!sprite.state.catchable) return
+        var oldpos = this.oldxform.localpos(oldx, oldy)
+        var pos = this.xform.localpos(x, y)
+        if (oldpos[1] > 0 && pos[1] <= 0 && pos[0] > -this.w/2 && pos[0] < this.w/2) {
+            sprite.nextstate = ClimbState
+            sprite.block = this
+            sprite.blockx = pos[0]
+            sprite.blocky = 0
+            this.takeimpulse(0, -200, x, y)
+            sprite.updatestate()
+        }
+    },
+    dismount: function (sprite) {
+        var p = this.xform.worldpos(sprite.blockx, sprite.blocky, 1)
+        this.takeimpulse(0, -200, p[0], p[1])
+    },
+    holds: function (sprite) {
+        return sprite.blockx > -this.w/2 && sprite.blockx < this.w/2
     },
     draw: function () {
         var p0 = this.xform.worldpos(-this.w*0.4, 0, 0)
@@ -168,14 +188,16 @@ var Ground = UFX.Thing()
                 .addcomp(RefusesImpulse)
                 .definemethod("draw")
                 .definemethod("think")
+                .definemethod("interact")
 Ground.initchildren()
 Ground.xform = Xform()
 
-function NormalBlock(parent) {
+function NormalBlock(tower, parent, dx) {
     var block = Object.create(NormalBlock.prototype)
+    block.tower = tower
     block.initchildren()
     block.setparent(parent, 1)  // zeta = 1
-    block.setxform0(UFX.random(-10, 10), UFX.random(40, 60), UFX.random(-0.3, 0.3))
+    block.setxform0(UFX.random(-10, 10) + (dx || 0), UFX.random(40, 60), UFX.random(-0.3, 0.3))
     block.setwobbleparams()
     return block
 }
@@ -184,7 +206,7 @@ NormalBlock.prototype = UFX.Thing()
                            .addcomp(HoldsBlocks)
                            .addcomp(BlockWobbles)
                            .addcomp(TakesImpulse)
-                           .addcomp(DrawBlock)
+                           .addcomp(HasPlatform)
                            .addcomp(HasXform)
 
 var MadeOfBlocks = {
@@ -199,21 +221,32 @@ var MadeOfBlocks = {
     },
 }
 
+var InteractsWithYou = {
+    think: function (dt) {
+        if (you.vy > 0) return
+        var dx = getdx(this.x, you.x), r = you.y + gamestate.worldr
+        var x = r * Math.sin(dx), y = r * Math.cos(dx) - gamestate.worldr
+        var dx = getdx(this.x, you.oldx), r = you.oldy + gamestate.worldr
+        var oldx = r * Math.sin(dx), oldy = r * Math.cos(dx) - gamestate.worldr
+        this.blocks.forEach(function (block) {
+            block.interact(you, oldx, oldy, x, y)
+        })
+    },
+}
+
 function BlockTower(x) {
     var tower = Object.create(BlockTower.prototype)
     tower.x = x
     tower.y = 0
     tower.initblocks()
-    tower.blocks.push(NormalBlock(Ground))
-    tower.blocks.push(NormalBlock(tower.blocks[1]))
-    tower.blocks.push(NormalBlock(tower.blocks[2]))
-    tower.blocks.push(NormalBlock(tower.blocks[3]))
-    tower.blocks.push(NormalBlock(tower.blocks[4]))
-    tower.blocks.push(NormalBlock(tower.blocks[5]))
-    tower.blocks.push(NormalBlock(tower.blocks[6]))
-    tower.blocks.push(NormalBlock(tower.blocks[3]))
-    tower.blocks.push(NormalBlock(tower.blocks[8]))
-    tower.blocks.push(NormalBlock(tower.blocks[9]))
+    tower.blocks.push(NormalBlock(tower, Ground))
+    tower.blocks.push(NormalBlock(tower, tower.blocks[1]))
+    tower.blocks.push(NormalBlock(tower, tower.blocks[2], -40))
+    tower.blocks.push(NormalBlock(tower, tower.blocks[2], 40))
+    tower.blocks.push(NormalBlock(tower, tower.blocks[3]))
+    tower.blocks.push(NormalBlock(tower, tower.blocks[4]))
+    tower.blocks.push(NormalBlock(tower, tower.blocks[5]))
+    tower.blocks.push(NormalBlock(tower, tower.blocks[6]))
     tower.alive = true
     tower.think(0)
     return tower
@@ -221,5 +254,6 @@ function BlockTower(x) {
 BlockTower.prototype = UFX.Thing()
                     .addcomp(WorldBound)
                     .addcomp(MadeOfBlocks)
+                    .addcomp(InteractsWithYou)
 
 
