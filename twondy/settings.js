@@ -26,11 +26,11 @@ var mechanics = {
     bombtime: [60, 30, 20, 15, 12, 10, 9, 8, 7, 6, 5],
     healtime: [20, 10, 7, 5, 4, 3, 2.5, 2, 1.5, 1.2, 1, 0.8],
 
-
+    // TODO: rename this to kick
     shockwavevs: [140, 140, 150, 150, 160, 170, 180, 200, 220, 250, 300, 350, 400, 400, 400],
     shockwavesizes: [50, 54, 60, 67, 77, 87, 97, 107, 117, 130, 130, 130, 130],
     shocktimes: [10, 8, 6.5, 5, 4, 3, 2.5, 2, 1.5, 1, 0.05, 0.05, 0.05],  // shock recharge times
-    shocktime: 0.5,  // Time spent kicking
+    shocktime: 0.35,  // Time spent kicking
     shockspeed: 80,  // speed while kicking
 
     upgradekickcosts: [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],

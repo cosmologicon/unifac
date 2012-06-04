@@ -2,7 +2,7 @@
 
 var Twondy = {
     init: function () {
-        this.s = 400
+        this.s = 200
         this.texture = document.createElement("canvas")
         this.texture.width = this.texture.height = this.s
         var tcon = this.texture.getContext("2d")
@@ -13,7 +13,8 @@ var Twondy = {
             return UFX.noise([x, y, z]) +
                    UFX.noise([2*x, 2*y, 2*z]) / 2. +
                    UFX.noise([4*x, 4*y, 4*z]) / 4. +
-                   UFX.noise([8*x, 8*y, 8*z]) / 8.
+                   UFX.noise([8*x, 8*y, 8*z]) / 8. + 
+                   UFX.noise([16*x, 16*y, 16*z]) / 16. 
         }
 
         for (var y = 0, j = 0 ; y < this.s ; ++y) {
@@ -21,8 +22,8 @@ var Twondy = {
                 var ax = (x - this.s/2.) / this.s*2, ay = (y - this.s/2.) / this.s*2
                 var az = Math.sqrt(1 - Math.min(1, ax*ax + ay*ay))
                 var d = Math.sqrt(Math.pow(ax-0.3,2) + Math.pow(ay-0.7,2))
-                var v = Math.sin(6*nvalue(ax*3,ay*3,az*3) + (ax+ay+az)*7)
-                var dv = (v - Math.sin(6*nvalue(ax*3+0.001,ay*3+0.001,az*3+0.001) + (ax+ay+az)*7)) * 1000
+                var v = Math.sin(12*nvalue(ax*1,ay*1,az*1) + (ax+ay+az)*7)
+                var dv = (v - Math.sin(12*nvalue(ax*1+0.001,ay*1+0.001,az*1+0.001) + (ax+ay+az)*7)) * 1000
                 var d = Math.sqrt(Math.pow(ax,2) + Math.pow(ay-1,2))
                 var h = (-ax + ay + 2 * az) * 0.3 + 0.3
                 if (v > 0) {
@@ -55,7 +56,7 @@ var Twondy = {
         UFX.draw("[ lw 0.03 z 1 2 fs black b o 0.4 0.1 0.18 f b o -0.4 0.1 0.18 f ]")
         UFX.draw("fs white b o 0.35 0.3 0.05 f b o -0.45 0.3 0.05 f")
         // draw the border
-        UFX.draw("] b o 0 0 1 ss black lw 0.01 s ]")
+        UFX.draw("] b o 0 0 1 ss black lw 0.005 s ]")
 //        UFX.draw("b o 0 0 1 fs", this.stexture, "f lw 0.01 ss black s")
     },
 

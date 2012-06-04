@@ -11,6 +11,8 @@ var WorldBound = {
         this.facingright = true
     },
     think: function () {
+        this.oldx = this.x
+        this.oldy = this.y
         this.xfactor = Math.max(gamestate.worldr + this.y, 1)
     },
     draw: function () {
