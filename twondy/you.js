@@ -370,6 +370,9 @@ ClimbState.think = function (dt) {
     this.x = this.block.tower.x + dx
     this.y = Math.sqrt(x*x + y*y) - dy
     this.xfactor = Math.max(gamestate.worldr + this.y, 1)
+    var fpos = this.block.xform.worldpos(this.blockx, this.blocky)
+    this.block.takeforce(0, -mechanics.zoopweight, fpos[0], fpos[1])
+    this.block.takeimpulse(-mechanics.runpush * this.vx * dt, 0, fpos[0], fpos[1])
     if (!this.block.holds(this)) {
         this.jumps = 1
         this.nextstate = FallState

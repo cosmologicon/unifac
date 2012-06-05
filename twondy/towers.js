@@ -81,21 +81,37 @@ var BlockWobbles = {
         this.wy = UFX.random(125, 250) ; this.by = UFX.random(4, 10)
         this.wA = UFX.random(125, 250) ; this.bA = UFX.random(4, 10)
 
-        this.pxmax = this.pymax = 30 ; this.pAmax = 1
+        this.pxmax = 30
+        this.pxmin = -30
+        this.pymax = 100
+        this.pymin = -30
+        this.pAmax = 1
     },
     think: function (dt) {
         this.vpx += (this.apx - this.dpx * this.wx) * dt
         this.vpx *= Math.exp(-this.bx * dt)
         this.dpx += this.vpx * dt
-        this.px = this.px0 + Math.min(Math.max(this.dpx, -this.pxmax), this.pxmax)
+        this.px = this.px0 + Math.min(Math.max(this.dpx, this.pxmin), this.pxmax)
         this.vpy += (this.apy - this.dpy * this.wy) * dt
         this.vpy *= Math.exp(-this.by * dt)
         this.dpy += this.vpy * dt
-        this.py = this.py0 + Math.min(Math.max(this.dpy, -this.pymax), this.pymax)
-        this.vpA += (this.vpA - this.dpA * this.wA) * dt
+        this.py = this.py0 + Math.min(Math.max(this.dpy, this.pymin), this.pymax)
+        this.vpA += (this.apA - this.dpA * this.wA) * dt
         this.vpA *= Math.exp(-this.bA * dt)
         this.dpA += this.vpA * dt
         this.pA = this.pA0 + Math.min(Math.max(this.dpA, -this.pAmax), this.pAmax)
+        this.apx = this.apy = this.apA = 0
+    },
+    sprout: function () {
+        this.dpx = UFX.random(-30, 30)
+        this.vpx = UFX.random(-500, 500)
+        this.dpy = -this.pymax
+        this.vpy = 2000
+        this.vpA = UFX.random(-20, 20)
+        this.dpA = UFX.random(-2, 2)
+        var i = this.xform.worldvec(0, -500, 0)
+        var p = this.xform.worldpos(0, 0, 0)
+        this.parent.takeimpulse(i[0], i[1], p[0], p[1])
     },
 }
 
@@ -117,6 +133,7 @@ var TakesImpulse = {
     init: function () {
         this.passfrac = 0.5
     },
+    // TODO: shouldn't zeta be used somewheres?
     takeimpulse: function (ix, iy, x, y, zeta, source) {
         var f = this.parent.passfrac  // fraction of impulse accepted by this block
         if (this.parent !== source) {
@@ -133,8 +150,17 @@ var TakesImpulse = {
         var pos = this.xform.localpos(x, y)
         this.vpx += ipos[0]
         this.vpy += ipos[1]
-        // TODO: where the heck does this factor come from, and can I justify it?
+        // TODO: where the heck does this factor of 0.0005 come from, and can I justify it?
         this.vpA += (ipos[0] * pos[1] - ipos[1] * pos[0]) * 0.0005
+    },
+    takeforce: function (fx, fy, x, y, zeta, source) {
+        var f = this.parent.passfrac
+        this.parent.takeforce(fx*(1-f), fy*(1-f), x, y, this.zeta, this)
+        var fpos = this.xform.localvec(fx*f, fy*f, 0)
+        var pos = this.xform.localpos(x, y)
+        this.apx += fpos[0]
+        this.apy += fpos[1]
+        this.apA += (fpos[0] * pos[1] - fpos[1] * pos[0]) * 0.0005
     },
 }
 
@@ -144,11 +170,15 @@ var RefusesImpulse = {
     },
     takeimpulse: function () {
     },
+    takeforce: function () {
+    },
 }
 
 var HasPlatform = {
     init: function () {
-        this.w = 60
+        this.w0 = 60
+        this.w = this.w0
+        this.wgrowt = 0
     },
     interact: function (sprite, oldx, oldy, x, y) {
         if (!sprite.state.catchable) return
@@ -171,13 +201,6 @@ var HasPlatform = {
         return sprite.blockx > -this.w/2 && sprite.blockx < this.w/2
     },
     draw: function () {
-/*        var p0 = this.xform.worldpos(-this.w*0.4, 0, 0)
-        var p1 = this.xform.worldpos(this.w*0.4, 0, 1)
-        var p2 = this.xform.worldpos(this.w*0.4, 0, 0)
-        var p3 = this.xform.worldpos(-this.w*0.4, 0, 1)
-        UFX.draw("ss white lw 1 b m", p0[0], p0[1], "l", p1[0], p1[1],
-                                 "m", p2[0], p2[1], "l", p3[0], p3[1], "s")*/
-
 /*        var p0 = this.xform.worldpos(-this.w/2, 0)
         var p1 = this.xform.worldpos(this.w/2, 0)
         UFX.draw("ss green lw 4 b m", p0[0], p0[1], "l", p1[0], p1[1], "s")*/
@@ -189,6 +212,16 @@ var HasPlatform = {
         
         UFX.draw(sline, "] ss white lw 0.6 s")
     },
+/*    sprout: function () {
+        this.wgrowt = 1
+    },
+    think: function (dt) {
+        this.w = this.w0 
+        if (this.wgrowt) {
+            this.wgrowt = Math.max(this.wgrowt - dt, 0)
+            this.w += Math.sin(this.wgrowt * 10) * this.wgrowt * 40
+        }
+    },*/
 }
 
 function drawweb(xy0, SC0, xy1, SC1, w0, w1) {
@@ -199,12 +232,12 @@ function drawweb(xy0, SC0, xy1, SC1, w0, w1) {
     function p(x,zeta) { return [x0+dx*zeta+x*(C0+dC*zeta), y0+dy*zeta-x*(S0+dS*zeta)] }
     UFX.draw("m", p(-w0,0), "c", p(-w1,0), p(-w1,0.3), p(-w1,0.5), "c", p(-w1,0.7), p(-w1,1), p(-w0,1),
                "l", p(w0,1), "c", p(w1,1), p(w1,0.7), p(w1,0.5), "c", p(w1,0.3), p(w1,0), p(w0,0))
-/*    UFX.draw("m", p(-w0,0), "l", p(-w0,1), "l", p(w0,1), "l", p(w0,0))*/
+//    UFX.draw("m", p(-w0,0), "l", p(-w0,1), "l", p(w0,1), "l", p(w0,0))
 }
 var HasSupports = {
     draw: function () {
-        UFX.draw("b")
         var basezeta = this.parent === Ground ? -0.1 : 0
+        UFX.draw("b")
         for (var j = 0 ; j < 6 ; ++j) {
             var x0 = [-20, 0, 20, 0, 20, -20][j]
             var dx = [20, 20, -40, -20, -20, 40][j]
@@ -312,6 +345,32 @@ var MadeOfBlocks = {
     draw: function () {
         this.blocks.forEach(function (block) { context.save() ; block.draw() ; context.restore() })
     },
+    addblock: function (blocktype, parentblock) {
+        parentblock = parentblock || Ground
+        var block = blocktype(this, parentblock)
+        if (block.length) {
+            for (var j = 0 ; j < block.length ; ++j) {
+                block[j].sprout()
+                this.blocks.push(block[j])
+            }
+        } else {
+            block.sprout()
+            this.blocks.push(block)
+        }
+    },
+    // array of all blocks that don't have any children yet
+    leaves: function () {
+        if (this.blocks.length == 1) return [this.blocks[0]]
+        var blocks = []
+        for (var j = 1 ; j < this.blocks.length ; ++j) {
+            var block = this.blocks[j]
+            if (block.children.length == 0) blocks.push(block)
+        }
+        return blocks
+    },
+    randomleaf: function () {
+        return UFX.random.choice(this.leaves())
+    },
 }
 
 var InteractsWithYou = {
@@ -332,15 +391,7 @@ function BlockTower(x) {
     tower.x = x
     tower.y = 0
     tower.initblocks()
-    tower.blocks.push(NormalBlock(tower, Ground))
-    tower.blocks.push(NormalBlock(tower, tower.blocks[1]))
-    tower.blocks.push.apply(tower.blocks, Splitter(tower, tower.blocks[2]))
-    tower.blocks.push(NormalBlock(tower, tower.blocks[3]))
-    tower.blocks.push(NormalBlock(tower, tower.blocks[5]))
-    tower.blocks.push.apply(tower.blocks, Splitter(tower, tower.blocks[4]))
-    tower.blocks.push(NormalBlock(tower, tower.blocks[7]))
-    tower.blocks.push(NormalBlock(tower, tower.blocks[8]))
-    tower.blocks.push(NormalBlock(tower, tower.blocks[9]))
+    tower.addblock(NormalBlock)
     tower.alive = true
     tower.think(0)
     return tower
