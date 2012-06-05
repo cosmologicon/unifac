@@ -99,17 +99,12 @@ UFX.ticker.register(function (dt) {
             } else if (event.name === "2") {
                 zoom /= 0.9
             } else if (event.name === "3") {
-                towers[0].blocks.forEach(function (block) {
-                    block.vpx = UFX.random(-120, 120)
-                    block.vpy = UFX.random(-120, 120)
-                    block.vpA = UFX.random(-6, 6)
-                })
-            } else if (event.name === "4") {
-                towers.forEach(function (tower) {
-                    var block = tower.blocks[6]
-                    var p = block.xform.worldpos(0, 0, 1)
-                    block.takeimpulse(0, -500, p[0], p[1])
-                })
+                var tower = towers[(Math.floor(you.x / tau * 5 + 0.5) % 5 + 5) % 5]
+                if (UFX.random() < 0.75) {
+                    tower.addblock(NormalBlock, tower.randomleaf())
+                } else {
+                    tower.addblock(Splitter, tower.randomleaf())
+                }
             } else if (event.name === "F12") {
                 window.open("data:image/png;" + canvas.toDataURL())
             }

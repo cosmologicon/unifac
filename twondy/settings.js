@@ -19,6 +19,9 @@ var mechanics = {
     launchspeed: 140,
     launchaccel: 2000,
     
+    zoopweight: 1000,  // force applied to the block you're standing on
+    runpush: 3,  // pushing factor for when you run
+    
     springspeed: [250, 270, 290, 310, 330, 350, 370, 390, 410, 430, 450, 470, 490],
     springtime: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1],
     bubbletime: [20, 10, 7, 5, 4, 3, 2.5, 2, 1.5, 1.2, 1, 0.8],
