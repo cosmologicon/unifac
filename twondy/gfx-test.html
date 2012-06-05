@@ -73,12 +73,13 @@ var gamestate = {
 }
 GameScene.start()
 
-var towers = [BlockTower(0.5), BlockTower(2.5), BlockTower(4.3), BlockTower(6)]
+var towers = [BlockTower(0), BlockTower(tau*0.2), BlockTower(tau*0.4), BlockTower(tau*0.6), BlockTower(tau*0.8)]
 
 var zoom = 4
 
 UFX.ticker.register(function (dt) {
 
+    document.title = UFX.ticker.getfpsstr()
     if (UFX.key.ispressed.shift) dt *= 0.2
     // Handle keyboard input
     var mkeys = {

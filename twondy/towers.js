@@ -148,7 +148,7 @@ var RefusesImpulse = {
 
 var HasPlatform = {
     init: function () {
-        this.w = 50
+        this.w = 60
     },
     interact: function (sprite, oldx, oldy, x, y) {
         if (!sprite.state.catchable) return
@@ -191,24 +191,56 @@ var HasPlatform = {
     },
 }
 
+function drawweb(xy0, SC0, xy1, SC1, w0, w1) {
+    w0 = w0 || 10
+    w1 = w1 || 1
+    var x0 = xy0[0], y0 = xy0[1], x1 = xy1[0], y1 = xy1[1], dx = x1 - x0, dy = y1 - y0
+    var S0 = SC0[0], C0 = SC0[1], S1 = SC1[0], C1 = SC1[1], dS = S1 - S0, dC = C1 - C0
+    function p(x,zeta) { return [x0+dx*zeta+x*(C0+dC*zeta), y0+dy*zeta-x*(S0+dS*zeta)] }
+    UFX.draw("m", p(-w0,0), "c", p(-w1,0), p(-w1,0.3), p(-w1,0.5), "c", p(-w1,0.7), p(-w1,1), p(-w0,1),
+               "l", p(w0,1), "c", p(w1,1), p(w1,0.7), p(w1,0.5), "c", p(w1,0.3), p(w1,0), p(w0,0))
+/*    UFX.draw("m", p(-w0,0), "l", p(-w0,1), "l", p(w0,1), "l", p(w0,0))*/
+}
 var HasSupports = {
     draw: function () {
-        var p0 = this.xform.worldpos(-this.w*0.4, 2, 0)
-        var p1 = this.xform.worldpos(0, 2, 1)
-        var p2 = this.xform.worldpos(this.w*0.4, 2, 0)
-        var pc = this.xform.worldpos(0, 2, 0.65)
-        UFX.draw("b m", p0[0], p0[1], "q", pc[0], pc[1], p1[0], p1[1],
-            "q", pc[0], pc[1], p2[0], p2[1])
-        UFX.draw("ss black lw 4 s ss gray lw 3 s")
-        var p0 = this.xform.worldpos(-this.w*0.4, -2, 1)
-        var p1 = this.xform.worldpos(0, -2, 0)
-        var p2 = this.xform.worldpos(this.w*0.4, -2, 1)
-        var pc = this.xform.worldpos(0, -2, 0.65)
-        UFX.draw("b m", p0[0], p0[1], "q", pc[0], pc[1], p1[0], p1[1],
-            "q", pc[0], pc[1], p2[0], p2[1])
-        UFX.draw("ss black lw 4 s ss gray lw 3 s")
+        UFX.draw("b")
+        var basezeta = this.parent === Ground ? -0.1 : 0
+        for (var j = 0 ; j < 6 ; ++j) {
+            var x0 = [-20, 0, 20, 0, 20, -20][j]
+            var dx = [20, 20, -40, -20, -20, 40][j]
+            var y0 = [0, 3, -1, -3, 0, 1][j]
+            var dy = [3, -3, 2, 3, -3, -2][j]
+            drawweb(this.xform.worldpos(x0, y0, basezeta), this.xform.getSC(0),
+                    this.xform.worldpos(x0+dx, y0+dy, 1), this.xform.getSC(1))
+        }
+        UFX.draw("fs rgba(200,200,255,0.3) f")
     },
 }
+var HasSplitSupports = {
+    draw: function () {
+        UFX.draw("b")
+        var basezeta = this.parent === Ground ? -0.1 : 0
+        for (var j = 0 ; j < 3 ; ++j) {
+            var x0 = [-20, 0, 20][j]
+            var dx = [20, -20, 0][j]
+            var y0 = [0, 2, -2][j]
+            var dy = [2, -2, 2][j]
+            drawweb(this.xform.worldpos(x0, y0, basezeta), this.xform.getSC(0),
+                    this.xform.worldpos(x0+dx, y0+dy, 1), this.xform.getSC(1))
+            drawweb(this.sister.xform.worldpos(-x0, -y0, basezeta), this.sister.xform.getSC(0),
+                    this.sister.xform.worldpos(-x0-dx, -y0-dy, 1), this.sister.xform.getSC(1))
+        }
+        UFX.draw("fs rgba(200,200,255,0.3) f b")
+        var SC = this.sister.xform.getSC(1)
+        drawweb(this.xform.worldpos(-20, 0, 1), this.xform.getSC(1),
+                this.sister.xform.worldpos(-20, 0, 1), [-SC[0], -SC[1]], 10, 2)
+        drawweb(this.xform.worldpos(20, 0, 1), this.xform.getSC(1),
+                this.sister.xform.worldpos(20, 0, 1), [-SC[0], -SC[1]], 10, 2)
+        UFX.draw("f")
+    },
+}
+
+
 
 var Ground = UFX.Thing()
                 .addcomp(HoldsBlocks)
@@ -236,6 +268,39 @@ NormalBlock.prototype = UFX.Thing()
                            .addcomp(HasSupports)
                            .addcomp(HasPlatform)
                            .addcomp(HasXform)
+
+// Returns two blocks
+function Splitter(tower, parent) {
+    var block1 = Object.create(SplitterLeft), block2 = Object.create(SplitterRight)
+    block1.tower = block2.tower = tower
+    block1.setparent(parent, 1)
+    block2.setparent(parent, 1)
+    block1.initchildren()
+    block2.initchildren()
+    var x0 = UFX.random(-20, 20)
+    block1.setxform0(x0 - 45, UFX.random(40, 60), -0.4)
+    block2.setxform0(x0 + 45, UFX.random(40, 60), 0.4)
+    block1.setwobbleparams()
+    block2.setwobbleparams()
+    block1.sister = block2
+    return [block1, block2]
+}
+var SplitterLeft = UFX.Thing()
+                      .addcomp(AnchorToParent)
+                      .addcomp(HoldsBlocks)
+                      .addcomp(BlockWobbles)
+                      .addcomp(TakesImpulse)
+                      .addcomp(HasSplitSupports)
+                      .addcomp(HasPlatform)
+                      .addcomp(HasXform)
+var SplitterRight = UFX.Thing()
+                      .addcomp(AnchorToParent)
+                      .addcomp(HoldsBlocks)
+                      .addcomp(BlockWobbles)
+                      .addcomp(TakesImpulse)
+                      .addcomp(HasPlatform)
+                      .addcomp(HasXform)
+
 
 var MadeOfBlocks = {
     initblocks: function () {
@@ -269,12 +334,13 @@ function BlockTower(x) {
     tower.initblocks()
     tower.blocks.push(NormalBlock(tower, Ground))
     tower.blocks.push(NormalBlock(tower, tower.blocks[1]))
-    tower.blocks.push(NormalBlock(tower, tower.blocks[2], -40))
-    tower.blocks.push(NormalBlock(tower, tower.blocks[2], 40))
+    tower.blocks.push.apply(tower.blocks, Splitter(tower, tower.blocks[2]))
     tower.blocks.push(NormalBlock(tower, tower.blocks[3]))
-    tower.blocks.push(NormalBlock(tower, tower.blocks[4]))
     tower.blocks.push(NormalBlock(tower, tower.blocks[5]))
-    tower.blocks.push(NormalBlock(tower, tower.blocks[6]))
+    tower.blocks.push.apply(tower.blocks, Splitter(tower, tower.blocks[4]))
+    tower.blocks.push(NormalBlock(tower, tower.blocks[7]))
+    tower.blocks.push(NormalBlock(tower, tower.blocks[8]))
+    tower.blocks.push(NormalBlock(tower, tower.blocks[9]))
     tower.alive = true
     tower.think(0)
     return tower

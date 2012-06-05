@@ -80,7 +80,7 @@ var DrawZoop = {
         this.pose.tilt += f * getdx(this.pose.tilt, (opts.tilt || 0))
         var p = this.pose
         
-        context.rotate(this.pose.tilt)
+        context.rotate(-this.pose.tilt)
         if (!this.facingright) UFX.draw("hflip")
 
         // Draw body
@@ -353,6 +353,7 @@ ClimbState.enter = function () {
     this.vy = 0
     this.blocky = 0
     this.bounces = 0
+    this.tilt = this.block.xform.A + this.block.xform.dA
 }
 ClimbState.move = function (mkeys, nkeys, dt) {
     StandState.move.call(this, mkeys, nkeys, dt)
@@ -360,7 +361,7 @@ ClimbState.move = function (mkeys, nkeys, dt) {
     if (this.nextstate === LeapState) this.block.dismount(this)
 }
 ClimbState.think = function (dt) {
-    this.blockx += this.vx * dt
+    this.blockx += this.vx * dt * (this.tilt * this.vx > 0 ? 1 : Math.max(0.3, 1 - 0.5 * Math.abs(this.tilt)))
     this.blocky = 0
     var pos = this.block.xform.worldpos(this.blockx, 0, 1)
     var dy = this.block.tower.y + gamestate.worldr
@@ -373,7 +374,7 @@ ClimbState.think = function (dt) {
         this.jumps = 1
         this.nextstate = FallState
     }
-    this.tilt = -(this.block.xform.A + this.block.xform.dA) + dx
+    this.tilt = this.block.xform.A + this.block.xform.dA - dx
 }
 ClimbState.draw = function () {
     var a = Math.min(Math.abs(this.vx), 160) / 500
