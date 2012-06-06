@@ -64,6 +64,8 @@ var HoldsBlocks = {
 var AnchorToParent = {
     setparent: function (parent, zeta) {
         this.parent = parent
+        this.level = this.parent.level + 1
+        this.tower.maxlevel = Math.max(this.tower.maxlevel, this.level)
         this.parent.children.push(this)
         this.x = this.y = this.A = 0  // anchor point to parent
         this.zeta = zeta || 0  // fraction of the way up the parent's relative motion to inherit
@@ -120,6 +122,7 @@ var HasXform = {
         this.px = this.px0 = x || 0
         this.py = this.py0 = y || 0
         this.pA = this.pA0 = A || 0
+        this.xform0 = this.parent.xform0.add(this.x, this.y, this.A, this.px, this.py, this.pA, this.zeta)
         this.xform = this.parent.xform.add(this.x, this.y, this.A, this.px, this.py, this.pA, this.zeta)
     },
     think: function (dt) {
@@ -274,14 +277,16 @@ var HasSplitSupports = {
 }
 
 
-
+// TODO: should probably have a separate Ground instance for each tower
 var Ground = UFX.Thing()
                 .addcomp(HoldsBlocks)
                 .addcomp(RefusesImpulse)
                 .definemethod("draw")
                 .definemethod("think")
                 .definemethod("interact")
+Ground.level = 0
 Ground.initchildren()
+Ground.xform0 = Xform()
 Ground.xform = Xform()
 
 function NormalBlock(tower, parent, dx) {
@@ -289,7 +294,8 @@ function NormalBlock(tower, parent, dx) {
     block.tower = tower
     block.initchildren()
     block.setparent(parent, 1)  // zeta = 1
-    block.setxform0(UFX.random(-20, 20) + (dx || 0), UFX.random(40, 60), UFX.random(-0.5, 0.5))
+    var A0 = -0.5 * (parent.xform0.A + parent.xform0.dA)
+    block.setxform0(UFX.random(-20, 20) + (dx || 0), UFX.random(40, 60), A0 + UFX.random(-0.3, 0.3))
     block.setwobbleparams()
     return block
 }
@@ -311,8 +317,9 @@ function Splitter(tower, parent) {
     block1.initchildren()
     block2.initchildren()
     var x0 = UFX.random(-20, 20)
-    block1.setxform0(x0 - 45, UFX.random(40, 60), -0.4)
-    block2.setxform0(x0 + 45, UFX.random(40, 60), 0.4)
+    var A0 = -0.5 * (parent.xform0.A + parent.xform0.dA)
+    block1.setxform0(x0 - 45, UFX.random(40, 60), A0 - 0.3)
+    block2.setxform0(x0 + 45, UFX.random(40, 60), A0 + 0.3)
     block1.setwobbleparams()
     block2.setwobbleparams()
     block1.sister = block2
@@ -368,9 +375,20 @@ var MadeOfBlocks = {
         }
         return blocks
     },
+    // all leaves on the lowest level of this tower
+    lowleaves: function () {
+        var leaves = this.leaves()
+        if (leaves.length == 1) return leaves
+        var minlevel = leaves[0].level
+        for (var j = 1 ; j < leaves.length ; ++j) minlevel = Math.min(minlevel, leaves[j].level)
+        var lleaves = []
+        leaves.forEach(function (leaf) { if (leaf.level == minlevel) lleaves.push(leaf) })
+        return lleaves
+    },
     randomleaf: function () {
         return UFX.random.choice(this.leaves())
     },
+    upgrade: 
 }
 
 var InteractsWithYou = {

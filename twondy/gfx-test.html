@@ -100,11 +100,14 @@ UFX.ticker.register(function (dt) {
                 zoom /= 0.9
             } else if (event.name === "3") {
                 var tower = towers[(Math.floor(you.x / tau * 5 + 0.5) % 5 + 5) % 5]
-                if (UFX.random() < 0.75) {
-                    tower.addblock(NormalBlock, tower.randomleaf())
-                } else {
-                    tower.addblock(Splitter, tower.randomleaf())
-                }
+                tower.lowleaves().forEach(function (block) {
+                    var n = tower.blocks.length
+                    if (n == 3 || n == 7 || n == 14) {
+                        tower.addblock(Splitter, block)
+                    } else {
+                        tower.addblock(NormalBlock, block)
+                    }
+                })
             } else if (event.name === "F12") {
                 window.open("data:image/png;" + canvas.toDataURL())
             }
