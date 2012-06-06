@@ -1,8 +1,11 @@
 
 CanUpgrade = {
     init: function (stype) {
-        this.level = 0
+        this.setlevel(0)
         this.stype = stype
+    },
+    setlevel: function (level) {
+        this.level = level
     },
     upgradeamount: function () {
         if (this.level >= gamestate.unlocked.upgradestruct) return false
@@ -16,7 +19,7 @@ CanUpgrade = {
         var amount = this.upgradeamount()
         if (!amount || amount > gamestate.bank) return
         gamestate.bank -= amount
-        this.level += 1
+        this.setlevel(this.level + 1)
         effects.push(new UpgradeBox(this.x, this.y + 50))
     },
     draw: function () {
