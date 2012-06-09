@@ -5,6 +5,8 @@ var settings = {
     sy: 600,
     tickmult: 5,  // number of times we call think(). I know I know, I should be fixing my timestep. It's LD, buddy!
     showcutscenes: true,
+    
+    cheat: false,
 }
 
 var mechanics = {

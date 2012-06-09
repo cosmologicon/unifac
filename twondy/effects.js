@@ -1,11 +1,33 @@
 // Text and special effects
 
+var ScreenBound = {
+    init: function (x, y) {
+        this.x = x || 0
+        this.y = y || 0
+    },
+    draw: function () {
+        context.translate(settings.sx/2 + this.x, settings.sy/2 + this.y)
+    },
+}
+
 var Floats = {
     init: function (vy) {
         this.vy = vy || 0
     },
     think: function (dt) {
         this.y += this.vy * dt
+    },
+}
+
+var ScrollsLeft = {
+    init: function (vx0, vx1) {
+        this.vx0 = vx0 || 0
+        this.vx1 = vx1 || 0
+    },
+    think: function (dt) {
+        var vx = Math.abs(this.x) < this.vx1 * 0.5 ? this.vx1 : this.vx0
+        this.x -= vx * dt
+        this.alive = this.x > -settings.sx
     },
 }
 
@@ -40,6 +62,35 @@ var SolidText = {
         context.textBaseline = "middle"
         context.fillStyle = this.color
         context.fillText(this.text, 0, 0)
+    },
+}
+
+var Italic = {
+    draw: function () {
+        UFX.draw("xshear -0.4")
+    }
+}
+
+var StrokedText = {
+    init: function (text, color0, color1) {
+        this.text = text || "???"
+        this.color0 = color0 || "white"
+        this.color1 = color1 || "black"
+        this.font = "48px Viga"
+    },
+    settext: function (text, color0, color1) {
+        this.text = text || this.text || "???"
+        this.color0 = color0 || this.color0 || "white"
+        this.color1 = color1 || this.color1 || "black"
+    },
+    draw: function () {
+        context.font = this.font
+        context.textAlign = "center"
+        context.textBaseline = "middle"
+        context.fillStyle = this.color0
+        context.fillText(this.text, 0, 0)
+        context.strokeStyle = this.color1
+        context.strokeText(this.text, 0, 0)
     },
 }
 
@@ -245,4 +296,19 @@ Shatter.prototype = UFX.Thing()
                       .addcomp(WorldBound)
                       .addcomp(FadesAway, 0.5)
                       .addcomp(ExpandingLines)
+
+
+function CheatModeEffect() {
+    this.x = settings.sx
+    this.alive = true
+}
+CheatModeEffect.prototype = UFX.Thing()
+       .addcomp(ScreenBound)
+       .addcomp(ScrollsLeft, 4000, 100)
+       .addcomp(Italic)
+       .addcomp(StrokedText, "cheat mode enabled", "yellow", "orange")
+
+
+
+
 
