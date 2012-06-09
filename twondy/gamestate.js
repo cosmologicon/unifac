@@ -439,7 +439,7 @@ function build(button) {
     if (button === "buildtower") {
         var cost = mechanics.buildcost.tower
         if (cost > gamestate.bank) return
-        gamestate.addstructure(new Tower())
+        gamestate.addstructure(new BlockTower())
         gamestate.bank -= cost
     }
 }

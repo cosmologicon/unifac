@@ -18,7 +18,8 @@ GameScene.start = function () {
     ehitters = []  // objects that the enemies can run into
     effects = [Indicator]  // text and graphical effects
 //    structures = []  // structures
-    monsters = [] 
+    monsters = []
+    HUDeffects = []  // Effects that aren't world-bound
 
 
     structures = []
@@ -135,6 +136,7 @@ GameScene.think = function (dt) {
         effects.forEach(function (effect) { effect.think(dt) })
         structures.forEach(function (structure) { if (structure) structure.think(dt) })
         monsters.forEach(function (monster) { monster.think(dt) })
+        HUDeffects.forEach(function (effect) { effect.think(dt) })
         you.think(dt)
 
 
@@ -181,10 +183,24 @@ GameScene.think = function (dt) {
     }
     
     if (nkeys.F7) {
-        gamestate.bank = Math.min(gamestate.bank * 2, 1000000)
+        HUDeffects.push(new CheatModeEffect())
+        settings.cheat = true
+        for (var s in gamestate.buildunlocked) {
+            gamestate.buildunlocked[s] = true
+        }
+        gamestate.unlocked.grow = true
+        gamestate.unlocked.shock = 10
+        gamestate.unlocked.jumps = 10
+        gamestate.unlocked.upgradestruct = 11
+        gamestate.unlocked.structures = true
+        gamestate.level = 3
     }
     if (nkeys.F8) {
         advancelevel()
+    }
+    
+    if (settings.cheat) {
+        gamestate.bank = Math.min(gamestate.bank + Math.floor(5000 * dt), 1000000)
     }
 }
 
@@ -225,11 +241,7 @@ GameScene.drawobjs = function () {
 
 GameScene.drawstatus = function () {
     context.font = "26px Viga"
-    context.textAlign = "right"
-    context.textBaseline = "middle"
-    context.fillStyle = "#AAF"
-    context.strokeStyle = "black"
-    context.lineWidth = 1
+    UFX.draw("textalign right textbaseline middle fillstyle #AAF ss black lw 1")
     var y = 18
     function puttext(text) {
         context.strokeText(text, settings.sx - 30, y)
@@ -242,29 +254,15 @@ GameScene.drawstatus = function () {
     if (gamestate.unlocked.shock) {
         var f = you.shockfrac()
         var x0 = settings.sx - 10, y0 = 90
-        context.beginPath()
-        context.moveTo(x0, y0)
-        context.lineTo(x0, y0 - 80)
-        context.strokeStyle = "rbga(0, 0, 0, 0.4)"
-        context.lineWidth = 10
-        context.stroke()
-        context.beginPath()
-        context.moveTo(x0, y0)
-        context.lineTo(x0, y0 - 80*f)
-        context.strokeStyle = "blue"
-        context.lineWidth = 8
-        context.stroke()
-        context.lineWidth = 1
+        UFX.draw("b m", x0, y0, "l", x0, y0-80, "ss rgba(0,0,0,0.4) lw 10 s",
+                 "b m", x0, y0, "l", x0, y0-80*f, "ss blue lw 8 s lw 1")
     }
     for (var j = 0 ; j < gamestate.njumps ; ++j) {
-        context.beginPath()
-        context.arc(settings.sx - 16, 104 + 22 * j, 9, 0, tau)
-        context.fillStyle = j < you.jumps ? "rgba(0, 0, 0, 0.4)" : "green"
-        context.strokeStyle = "white"
-        context.lineWidth = 1
-        context.fill()
-        context.stroke()
+        UFX.draw("b o", settings.sx-16, 104+22*j, 9,
+                 "fs", (j < you.jumps ? "rgba(0,0,0,0.4)" : "green"), "ss white lw 1 f s")
     }
+    HUDeffects.forEach(function (effect) { context.save() ; effect.draw() ; context.restore() })
+
 }
 
 

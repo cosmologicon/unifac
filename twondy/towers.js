@@ -388,11 +388,22 @@ var MadeOfBlocks = {
     randomleaf: function () {
         return UFX.random.choice(this.leaves())
     },
-    upgrade: 
+    setlevel: function (level) {
+        if (!this.blocks) return
+        var leaves = this.lowleaves()
+        for (var j = 0 ; j < leaves.length ; ++j) {
+            var leaf = leaves[j], n = this.blocks.length
+            if (n == 3 || n == 7 || n == 14) {
+                this.addblock(Splitter, leaf)
+            } else {
+                this.addblock(NormalBlock, leaf)
+            }
+        }
+    },
 }
 
 var InteractsWithYou = {
-    think: function (dt) {
+    interact: function () {
         if (you.vy > 0) return
         var dx = getdx(this.x, you.x), r = you.y + gamestate.worldr
         var x = r * Math.sin(dx), y = r * Math.cos(dx) - gamestate.worldr
@@ -405,18 +416,19 @@ var InteractsWithYou = {
 }
 
 function BlockTower(x) {
-    var tower = Object.create(BlockTower.prototype)
-    tower.x = x
-    tower.y = 0
-    tower.initblocks()
-    tower.addblock(NormalBlock)
-    tower.alive = true
-    tower.think(0)
-    return tower
+    this.x = x
+    this.y = 0
+    this.initblocks()
+    this.addblock(NormalBlock)
+    this.alive = true
+    this.think(0)
 }
 BlockTower.prototype = UFX.Thing()
                     .addcomp(WorldBound)
                     .addcomp(MadeOfBlocks)
                     .addcomp(InteractsWithYou)
+                    .addcomp(CanUpgrade, "tower")
+                    .addcomp(CanDemolish)
+
 
 
