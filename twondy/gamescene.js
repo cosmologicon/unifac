@@ -265,6 +265,9 @@ GameScene.drawstatus = function () {
 
 }
 
+GameScene.drawworld = function () {
+    Twondy.draw()
+}
 
 GameScene.draw = function () {
     context.fillStyle = "#111"
@@ -273,7 +276,7 @@ GameScene.draw = function () {
     context.save()
     camera.orient()
     this.drawstars()
-    Twondy.draw()
+    this.drawworld()
     this.drawobjs()
     context.restore()
 
@@ -289,34 +292,53 @@ GrowScene.start = function () {
 
 GrowScene.think = function (dt) {
     this.t += dt
-    if (this.t < 1) {
-        this.wobbling = false
-    } else if (this.t < 2) {
-        this.wobbling = true
-    } else if (this.t < 2.5) {
-        this.wobbling = false
-    } else {
+    if (this.t > 6.5) {
         UFX.scene.pop()
     }
-    if (this.t > 2 && gamestate.worldsize !== this.newsize) {
+    if (this.t > 3.5 && gamestate.worldsize !== this.newsize) {
         gamestate.setworldsize(this.newsize)
         GameScene.think(0)
+        camera.y = -gamestate.worldr
+    } else if (this.t > 4.5) {
+        var nh = mechanics.worldhs[this.newsize] || 0
+        var dh = nh - Twondy.h, mh = 0.3 * dt
+        if (dh) {
+            Twondy.settexture(Math.abs(dh) < mh ? nh : dh > 0 ? Twondy.h + mh : Twondy.h - mh)
+        }
     }
 
-    camera.mode = "planet"
-    camera.settarget([0, 0])
-    camera.think(dt)
+    if (this.t < 3) {
+        camera.mode = "planet"
+        camera.settarget([0, 0])
+        camera.think(dt)
+    } else if (this.t < 5.5) {
+    } else {
+        camera.mode = "play"
+        camera.settarget(you.lookingat())
+        camera.think(dt)
+    }
     disableall()
 }
 
 GrowScene.drawworld = function () {
     context.save()
-    if (this.wobbling) {
-        context.rotate(this.t * 10)
-        context.scale(0.8, 1.2)
-        context.rotate(-this.t * 10)
+    if (this.t > 1 && this.t < 2) {
+        var s = 1 + (this.t - 1) * (2 - this.t)
+//        s = 1 + Math.min(Math.max(0.7 * Math.sin((this.t - 1) * 20), -0.5), 0.5)
+        context.rotate(10 * this.t)
+        context.scale(1./s, s)
+        context.rotate(-10 * this.t)
     }
-//    context.scale(s, s)
+    if (this.t > 2 && this.t < 3) {
+        var s = 1 + 1.5 * (this.t - 2) * (3 - this.t)
+        context.rotate(-10 * this.t)
+        context.scale(1./s, s)
+        context.rotate(10 * this.t)
+    }
+    if (this.t > 3.5 && this.t < 4.5) {
+        context.scale(1 + 0.4 * Math.cos(this.t * 30) * (4.5 - this.t),
+                      1 + 0.4 * Math.sin(this.t * 30) * (4.5 - this.t))
+    }
     Twondy.draw()
     context.restore()
 }

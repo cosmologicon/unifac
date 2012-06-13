@@ -32,6 +32,7 @@ body {
 <!-- game objects -->
 <script src="stuff.js"></script>
 <script src="twondy.js"></script>
+<script src="structures.js"></script>
 <script src="towers.js"></script>
 <script src="monsters.js"></script>
 <script src="you.js"></script>
@@ -55,7 +56,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequest
 UFX.key.init()
 UFX.key.qup = false
 UFX.key.qdown = true
-UFX.key.watchlist = "up down left right 1 2 3 4 F12 shift".split(" ")
+UFX.key.watchlist = "up down left right 1 2 3 4 5 6 F12 shift".split(" ")
 UFX.draw.setcontext(context)
 
 
@@ -73,9 +74,14 @@ var gamestate = {
 }
 GameScene.start()
 
-var towers = [BlockTower(0), BlockTower(tau*0.2), BlockTower(tau*0.4), BlockTower(tau*0.6), BlockTower(tau*0.8)]
+var towers = [new BlockTower(0),
+              new BlockTower(tau*0.2),
+              new BlockTower(tau*0.4),
+              new BlockTower(tau*0.6),
+              new BlockTower(tau*0.8)]
+towers = []
 
-var zoom = 4
+var zoom = 2.5
 
 UFX.ticker.register(function (dt) {
 
@@ -108,11 +114,16 @@ UFX.ticker.register(function (dt) {
                         tower.addblock(NormalBlock, block)
                     }
                 })
+            } else if (event.name === "5") {
+                Twondy.settexture(Twondy.h - 0.1)
+            } else if (event.name === "6") {
+                Twondy.settexture(Twondy.h + 0.1)
             } else if (event.name === "F12") {
                 window.open("data:image/png;" + canvas.toDataURL())
             }
         }
     })
+    Twondy.settexture(0.5 + 0.6 * Math.sin(Date.now() * 0.0002))
     nkeys.act = nkeys.down
     you.move(mkeys, nkeys, dt)
     
@@ -122,6 +133,7 @@ UFX.ticker.register(function (dt) {
 
     camera.x = you.x
     camera.y = you.y + 20
+    camera.y = -gamestate.worldr + 20
     camera.zoom = zoom
 
     

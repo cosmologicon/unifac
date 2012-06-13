@@ -6,6 +6,8 @@ var settings = {
     tickmult: 5,  // number of times we call think(). I know I know, I should be fixing my timestep. It's LD, buddy!
     showcutscenes: true,
     
+    twondytsize: 400,  // resolution of texture for Twondy's surface
+    
     cheat: false,
 }
 
@@ -65,6 +67,7 @@ var mechanics = {
     },
     
     worldsizes: [100, 250, 450, 600, 800, 1000, 1200, 1400, 1800],
+    worldhs: {100: 0, 250: 0, 450: 0, 600: 0.2, 800: 0.4, 1000: 0.55, 1200: 0.7, 1400: 0.85, 1800: 1.0},
     growcosts: [100, 200, 300, 400, 600, 1000, 1500, 2200, 3000],
 
 }

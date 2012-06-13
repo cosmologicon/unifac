@@ -1,44 +1,98 @@
 // Draw the world itself
 
 var Twondy = {
+    s: settings.twondytsize,
     init: function () {
-        this.s = 200
         this.texture = document.createElement("canvas")
         this.texture.width = this.texture.height = this.s
-        var tcon = this.texture.getContext("2d")
-        var idata = tcon.createImageData(this.s, this.s)
-        var data = idata.data
-
-        function nvalue(x, y, z) {
-            return UFX.noise([x, y, z]) +
-                   UFX.noise([2*x, 2*y, 2*z]) / 2. +
-                   UFX.noise([4*x, 4*y, 4*z]) / 4. +
-                   UFX.noise([8*x, 8*y, 8*z]) / 8. + 
-                   UFX.noise([16*x, 16*y, 16*z]) / 16. 
+        this.tcon = this.texture.getContext("2d")
+        this.idata = this.tcon.createImageData(this.s, this.s)
+        
+        var px = 1/Math.sqrt(3), py = -px, pz = px // North pole unit vector
+        var lx = -1/Math.sqrt(6), ly = 2*lx, lz = -lx // Light source unit vector
+        
+        this.lat = new Array(this.s * this.s)  // normal latitude
+        this.hstripe = new Array(this.s * this.s)  // latitude-based height map
+        this.gstripe = new Array(this.s * this.s)  // gradient of height map
+        this.slat = new Array(this.s * this.s)   // shadow latitude
+        this.hnoise = []                         // perlin noise-based height map
+        this.hgrad = []                          // numerical graident of height map
+        for (var a = 0 ; a < 5 ; ++a) {
+            this.hnoise.push(new Array(this.s * this.s))
+            this.hgrad.push(new Array(this.s * this.s))
         }
 
-        for (var y = 0, j = 0 ; y < this.s ; ++y) {
-            for (var x = 0 ; x < this.s ; ++x, j += 4) {
-                var ax = (x - this.s/2.) / this.s*2, ay = (y - this.s/2.) / this.s*2
-                var az = Math.sqrt(1 - Math.min(1, ax*ax + ay*ay))
-                var d = Math.sqrt(Math.pow(ax-0.3,2) + Math.pow(ay-0.7,2))
-                var v = Math.sin(12*nvalue(ax*1,ay*1,az*1) + (ax+ay+az)*7)
-                var dv = (v - Math.sin(12*nvalue(ax*1+0.001,ay*1+0.001,az*1+0.001) + (ax+ay+az)*7)) * 1000
-                var d = Math.sqrt(Math.pow(ax,2) + Math.pow(ay-1,2))
-                var h = (-ax + ay + 2 * az) * 0.3 + 0.3
-                if (v > 0) {
-                    data[j] = 0
-                    data[j+1] = Math.min(4000 * v, 255) * h * (1 + 0.02 * dv)
-                    data[j+2] = 0
-                } else {
-                    data[j+2] = Math.min(-4000 * v, 255) * h * Math.max(Math.min(1, 2 + 2 * v), 0.3)
-                    data[j] = 0
-                    data[j+1] = 0
+        var dg = 0.001  // numerical gradient factor
+        for (var Y = 0, j = 0 ; Y < this.s ; ++Y) {
+            var y = -(Y - this.s/2. + 0.5) / this.s * 2
+            for (var X = 0 ; X < this.s ; ++X, ++j) {
+                var x = (X - this.s/2. + 0.5) / this.s * 2
+                var z = Math.sqrt(Math.max(1 - x*x - y*y, 0))
+                var pr = px*x + py*y + pz*z
+                var gx = x+(lr*x-lx)*dg, gy = y+(lr*y-ly)*dg, gz = z+(lr*z-lz)*dg
+                var g = Math.sqrt(gx*gx + gy*gy + gz*gz)
+                gx /= g ; gy /= g ; gz /= g
+
+                this.lat[j] = Math.asin(Math.min(Math.max(pr, -1), 1))  // latitude
+                this.hstripe[j] = Math.sin(9*this.lat[j])
+                var gL = Math.asin(Math.min(Math.max(px*gx + py*gy + pz*gz, -1), 1))
+                this.gstripe[j] = (Math.sin(9*gL) - this.hstripe[j]) / dg
+                
+                var lr = lx*x + ly*y + lz*z
+                this.slat[j] = Math.asin(Math.min(Math.max(lr, -1), 1))
+                for (var a = 0 ; a < 5 ; ++a) {
+                    var f = 3 << a
+                    var n = UFX.noise([f*(x+3), f*y, f*z]) / f
+                    var m = UFX.noise([f*(gx+3), f*gy, f*gz]) / f
+                    this.hnoise[a][j] = n
+                    this.hgrad[a][j] = (m - n) / dg
                 }
-                data[j+3] = 255
             }
         }
-        tcon.putImageData(idata, 0, 0)
+        this.settexture(0)
+    },
+
+    settexture: function (h) {
+        h = Math.min(Math.max(h, 0), 1)
+        this.h = h
+        var data = this.idata.data
+
+        var fstripe = 0.1 * (1 - h) + 0.2
+        var fshadow = 1.2
+        var fnoise = [3*h, Math.max(4*h-1,0), Math.max(5*h-2,0), Math.max(6*h-3,0), Math.max(7*h-4,0)]
+        var fgrad = 0.08 * h
+        var fslat = 0.5
+        var fbrown = 0.08 * h
+        var fwhite = 0.02 * h
+        var dshore = 0.02 * h
+        var fdepth = Math.max(0.8 * h - 0.4, 0)
+        var v0 = 0.04 * h
+        for (var k = 0, j = 0 ; k < this.s * this.s ; ++k, j += 4) {
+            var v = this.hstripe[k] * fstripe + v0
+            for (var a = 0 ; a < 5 ; ++a) v += this.hnoise[a][k] * fnoise[a]
+            var s = 1 - fshadow * (1.74 - this.slat[k]) / 3.14
+            if (v > 0) {
+                // Gradient factor
+                var g = this.gstripe[k] * fstripe
+                for (var a = 0 ; a < 5 ; ++a) g += this.hgrad[a][k] * fnoise[a]
+                g = 1 + fgrad * g / (1 + fslat * Math.abs(this.slat[k]))
+                // ice cap factor
+                //var L = Math.abs(this.lat[k] / 1.73)
+                //var w = L * L * fwhite
+                data[j] = Math.min(8000 * (v + dshore) * fbrown, 255) * s * g
+                data[j+1] = Math.min(8000 * (v + dshore), 255) * s * g
+                data[j+2] = Math.min(8000 * (v + dshore) * fwhite, 255) * s * g
+            } else {
+                // Depth factor
+                var d = 1 - Math.min(Math.max(-1*v-0.1, 0), fdepth)
+                data[j] = 0
+                data[j+1] = 0
+                data[j+2] = Math.min(-8000 * (v - dshore), 255) * s * d
+            }
+            data[j+3] = 255
+        }
+
+        this.tcon.putImageData(this.idata, 0, 0)
     },
 
     draw: function () {
@@ -53,8 +107,11 @@ var Twondy = {
         context.drawImage(this.texture, -this.s/2, -this.s/2)
         context.restore()
         // draw the eyes
-        UFX.draw("[ lw 0.03 z 1 2 fs black b o 0.4 0.1 0.18 f b o -0.4 0.1 0.18 f ]")
-        UFX.draw("fs white b o 0.35 0.3 0.05 f b o -0.45 0.3 0.05 f")
+        var h = this.h, g = 1 - h, er = Math.max(0.08*g - 0.03, 0)
+        h = 0 ; g = 1 ; er = 0.05
+//        UFX.draw("[ b o 0", -2.3-this.h/2, "3 m 0 0 aa 0", -3.3+this.h/2, "3 0 6.3 clip")
+        UFX.draw("[ lw 0.03 z 1", 2*g, "fs rgb(0,0," + Math.floor(100*h) + ") b o 0.4 0.1 0.18 f b o -0.4 0.1 0.18 f ]")
+        UFX.draw("fs white b o 0.35", 0.3*g, er, "f b o -0.45", 0.3*g, er, "f")
         // draw the border
         UFX.draw("] b o 0 0 1 ss black lw 0.005 s ]")
 //        UFX.draw("b o 0 0 1 fs", this.stexture, "f lw 0.01 ss black s")
