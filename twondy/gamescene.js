@@ -38,31 +38,21 @@ GameScene.start = function () {
 
 }
 
-GameScene.think = function (dt) {
-    if (UFX.key.ispressed.backspace) dt *= 3
+GameScene.thinkargs = function (dt) {
+    // Handle keyboard input
+    var keystate = UFX.key.state()
+    var mkeys = keystate.pressed
+    var nkeys = keystate.down
+    return [dt, mkeys, nkeys]
+}
+
+GameScene.think = function (dt, mkeys, nkeys) {
+    mkeys = mkeys || {}
+    nkeys = nkeys || {}
+    if (mkeys.backspace) dt *= 3
 
     if (dt > 0.1) dt = 0.1
 
-    // Handle keyboard input
-    var mkeys = {
-        up: !!(UFX.key.ispressed.up || UFX.key.ispressed.W || UFX.key.ispressed.comma || UFX.key.ispressed["key#188"]),
-        down: !!(UFX.key.ispressed.down || UFX.key.ispressed.S || UFX.key.ispressed.O),
-        left: !!(UFX.key.ispressed.left || UFX.key.ispressed.A),
-        right: !!(UFX.key.ispressed.right || UFX.key.ispressed.D || UFX.key.ispressed.E),
-        act: !!(UFX.key.ispressed.space || UFX.key.ispressed.enter),
-    }
-    mkeys.act == mkeys.act || mkeys.down
-    var nkeys = {}
-    UFX.key.events().forEach(function (event) {
-        if (event.type === "down") {
-            nkeys[event.name] = true
-        }
-    })
-    nkeys.up = nkeys.up || nkeys.W || nkeys.comma || nkeys["key#188"]
-    nkeys.down = nkeys.down || nkeys.S || nkeys.O
-    nkeys.left = nkeys.left || nkeys.A
-    nkeys.right = nkeys.right || nkeys.D || nkeys.E
-    nkeys.act = nkeys.space || nkeys.enter || nkeys.down
     you.move(mkeys, nkeys, dt)
 
     if (nkeys["1"]) gamestate.upgradestructure()
