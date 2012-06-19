@@ -117,28 +117,29 @@ CutScene.start = function () {
     this.showingtip = false
 }
 
-CutScene.think = function (dt) {
-    var that = this
-    UFX.key.events().forEach(function (event) {
-        if (event.type === "down" && (event.name === "enter" || event.name === "space" || event.name === "down" || event.name === "S")) {
-            that.storyj += 1
-            if (that.story[that.storyj]) {
-                CutSceneText.reset(that.story[that.storyj])
+CutScene.thinkargs = function (dt) {
+    return [dt, UFX.key.state().down]
+}
+
+CutScene.think = function (dt, kdown) {
+    if (kdown.act) {
+        this.storyj += 1
+        if (this.story[this.storyj]) {
+            CutSceneText.reset(this.story[this.storyj])
+        } else {
+            this.showingstory = false
+            this.showingtip = true
+            this.tipj += 1
+            if (this.tip[this.tipj]) {
+                TipText.reset(this.tip[this.tipj])
             } else {
-                that.showingstory = false
-                that.showingtip = true
-                that.tipj += 1
-                if (that.tip[that.tipj]) {
-                    TipText.reset(that.tip[that.tipj])
-                } else {
-                    UFX.scene.pop()
-                }
+                UFX.scene.pop()
             }
         }
-        if (event.type === "down" && event.name === "esc") {
-            UFX.scene.pop()
-        }
-    })
+    }
+    if (kdown.esc) {
+        UFX.scene.pop()
+    }
     this.t += dt
     if (this.showingstory) CutSceneText.think(dt)
     if (this.showingtip) TipText.think(dt)
