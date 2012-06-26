@@ -4,6 +4,8 @@ var GameScene = Object.create(UFX.scene.Scene)
 
 GameScene.start = function () {
 
+    UFX.random.seed = 14045
+
     Twondy.init()
     this.stars = UFX.random.spread(200, 1, 1600, 1600, -800, -800)
     this.starcolors = []
@@ -69,7 +71,11 @@ GameScene.think = function (dt, mkeys, nkeys) {
     if (nkeys.esc) {
         UFX.scene.push(PauseScene)
     }
-
+    
+    if (nkeys.F5) {
+        localStorage.twondyrecord = JSON.stringify(UFX.scene.record)
+        console.log(localStorage.twondyrecord.length)
+    }
 
     if (gamestate.level === 0) {
         if (UFX.random(4) < dt || monsters.length < 1) monsters.push(new Fly(UFX.random(tau), 140))
@@ -110,13 +116,6 @@ GameScene.think = function (dt, mkeys, nkeys) {
         if (UFX.random(6) < dt) monsters.push(new Gnat(x, y))
         if (UFX.random(6) < dt) monsters.push(new Mite(x, y))
     }
-/*
-    if (UFX.random(10) < dt) {
-        monsters.push(new Gnat(UFX.random(tau), 200))
-    }
-    if (UFX.random(10) < dt) {
-        monsters.push(new Mite(UFX.random(tau), 200))
-    }*/
 
     var n = settings.tickmult
     dt /= n
@@ -278,13 +277,13 @@ var GrowScene = Object.create(GameScene)
 
 GrowScene.start = function () {
     this.t = 0
+    Twondy.beginwobble()
 }
 
 GrowScene.think = function (dt) {
-    this.t += dt
-    if (this.t > 6.5) {
-        UFX.scene.pop()
-    }
+    var k = UFX.key.state().pressed
+    if (k.shift) dt *= 0.2
+/*
     if (this.t > 3.5 && gamestate.worldsize !== this.newsize) {
         gamestate.setworldsize(this.newsize)
         GameScene.think(0)
@@ -295,14 +294,19 @@ GrowScene.think = function (dt) {
         if (dh) {
             Twondy.settexture(Math.abs(dh) < mh ? nh : dh > 0 ? Twondy.h + mh : Twondy.h - mh)
         }
-    }
-
-    if (this.t < 3) {
+    }*/
+    
+    Twondy.think(dt)
+    
+    if (Twondy.wobblet) {
         camera.mode = "planet"
         camera.settarget([0, 0])
         camera.think(dt)
-    } else if (this.t < 5.5) {
     } else {
+        this.t += dt
+        if (this.t > 1) {
+            UFX.scene.pop()
+        }
         camera.mode = "play"
         camera.settarget(you.lookingat())
         camera.think(dt)
@@ -312,23 +316,6 @@ GrowScene.think = function (dt) {
 
 GrowScene.drawworld = function () {
     context.save()
-    if (this.t > 1 && this.t < 2) {
-        var s = 1 + (this.t - 1) * (2 - this.t)
-//        s = 1 + Math.min(Math.max(0.7 * Math.sin((this.t - 1) * 20), -0.5), 0.5)
-        context.rotate(10 * this.t)
-        context.scale(1./s, s)
-        context.rotate(-10 * this.t)
-    }
-    if (this.t > 2 && this.t < 3) {
-        var s = 1 + 1.5 * (this.t - 2) * (3 - this.t)
-        context.rotate(-10 * this.t)
-        context.scale(1./s, s)
-        context.rotate(10 * this.t)
-    }
-    if (this.t > 3.5 && this.t < 4.5) {
-        context.scale(1 + 0.4 * Math.cos(this.t * 30) * (4.5 - this.t),
-                      1 + 0.4 * Math.sin(this.t * 30) * (4.5 - this.t))
-    }
     Twondy.draw()
     context.restore()
 }
