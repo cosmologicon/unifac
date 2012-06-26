@@ -157,13 +157,17 @@ UFX.key.qdown = true
 UFX.key.remaparrows(true)
 UFX.key.remap({down: "act", space: "act", enter: "act"})
 
-UFX.key.watchlist = "up left right act esc shift 1 2 3 4 5 6 7 8 9 0 backspace F7 F8".split(" ")
+UFX.key.watchlist = "up left right act esc shift 1 2 3 4 5 6 7 8 9 0 backspace F7 F8 F5".split(" ")
 UFX.draw.setcontext(context)
 UFX.scene.init()
 UFX.scene.push(GameScene)
 if (settings.showcutscenes) {
     UFX.scene.push(CutScene)
 }
+
+//UFX.scene.recording = true
+//UFX.scene.replaying = true
+//UFX.scene.record = JSON.parse(localStorage.twondyrecord)
 
 </script>
 

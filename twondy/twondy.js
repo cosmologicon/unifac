@@ -50,6 +50,16 @@ var Twondy = {
             }
         }
         this.settexture(0)
+        
+
+        // Wobble transformation parameters
+        this.wobblet = 0
+        this.a = 1  // Ellipse semi-x-axis (in units of worldr)
+        this.b = 1  // Ellipse semi-y-axis (in units of worldr)
+        this.beta = 0  // Overall rotation angle
+        this.cprimex = 0  // Ellipse center in primed coordinates (units of worldr)
+        this.cprimey = 0
+        this.phi = 0  // Ellipse axial offset angle
     },
 
     settexture: function (h) {
@@ -94,13 +104,66 @@ var Twondy = {
 
         this.tcon.putImageData(this.idata, 0, 0)
     },
+    
+    beginwobble: function () {
+        this.wobblet = 5
+    },
+    
+    think: function (dt) {
+        if (this.wobblet) {
+            this.wobblet = Math.max(this.wobblet - dt, 0)
+        }
+        if (!this.wobblet) return
+
+        var t = 5 - this.wobblet
+        this.a = this.b = 1
+        this.cprimex = this.cprimey = this.phi = this.beta = 0
+        if (t < 1) {
+        } else if (t < 2) {
+            t -= 1
+            this.a = 1 + 0.6 * Math.sqrt(t)
+            this.b = 1 / this.a
+            this.phi = 0.2 * Math.sin(16 * this.wobblet)
+        } else if (t < 3) {
+            t -= 2
+            this.a = 1 + 0.6 * Math.cos(20 * t) * Math.exp(-8 * t)
+            this.b = 1 / this.a
+            this.phi = 0.2 * Math.sin(16 * this.wobblet)
+        } else if (t < 4) {
+            t -= 3
+            this.a = 1 + 1.2 * Math.sqrt(t)
+            this.b = 1 / this.a
+            this.phi = 0.2
+        } else if (t < 5) {
+            t -= 4
+            this.a = 1 + 1.2 * Math.cos(20 * t) * Math.exp(-8 * t)
+            this.b = 1 / this.a
+            this.phi = -0.2
+            
+/*            this.a = 1 + (t - 1) * (2 - t)
+            this.b = 1/this.a
+            this.cprimey = -this.b + 1
+            this.phi = -5 * t*/
+        } else if (t < 4) {
+            t -= 3
+            this.a = 1 + 0.2 * Math.cos(t * 20) * (1 - t)
+            this.b = 1 / this.a
+        }
+    },
 
     draw: function () {
         if (gamestate.worldsize < 1) return
         context.save()
-        // Draw world
+        // Overall scaling factor
         var s = gamestate.worldr + 50 / Math.max(gamestate.worldr, 15)
-        UFX.draw("z", s, s, "[ b o 0 0 1 clip")
+        UFX.draw("z", s, s)
+        // Wobble transformation
+        if (this.wobblet) {
+            UFX.draw("r", this.beta + this.phi, "t", this.cprimex, this.cprimey,
+                "z", this.a, this.b, "r", -this.phi)
+        }
+        // Draw world
+        UFX.draw("[ b o 0 0 1 clip")
         // Draw the background texture
         context.save()
         context.scale(2/this.s, 2/this.s)

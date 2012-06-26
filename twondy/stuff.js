@@ -4,6 +4,7 @@
 
 var WorldBound = {
     init: function (x, y) {
+        // TODO: replace x with X, which is more intuitive for me since it's actually an angle
         this.x = x || 0
         this.y = y || 0
         this.vx = 0
@@ -16,8 +17,18 @@ var WorldBound = {
         this.xfactor = Math.max(gamestate.worldr + this.y, 1)
     },
     draw: function () {
-        context.rotate(-this.x)
-        context.translate(0, this.xfactor)
+        if (Twondy.wobblet) {
+            var theta = this.x + Twondy.phi
+            var C = Math.cos(theta), S = Math.sin(theta)
+            var r = gamestate.worldr
+            context.rotate(Twondy.beta + Twondy.phi)
+            context.translate(r * (Twondy.cprimex + Twondy.a * S), r * (Twondy.cprimey + Twondy.b * C))
+            context.rotate(-Math.atan2(Twondy.b * S, Twondy.a * C))
+            context.translate(0, this.y)
+        } else {
+            context.rotate(-this.x)
+            context.translate(0, this.xfactor)
+        }
     },
     lookingat: function () {
         var dx = (this.facingright ? 1 : -1) * Math.min(mechanics.lookahead / this.xfactor, 0.5)
