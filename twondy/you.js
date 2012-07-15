@@ -205,6 +205,7 @@ var StandState = {
     },
 }
 var LeapState = {
+    hoistable: true,
     enter: function () {
         this.vy = 0
         this.jumps += 1
@@ -232,6 +233,7 @@ var LeapState = {
 }
 var FallState = {
     catchable: true,
+    hoistable: true,
     enter: function () {
     },
     exit: function () {
@@ -319,6 +321,7 @@ var ShockState = {
 }
 var ReelState = {
     catchable: true,
+    hoistable: true,
     enter: function () {
         this.t = 0
         this.vx = getdx(this.x, Overlord.x) > 0 ? -500 : 500

@@ -80,7 +80,7 @@ var BlockWobbles = {
 
         // TODO: put these ranges into the prototype
         this.wx = UFX.random(125, 250) ; this.bx = UFX.random(4, 10)
-        this.wy = UFX.random(125, 250) ; this.by = UFX.random(4, 10)
+        this.wy = UFX.random(125, 250) ; this.by = UFX.random(4, 10) * 2
         this.wA = UFX.random(125, 250) ; this.bA = UFX.random(4, 10)
 
         this.pxmax = 30
@@ -134,11 +134,11 @@ var HasXform = {
 
 var TakesImpulse = {
     init: function () {
-        this.passfrac = 0.5
+        this.passfrac = 0.85
     },
     // TODO: shouldn't zeta be used somewheres?
-    takeimpulse: function (ix, iy, x, y, zeta, source) {
-        var f = this.parent.passfrac  // fraction of impulse accepted by this block
+    takeimpulse: function (ix, iy, x, y, zeta, source, passfrac) {
+        var f = passfrac || this.parent.passfrac  // fraction of impulse accepted by this block
         if (this.parent !== source) {
             this.parent.takeimpulse(ix*(1-f), iy*(1-f), x, y, this.zeta, this)
         }
@@ -150,20 +150,24 @@ var TakesImpulse = {
             child.takeimpulse(ix*g, iy*g, p[0], p[1], 0, this)
         }
         var ipos = this.xform.localvec(ix*f, iy*f, 0)
-        var pos = this.xform.localpos(x, y)
         this.vpx += ipos[0]
         this.vpy += ipos[1]
-        // TODO: where the heck does this factor of 0.0005 come from, and can I justify it?
-        this.vpA += (ipos[0] * pos[1] - ipos[1] * pos[0]) * 0.0005
+        if (typeof x !== "undefined") {
+            var pos = this.xform.localpos(x, y)
+            // TODO: where the heck does this factor of 0.0005 come from, and can I justify it?
+            this.vpA += (ipos[0] * pos[1] - ipos[1] * pos[0]) * 0.0005
+        }
     },
-    takeforce: function (fx, fy, x, y, zeta, source) {
-        var f = this.parent.passfrac
+    takeforce: function (fx, fy, x, y, zeta, source, passfrac) {
+        var f = passfrac || this.parent.passfrac
         this.parent.takeforce(fx*(1-f), fy*(1-f), x, y, this.zeta, this)
         var fpos = this.xform.localvec(fx*f, fy*f, 0)
-        var pos = this.xform.localpos(x, y)
         this.apx += fpos[0]
         this.apy += fpos[1]
-        this.apA += (fpos[0] * pos[1] - fpos[1] * pos[0]) * 0.0005
+        if (typeof x !== "undefined") {
+            var pos = this.xform.localpos(x, y)
+            this.apA += (fpos[0] * pos[1] - fpos[1] * pos[0]) * 0.0005
+        }
     },
 }
 
@@ -184,21 +188,23 @@ var HasPlatform = {
         this.wgrowt = 0
     },
     interact: function (sprite, oldx, oldy, x, y) {
-        if (!sprite.state.catchable) return
-        var oldpos = this.oldxform.localpos(oldx, oldy)
+        if (!sprite.state.catchable || sprite.vy > this.vpy) return
         var pos = this.xform.localpos(x, y)
-        if (oldpos[1] > 0 && pos[1] <= 0 && pos[0] > -this.w/2 && pos[0] < this.w/2) {
-            sprite.nextstate = ClimbState
-            sprite.block = this
-            sprite.blockx = pos[0]
-            sprite.blocky = 0
-            this.takeimpulse(0, -200, x, y)
-            sprite.updatestate()
+        if (pos[1] <= 0 && pos[0] > -this.w/2 && pos[0] < this.w/2) {
+            var oldpos = this.oldxform.localpos(oldx, oldy)
+            if (oldpos[1] > 0) {
+                sprite.nextstate = ClimbState
+                sprite.block = this
+                sprite.blockx = pos[0]
+                sprite.blocky = 0
+                this.takeimpulse(0, -mechanics.landpush, x, y)
+                sprite.updatestate()
+            }
         }
     },
     dismount: function (sprite) {
         var p = this.xform.worldpos(sprite.blockx, sprite.blocky, 1)
-        this.takeimpulse(0, -200, p[0], p[1])
+        this.takeimpulse(0, -mechanics.dismountpush, p[0], p[1])
     },
     holds: function (sprite) {
         return sprite.blockx > -this.w/2 && sprite.blockx < this.w/2
@@ -210,7 +216,7 @@ var HasPlatform = {
         var p = this.xform.worldpos(0, 0)
         var A = this.xform.A + this.xform.dA
         var sline = "b o 0 0 0.5 m -0.5 0 l -0.5 -0.5 a 0 -0.5 0.5 3.14 6.28 l 0.5 0"
-        UFX.draw("[ t", p[0], p[1], "r", -A, "z", this.w, this.w/8, sline, "fs gray f")
+        UFX.draw("[ t", p[0], p[1], "r", -A, "z", this.w, this.w/8, sline, "fs", (this.color || "gray"), "f")
 //        UFX.draw("b o 0.2 0.3 0.1 o -0.1 -0.3 0.1 fs green f")
         
         UFX.draw(sline, "] ss white lw 0.6 s")
@@ -227,16 +233,33 @@ var HasPlatform = {
     },*/
 }
 
+var HoistsYou = {
+    interact: function (sprite, oldx, oldy, x, y) {
+        if (!sprite.state.hoistable || sprite.vy < 0) return
+        var pos = this.xform.localpos(x, y)
+        if (pos[1] > 0 || pos[0] < -this.w/2 - 4 || pos[0] > this.w/2 + 4) return
+//        if (pos[1] < -25) return
+        var bpos = this.xform.localpos(x, y, 0)
+        if (bpos[1] < 10) return
+//        var d = Math.sqrt(pos[0] * pos[0] + pos[1] * pos[1])
+        this.takeforce(200 * pos[0], -400 * bpos[1], undefined, undefined, 1, undefined)
+    },
+}
+
 function drawweb(xy0, SC0, xy1, SC1, w0, w1) {
     w0 = w0 || 10
     w1 = w1 || 1
     var x0 = xy0[0], y0 = xy0[1], x1 = xy1[0], y1 = xy1[1], dx = x1 - x0, dy = y1 - y0
     var S0 = SC0[0], C0 = SC0[1], S1 = SC1[0], C1 = SC1[1], dS = S1 - S0, dC = C1 - C0
     function p(x,zeta) { return [x0+dx*zeta+x*(C0+dC*zeta), y0+dy*zeta-x*(S0+dS*zeta)] }
-    UFX.draw("m", p(-w0,0), "c", p(-w1,0), p(-w1,0.3), p(-w1,0.5), "c", p(-w1,0.7), p(-w1,1), p(-w0,1),
-               "l", p(w0,1), "c", p(w1,1), p(w1,0.7), p(w1,0.5), "c", p(w1,0.3), p(w1,0), p(w0,0))
-//    UFX.draw("m", p(-w0,0), "l", p(-w0,1), "l", p(w0,1), "l", p(w0,0))
+    if (settings.detail.bsupports) {
+        UFX.draw("m", p(-w0,0), "c", p(-w1,0), p(-w1,0.3), p(-w1,0.5), "c", p(-w1,0.7), p(-w1,1), p(-w0,1),
+                   "l", p(w0,1), "c", p(w1,1), p(w1,0.7), p(w1,0.5), "c", p(w1,0.3), p(w1,0), p(w0,0))
+    } else {
+        UFX.draw("m", p(0,0), "l", p(0,1))
+    }
 }
+
 var HasSupports = {
     draw: function () {
         var basezeta = this.parent === Ground ? -0.1 : 0
@@ -249,7 +272,7 @@ var HasSupports = {
             drawweb(this.xform.worldpos(x0, y0, basezeta), this.xform.getSC(0),
                     this.xform.worldpos(x0+dx, y0+dy, 1), this.xform.getSC(1))
         }
-        UFX.draw("fs rgba(200,200,255,0.3) f")
+        UFX.draw(settings.detail.bsupports ? "fs rgba(200,200,255,0.3) f" : "ss rgba(200,200,255,0.3) lw 2 s")
     },
 }
 var HasSplitSupports = {
@@ -266,13 +289,16 @@ var HasSplitSupports = {
             drawweb(this.sister.xform.worldpos(-x0, -y0, basezeta), this.sister.xform.getSC(0),
                     this.sister.xform.worldpos(-x0-dx, -y0-dy, 1), this.sister.xform.getSC(1))
         }
-        UFX.draw("fs rgba(200,200,255,0.3) f b")
+        // For some reason there's an xor effect that happens if we don't draw this in two parts
+        if (settings.detail.bsupports) {
+            UFX.draw("fs rgba(200,200,255,0.3) f b")
+        }
         var SC = this.sister.xform.getSC(1)
         drawweb(this.xform.worldpos(-20, 0, 1), this.xform.getSC(1),
                 this.sister.xform.worldpos(-20, 0, 1), [-SC[0], -SC[1]], 10, 2)
         drawweb(this.xform.worldpos(20, 0, 1), this.xform.getSC(1),
                 this.sister.xform.worldpos(20, 0, 1), [-SC[0], -SC[1]], 10, 2)
-        UFX.draw("f")
+        UFX.draw(settings.detail.bsupports ? "f" : "ss rgba(200,200,255,0.3) lw 2 s")
     },
 }
 
@@ -306,6 +332,7 @@ NormalBlock.prototype = UFX.Thing()
                            .addcomp(TakesImpulse)
                            .addcomp(HasSupports)
                            .addcomp(HasPlatform)
+                           .addcomp(HoistsYou)
                            .addcomp(HasXform)
 
 // Returns two blocks
@@ -332,6 +359,7 @@ var SplitterLeft = UFX.Thing()
                       .addcomp(TakesImpulse)
                       .addcomp(HasSplitSupports)
                       .addcomp(HasPlatform)
+                      .addcomp(HoistsYou)
                       .addcomp(HasXform)
 var SplitterRight = UFX.Thing()
                       .addcomp(AnchorToParent)
@@ -339,6 +367,7 @@ var SplitterRight = UFX.Thing()
                       .addcomp(BlockWobbles)
                       .addcomp(TakesImpulse)
                       .addcomp(HasPlatform)
+                      .addcomp(HoistsYou)
                       .addcomp(HasXform)
 
 
@@ -404,7 +433,7 @@ var MadeOfBlocks = {
 
 var InteractsWithYou = {
     interact: function () {
-        if (you.vy > 0) return
+//        if (you.vy > 0) return
         var dx = getdx(this.x, you.x), r = you.y + gamestate.worldr
         var x = r * Math.sin(dx), y = r * Math.cos(dx) - gamestate.worldr
         var dx = getdx(this.x, you.oldx), r = you.oldy + gamestate.worldr
