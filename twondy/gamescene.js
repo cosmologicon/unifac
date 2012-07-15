@@ -76,7 +76,7 @@ GameScene.think = function (dt, mkeys, nkeys) {
         localStorage.twondyrecord = JSON.stringify(UFX.scene.record)
         console.log(localStorage.twondyrecord.length)
     }
-
+/*
     if (gamestate.level === 0) {
         if (UFX.random(4) < dt || monsters.length < 1) monsters.push(new Fly(UFX.random(tau), 140))
     } else if (gamestate.level === 1) {
@@ -116,10 +116,12 @@ GameScene.think = function (dt, mkeys, nkeys) {
         if (UFX.random(6) < dt) monsters.push(new Gnat(x, y))
         if (UFX.random(6) < dt) monsters.push(new Mite(x, y))
     }
+*/
 
     var n = settings.tickmult
     dt /= n
     for (var jit = 0 ; jit < n ; ++jit) {
+
         hitters.forEach(function (obj) { obj.think(dt) })
         ehitters.forEach(function (obj) { obj.think(dt) })
         effects.forEach(function (effect) { effect.think(dt) })
@@ -128,8 +130,8 @@ GameScene.think = function (dt, mkeys, nkeys) {
         HUDeffects.forEach(function (effect) { effect.think(dt) })
         you.think(dt)
 
-
         function stillalive(arr) {
+            return arr.filter(function (x) { return x.alive })
             var narr = []
             arr.forEach(function (x) { if (x.alive) narr.push(x) })
             return narr

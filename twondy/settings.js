@@ -6,8 +6,10 @@ var settings = {
     tickmult: 5,  // number of times we call think(). I know I know, I should be fixing my timestep. It's LD, buddy!
     showcutscenes: true,
     
-    twondytsize: 200,  // resolution of texture for Twondy's surface
-    
+    twondytsize: 100,  // resolution of texture for Twondy's surface
+    detail: {
+        bsupports: false,  // block supports are smooth curves rather than lines
+    },
     cheat: false,
 }
 
@@ -23,8 +25,10 @@ var mechanics = {
     launchspeed: 140,
     launchaccel: 2000,
     
-    zoopweight: 1000,  // force applied to the block you're standing on
-    runpush: 3,  // pushing factor for when you run
+    landpush: 100,  // impulse applied when you land on a block
+    zoopweight: 500,  // force applied to the block you're standing on
+    dismountpush: 100,  // impulse applied when you jump off a block
+    runpush: 2,  // pushing factor for when you run
     
     springspeed: [250, 270, 290, 310, 330, 350, 370, 390, 410, 430, 450, 470, 490],
     springtime: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1],
