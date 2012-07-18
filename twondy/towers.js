@@ -86,7 +86,7 @@ var BlockWobbles = {
         this.pxmax = 30
         this.pxmin = -30
         this.pymax = 100
-        this.pymin = -30
+        this.pymin = -this.py0 + 10
         this.pAmax = 1
     },
     think: function (dt) {
@@ -142,12 +142,14 @@ var TakesImpulse = {
         if (this.parent !== source) {
             this.parent.takeimpulse(ix*(1-f), iy*(1-f), x, y, this.zeta, this)
         }
-        for (var j = 0 ; j < this.children.length ; ++j) {
-            var child = this.children[j]
-            if (child === source) continue
-            var g = source === this.parent ? 0.5 : -0.5  // TODO: re-evaluate this formula
-            var p = this.xform.worldpos(0, 0, 0)
-            child.takeimpulse(ix*g, iy*g, p[0], p[1], 0, this)
+        if (this.children) {
+            for (var j = 0 ; j < this.children.length ; ++j) {
+                var child = this.children[j]
+                if (child === source) continue
+                var g = source === this.parent ? 0.5 : -0.5  // TODO: re-evaluate this formula
+                var p = this.xform.worldpos(0, 0, 0)
+                child.takeimpulse(ix*g, iy*g, p[0], p[1], 0, this)
+            }
         }
         var ipos = this.xform.localvec(ix*f, iy*f, 0)
         this.vpx += ipos[0]
@@ -178,6 +180,28 @@ var RefusesImpulse = {
     takeimpulse: function () {
     },
     takeforce: function () {
+    },
+}
+
+var DrawSpring = {
+    init: function () {
+        this.w0 = 45
+        this.w = this.w0
+        this.wgrowt = 0
+    },
+    draw: function () {
+        var sx = 12 + Math.min(Math.max(-this.dpy * 0.2, -6), 6)
+        var sy = sx/3
+        for (var j = 0.2 ; j < 1.4 ; j += 0.2) {
+            UFX.draw(
+                 "b m", this.xform.worldpos(0, -sy, j),
+                 "q", this.xform.worldpos(sx, -sy, j+0.025), this.xform.worldpos(sx, 0, j+0.05),
+                 "q", this.xform.worldpos(sx, sy, j+0.075), this.xform.worldpos(0, sy, j+0.1),
+                 "q", this.xform.worldpos(-sx, sy, j+0.125), this.xform.worldpos(-sx, 0, j+0.15),
+                 "q", this.xform.worldpos(-sx, -sy, j+0.175), this.xform.worldpos(0.1, -sy, j+0.2),
+                 "ss black lw 3 s ss rgb(50,100,50) lw 1.5 s"
+            )
+        }
     },
 }
 
@@ -242,9 +266,29 @@ var HoistsYou = {
         var bpos = this.xform.localpos(x, y, 0)
         if (bpos[1] < 10) return
 //        var d = Math.sqrt(pos[0] * pos[0] + pos[1] * pos[1])
-        this.takeforce(200 * pos[0], -400 * bpos[1], undefined, undefined, 1, undefined)
+        this.takeforce(200 * pos[0], -10 * this.py0 * bpos[1], undefined, undefined, 1, undefined)
     },
 }
+
+LaunchesYou = {
+    interact: function (sprite, oldx, oldy, x, y) {
+        if (!sprite.state.catchable || sprite.vy > this.vpy) return
+        var pos = this.xform.localpos(x, y)
+        if (pos[1] <= 0 && pos[0] > -this.w/2 && pos[0] < this.w/2) {
+            var oldpos = this.oldxform.localpos(oldx, oldy)
+            if (oldpos[1] > 0) {
+                sprite.nextstate = SpringState
+                sprite.vy = 300
+                sprite.springtime = 0.1
+                this.takeimpulse(0, -500, x, y)
+                this.vpA = UFX.random(-10, 10)
+                this.vpx = UFX.random(-200, 200)
+                sprite.updatestate()
+            }
+        }
+    },
+}
+
 
 function drawweb(xy0, SC0, xy1, SC1, w0, w1) {
     w0 = w0 || 10
@@ -321,7 +365,7 @@ function NormalBlock(tower, parent, dx) {
     block.initchildren()
     block.setparent(parent, 1)  // zeta = 1
     var A0 = -0.5 * (parent.xform0.A + parent.xform0.dA)
-    block.setxform0(UFX.random(-20, 20) + (dx || 0), UFX.random(40, 60), A0 + UFX.random(-0.3, 0.3))
+    block.setxform0(UFX.random(-20, 20) + (dx || 0), UFX.random(45, 55), A0 + UFX.random(-0.3, 0.3))
     block.setwobbleparams()
     return block
 }
@@ -369,6 +413,30 @@ var SplitterRight = UFX.Thing()
                       .addcomp(HasPlatform)
                       .addcomp(HoistsYou)
                       .addcomp(HasXform)
+
+
+function LaunchBlock(tower, parent, dx) {
+    var block = Object.create(LaunchBlock.prototype)
+    block.tower = tower
+    block.setparent(parent, 1)
+    var A0 = -0.5 * (parent.xform0.A + parent.xform0.dA)
+    block.setxform0(UFX.random(-10, 10) + (dx || 0), UFX.random(20, 25), A0 + UFX.random(-0.2, 0.2))
+    block.setwobbleparams()
+    block.wy = 300 ; block.by = 4
+    block.wx = 100 ; block.by = 2
+/*        this.wx = UFX.random(125, 250) ; this.bx = UFX.random(4, 10)
+        this.wy = UFX.random(125, 250) ; this.by = UFX.random(4, 10) * 2
+        this.wA = UFX.random(125, 250) ; this.bA = UFX.random(4, 10)*/
+    return block
+}
+LaunchBlock.prototype = UFX.Thing()
+                           .addcomp(AnchorToParent)
+                           .addcomp(BlockWobbles)
+                           .addcomp(TakesImpulse)
+                           .addcomp(DrawSpring)
+                           .addcomp(LaunchesYou)
+                           .addcomp(HasXform)
+
 
 
 var MadeOfBlocks = {
@@ -422,7 +490,9 @@ var MadeOfBlocks = {
         var leaves = this.lowleaves()
         for (var j = 0 ; j < leaves.length ; ++j) {
             var leaf = leaves[j], n = this.blocks.length
-            if (n == 3 || n == 7 || n == 14) {
+            if (n == 2) {
+                this.addblock(LaunchBlock, leaf)
+            } else if (n == 3 || n == 7 || n == 14) {
                 this.addblock(Splitter, leaf)
             } else {
                 this.addblock(NormalBlock, leaf)
