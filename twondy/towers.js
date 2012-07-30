@@ -31,6 +31,13 @@ Xform.prototype = {
         return [this.x + zeta * this.dx + SC[1] * x + SC[0] * y,
                 this.y + zeta * this.dy - SC[0] * x + SC[1] * y]
     },
+    qworldpos: function (x, y, zeta) {
+        if (zeta === undefined) zeta = 1
+        var S = this.S0 * (1 - zeta) + this.S1 * zeta,
+            C = this.C0 * (1 - zeta) + this.C1 * zeta
+        return [this.x + zeta * this.dx + C * x + S * y,
+                this.y + zeta * this.dy - S * x + C * y]
+    },
     localpos: function (x, y, zeta) {
         if (zeta === undefined) zeta = 1
         var SC = this.getSC(zeta)
@@ -73,15 +80,27 @@ var AnchorToParent = {
 }
 
 var BlockWobbles = {
+    init: function (params) {
+        params = params || {}
+        this.wobblevar = params.v || 0.15
+        this.wx0 = params.wx || 250
+        this.bx0 = params.bx || 10
+        this.wy0 = params.wy || 250
+        this.by0 = params.by || 10
+        this.wA0 = params.wA || 250
+        this.bA0 = params.bA || 10
+        
+    },
     setwobbleparams: function () {
         this.dpx = this.dpy = this.dpA = 0
         this.vpx = this.vpy = this.vpA = 0
         this.apx = this.apy = this.apA = 0
 
-        // TODO: put these ranges into the prototype
-        this.wx = UFX.random(125, 250) ; this.bx = UFX.random(4, 10)
-        this.wy = UFX.random(125, 250) ; this.by = UFX.random(4, 10) * 2
-        this.wA = UFX.random(125, 250) ; this.bA = UFX.random(4, 10)
+        var v = Math.log(1 + this.wobblevar)
+        function val(x) { return x * Math.exp(v * UFX.random.normal()) }
+        this.wx = val(this.wx0) ; this.bx = val(this.bx0)
+        this.wy = val(this.wy0) ; this.by = val(this.by0)
+        this.wA = val(this.wA0) ; this.bA = val(this.bA0)
 
         this.pxmax = 30
         this.pxmin = -30
@@ -191,14 +210,18 @@ var DrawSpring = {
     },
     draw: function () {
         var sx = 12 + Math.min(Math.max(-this.dpy * 0.2, -6), 6)
-        var sy = sx/3
-        for (var j = 0.2 ; j < 1.4 ; j += 0.2) {
+        var sy = sx/6
+        var xform = this.xform
+        function fpos (x, y, h) {
+            return xform.qworldpos(x*sx*h*h, y*sy*h*h, h)
+        }
+        for (var j = 0 ; j < 1.4 ; j += 0.2) {
             UFX.draw(
-                 "b m", this.xform.worldpos(0, -sy, j),
-                 "q", this.xform.worldpos(sx, -sy, j+0.025), this.xform.worldpos(sx, 0, j+0.05),
-                 "q", this.xform.worldpos(sx, sy, j+0.075), this.xform.worldpos(0, sy, j+0.1),
-                 "q", this.xform.worldpos(-sx, sy, j+0.125), this.xform.worldpos(-sx, 0, j+0.15),
-                 "q", this.xform.worldpos(-sx, -sy, j+0.175), this.xform.worldpos(0.1, -sy, j+0.2),
+                 "b m", fpos(0, -1, j),
+                 "q", fpos(1, -1, j+0.025), fpos(1, 0, j+0.05),
+                 "q", fpos(1, 1, j+0.075), fpos(0, 1, j+0.1),
+                 "q", fpos(-1, 1, j+0.125), fpos(-1, 0, j+0.15),
+                 "q", fpos(-1, -1, j+0.175), fpos(0.1, -1, j+0.2),
                  "ss black lw 3 s ss rgb(50,100,50) lw 1.5 s"
             )
         }
@@ -281,8 +304,8 @@ LaunchesYou = {
                 sprite.vy = 300
                 sprite.springtime = 0.1
                 this.takeimpulse(0, -500, x, y)
-                this.vpA = UFX.random(-10, 10)
-                this.vpx = UFX.random(-200, 200)
+                this.vpx = sprite.vx * 0.4 + x * 4
+                this.vpA = this.vpx * 0.06
                 sprite.updatestate()
             }
         }
@@ -389,8 +412,8 @@ function Splitter(tower, parent) {
     block2.initchildren()
     var x0 = UFX.random(-20, 20)
     var A0 = -0.5 * (parent.xform0.A + parent.xform0.dA)
-    block1.setxform0(x0 - 45, UFX.random(40, 60), A0 - 0.3)
-    block2.setxform0(x0 + 45, UFX.random(40, 60), A0 + 0.3)
+    block1.setxform0(x0 - 35, UFX.random(40, 60), A0 - 0.3)
+    block2.setxform0(x0 + 35, UFX.random(40, 60), A0 + 0.3)
     block1.setwobbleparams()
     block2.setwobbleparams()
     block1.sister = block2
@@ -422,8 +445,10 @@ function LaunchBlock(tower, parent, dx) {
     var A0 = -0.5 * (parent.xform0.A + parent.xform0.dA)
     block.setxform0(UFX.random(-10, 10) + (dx || 0), UFX.random(20, 25), A0 + UFX.random(-0.2, 0.2))
     block.setwobbleparams()
-    block.wy = 300 ; block.by = 4
-    block.wx = 100 ; block.by = 2
+    block.wy = 200 ; block.by = 4
+    block.wx = 50 ; block.bx = 2
+    block.wA = 100 ; block.bA = 2
+    block.pymin -= 10
 /*        this.wx = UFX.random(125, 250) ; this.bx = UFX.random(4, 10)
         this.wy = UFX.random(125, 250) ; this.by = UFX.random(4, 10) * 2
         this.wA = UFX.random(125, 250) ; this.bA = UFX.random(4, 10)*/
@@ -519,6 +544,23 @@ function BlockTower(x) {
     this.y = 0
     this.initblocks()
     this.addblock(NormalBlock)
+    this.blocks[1].setxform0(0, 60, 0)
+    this.addblock(Splitter, null)
+    this.blocks[2].setxform0(-60, 35, -0.6)
+    this.blocks[3].setxform0(60, 35, 0.6)
+    this.addblock(LaunchBlock, this.blocks[1])
+    this.blocks[4].setxform0(0, 20, 0)
+    this.addblock(Splitter, this.blocks[2])
+    this.blocks[5].setxform0(-30, 50, -0.6)
+    this.blocks[6].setxform0(40, 60, 0)
+    this.addblock(Splitter, this.blocks[3])
+    this.blocks[7].setxform0(-40, 55, -0.6)
+    this.blocks[8].setxform0(30, 55, 0.6)
+    this.addblock(LaunchBlock, this.blocks[5])
+    this.blocks[9].setxform0(0, 20, 0)
+    this.addblock(Splitter, this.blocks[6])
+    this.addblock(Splitter, this.blocks[7])
+    this.addblock(NormalBlock, this.blocks[8])
     this.alive = true
     this.think(0)
 }
