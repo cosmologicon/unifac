@@ -36,6 +36,43 @@ var WorldBound = {
     },
 }
 
+// States for a state machine
+var HasStates = {
+    init: function (methodnames) {
+        // Or, how I learned to stop worrying and love JavaScript function notation
+        var methods = {}
+        methodnames.forEach(function (methodname) {
+            methods[methodname] = function (mname) {
+                return function () {
+                    return this.state[mname].apply(this, arguments)
+                }
+            }(methodname)
+        })
+        this.addcomp(methods)
+    },
+    // Call this to set the state immediately.
+    // For state changes that should be set at the end of the think cycle, assign to this.nextstate
+    setstate: function (state) {
+        if (this.state) {
+            this.state.exit.call(this)
+        }
+        this.state = state
+        this.state.enter.call(this)
+        this.nextstate = null
+        this.think(0)
+    },
+    updatestate: function () {
+        if (this.nextstate) {
+            this.state.exit.call(this)
+            this.state = this.nextstate
+            this.state.enter.call(this)
+            this.nextstate = null
+            this.think(0)
+        }
+    },
+}
+
+
 var IsBall = {
     init: function (size, color) {
         this.ballsize = size || 10

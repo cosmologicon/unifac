@@ -15,10 +15,12 @@ GameScene.start = function () {
         this.starrs.push(UFX.random.choice([4, 5, 7, 9]))
     }
 
+
     // Yes these are supposed to be globals
     hitters = []  // objects that the player can run into
     ehitters = []  // objects that the enemies can run into
     effects = [Indicator]  // text and graphical effects
+    beffects = []  // effects that appear behind the characters
 //    structures = []  // structures
     monsters = []
     HUDeffects = []  // Effects that aren't world-bound
@@ -26,6 +28,12 @@ GameScene.start = function () {
 
     structures = []
     gamestate.setworldsize(450)
+
+    you.y = 0
+    you.x = 0
+    you.vx = 0
+    you.vy = 0
+    you.setstate(StandState)
 
 /*
     gamestate.setworldsize(1200)
@@ -76,6 +84,15 @@ GameScene.think = function (dt, mkeys, nkeys) {
         localStorage.twondyrecord = JSON.stringify(UFX.scene.record)
         console.log(localStorage.twondyrecord.length)
     }
+
+    if (UFX.random(4) < dt && monsters.length < 2) {
+//        var p = new Portal(UFX.random(tau), 120)
+//        beffects.push(p)
+//        monsters.push(new Aphid(p))
+//        monsters.push(new Aphid(p))
+        monsters.push(new Aphid())
+    }
+
 /*
     if (gamestate.level === 0) {
         if (UFX.random(4) < dt || monsters.length < 1) monsters.push(new Fly(UFX.random(tau), 140))
@@ -125,6 +142,7 @@ GameScene.think = function (dt, mkeys, nkeys) {
         hitters.forEach(function (obj) { obj.think(dt) })
         ehitters.forEach(function (obj) { obj.think(dt) })
         effects.forEach(function (effect) { effect.think(dt) })
+        beffects.forEach(function (effect) { effect.think(dt) })
         structures.forEach(function (structure) { if (structure) structure.think(dt) })
         monsters.forEach(function (monster) { monster.think(dt) })
         HUDeffects.forEach(function (effect) { effect.think(dt) })
@@ -138,10 +156,11 @@ GameScene.think = function (dt, mkeys, nkeys) {
         }
 
         you.updatestate()
+        monsters.forEach(function (m) { m.updatestate() })
 
         you.nab(hitters)
         you.interact(structures)
-        you.clonk(monsters)
+//        you.clonk(monsters)
 
         ehitters.forEach(function (ehitter) {
             ehitter.hit(monsters)
@@ -150,6 +169,7 @@ GameScene.think = function (dt, mkeys, nkeys) {
         hitters = stillalive(hitters)
         ehitters = stillalive(ehitters)
         effects = stillalive(effects)
+        beffects = stillalive(beffects)
         monsters = stillalive(monsters)
         for (var j = 0 ; j < structures.length ; ++j) {
             if (structures[j] && !structures[j].alive) {
@@ -223,6 +243,7 @@ GameScene.drawobjs = function () {
     }
 
     structures.forEach(function (s) { if (s) { draw(s) } })
+    beffects.forEach(draw)
     hitters.forEach(draw)
     monsters.forEach(draw)
     ehitters.forEach(draw)

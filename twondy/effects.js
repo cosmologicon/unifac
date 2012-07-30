@@ -309,6 +309,89 @@ CheatModeEffect.prototype = UFX.Thing()
        .addcomp(StrokedText, "cheat mode enabled", "yellow", "orange")
 
 
+// TODO: organize all these components better
+var CarriesEntities = {
+    addentity: function (e) {
+        this.entities.push(e)
+    },
+    removeentity: function (e) {
+        this.entities = this.entities.filter(function (ent) { return ent !== e })
+    },
+    think: function (dt) {
+        this.entities = this.entities.filter(function (e) { return e.alive })
+        if (dt && !this.entities.length) this.disappearing = true
+    },
+}
+
+var GrowsInShrinksOut = {
+    init: function () {
+        this.zfactor = 0
+        this.disappearing = false
+        this.vz = 2
+    },
+    think: function (dt) {
+        if (this.disappearing) {
+            this.zfactor = Math.max(0, this.zfactor - this.vz * dt)
+            if (!this.zfactor) this.alive = false
+        } else {
+            this.zfactor = Math.min(1, this.zfactor + this.vz * dt)
+        }
+    },
+    draw: function () {
+        UFX.draw("z", this.zfactor, this.zfactor)
+    },
+}
+
+var HasTilt = {
+    draw: function () {
+        UFX.draw("r", this.A)
+    },
+}
+
+var DrawReticule = {
+    init: function (sx, sy) {
+        this.sizex = sx || 10
+        this.sizey = sy || 10
+        this.rtheta = 0
+        this.romega = 2
+    },
+    think: function (dt) {
+        this.rtheta += this.romega * dt
+    },
+    draw: function () {
+        UFX.draw("[ [ z", this.sizex, this.sizey, "b o 0 0 1 ]",
+                 "fs rgb(0,0,0) f lw 0.8 ss blue s clip",
+                 "[ z", this.sizex, this.sizey, "b o 0 0.5 1 o 0 1 1 o 0 1.5 1 ] lw 0.3 s ]",
+                 "[ z", this.sizex, this.sizey, "r", this.rtheta,
+                 "b m 0 1.2 l 0 2 m 0 -1.2 l 0 -2 m 1.2 0 l 2 0 m -1.2 0 l -2 0",
+                 "m 1.2 0 a 0 0 1.2 0 1.57 m 1.4 0 a 0 0 1.4 0 1.57",
+                 "m -1.2 0 a 0 0 1.2 3.14 4.71 m -1.4 0 a 0 0 1.4 3.14 4.71 ]",
+                 "lw 0.8 ss blue s"
+        )
+    },
+    setclip: function () {
+        UFX.draw("[")
+        WorldBound.draw.apply(this)
+        HasTilt.draw.apply(this)
+        UFX.draw("z", this.sizex, this.sizey, "( m 100 0 l 1 0 a 0 0 1 0 3.14 l -100 0 l -100 -100 l 100 -100 ) ] clip")
+    },
+}
+
+function Portal(x, y) {
+    this.x = x
+    this.y = y
+    this.A = UFX.random(-0.5, 0.5)
+    this.entities = []
+    this.alive = true
+    this.think(0)
+}
+Portal.prototype = UFX.Thing()
+                    .addcomp(WorldBound)
+                    .addcomp(CarriesEntities)
+                    .addcomp(GrowsInShrinksOut)
+                    .addcomp(HasTilt)
+                    .addcomp(DrawReticule, 16, 6)
+
 
 
 

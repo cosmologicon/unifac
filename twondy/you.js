@@ -130,33 +130,6 @@ var DrawZoop = {
     },
 }
 
-// States for our state machine
-var HasStates = {
-    init: function (state0) {
-        this.state = state0
-        this.state.enter.call(this)
-        this.nextstate = null
-    },
-    move: function (mkeys, nkeys, dt) {
-        this.state.move.call(this, mkeys, nkeys, dt)
-    },
-    think: function (dt) {
-        this.state.think.call(this, dt)
-    },
-    draw: function () {
-        this.state.draw.call(this)
-    },
-    updatestate: function () {
-        if (this.nextstate) {
-            this.state.exit.call(this)
-            this.state = this.nextstate
-            this.state.enter.call(this)
-            this.nextstate = null
-            this.think(0)
-        }
-    },
-}
-
 
 var StandState = {
     enter: function () {
@@ -394,11 +367,9 @@ ClimbState.draw = function () {
 
 
 
-
-
 var you = UFX.Thing()
              .addcomp(WorldBound)
-             .addcomp(HasStates, StandState)
+             .addcomp(HasStates, ["move", "think", "draw"])
              .addcomp(DrawZoop)
              .addcomp(CanNab, 15)
              .addcomp(CanShock)
