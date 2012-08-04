@@ -10,7 +10,22 @@ GameScene.start = function () {
         oldx: 200,
         oldy: 100,
     }
-    this.points = UFX.random.spread(500, 0.15, settings.sx, 400, 0, 200)
+    this.blocks = [[100, 300, 100, 100], [400, 400, 250, 50]]
+    this.points = []
+    
+    for (var j = 0 ; j < this.blocks.length ; ++j) {
+        var block = this.blocks[j]
+        var x = block[0], y = block[1], w = block[2], h = block[3]
+        var nw = Math.floor(w / 8) + 1, nh = Math.floor(h / 8) + 1
+        for (var k = 0 ; k <= nw ; ++k) {
+            this.points.push([x + k * w / nw, y])
+            this.points.push([x + k * w / nw, y+h])
+        }
+        for (var k = 1 ; k < nh ; ++k) {
+            this.points.push([x, y + k * h / nh])
+            this.points.push([x + w, y + k * h / nh])
+        }
+    }
     this.tstill = 0
     
     this.csize = 1
@@ -18,6 +33,17 @@ GameScene.start = function () {
     this.buffercon = this.buffer.getContext("2d")
     this.buffer.width = settings.sx
     this.buffer.height = settings.sy
+    
+    this.drawbuffer()
+    
+    
+}
+
+GameScene.drawbuffer = function () {
+    UFX.draw(this.buffercon, "fs blue fr", 0, 0, settings.sx, settings.sy, "fs rgb(0,1,100)")
+    for (var j = 0 ; j < this.blocks.length ; ++j) {
+        UFX.draw(this.buffercon, "fr", this.blocks[j])
+    }
 }
 
 GameScene.thinkargs = function (dt) {
@@ -28,17 +54,7 @@ GameScene.thinkargs = function (dt) {
     return [dt, UFX.mouse.pos, clicked]
 }
 GameScene.think = function (dt, mpos, clicked) {    
-    
-    if (mpos && clicked) {
-        var c = this.csize
-        this.points.forEach(function (point) {
-            var dx = point[0] - mpos[0], dy = point[1] - mpos[1]
-            if (dx * dx + dy * dy > c * c) return
-            point[0] -= 2 * dx
-        })
-        this.csize = 1
-    }
-    
+        
     this.csize = Math.min(this.csize + mechanics.apgrate * dt, mechanics.amax)
     
     var oldx = this.ball.x, oldy = this.ball.y
@@ -76,14 +92,9 @@ GameScene.think = function (dt, mpos, clicked) {
     }
 
 
-    UFX.draw("fs blue fr 0 0", settings.sx, settings.sy)
+//    UFX.draw("fs blue fr 0 0", settings.sx, settings.sy)
+    context.drawImage(this.buffer, 0, 0, settings.sx, settings.sy)
 
-    UFX.draw("b")
-    this.points.forEach(function (point) {
-        UFX.draw("o", point[0], point[1], 2)
-    })
-    UFX.draw("fs white f")
-    
     if (mpos) {
         this.buffercon.drawImage(canvas, 0, 0, settings.sx, settings.sy)
         UFX.draw("[ b o", mpos, this.csize, "clip fs black f")
@@ -91,9 +102,41 @@ GameScene.think = function (dt, mpos, clicked) {
 //        UFX.draw("t", -mpos[0], 0, "z -1 1 t", mpos[0], 0)
         context.drawImage(this.buffer, 0, 0, settings.sx, settings.sy)
         UFX.draw("]")
+    }
+    if (mpos && clicked) {
+        var c = this.csize
+        this.points.forEach(function (point) {
+            var dx = point[0] - mpos[0], dy = point[1] - mpos[1]
+            if (dx * dx + dy * dy > c * c) return
+            point[0] -= 2 * dx
+        })
+        var idata = this.buffercon.getImageData(0, 0, settings.sx, settings.sy)
+        var data = idata.data
+        var n = Math.floor(this.csize / 2) + 10
+        for (var j = 0 ; j < n ; ++j) {
+            var theta = 2 * Math.PI * j / n
+            var x = Math.floor(mpos[0] + this.csize * Math.cos(theta) + 0.5)
+            var y = Math.floor(mpos[1] + this.csize * Math.sin(theta) + 0.5)
+            var g = data[(settings.sx * y + x) * 4 + 1]
+            if (g) {
+                this.points.push([x, y])
+                this.points.push([2 * mpos[0] - x, y])
+            }
+        }
+        this.points = this.points.filter(function (point) { return point[0] >= 0 && point[0] < settings.sx })
+        
+        this.csize = 1
+        this.buffercon.drawImage(canvas, 0, 0, settings.sx, settings.sy)
+    }
+    if (mpos) {
         UFX.draw("b o", mpos, this.csize, "ss white lw 1 s")
     }
-
+    UFX.draw("b")
+    this.points.forEach(function (point) {
+        UFX.draw("o", point[0], point[1], 2)
+    })
+    UFX.draw("fs red f")
+    
 
     UFX.draw("b o", this.ball.x, this.ball.y, this.ball.R, "fs red f ss black lw 1.5 s")
     
