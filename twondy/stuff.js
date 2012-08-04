@@ -42,11 +42,9 @@ var HasStates = {
         // Or, how I learned to stop worrying and love JavaScript function notation
         var methods = {}
         methodnames.forEach(function (methodname) {
-            methods[methodname] = function (mname) {
-                return function () {
-                    return this.state[mname].apply(this, arguments)
-                }
-            }(methodname)
+            methods[methodname] = function () {
+                return this.state[methodname].apply(this, arguments)
+            }
         })
         this.addcomp(methods)
     },
