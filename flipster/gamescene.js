@@ -12,6 +12,12 @@ GameScene.start = function () {
     }
     this.points = UFX.random.spread(500, 0.15, settings.sx, 400, 0, 200)
     this.tstill = 0
+    
+    this.csize = 1
+    this.buffer = document.createElement("canvas")
+    this.buffercon = this.buffer.getContext("2d")
+    this.buffer.width = settings.sx
+    this.buffer.height = settings.sy
 }
 
 GameScene.thinkargs = function (dt) {
@@ -24,12 +30,16 @@ GameScene.thinkargs = function (dt) {
 GameScene.think = function (dt, mpos, clicked) {    
     
     if (mpos && clicked) {
+        var c = this.csize
         this.points.forEach(function (point) {
             var dx = point[0] - mpos[0], dy = point[1] - mpos[1]
-            if (dx * dx + dy * dy > 100 * 100) return
+            if (dx * dx + dy * dy > c * c) return
             point[0] -= 2 * dx
         })
+        this.csize = 1
     }
+    
+    this.csize = Math.min(this.csize + mechanics.apgrate * dt, mechanics.amax)
     
     var oldx = this.ball.x, oldy = this.ball.y
     if (this.tstill > 0.5 || this.ball.y > settings.sy + 100) {
@@ -67,15 +77,22 @@ GameScene.think = function (dt, mpos, clicked) {
 
 
     UFX.draw("fs blue fr 0 0", settings.sx, settings.sy)
-    if (mpos) {
-        UFX.draw("b o", mpos, 100, "ss white lw 1 s")
-    }
 
     UFX.draw("b")
     this.points.forEach(function (point) {
         UFX.draw("o", point[0], point[1], 2)
     })
     UFX.draw("fs white f")
+    
+    if (mpos) {
+        this.buffercon.drawImage(canvas, 0, 0, settings.sx, settings.sy)
+        UFX.draw("[ b o", mpos, this.csize, "clip fs black f")
+        UFX.draw("t", mpos[0], 0, "z -1 1 t", -mpos[0], 0)
+//        UFX.draw("t", -mpos[0], 0, "z -1 1 t", mpos[0], 0)
+        context.drawImage(this.buffer, 0, 0, settings.sx, settings.sy)
+        UFX.draw("]")
+        UFX.draw("b o", mpos, this.csize, "ss white lw 1 s")
+    }
 
 
     UFX.draw("b o", this.ball.x, this.ball.y, this.ball.R, "fs red f ss black lw 1.5 s")
