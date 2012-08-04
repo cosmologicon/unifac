@@ -1,9 +1,10 @@
 var GameScene = Object.create(UFX.scene.Scene)
 
 GameScene.start = function () {
+    this.level = level1
     this.ball = {
-        x: 200,
-        y: 100,
+        x: this.level.startx,
+        y: -mechanics.ballR,
         vx: 0,
         vy: 0,
         R: mechanics.ballR,
@@ -18,8 +19,6 @@ GameScene.start = function () {
     this.buffer.width = settings.sx
     this.buffer.height = settings.sy
     
-    
-    this.level = level1
     this.points = this.level.points()
     this.drawbuffer()
 }
@@ -92,43 +91,50 @@ GameScene.think = function (dt, mpos, clicked) {
 //    UFX.draw("fs blue fr 0 0", settings.sx, settings.sy)
     context.drawImage(this.buffer, 0, 0, settings.sx, settings.sy)
 
-    if (mpos) {
+
+    var vaper = mpos && mpos[0] >= 0 && mpos[0] < settings.sx && mpos[1] >= 0 && mpos[1] < settings.sy
+
+    if (vaper) {
         this.buffercon.drawImage(canvas, 0, 0, settings.sx, settings.sy)
         UFX.draw("[ b o", mpos, this.csize, "clip fs black f")
         UFX.draw("t", mpos[0], 0, "z -1 1 t", -mpos[0], 0)
 //        UFX.draw("t", -mpos[0], 0, "z -1 1 t", mpos[0], 0)
         context.drawImage(this.buffer, 0, 0, settings.sx, settings.sy)
         UFX.draw("]")
-    }
-    if (mpos && clicked) {
-        var c = this.csize
-        this.points.forEach(function (point) {
-            var dx = point[0] - mpos[0], dy = point[1] - mpos[1]
-            if (dx * dx + dy * dy > c * c) return
-            point[0] -= 2 * dx
-        })
-        var idata = this.buffercon.getImageData(0, 0, settings.sx, settings.sy)
-        var data = idata.data
-        var n = Math.floor(this.csize / 2) + 10
-        for (var j = 0 ; j < n ; ++j) {
-            var theta = 2 * Math.PI * j / n
-            var x0 = Math.floor(mpos[0] + this.csize * Math.cos(theta) + 0.5)
-            var x1 = Math.floor(mpos[0] - this.csize * Math.cos(theta) + 0.5)
-            var y = Math.floor(mpos[1] + this.csize * Math.sin(theta) + 0.5)
-            var g0 = 0 <= x0 && x0 < settings.sx && data[(settings.sx * y + x0) * 4 + 1]
-            var g1 = 0 <= x1 && x1 < settings.sx && data[(settings.sx * y + x1) * 4 + 1]
-            if (g0 && !g1) {
-                this.points.push([x0, y])
-                this.points.push([x1, y])
+
+        if (clicked) {
+            var c = this.csize
+            this.points.forEach(function (point) {
+                var dx = point[0] - mpos[0], dy = point[1] - mpos[1]
+                if (dx * dx + dy * dy > c * c) return
+                point[0] -= 2 * dx
+            })
+            var idata = this.buffercon.getImageData(0, 0, settings.sx, settings.sy)
+            var data = idata.data
+            var n = Math.floor(this.csize * 6.3 / settings.psep) + 10
+            for (var j = 0 ; j < n ; ++j) {
+                var theta = 2 * Math.PI * j / n
+                var x0 = Math.floor(mpos[0] + this.csize * Math.cos(theta) + 0.5)
+                var x1 = Math.floor(mpos[0] - this.csize * Math.cos(theta) + 0.5)
+                var y = Math.floor(mpos[1] + this.csize * Math.sin(theta) + 0.5)
+                var g0 = 0 <= x0 && x0 < settings.sx && data[(settings.sx * y + x0) * 4 + 1]
+                var g1 = 0 <= x1 && x1 < settings.sx && data[(settings.sx * y + x1) * 4 + 1]
+                if (g0 && !g1) {
+                    this.points.push([x0, y])
+                    this.points.push([x1, y])
+                }
             }
+            this.points = this.points.filter(function (point) { return point[0] >= 0 && point[0] < settings.sx })
+            
+            this.csize = 1
+            this.buffercon.drawImage(canvas, 0, 0, settings.sx, settings.sy)
         }
-        this.points = this.points.filter(function (point) { return point[0] >= 0 && point[0] < settings.sx })
+        var x0 = mpos[0], y0 = mpos[1]
+        UFX.draw("b o", mpos, this.csize)
+        UFX.draw("m", x0, y0 + this.csize + 8, "l", x0, y0 - this.csize - 8)
+        UFX.draw("m", x0 - 20, y0, "l", x0 + 20, y0)
         
-        this.csize = 1
-        this.buffercon.drawImage(canvas, 0, 0, settings.sx, settings.sy)
-    }
-    if (mpos) {
-        UFX.draw("b o", mpos, this.csize, "ss white lw 1 s")
+        UFX.draw("ss white lw 1 s")
     }
     if (settings.showpoints) {
         UFX.draw("b")
@@ -136,8 +142,12 @@ GameScene.think = function (dt, mpos, clicked) {
             UFX.draw("o", point[0], point[1], 2)
         })
         UFX.draw("fs red f")
-    }    
-
+    }
+    UFX.draw("b m", this.level.startx, 0, "l", this.level.startx, 40, "ss red lw 5 s")
+//    UFX.draw("b m", this.level.endx, settings.sy - 40, "l", this.level.endx, settings.sy, "ss red lw 5 s")
+    var x1 = this.level.endx, w = this.level.goalwidth, y = settings.sy
+    UFX.draw("b fr", x1 - w/2, y - 20, w, 20)
+    
     UFX.draw("b o", this.ball.x, this.ball.y, this.ball.R, "fs red f ss black lw 1.5 s")
     
 
