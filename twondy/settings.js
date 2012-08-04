@@ -6,7 +6,7 @@ var settings = {
     tickmult: 5,  // number of times we call think(). I know I know, I should be fixing my timestep. It's LD, buddy!
     showcutscenes: true,
     
-    twondytsize: 100,  // resolution of texture for Twondy's surface
+    twondytsize: 400,  // resolution of texture for Twondy's surface
     detail: {
         bsupports: false,  // block supports are smooth curves rather than lines
     },

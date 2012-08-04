@@ -5,27 +5,10 @@
 
 // path.update(dt) should set x, y, vx, and vy on the entity.
 
-
-function SinePath(obj) {
-    this.obj = obj
-    this.upward = false
-    this.alive = true
-    this.makesegment()
-}
-SinePath.prototype = {
-    makesegment: function () {
-        var dx = 60, dy = this.upward ? 80 : -80
-        this.y0 = this.y1 = this.obj.y
-        this.y2 = this.y3 = this.obj.y + dy
-        this.dy0 = this.y1 - this.y0
-        this.dy1 = this.y2 - this.y1
-        this.dy2 = this.y3 - this.y2
-        this.dx0 = dx
-        this.dx1 = 0
-        this.dx2 = dx
-    },
+var BezierPath = {
     start: function () {
         this.h = 0
+        this.alive = true
     },
     
     update: function (dt) {
@@ -52,12 +35,73 @@ SinePath.prototype = {
         this.obj.vx = dxdh * dhdt
         
         if (this.h == 1) {
-            this.upward = !this.upward
             this.makesegment()
             this.start()
             this.update(dt)
         }
-        
     },
 }
+
+function SinePath(obj) {
+    this.obj = obj
+    this.upward = false
+    this.alive = true
+    this.makesegment()
+}
+SinePath.prototype = Object.create(BezierPath)
+SinePath.prototype.makesegment = function () {
+    var dx = 100, dy = this.upward ? 80 : -80
+    this.y0 = this.y1 = this.obj.y
+    this.y2 = this.y3 = this.obj.y + dy
+    this.dy0 = this.y1 - this.y0
+    this.dy1 = this.y2 - this.y1
+    this.dy2 = this.y3 - this.y2
+    this.dx0 = dx
+    this.dx1 = -dx
+    this.dx2 = dx
+    this.upward = !this.upward        
+}
+
+function LoopPath(obj) {
+    this.obj = obj
+    this.jpath = 0
+    this.alive = true
+    this.makesegment()
+}
+LoopPath.prototype = Object.create(BezierPath)
+LoopPath.prototype.makesegment = function () {
+    if (this.jpath == 0) {
+        this.dx0 = -60 ; this.dx1 = 0 ; this.dx2 = 60
+        this.dy0 = 0 ; this.dy1 = -90 ; this.dy2 = 0
+    } else if (this.jpath == 1) {
+        this.dx0 = 60 ; this.dx1 = 0 ; this.dx2 = -60
+        this.dy0 = 0 ; this.dy1 = 90 ; this.dy2 = 0
+    }
+    this.y0 = this.obj.y
+    this.y1 = this.y0 + this.dy0
+    this.y2 = this.y1 + this.dy1
+    this.y3 = this.y2 + this.dy2
+    this.jpath = (this.jpath + 1) % 2
+}
+
+function LevelPath(obj) {
+    this.obj = obj
+    this.y0 = 5
+    this.alive = true
+}
+LevelPath.prototype = {
+    start: function () {
+        this.y0 = UFX.random(0, 40)
+    },
+    update: function (dt) {
+        var dy = this.y0 - this.obj.y
+        var dx = 200
+        var d = Math.sqrt(dx * dx + dy * dy)
+        this.obj.vx = dx * this.obj.v / d
+        this.obj.vy = dy * this.obj.v / d
+        this.obj.x += (this.obj.vx * dt) / (this.obj.y + gamestate.worldr)
+        this.obj.y += this.obj.vy * dt
+    },
+}
+
 

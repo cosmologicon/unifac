@@ -85,7 +85,7 @@ GameScene.think = function (dt, mkeys, nkeys) {
         console.log(localStorage.twondyrecord.length)
     }
 
-    if (UFX.random(4) < dt && monsters.length < 2) {
+    if (UFX.random() < dt && monsters.length < 20) {
 //        var p = new Portal(UFX.random(tau), 120)
 //        beffects.push(p)
 //        monsters.push(new Aphid(p))

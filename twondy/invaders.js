@@ -58,8 +58,9 @@ var Crashes = {
     },
 }
 
-function drawinvader() {
-    DrawCircle.draw.apply({ size: 8, color: "white" })
+function drawinvader(obj) {
+//    DrawCircle.draw.apply({ size: 8, color: "white" })
+//    UFX.draw("m 0 0 l", obj.vx*0.3, obj.vy*0.3, "lw 1 ss white s")
 }
 
 var PortalState = {
@@ -73,7 +74,7 @@ var PortalState = {
     },
     draw: function () {
         this.portal.setclip()
-        drawinvader()
+        drawinvader(this)
     },
 }
 
@@ -87,7 +88,7 @@ var DriftState = {
         this.y += this.vy * dt
     },
     draw: function () {
-        drawinvader()
+        drawinvader(this)
     },
 }
 
@@ -113,7 +114,7 @@ var TargetState = {
         }
     },
     draw: function () {
-        drawinvader()
+        drawinvader(this)
     },
 }
 /*
@@ -160,38 +161,80 @@ var FlightState = {
         }
     },
     draw: function () {
-        drawinvader()
+        drawinvader(this)
     },
 }
-/*
+
 function PathTracer (obj) {
     this.obj = obj
     this.alive = true
-    this.think = function (dt) { }
-    this.draw = function () {
-        var p = this.obj.path
-        UFX.draw("b m", getpos(p.x(0), p.y(0)))
-        for (var h = 1 ; h <= 40 ; ++h)
-            UFX.draw("l", getpos(p.x(h/40.), p.y(h/40.)))
-        UFX.draw("lw 1 ss rgba(255,255,255,0.3) s")
-        UFX.draw("b m", getpos(p.x0, p.y0))
-        for (var h = 1 ; h <= 40 ; ++h)
-            UFX.draw("l", getpos(((40-h)*p.x0+h*p.x1)/40., ((40-h)*p.y0+h*p.y1)/40.))
-        UFX.draw("m", getpos(p.x2, p.y2))
-        for (var h = 1 ; h <= 40 ; ++h)
-            UFX.draw("l", getpos(((40-h)*p.x2+h*p.x3)/40., ((40-h)*p.y2+h*p.y3)/40.))
-//                   "m", getpos(p.x2, p.y2), "l", getpos(p.x3, p.y3),
-        UFX.draw("ss rgba(255,0,0,0.3) s")
+    this.ps = []
+    this.nps = 500
+    this.dps = 40
+    this.jps = 0
+    this.think = function (dt) {
+        if (this.jps == 0) {
+            this.ps.push(getpos(this.obj.x, this.obj.y))
+            while (this.ps.length > this.nps) {
+                this.ps.shift()
+            }
+        }
+        this.jps = (this.jps + 1) % this.dps
     }
-}*/
+    this.draw = function () {
+        UFX.draw("b m", this.ps[0])
+        for (var j = 0 ; j < this.ps.length ; ++j)
+            UFX.draw("l", this.ps[j])
+        UFX.draw("lw 1 ss rgba(255,255,255,0.3) s")
+    }
+}
+
+var Rocks = {
+    init: function (omega, beta) {
+        this.rockomega = omega || 1.
+        this.rockbeta = beta || 0.3
+    },
+    think: function (dt) {
+        if (this.rockphi === undefined) this.rockphi = UFX.random(tau)
+        this.rockphi += dt * this.rockomega
+    },
+    draw: function () {
+        context.rotate(this.rockbeta * Math.sin(this.rockphi))
+    },
+}
+
+var SpringStepper = {
+    init: function (omega, smax, hmax) {
+        this.springomega = omega || 1.
+        this.springsmax = smax || 0.3
+        this.springhmax = hmax || 3
+    },
+    think: function (dt) {
+        if (this.springphi === undefined) this.springphi = UFX.random(tau)
+        this.springphi += dt * this.springomega
+    },
+    draw: function () {
+        var s = this.springsmax * Math.sin(this.springphi)
+        var h = this.springhmax * Math.cos(this.springphi)
+        context.translate(0, h)
+        context.scale(1+s, 1-s)
+    },
+}
+
+var DrawAphid = {
+    draw: function () {
+        UFX.draw("[ z 2 2 ( m 4 4 l -4 4 l -7 0 l -3 -1 l -4 -8 l 0 -10 l 4 -8 l 3 -1 l 7 0 ) lw 0.6 fs gray ss black f s ]")
+    },
+}
 
 
 function Aphid(portal) {
     this.v = 60
     this.x = 0
-    this.y = 100
+    this.y = 120
     this.alive = true
-    this.path = new SinePath(this)
+//    this.path = new LoopPath(this)
+    this.path = new LevelPath(this)
     this.setstate(FlightState)
 //    effects.push(new PathTracer(this))
 }
@@ -205,6 +248,9 @@ Aphid.prototype = UFX.Thing()
 //                    .addcomp(ClipsToPortal)
                     .addcomp(WorldBound)
 //                    .addcomp(EntersThroughPortal)
+                    .addcomp(Rocks, 3)
+                    .addcomp(SpringStepper, 8, 0.2)
+                    .addcomp(DrawAphid)
                     .addcomp(HasStates, ["think", "draw"])
 //                    .addcomp(DrawCircle, "white")
                     .addcomp(Crashes)
