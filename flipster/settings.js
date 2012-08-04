@@ -2,6 +2,7 @@ var settings = {
     sx: 700,
     sy: 600,
     showpoints: true,  // show collision points (for debugging)
+    psep: 4,     // point separation
 }
 
 var mechanics = {
