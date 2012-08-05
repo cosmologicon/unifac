@@ -18,6 +18,7 @@ GameScene.start = function () {
     this.tpool = 0
     this.skipclicks = 2
     this.csize = 1
+    this.nexttick = 3
     
     if (settings.savewalkthrough) {
         if (this.winmode) {
@@ -150,6 +151,9 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
         if (this.preptime < 0) {
             this.mode = "act"
             this.skipclicks = 2
+        } else if (this.preptime < this.nexttick) {
+            playsound("tick")
+            this.nexttick -= 1
         }
     }
     if (this.winmode) {
@@ -260,6 +264,7 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
         UFX.draw("]")
         
         if (clicked) {
+            playsound("click")
             var c = this.csize
             this.points.forEach(function (point) {
                 var dx = point[0] - mpos[0], dy = point[1] - mpos[1]
