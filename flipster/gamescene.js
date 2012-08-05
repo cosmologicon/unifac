@@ -29,11 +29,32 @@ GameScene.start = function () {
 }
 
 GameScene.drawbuffer = function () {
+    var noisecanvas = document.createElement("canvas")
+    var w = settings.sx / 2, h = settings.sy / 2
+    noisecanvas.width = w ; noisecanvas.height = h
+    var noisecontext = noisecanvas.getContext("2d")
+    var idata = noisecontext.createImageData(w, h)
+    var data = idata.data
+    var ndata = UFX.noise.wrap2d([256, 256])
+    UFX.noise.fractalize(ndata, [256, 256], 4)
+    for (var y = 0, j = 0, k = 0 ; y < h ; ++y) {
+        for (var x = 0 ; x < w ; ++x, ++k, j += 4) {
+            var v = ndata[x % 256 + y % 256 * 256]
+            data[j] = 20 - 10 * v
+            data[j+1] = 1
+            data[j+2] = 120 + 80 * v
+            data[j+3] = 255
+        }
+    }
+    noisecontext.putImageData(idata, 0, 0)
+            
+
     UFX.draw(this.buffercon, "fs", settings.backcolor, "fr", 0, 0, settings.sx, settings.sy)
     UFX.draw(this.buffercon, "[")
     this.level.trace(this.buffercon)
-//    UFX.draw(this.buffercon, "fs rgb(0,1,100) f")
-    UFX.draw(this.buffercon, "clip fr 0 0", settings.sx, settings.sy, "fs rgb(0,1,100) ss white lw 8 f s ]")
+    UFX.draw(this.buffercon, "clip [ z 2 2")
+    this.buffercon.drawImage(noisecanvas, 0, 0)
+    UFX.draw(this.buffercon, "] ss white lw 8 s ]")
 }
 
 GameScene.thinkargs = function (dt) {
