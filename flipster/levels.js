@@ -1,10 +1,11 @@
 
-function Level(startx, endx) {
+function Level(startx, endx, preptime) {
     this.startx = startx
     this.endx = endx
+    this.preptime = preptime
     this.goalwidth = 100
     this.blocks = []
-    for (var j = 2 ; j < arguments.length ; ++j) {
+    for (var j = 3 ; j < arguments.length ; ++j) {
         this.blocks.push(arguments[j])
     }
 }
@@ -39,5 +40,5 @@ Level.prototype = {
     },
 }
 
-var level1 = new Level(300, 500, [[100, 400], [500, 300], [220, 600]])
+var level1 = new Level(300, 500, 20, [[100, 400], [500, 300], [220, 600]])
 
