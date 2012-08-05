@@ -2,12 +2,12 @@
 <html>
 <head>
 <title>Totally Flips</title>
-<link href='http://fonts.googleapis.com/css?family=Slackey|Kameron' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Slackey|Kameron|Boogaloo' rel='stylesheet' type='text/css'>
 <style>
 body {
     background: black; color: white;
-    font-family: 'Slackey';
-    font-size: 110%;
+    font-family: 'Boogaloo';
+    font-size: 130%;
 }
 h1 {
     font-size: 160%;
@@ -46,8 +46,8 @@ p {
 <script src="walkthrough.js"></script>
 <script src="settings.js"></script>
 <script src="levels.js"></script>
-<script src="physics.js"></script>
 <script src="gamescene.js"></script>
+<script src="words.js"></script>
 
 
 <body>
@@ -58,10 +58,11 @@ p {
 <h2>Universe Factory games</h2>
 <h2>music by Mary Bichner</h2>
 
+<p>please use Chrome if you can - Firefox is slower
+
 <p>Created in 48 hours for the Bacon Game Jam, August 2012
-<p>
-<p>To play: Click to flip objects or pieces of objects horizontally. Set them up so that the
-ball will make it to the goal.
+<p>Use your Matter-Reversing Gun to guide the ball to the goal.
+<p>Click to flip objects or pieces of objects horizontally.
 
 <p><input id=playmusic name=playmusic type=checkbox checked onclick="setmusic()"> Play music</input>
 <p><input id=playsound name=playsound type=checkbox checked> Play sound</input>
@@ -83,12 +84,6 @@ var context = canvas.getContext("2d")
 
 window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
                                window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
-/*UFX.key.init()
-UFX.key.qup = false
-UFX.key.qdown = true
-UFX.key.remaparrows(true)
-UFX.key.remap({down: "act", space: "act", enter: "act"})
-UFX.key.watchlist = "up left right act esc shift 1 2 3 4 5 6 7 8 9 0 backspace F7 F8 F5".split(" ")*/
 UFX.mouse.init(canvas)
 UFX.key.init()
 UFX.key.qup = false
@@ -110,7 +105,9 @@ UFX.resource.onload = function () {
     setmusic()
     music.loop = true
     music.play()
-    UFX.resource.sounds.tick.volume = 0.3
+    UFX.resource.sounds.tick = UFX.resource.Multisound(UFX.resource.sounds.tick, 6)
+    UFX.resource.sounds.tick.volume = 0.2
+    UFX.resource.sounds.click = UFX.resource.Multisound(UFX.resource.sounds.click, 6)
     UFX.scene.init()
     UFX.scene.push(GameScene)
 }
