@@ -2,11 +2,11 @@
 <html>
 <head>
 <title>Flipster</title>
-<!-- link href='http://fonts.googleapis.com/css?family=Viga' rel='stylesheet' type='text/css' -->
+<link href='http://fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
 <style>
 body {
     background: black; color: white;
-    font-family: 'Viga';
+    font-family: 'Slackey';
     font-size: 110%;
 }
 h1 {
@@ -15,21 +15,21 @@ h1 {
     margin: 0.5em auto 0;
 }
 h2 {
-    margin: 0 auto 1em;
+    margin: 0 auto 0;
     font-size: 120%;
 }
 * {
     margin: auto;
     text-align: center;
 }
+p {
+    margin: 1em auto 1em;
+}
 
 input {
     background: inherit; color: inherit; border: none;
     font-family: inherit; font-size: inherit;
     width: 20em;
-}
-td {
-    text-align: right
 }
 #canvasbox {
     position: relative;
@@ -55,10 +55,21 @@ td {
 
 
 <body>
+<table>
+<tr><td style="padding-right: 20px ; width: 20em">
 <h1>Flipster</h1>
-<h2>by Christopher Night<br>Universe Factory games</h2>
+<h2>by Christopher Night</h2>
+<h2>Universe Factory games</h2>
 
+<p>Created in 48 hours for the Bacon Game Jam, August 2012
+<p>
+<p>To play: Click to flip objects or pieces of objects horizontally. Set them up so that the
+ball will make it to the goal.
+
+<td>
 <canvas id=canvas style="border: medium yellow outset"></canvas>
+
+</table>
 
 <script>
 var canvas = document.getElementById("canvas")
