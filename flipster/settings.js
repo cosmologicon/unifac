@@ -12,7 +12,7 @@ var mechanics = {
     ballR: 25,
     g: 300,
     elasticity: 0.4,
-    friction: 0.99,
+    friction: 0.996,
     apgrate: 40,  // aperture growth rate
     amax: 160,     // max aperture size
 }

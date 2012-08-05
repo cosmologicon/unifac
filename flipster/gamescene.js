@@ -36,7 +36,7 @@ GameScene.drawbuffer = function () {
     var idata = noisecontext.createImageData(w, h)
     var data = idata.data
     var ndata = UFX.noise.wrap2d([256, 256])
-    UFX.noise.fractalize(ndata, [256, 256], 4)
+    UFX.noise.fractalize(ndata, [256, 256], 2)
     for (var y = 0, j = 0, k = 0 ; y < h ; ++y) {
         for (var x = 0 ; x < w ; ++x, ++k, j += 4) {
             var v = ndata[x % 256 + y % 256 * 256]

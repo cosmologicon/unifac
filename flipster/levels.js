@@ -1,11 +1,11 @@
 
-function Level(startx, endx, preptime) {
+function Level(startx, endx, preptime, goalwidth) {
     this.startx = startx
     this.endx = endx
     this.preptime = preptime
-    this.goalwidth = 100
+    this.goalwidth = goalwidth
     this.blocks = []
-    for (var j = 3 ; j < arguments.length ; ++j) {
+    for (var j = 4 ; j < arguments.length ; ++j) {
         this.blocks.push(arguments[j])
     }
 }
@@ -41,37 +41,60 @@ Level.prototype = {
 }
 
 var levels = [
-    new Level(300, 600, 6,  // triangle you have to reverse
+    new Level(300, 600, 6, 100,  // triangle you have to reverse
         [[400, 350], [400, 550], [200, 550]]
     ),
 
-    new Level(400, 400, 6,  // Diamond in the way
+    new Level(400, 400, 6, 100,  // Diamond in the way
         [[400, 300], [500, 400], [400, 500], [300, 400]]
     ),
 
-    new Level(200, 540, 8,  // two opposing triangles - move the one on the right
+    new Level(200, 540, 8, 100,  // two opposing triangles - move the one on the right
         [[100, 220], [300, 360], [100, 360]],
         [[500, 320], [300, 460], [500, 460]]
     ),
 
-    new Level(300, 500, 10,  // oddly shaped triangle
+    new Level(300, 500, 10, 100,  // oddly shaped triangle
         [[100, 400], [500, 300], [220, 600]]
     ),
 
-    new Level(400, 400, 20,  // two long rectangles - make a hole in each
+    new Level(200, 700, 16, 150,  // Diamond you have to place correctly
+        [[200, 250], [300, 350], [200, 450], [100, 350]]
+    ),
+
+    new Level(400, 400, 20, 100,  // two long rectangles - make a hole in each
         [[40, 160], [760, 160], [760, 240], [40, 240]],
         [[40, 460], [760, 460], [760, 540], [40, 540]]
     ),
 
-    new Level(100, 700, 10,  // long triangle to tunnel through
+    new Level(100, 700, 10, 100,  // long triangle to tunnel through
         [[20, 350], [20, 550], [780, 550]]
     ),
 
-    new Level(300, 440, 6,  // square you have to carve a ramp out of 
+    new Level(400, 400, 8, 100,  // two jagged concave hexagons
+        [[20, 120], [440, 120], [440, 300], [280, 260], [280, 500], [20, 500]],
+        [[780, 120], [520, 120], [520, 360], [360, 320], [360, 500], [780, 500]]
+    ),
+
+    new Level(300, 440, 6, 100,  // square you have to carve a ramp out of 
         [[200, 200], [400, 200], [400, 400], [200, 400]]
     ),
 
-    new Level(200, 600, 12,  // pyramid you have to split in two ways
+    new Level(150, 700, 3, 150,  // triangle you really have to launch way to the right from
+        [[250, 350], [250, 550], [50, 550]]
+    ),
+
+    new Level(400, 400, 5, 100,  // slopes back and forth between two large blocks
+        [[20, 120], [440, 120], [120, 240], [440, 360], [120, 480], [20, 480]],
+        [[780, 120], [640, 120], [320, 240], [640, 360], [320, 480], [780, 480]]
+    ),
+
+    new Level(200, 600, 12, 100,  // pyramid you have to split in two ways
         [[400, 480], [560, 580], [240, 580]]
     ),
+
+    new Level(650, 100, 14, 150,  // downward facing triangle
+        [[550, 200], [750, 200], [650, 370]]
+    ),
+
 ]
