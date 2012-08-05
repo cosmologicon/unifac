@@ -78,6 +78,7 @@ GameScene.think = function (dt, mpos, clicked) {
     } else if (this.mode === "act") {
         var oldx = this.ball.x, oldy = this.ball.y
         if (this.tstill > 0.5 || oldy > settings.sy + 100 || this.skipclicks <= 0) {
+            playsound("fail")
             this.start()
             return
         }
@@ -117,6 +118,7 @@ GameScene.think = function (dt, mpos, clicked) {
             })
             if (ball.y > settings.sy - 10 && ball.y < settings.sy &&
                 Math.abs(this.level.endx - ball.x) < this.level.goalwidth / 2) {
+                playsound("success")
                 levelnumber += 1
                 if (levelnumber >= levels.length) {
                     alert("you beat the game!")

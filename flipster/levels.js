@@ -45,7 +45,7 @@ var levels = [
         [[400, 350], [400, 550], [200, 550]]
     ),
 
-    new Level(400, 400, 10,  // Diamond in the way
+    new Level(400, 400, 6,  // Diamond in the way
         [[400, 300], [500, 400], [400, 500], [300, 400]]
     ),
 
@@ -61,6 +61,10 @@ var levels = [
     new Level(400, 400, 20,  // two long rectangles - make a hole in each
         [[40, 160], [760, 160], [760, 240], [40, 240]],
         [[40, 460], [760, 460], [760, 540], [40, 540]]
+    ),
+
+    new Level(100, 700, 10,  // long triangle to tunnel through
+        [[20, 350], [20, 550], [780, 550]]
     ),
 
     new Level(300, 440, 6,  // square you have to carve a ramp out of 
