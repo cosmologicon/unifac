@@ -4,8 +4,8 @@ var settings = {
     showpoints: false,  // show collision points (for debugging)
     psep: 4,     // point separation
     tstep: 0.002,
-    backcolor: "rgb(0,0,20)",
     font1: "48px Slackey",
+    titlefont: "160px Slackey",
 }
 
 var mechanics = {

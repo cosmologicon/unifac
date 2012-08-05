@@ -12,20 +12,20 @@ GameScene.start = function () {
         R: mechanics.ballR,
         oldx: 200,
         oldy: 100,
+        omega: 1,
+        theta: 3.5,
     }
     this.tstill = 0
     
-    this.csize = 1
-    this.buffer = document.createElement("canvas")
-    this.buffercon = this.buffer.getContext("2d")
-    this.buffer.width = settings.sx
-    this.buffer.height = settings.sy
-    
+    this.csize = 1    
     this.points = this.level.points()
     this.drawbuffer()
     
     this.mode = "prepare"
     this.preptime = this.level.preptime
+    
+    this.titlex = 1000
+    this.fadealpha = 1
 }
 
 GameScene.drawbuffer = function () {
@@ -47,9 +47,25 @@ GameScene.drawbuffer = function () {
         }
     }
     noisecontext.putImageData(idata, 0, 0)
-            
 
-    UFX.draw(this.buffercon, "fs", settings.backcolor, "fr", 0, 0, settings.sx, settings.sy)
+    this.backdrop = document.createElement("canvas")
+    this.backcon = this.backdrop.getContext("2d")
+    this.backdrop.width = settings.sx
+    this.backdrop.height = settings.sy
+    var grad = context.createLinearGradient(0, 0, settings.sx, settings.sy)
+    grad.addColorStop(0, "rgb(100,0,0)")
+    grad.addColorStop(0.5, "rgb(20,0,20)")
+    grad.addColorStop(1, "rgb(0,0,100)")
+    this.backgrad = grad
+    UFX.draw(this.backcon, "fs", grad, "fr 0 0", settings.sx, settings.sy)
+    this.backtheta = 0
+
+    this.buffer = document.createElement("canvas")
+    this.buffercon = this.buffer.getContext("2d")
+    this.buffer.width = settings.sx
+    this.buffer.height = settings.sy
+
+    UFX.draw(this.buffercon, "fs rgba(0,0,0,0) fr", 0, 0, settings.sx, settings.sy)
     UFX.draw(this.buffercon, "[")
     this.level.trace(this.buffercon)
     UFX.draw(this.buffercon, "clip [ z 2 2")
@@ -62,9 +78,18 @@ GameScene.thinkargs = function (dt) {
     UFX.mouse.events().forEach(function (event) {
         if (event.type === "up") clicked = true
     })
-    return [dt, UFX.mouse.pos, clicked]
+    return [dt, UFX.mouse.pos, clicked, UFX.key.state().down]
 }
-GameScene.think = function (dt, mpos, clicked) {    
+GameScene.think = function (dt, mpos, clicked, kdown) {
+    if (kdown && kdown.F1) {
+        levelnumber = Math.max(0, levelnumber - 1)
+        this.start()
+        return
+    } else if (kdown && kdown.F2) {
+        levelnumber = Math.min(levelnumber + 1, levels.length - 1)
+        this.start()
+        return    
+    }
 
 
     if (this.mode === "prepare") {
@@ -128,6 +153,8 @@ GameScene.think = function (dt, mpos, clicked) {
                 return
             }
         }
+        this.ball.omega = this.ball.vx * 0.05
+        this.ball.theta += this.ball.omega * dt
 
         
         var dx = this.ball.x - oldx, dy = this.ball.y - oldy
@@ -139,7 +166,11 @@ GameScene.think = function (dt, mpos, clicked) {
         if (clicked) this.skipclicks -= 1
     }
 
-//    UFX.draw("fs blue fr 0 0", settings.sx, settings.sy)
+/*    this.backtheta += dt
+    var sx = settings.sx, sy = settings.sy
+    UFX.draw(this.backcon, "[ t", sx/2, sy/2, "r", this.backtheta, "t", -sx/2, -sy/2, "fs", this.backgrad, "fr", -sx, -sy, 3*sx, 3*sy, "]")*/
+
+    context.drawImage(this.backdrop, 0, 0, settings.sx, settings.sy)
     context.drawImage(this.buffer, 0, 0, settings.sx, settings.sy)
 
     if (mpos) {
@@ -153,10 +184,9 @@ GameScene.think = function (dt, mpos, clicked) {
     }
 
     if (this.mode === "prepare" && vaper) {
-        this.buffercon.drawImage(canvas, 0, 0, settings.sx, settings.sy)
-        UFX.draw("[ b o", mpos, this.csize, "clip fs", settings.backcolor, "f")
+        UFX.draw("[ b o", mpos, this.csize, "clip")
+        context.drawImage(this.backdrop, 0, 0, settings.sx, settings.sy)
         UFX.draw("t", mpos[0], 0, "z -1 1 t", -mpos[0], 0)
-//        UFX.draw("t", -mpos[0], 0, "z -1 1 t", mpos[0], 0)
         context.drawImage(this.buffer, 0, 0, settings.sx, settings.sy)
         UFX.draw("]")
         
@@ -184,8 +214,22 @@ GameScene.think = function (dt, mpos, clicked) {
             }
             this.points = this.points.filter(function (point) { return point[0] >= 0 && point[0] < settings.sx })
             
+
+
+            this.buffer2 = document.createElement("canvas")
+            this.buffer2.width = settings.sx ; this.buffer2.height = settings.sy
+            this.bcon2 = this.buffer2.getContext("2d")
+            this.bcon2.drawImage(this.buffer, 0, 0, settings.sx, settings.sy)
+            UFX.draw(this.bcon2, "[ b o", mpos, this.csize, "clip")
+            this.bcon2.clearRect(0, 0, settings.sx, settings.sy)
+            UFX.draw(this.bcon2, "t", mpos[0], 0, "z -1 1 t", -mpos[0], 0)
+            this.bcon2.drawImage(this.buffer, 0, 0, settings.sx, settings.sy)
+            UFX.draw(this.bcon2, "]")
+            
+            this.buffer = this.buffer2 ; this.buffercon = this.bcon2
+
+
             this.csize = 1
-            this.buffercon.drawImage(canvas, 0, 0, settings.sx, settings.sy)
         }
         var x0 = mpos[0], y0 = mpos[1]
         UFX.draw("b o", mpos, this.csize)
@@ -211,13 +255,21 @@ GameScene.think = function (dt, mpos, clicked) {
         })
         UFX.draw("fs red f")
     }
-    UFX.draw("b m", this.level.startx, 0, "l", this.level.startx, 40, "ss red lw 5 s")
-//    UFX.draw("b m", this.level.endx, settings.sy - 40, "l", this.level.endx, settings.sy, "ss red lw 5 s")
-    var x1 = this.level.endx, w = this.level.goalwidth, y = settings.sy
-    UFX.draw("b fs red fr", x1 - w/2, y - 20, w, 20)
+    // Draw start and goal arrows
+    UFX.draw("[ t", this.level.startx, 0,
+        "( m 0 6 l 8 4 l 4 40 l 16 36 l 0 60 l -16 36 l -4 40 l -8 4 ) lw 2 fs red ss orange f s ]")
+    UFX.draw("[ t", this.level.endx, settings.sy - 70,
+        "( m 0 6 l 8 4 l 4 40 l 16 36 l 0 60 l -16 36 l -4 40 l -8 4 ) lw 2 fs red ss orange f s ]")
+//    var x1 = this.level.endx, w = this.level.goalwidth, y = settings.sy
+//    UFX.draw("b fs red fr", x1 - w/2, y - 20, w, 20)
     
     if (this.mode === "act") {
-        UFX.draw("b o", this.ball.x, this.ball.y, this.ball.R, "fs red f ss black lw 1.5 s")
+        // Draw ball
+        UFX.draw("[ t", this.ball.x, this.ball.y, "r", this.ball.theta, "b o 0 0", this.ball.R,
+            "fs rgb(128,0,0) f ss rgb(255,128,128) lw 1.5 s",
+            "[ z 1 2 b o 7 2 4 o -7 2 4 fs black f ]",
+            "]")
+        // Draw click to restart dialogue
         var text = this.skipclicks == 2 ? "click twice to restart" : "click to restart"
         var x = settings.sx / 2, y = 40
         context.font = settings.font1
@@ -226,6 +278,7 @@ GameScene.think = function (dt, mpos, clicked) {
         context.strokeText(text, x, y)
     }
     if (this.mode === "prepare") {
+        // Draw remaining time meter
         var text = "" + Math.floor(this.preptime + 1), x = settings.sx - 40, y = 40
         var d = (this.preptime - Math.floor(this.preptime)) * 6.28
         UFX.draw("b o", x, y, 30, "fs rgb(0,128,0) f")
@@ -235,6 +288,21 @@ GameScene.think = function (dt, mpos, clicked) {
         UFX.draw("b textalign center textbaseline middle fs white ss black lw 1")
         context.fillText(text, x, y)
         context.strokeText(text, x, y)
+        
+        // Draw scrolling title
+        if (this.titlex > -1000) {
+            this.titlex -= (Math.abs(this.titlex) < 100 ? 200 : 2000) * dt
+            var text = "Level " + (levelnumber + 1), x = settings.sx / 2 + this.titlex, y = settings.sy / 2
+            context.font = settings.titlefont
+            UFX.draw("b textalign center textbaseline middle fs orange ss yellow lw 4")
+            context.fillText(text, x, y)
+            context.strokeText(text, x, y)
+        }
+        // Fade from white
+        if (this.fadealpha > 0) {
+            UFX.draw("[ alpha", this.fadealpha, "fs white fr 0 0", settings.sx, settings.sy, "]")
+            this.fadealpha -= 2 * dt
+        }
     }
     
 
