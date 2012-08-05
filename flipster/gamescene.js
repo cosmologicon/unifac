@@ -4,29 +4,42 @@ var levelnumber = 0
 
 GameScene.start = function () {
     this.level = levels[levelnumber]
-    this.ball = {
-        x: this.level.startx,
-        y: -mechanics.ballR,
-        vx: 0,
-        vy: 0,
-        R: mechanics.ballR,
-        oldx: 200,
-        oldy: 100,
-        omega: 1,
-        theta: 3.5,
-    }
-    this.tstill = 0
-    
-    this.csize = 1    
-    this.points = this.level.points()
-    this.drawbuffer()
+    this.balls = []
+    this.addball(this.level.startx, -mechanics.ballR, mechanics.ballR)
+    this.setblocks()
     
     this.mode = "prepare"
     this.preptime = this.level.preptime
     
     this.titlex = 1000
     this.fadealpha = 1
+    this.winmode = levelnumber === levels.length - 1
+    this.tpool = 0
+    this.skipclicks = 2
+    this.csize = 1    
 }
+
+GameScene.addball = function (x, y, R) {
+    this.balls.push({
+        x: x,
+        y: y,
+        vx: 0,
+        vy: 0,
+        R: R,
+        oldx: x,
+        oldy: y,
+        omega: 1,
+        theta: 3.5,
+        tstill: 0,
+        alive: true,
+    })
+}
+
+GameScene.setblocks = function () {
+    this.points = this.level.points()
+    this.drawbuffer()
+}
+
 
 GameScene.drawbuffer = function () {
     var noisecanvas = document.createElement("canvas")
@@ -92,77 +105,95 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
     }
 
 
-    if (this.mode === "prepare") {
+    if (this.winmode || this.mode === "prepare") {
         this.csize = Math.min(this.csize + mechanics.apgrate * dt, mechanics.amax)
         this.preptime -= dt
+        if (this.winmode && this.preptime < 1) this.preptime += 10
         if (this.preptime < 0) {
             this.mode = "act"
             this.skipclicks = 2
-            this.tpool = 0
         }
-    } else if (this.mode === "act") {
-        var oldx = this.ball.x, oldy = this.ball.y
-        if (this.tstill > 0.5 || oldy > settings.sy + 100 || this.skipclicks <= 0) {
+    }
+    if (this.winmode) {
+        while (this.balls.length < 10) {
+            this.addball(UFX.random(settings.sx), UFX.random(-200, -100), UFX.random(15, 40))
+        }
+    }
+    if (this.winmode || this.mode === "act") {
+        this.tpool += dt
+        var ntick = 0
+        while (this.tpool > settings.tstep) {
+            ntick += 1
+            this.tpool -= settings.tstep
+        }
+        for (var jball = 0 ; jball < this.balls.length ; ++jball) {
+            var ball = this.balls[jball]
+        
+            var oldx = ball.x, oldy = ball.y
+            if (ball.tstill > 0.5 || oldy > settings.sy + 100 || (!this.winmode && this.skipclicks <= 0)) {
+                ball.alive = false
+            }
+
+            var x = ball.x, y = ball.y
+            var v = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy)
+            var Rplus = 1 + ball.R + 1.2 * dt * v
+            var Rplus2 = Rplus * Rplus
+            
+            var closepoints = this.points.filter(function(p) {
+                return (p[0] - x) * (p[0] - x) + (p[1] - y) * (p[1] - y) < Rplus2
+            })
+            
+            for (var jtick = 0 ; jtick < ntick ; ++jtick) {
+                ball.vy += mechanics.g * settings.tstep
+                ball.x += ball.vx * settings.tstep
+                ball.y += ball.vy * settings.tstep
+                
+                closepoints.forEach(function (point) {
+                    var x0 = point[0], y0 = point[1]
+                    var dx = x0 - ball.x, dy = y0 - ball.y
+                    if (dx * dx + dy * dy > ball.R * ball.R) return
+                    if (dx * ball.vx + dy * ball.vy <= 0) return
+                    var p = -(1 + mechanics.elasticity) * (ball.vx * dx + ball.vy * dy) / (dx * dx + dy * dy)
+                    ball.vx += p * dx
+                    ball.vy += p * dy
+                    ball.vx *= mechanics.friction
+                    ball.vy *= mechanics.friction
+                    var df = ball.R / Math.sqrt(dx * dx + dy * dy) - 1
+                    if (df > 0) {
+                        ball.x -= df * dx
+                        ball.y -= df * dy
+                    }
+                })
+                if (ball.y > settings.sy - 10 && ball.y < settings.sy &&
+                    Math.abs(this.level.endx - ball.x) < this.level.goalwidth / 2) {
+                    playsound("success")
+                    levelnumber += 1
+                    if (levelnumber >= levels.length) {
+                        alert("you beat the game!")
+                        levelnumber = 0
+                    }
+                    this.start()
+                    return
+                }
+            }
+            ball.omega = ball.vx * 0.05
+            ball.theta += ball.omega * dt
+
+            
+            var dx = ball.x - oldx, dy = ball.y - oldy
+            if (dx * dx + dy * dy < 0.01) {
+                ball.tstill += dt
+            } else {
+                ball.tstill = 0
+            }
+        }
+        this.balls = this.balls.filter(function (ball) { return ball.alive })
+        if (this.balls.length == 0) {
             playsound("fail")
             this.start()
             return
         }
 
-        var ball = this.ball
-        var x = ball.x, y = ball.y
-        var v = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy)
-        var Rplus = 1 + ball.R + 1.2 * dt * v
-        var Rplus2 = Rplus * Rplus
-        
-        var closepoints = this.points.filter(function(p) {
-            return (p[0] - x) * (p[0] - x) + (p[1] - y) * (p[1] - y) < Rplus2
-        })
-        this.tpool += dt
-
-        while (this.tpool > settings.tstep) {
-            this.tpool -= settings.tstep
-            ball.vy += mechanics.g * settings.tstep
-            ball.x += ball.vx * settings.tstep
-            ball.y += ball.vy * settings.tstep
-            
-            closepoints.forEach(function (point) {
-                var x0 = point[0], y0 = point[1]
-                var dx = x0 - ball.x, dy = y0 - ball.y
-                if (dx * dx + dy * dy > ball.R * ball.R) return
-                if (dx * ball.vx + dy * ball.vy <= 0) return
-                var p = -(1 + mechanics.elasticity) * (ball.vx * dx + ball.vy * dy) / (dx * dx + dy * dy)
-                ball.vx += p * dx
-                ball.vy += p * dy
-                ball.vx *= mechanics.friction
-                ball.vy *= mechanics.friction
-                var df = ball.R / Math.sqrt(dx * dx + dy * dy) - 1
-                if (df > 0) {
-                    ball.x -= df * dx
-                    ball.y -= df * dy
-                }
-            })
-            if (ball.y > settings.sy - 10 && ball.y < settings.sy &&
-                Math.abs(this.level.endx - ball.x) < this.level.goalwidth / 2) {
-                playsound("success")
-                levelnumber += 1
-                if (levelnumber >= levels.length) {
-                    alert("you beat the game!")
-                    levelnumber = 0
-                }
-                this.start()
-                return
-            }
-        }
-        this.ball.omega = this.ball.vx * 0.05
-        this.ball.theta += this.ball.omega * dt
-
-        
-        var dx = this.ball.x - oldx, dy = this.ball.y - oldy
-        if (dx * dx + dy * dy < 0.01) {
-            this.tstill += dt
-        } else {
-            this.tstill = 0
-        }
         if (clicked) this.skipclicks -= 1
     }
 
@@ -183,7 +214,7 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
         var pointtime = false, vaper = false
     }
 
-    if (this.mode === "prepare" && vaper) {
+    if ((this.winmode || this.mode === "prepare") && vaper) {
         UFX.draw("[ b o", mpos, this.csize, "clip")
         context.drawImage(this.backdrop, 0, 0, settings.sx, settings.sy)
         UFX.draw("t", mpos[0], 0, "z -1 1 t", -mpos[0], 0)
@@ -237,6 +268,10 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
         UFX.draw("m", x0 - 20, y0, "l", x0 + 20, y0)
         
         UFX.draw("ss white lw 1 s")
+    } else if (this.winmode && pointtime) {
+        if (clicked) {
+            this.setblocks()
+        }
     } else if (this.mode === "prepare" && pointtime) {
         if (clicked) {
             this.preptime = 0
@@ -263,12 +298,16 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
 //    var x1 = this.level.endx, w = this.level.goalwidth, y = settings.sy
 //    UFX.draw("b fs red fr", x1 - w/2, y - 20, w, 20)
     
-    if (this.mode === "act") {
-        // Draw ball
-        UFX.draw("[ t", this.ball.x, this.ball.y, "r", this.ball.theta, "b o 0 0", this.ball.R,
-            "fs rgb(128,0,0) f ss rgb(255,128,128) lw 1.5 s",
-            "[ z 1 2 b o 7 2 4 o -7 2 4 fs black f ]",
-            "]")
+    if (this.winmode || this.mode === "act") {
+        // Draw balls
+        this.balls.forEach(function (ball) {
+            UFX.draw("[ t", ball.x, ball.y, "r", ball.theta, "b o 0 0", ball.R,
+                "fs rgb(128,0,0) f ss rgb(255,128,128) lw 1.5 s",
+                "[ z", ball.R/25., 2*ball.R/25., "b o 7 2 4 o -7 2 4 fs black f ]",
+                "]")
+        })
+    }
+    if (!this.winmode && this.mode === "act") {
         // Draw click to restart dialogue
         var text = this.skipclicks == 2 ? "click twice to restart" : "click to restart"
         var x = settings.sx / 2, y = 40
@@ -277,14 +316,15 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
         context.fillText(text, x, y)
         context.strokeText(text, x, y)
     }
-    if (this.mode === "prepare") {
+    if (this.winmode || this.mode === "prepare") {
         // Draw remaining time meter
         var text = "" + Math.floor(this.preptime + 1), x = settings.sx - 40, y = 40
+        if (this.winmode) text = "R"
         var d = (this.preptime - Math.floor(this.preptime)) * 6.28
         UFX.draw("b o", x, y, 30, "fs rgb(0,128,0) f")
         UFX.draw("( m", x, y, "a", x, y, 30, -1.57, -1.57-d, "fs rgb(128,0,0) ) f")
         UFX.draw("b o", x, y, 30, "m", x, y - 35, "l", x, y + 35, "m", x-35, y, "l", x + 35, y, "ss gray lw 2 s")
-        context.font = settings.font1
+        context.font = settings.timefont
         UFX.draw("b textalign center textbaseline middle fs white ss black lw 1")
         context.fillText(text, x, y)
         context.strokeText(text, x, y)
@@ -293,6 +333,7 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
         if (this.titlex > -1000) {
             this.titlex -= (Math.abs(this.titlex) < 100 ? 200 : 2000) * dt
             var text = "Level " + (levelnumber + 1), x = settings.sx / 2 + this.titlex, y = settings.sy / 2
+            if (this.winmode) text = "You win!"
             context.font = settings.titlefont
             UFX.draw("b textalign center textbaseline middle fs orange ss yellow lw 4")
             context.fillText(text, x, y)
