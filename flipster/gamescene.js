@@ -1,7 +1,7 @@
 var GameScene = Object.create(UFX.scene.Scene)
 
 GameScene.start = function () {
-    this.level = level1
+    this.level = levels[0]
     this.ball = {
         x: this.level.startx,
         y: -mechanics.ballR,
@@ -49,6 +49,7 @@ GameScene.think = function (dt, mpos, clicked) {
         this.preptime -= dt
         if (this.preptime < 0) {
             this.mode = "act"
+            this.skipclicks = 2
         }
     } else if (this.mode === "act") {
         var oldx = this.ball.x, oldy = this.ball.y
@@ -56,7 +57,7 @@ GameScene.think = function (dt, mpos, clicked) {
             alert("victory!")
             this.start()
             return
-        } else if (this.tstill > 0.5 || oldy > settings.sy + 100) {
+        } else if (this.tstill > 0.5 || oldy > settings.sy + 100 || this.skipclicks <= 0) {
             this.start()
             return
         }
@@ -99,12 +100,21 @@ GameScene.think = function (dt, mpos, clicked) {
         } else {
             this.tstill = 0
         }
+        if (clicked) this.skipclicks -= 1
     }
 
 //    UFX.draw("fs blue fr 0 0", settings.sx, settings.sy)
     context.drawImage(this.buffer, 0, 0, settings.sx, settings.sy)
 
-    var vaper = mpos && mpos[0] >= 0 && mpos[0] < settings.sx && mpos[1] >= 0 && mpos[1] < settings.sy
+    if (mpos) {
+        // pointing to the timer?
+        var dx = settings.sx - 40 - mpos[0], dy = 40 - mpos[1]
+        var pointtime = dx * dx + dy * dy < 40 * 40
+        // visible aperture?
+        var vaper = !pointtime && mpos[0] >= 0 && mpos[0] < settings.sx && mpos[1] >= 0 && mpos[1] < settings.sy
+    } else {
+        var pointtime = false, vaper = false
+    }
 
     if (this.mode === "prepare" && vaper) {
         this.buffercon.drawImage(canvas, 0, 0, settings.sx, settings.sy)
@@ -113,7 +123,7 @@ GameScene.think = function (dt, mpos, clicked) {
 //        UFX.draw("t", -mpos[0], 0, "z -1 1 t", mpos[0], 0)
         context.drawImage(this.buffer, 0, 0, settings.sx, settings.sy)
         UFX.draw("]")
-
+        
         if (clicked) {
             var c = this.csize
             this.points.forEach(function (point) {
@@ -147,7 +157,17 @@ GameScene.think = function (dt, mpos, clicked) {
         UFX.draw("m", x0 - 20, y0, "l", x0 + 20, y0)
         
         UFX.draw("ss white lw 1 s")
+    } else if (this.mode === "prepare" && pointtime) {
+        if (clicked) {
+            this.preptime = 0
+        }
+        var text = "click to begin", x = settings.sx / 2, y = settings.sy / 2
+        context.font = "48px bold Arial"
+        UFX.draw("b textalign center textbaseline middle fs white ss black lw 0.5")
+        context.fillText(text, x, y)
+        context.strokeText(text, x, y)
     }
+    
     if (settings.showpoints) {
         UFX.draw("b")
         this.points.forEach(function (point) {
@@ -162,6 +182,12 @@ GameScene.think = function (dt, mpos, clicked) {
     
     if (this.mode === "act") {
         UFX.draw("b o", this.ball.x, this.ball.y, this.ball.R, "fs red f ss black lw 1.5 s")
+        var text = this.skipclicks == 2 ? "click twice to restart" : "click to restart"
+        var x = settings.sx / 2, y = 40
+        context.font = "48px bold Arial"
+        UFX.draw("b textalign center textbaseline middle fs white ss black lw 0.5")
+        context.fillText(text, x, y)
+        context.strokeText(text, x, y)
     }
     if (this.mode === "prepare") {
         var text = "" + Math.floor(this.preptime + 1), x = settings.sx - 40, y = 40
