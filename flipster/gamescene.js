@@ -1,7 +1,9 @@
 var GameScene = Object.create(UFX.scene.Scene)
 
+var levelnumber = 0
+
 GameScene.start = function () {
-    this.level = levels[0]
+    this.level = levels[levelnumber]
     this.ball = {
         x: this.level.startx,
         y: -mechanics.ballR,
@@ -27,7 +29,7 @@ GameScene.start = function () {
 }
 
 GameScene.drawbuffer = function () {
-    UFX.draw(this.buffercon, "fs rgb(0,0,20) fr", 0, 0, settings.sx, settings.sy)
+    UFX.draw(this.buffercon, "fs", settings.backcolor, "fr", 0, 0, settings.sx, settings.sy)
     UFX.draw(this.buffercon, "[")
     this.level.trace(this.buffercon)
 //    UFX.draw(this.buffercon, "fs rgb(0,1,100) f")
@@ -92,8 +94,13 @@ GameScene.think = function (dt, mpos, clicked) {
                     ball.y -= df * dy
                 }
             })
-            if (ball.y > settings.sy && Math.abs(this.level.endx - ball.x) < this.level.goalwidth / 2) {
-                alert("victory!")
+            if (ball.y > settings.sy - 10 && ball.y < settings.sy &&
+                Math.abs(this.level.endx - ball.x) < this.level.goalwidth / 2) {
+                levelnumber += 1
+                if (levelnumber >= levels.length) {
+                    alert("you beat the game!")
+                    levelnumber = 0
+                }
                 this.start()
                 return
             }
@@ -124,7 +131,7 @@ GameScene.think = function (dt, mpos, clicked) {
 
     if (this.mode === "prepare" && vaper) {
         this.buffercon.drawImage(canvas, 0, 0, settings.sx, settings.sy)
-        UFX.draw("[ b o", mpos, this.csize, "clip fs black f")
+        UFX.draw("[ b o", mpos, this.csize, "clip fs", settings.backcolor, "f")
         UFX.draw("t", mpos[0], 0, "z -1 1 t", -mpos[0], 0)
 //        UFX.draw("t", -mpos[0], 0, "z -1 1 t", mpos[0], 0)
         context.drawImage(this.buffer, 0, 0, settings.sx, settings.sy)
@@ -168,8 +175,8 @@ GameScene.think = function (dt, mpos, clicked) {
             this.preptime = 0
         }
         var text = "click to begin", x = settings.sx / 2, y = settings.sy / 2
-        context.font = "48px bold Arial"
-        UFX.draw("b textalign center textbaseline middle fs white ss black lw 0.5")
+        context.font = settings.font1
+        UFX.draw("b textalign center textbaseline middle fs white ss black lw 1")
         context.fillText(text, x, y)
         context.strokeText(text, x, y)
     }
@@ -190,8 +197,8 @@ GameScene.think = function (dt, mpos, clicked) {
         UFX.draw("b o", this.ball.x, this.ball.y, this.ball.R, "fs red f ss black lw 1.5 s")
         var text = this.skipclicks == 2 ? "click twice to restart" : "click to restart"
         var x = settings.sx / 2, y = 40
-        context.font = "48px bold Arial"
-        UFX.draw("b textalign center textbaseline middle fs white ss black lw 0.5")
+        context.font = settings.font1
+        UFX.draw("b textalign center textbaseline middle fs white ss black lw 1")
         context.fillText(text, x, y)
         context.strokeText(text, x, y)
     }
@@ -201,8 +208,8 @@ GameScene.think = function (dt, mpos, clicked) {
         UFX.draw("b o", x, y, 30, "fs rgb(0,128,0) f")
         UFX.draw("( m", x, y, "a", x, y, 30, -1.57, -1.57-d, "fs rgb(128,0,0) ) f")
         UFX.draw("b o", x, y, 30, "m", x, y - 35, "l", x, y + 35, "m", x-35, y, "l", x + 35, y, "ss gray lw 2 s")
-        context.font = "48px bold Arial"
-        UFX.draw("b textalign center textbaseline middle fs white ss black lw 0.5")
+        context.font = settings.font1
+        UFX.draw("b textalign center textbaseline middle fs white ss black lw 1")
         context.fillText(text, x, y)
         context.strokeText(text, x, y)
     }
