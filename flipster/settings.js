@@ -1,5 +1,5 @@
 var settings = {
-    sx: 700,
+    sx: 800,
     sy: 600,
     showpoints: false,  // show collision points (for debugging)
     psep: 4,     // point separation
