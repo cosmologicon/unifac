@@ -67,13 +67,13 @@ var levels = [
         [[600, 250], [700, 350], [600, 450], [500, 350]]
     ),
 
+    new Level(300, 440, 6, 100,  // square you have to carve a ramp out of 
+        [[200, 200], [400, 200], [400, 400], [200, 400]]
+    ),
+
     new Level(400, 400, 20, 100,  // two long rectangles - make a hole in each
         [[40, 160], [760, 160], [760, 240], [40, 240]],
         [[40, 460], [760, 460], [760, 540], [40, 540]]
-    ),
-
-    new Level(100, 700, 10, 100,  // long triangle to tunnel through
-        [[20, 350], [20, 550], [780, 550]]
     ),
 
     new Level(400, 400, 8, 100,  // two jagged concave hexagons
@@ -81,8 +81,8 @@ var levels = [
         [[780, 120], [520, 120], [520, 360], [360, 320], [360, 500], [780, 500]]
     ),
 
-    new Level(300, 440, 6, 100,  // square you have to carve a ramp out of 
-        [[200, 200], [400, 200], [400, 400], [200, 400]]
+    new Level(100, 700, 10, 100,  // long triangle to tunnel through
+        [[20, 350], [20, 550], [780, 550]]
     ),
 
     new Level(150, 700, 3, 150,  // triangle you really have to launch way to the right from

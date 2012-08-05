@@ -43,6 +43,7 @@ p {
 <script src="../UFX/src/noise.js"></script>
 
 <!-- game code -->
+<script src="walkthrough.js"></script>
 <script src="settings.js"></script>
 <script src="levels.js"></script>
 <script src="physics.js"></script>
@@ -68,9 +69,10 @@ ball will make it to the goal.
 <p>To cheat:
 <br>F1: previous level
 <br>F2: next level
+<br>F3: walkthrough of current level
 
 <td>
-<canvas id=canvas style="border: medium yellow outset"></canvas>
+<canvas id=canvas style="border: medium gray outset"></canvas>
 
 </table>
 
@@ -91,7 +93,7 @@ UFX.mouse.init(canvas)
 UFX.key.init()
 UFX.key.qup = false
 UFX.key.qdown = true
-UFX.key.watchlist = "F1 F2".split(" ")
+UFX.key.watchlist = "F1 F2 F3".split(" ")
 
 var music = null
 function setmusic() {

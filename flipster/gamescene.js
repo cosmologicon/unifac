@@ -14,9 +14,19 @@ GameScene.start = function () {
     this.titlex = 1000
     this.fadealpha = 1
     this.winmode = levelnumber === levels.length - 1
+    this.walkmode = false
     this.tpool = 0
     this.skipclicks = 2
-    this.csize = 1    
+    this.csize = 1
+    
+    if (settings.savewalkthrough) {
+        if (this.winmode) {
+            window.location = "data:text/plain," + JSON.stringify(walkthrough)
+        } else {
+            UFX.scene.record = []
+            UFX.scene.recording = true
+        }
+    }
 }
 
 GameScene.addball = function (x, y, R) {
@@ -42,6 +52,7 @@ GameScene.setblocks = function () {
 
 
 GameScene.drawbuffer = function () {
+    UFX.random.seed = levelnumber * 14045
     var noisecanvas = document.createElement("canvas")
     var w = settings.sx / 2, h = settings.sy / 2
     noisecanvas.width = w ; noisecanvas.height = h
@@ -49,13 +60,16 @@ GameScene.drawbuffer = function () {
     var idata = noisecontext.createImageData(w, h)
     var data = idata.data
     var ndata = UFX.noise.wrap2d([256, 256])
-    UFX.noise.fractalize(ndata, [256, 256], 2)
+    for (var j = 0 ; j < ndata.length ; ++j) ndata[j] = Math.sin(20 * ndata[j])
+//    UFX.noise.fractalize(ndata, [256, 256], 2)
+    var r0 = UFX.random(30, 50), g0 = UFX.random(40, 80), b0 = UFX.random(80, 160)
+    var dr = UFX.random(-40, 40), dg = UFX.random(-60, 60), db = UFX.random(70, 100)
     for (var y = 0, j = 0, k = 0 ; y < h ; ++y) {
         for (var x = 0 ; x < w ; ++x, ++k, j += 4) {
             var v = ndata[x % 256 + y % 256 * 256]
-            data[j] = 20 - 10 * v
-            data[j+1] = 1
-            data[j+2] = 120 + 80 * v
+            data[j] = r0 + dr * v
+            data[j+1] = g0 + dg * v
+            data[j+2] = b0 + db * v
             data[j+3] = 255
         }
     }
@@ -66,9 +80,12 @@ GameScene.drawbuffer = function () {
     this.backdrop.width = settings.sx
     this.backdrop.height = settings.sy
     var grad = context.createLinearGradient(0, 0, settings.sx, settings.sy)
-    grad.addColorStop(0, "rgb(100,0,0)")
-    grad.addColorStop(0.5, "rgb(20,0,20)")
-    grad.addColorStop(1, "rgb(0,0,100)")
+    var color0 = "rgb(" + UFX.random.rand(40) + "," + UFX.random.rand(80) + "," + UFX.random.rand(120) + ")"
+    var color1 = "rgb(" + UFX.random.rand(40) + "," + UFX.random.rand(80) + "," + UFX.random.rand(120) + ")"
+    var color2 = "rgb(" + UFX.random.rand(40) + "," + UFX.random.rand(80) + "," + UFX.random.rand(120) + ")"
+    grad.addColorStop(0, color0)
+    grad.addColorStop(0.5, color1)
+    grad.addColorStop(1, color2)
     this.backgrad = grad
     UFX.draw(this.backcon, "fs", grad, "fr 0 0", settings.sx, settings.sy)
     this.backtheta = 0
@@ -91,9 +108,20 @@ GameScene.thinkargs = function (dt) {
     UFX.mouse.events().forEach(function (event) {
         if (event.type === "up") clicked = true
     })
-    return [dt, UFX.mouse.pos, clicked, UFX.key.state().down]
+    var mpos = UFX.mouse.pos && [UFX.mouse.pos[0], UFX.mouse.pos[1]]
+    return [dt, mpos, clicked, UFX.key.state().down]
 }
 GameScene.think = function (dt, mpos, clicked, kdown) {
+    if (!dt) return
+    if (this.walkmode) {
+        var args = this.thinkargs(0)
+        if (args[2] || (args[3] && args[3].F3)) {
+            this.start()
+            UFX.scene.replaying = false
+            UFX.scene.jrecord = 0
+            return
+        }
+    }
     if (kdown && kdown.F1) {
         levelnumber = Math.max(0, levelnumber - 1)
         this.start()
@@ -101,7 +129,17 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
     } else if (kdown && kdown.F2) {
         levelnumber = Math.min(levelnumber + 1, levels.length - 1)
         this.start()
-        return    
+        return
+    } else if (kdown && kdown.F3) {
+        if (walkthrough[levelnumber]) {
+            this.start()
+            UFX.scene.record = walkthrough[levelnumber]
+            UFX.scene.replaying = true
+            UFX.scene.recording = false
+            UFX.scene.jrecord = 0
+            this.walkmode = true
+            return
+        }
     }
 
 
@@ -167,6 +205,9 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
                 if (ball.y > settings.sy - 10 && ball.y < settings.sy &&
                     Math.abs(this.level.endx - ball.x) < this.level.goalwidth / 2) {
                     playsound("success")
+                    if (settings.savewalkthrough) {
+                        walkthrough[levelnumber] = UFX.scene.record
+                    }
                     levelnumber += 1
                     if (levelnumber >= levels.length) {
                         alert("you beat the game!")
@@ -197,10 +238,6 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
         if (clicked) this.skipclicks -= 1
     }
 
-/*    this.backtheta += dt
-    var sx = settings.sx, sy = settings.sy
-    UFX.draw(this.backcon, "[ t", sx/2, sy/2, "r", this.backtheta, "t", -sx/2, -sy/2, "fs", this.backgrad, "fr", -sx, -sy, 3*sx, 3*sy, "]")*/
-
     context.drawImage(this.backdrop, 0, 0, settings.sx, settings.sy)
     context.drawImage(this.buffer, 0, 0, settings.sx, settings.sy)
 
@@ -213,6 +250,7 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
     } else {
         var pointtime = false, vaper = false
     }
+    canvas.style.cursor = vaper && this.mode === "prepare" && !this.walkmode ? "none" : "default"
 
     if ((this.winmode || this.mode === "prepare") && vaper) {
         UFX.draw("[ b o", mpos, this.csize, "clip")
@@ -262,12 +300,12 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
 
             this.csize = 1
         }
-        var x0 = mpos[0], y0 = mpos[1]
-        UFX.draw("b o", mpos, this.csize)
-        UFX.draw("m", x0, y0 + this.csize + 8, "l", x0, y0 - this.csize - 8)
-        UFX.draw("m", x0 - 20, y0, "l", x0 + 20, y0)
+        // Draw aperture
+        UFX.draw("[ t", mpos, "b o 0 0", this.csize)
+        UFX.draw("m", 0, this.csize + 8, "l", 0, -this.csize - 8)
+        UFX.draw("m -20 0 l 20 0 m -10 3 l -20 0 l -10 -3 m 10 3 l 20 0 l 10 -3")
         
-        UFX.draw("ss white lw 1 s")
+        UFX.draw("ss rgb(255,255,128) lw 2 s ]")
     } else if (this.winmode && pointtime) {
         if (clicked) {
             this.setblocks()
@@ -276,11 +314,13 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
         if (clicked) {
             this.preptime = 0
         }
-        var text = "click to begin", x = settings.sx / 2, y = settings.sy / 2
-        context.font = settings.font1
-        UFX.draw("b textalign center textbaseline middle fs white ss black lw 1")
-        context.fillText(text, x, y)
-        context.strokeText(text, x, y)
+        if (!this.walkmode) {
+            var text = "click to begin", x = settings.sx / 2, y = settings.sy / 2
+            context.font = settings.font1
+            UFX.draw("b textalign center textbaseline middle fs white ss black lw 1")
+            context.fillText(text, x, y)
+            context.strokeText(text, x, y)
+        }
     }
     
     if (settings.showpoints) {
@@ -307,7 +347,7 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
                 "]")
         })
     }
-    if (!this.winmode && this.mode === "act") {
+    if (!this.winmode && !this.walkmode && this.mode === "act") {
         // Draw click to restart dialogue
         var text = this.skipclicks == 2 ? "click twice to restart" : "click to restart"
         var x = settings.sx / 2, y = 40
@@ -328,24 +368,35 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
         UFX.draw("b textalign center textbaseline middle fs white ss black lw 1")
         context.fillText(text, x, y)
         context.strokeText(text, x, y)
-        
-        // Draw scrolling title
-        if (this.titlex > -1000) {
-            this.titlex -= (Math.abs(this.titlex) < 100 ? 200 : 2000) * dt
-            var text = "Level " + (levelnumber + 1), x = settings.sx / 2 + this.titlex, y = settings.sy / 2
-            if (this.winmode) text = "You win!"
-            context.font = settings.titlefont
-            UFX.draw("b textalign center textbaseline middle fs orange ss yellow lw 4")
-            context.fillText(text, x, y)
-            context.strokeText(text, x, y)
-        }
-        // Fade from white
-        if (this.fadealpha > 0) {
-            UFX.draw("[ alpha", this.fadealpha, "fs white fr 0 0", settings.sx, settings.sy, "]")
-            this.fadealpha -= 2 * dt
-        }
     }
-    
+        
+    // dream sequence
+    if (this.walkmode) {
+        if (!this.walkgrad) {
+            this.walkgrad = UFX.draw.radgrad(settings.sx/2, settings.sy/2, 0,
+                settings.sx/2, settings.sy/2, Math.sqrt(settings.sx*settings.sx + settings.sy*settings.sy)/2,
+                0, "rgba(255,255,255,0)", 0.6, "rgba(255,255,255,0.2)", 1, "rgba(255,255,255,0.7)")
+        }
+        UFX.draw("fs", this.walkgrad, "fr 0 0", settings.sx, settings.sy)
+    }
+
+    // Draw scrolling title
+    if (this.titlex > -1000) {
+        this.titlex -= (Math.abs(this.titlex) < 100 ? 200 : 2000) * dt
+        var text = "Level " + (levelnumber + 1), x = settings.sx / 2 + this.titlex, y = settings.sy / 2
+        if (this.winmode) text = "You win!"
+        if (this.walkmode) text = "Walkthrough"
+        context.font = settings.titlefont
+        UFX.draw("b textalign center textbaseline middle fs orange ss yellow lw 4")
+        context.fillText(text, x, y)
+        context.strokeText(text, x, y)
+    }
+
+    // Fade from white
+    if (this.fadealpha > 0) {
+        UFX.draw("[ alpha", this.fadealpha, "fs white fr 0 0", settings.sx, settings.sy, "]")
+        this.fadealpha -= 2 * dt
+    }
 
 }
 

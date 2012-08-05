@@ -2,6 +2,7 @@ var settings = {
     sx: 800,
     sy: 600,
     showpoints: false,  // show collision points (for debugging)
+    savewalkthrough: false,
     psep: 4,     // point separation
     tstep: 0.002,
     font1: "48px Slackey",
