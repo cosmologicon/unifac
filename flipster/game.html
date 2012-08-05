@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Flipster</title>
+<title>Totally Flips</title>
 <link href='http://fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
 <style>
 body {
@@ -26,11 +26,6 @@ p {
     margin: 1em auto 1em;
 }
 
-input {
-    background: inherit; color: inherit; border: none;
-    font-family: inherit; font-size: inherit;
-    width: 20em;
-}
 #canvasbox {
     position: relative;
 }
@@ -57,14 +52,18 @@ input {
 <body>
 <table>
 <tr><td style="padding-right: 20px ; width: 20em">
-<h1>Flipster</h1>
+<h1>Totally Flips</h1>
 <h2>by Christopher Night</h2>
 <h2>Universe Factory games</h2>
+<h2>music by Mary Bichner</h2>
 
 <p>Created in 48 hours for the Bacon Game Jam, August 2012
 <p>
 <p>To play: Click to flip objects or pieces of objects horizontally. Set them up so that the
 ball will make it to the goal.
+
+<p><input id=playmusic name=playmusic type=checkbox checked onclick="setmusic()"> Play music</input>
+<p><input id=playsound name=playsound type=checkbox checked> Play sound</input>
 
 <td>
 <canvas id=canvas style="border: medium yellow outset"></canvas>
@@ -86,9 +85,26 @@ UFX.key.remap({down: "act", space: "act", enter: "act"})
 UFX.key.watchlist = "up left right act esc shift 1 2 3 4 5 6 7 8 9 0 backspace F7 F8 F5".split(" ")*/
 UFX.mouse.init(canvas)
 
+var music = null
+function setmusic() {
+    if (music) music.volume = document.getElementById("playmusic").checked ? 0.5 : 0
+}
+function playsound(soundname) {
+    if (document.getElementById("playsound").checked) {
+        UFX.resource.sounds[soundname].play()
+    }
+} 
 UFX.draw.setcontext(context)
-UFX.scene.init()
-UFX.scene.push(GameScene)
+UFX.resource.onload = function () {
+    music = UFX.resource.sounds.music
+    setmusic()
+    music.loop = true
+    music.play()
+    UFX.scene.init()
+    UFX.scene.push(GameScene)
+}    
+UFX.resource.load({music: "music.ogg", success: "success.ogg", fail: "fail.ogg"})
+
 
 //UFX.scene.recording = true
 //UFX.scene.replaying = true
