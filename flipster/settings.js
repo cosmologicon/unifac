@@ -5,6 +5,7 @@ var settings = {
     psep: 4,     // point separation
     tstep: 0.002,
     font1: "48px Slackey",
+    timefont: "48px 'Kameron'",
     titlefont: "160px Slackey",
 }
 
