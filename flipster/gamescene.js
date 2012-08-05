@@ -321,10 +321,7 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
         }
         if (!this.walkmode) {
             var text = "click to begin", x = settings.sx / 2, y = settings.sy / 2
-            context.font = settings.font1
-            UFX.draw("b textalign center textbaseline middle fs white ss black lw 1")
-            context.fillText(text, x, y)
-            context.strokeText(text, x, y)
+            drawwords(text, x, y, settings.font1, "white", "black")
         }
     }
     
@@ -356,10 +353,7 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
         // Draw click to restart dialogue
         var text = this.skipclicks == 2 ? "click twice to restart" : "click to restart"
         var x = settings.sx / 2, y = 40
-        context.font = settings.font1
-        UFX.draw("b textalign center textbaseline middle fs white ss black lw 1")
-        context.fillText(text, x, y)
-        context.strokeText(text, x, y)
+        drawwords(text, x, y, settings.font1, "white", "black", 1)
     }
     if (this.winmode || this.mode === "prepare") {
         // Draw remaining time meter
@@ -389,12 +383,17 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
     if (this.titlex > -1000) {
         this.titlex -= (Math.abs(this.titlex) < 100 ? 200 : 2000) * dt
         var text = "Level " + (levelnumber + 1), x = settings.sx / 2 + this.titlex, y = settings.sy / 2
+        context.font = settings.titlefont
         if (this.winmode) text = "You win!"
         if (this.walkmode) text = "Walkthrough"
-        context.font = settings.titlefont
-        UFX.draw("b textalign center textbaseline middle fs orange ss yellow lw 4")
-        context.fillText(text, x, y)
-        context.strokeText(text, x, y)
+        if (this.walkmode) context.font = settings.walkfont
+        if (levelnumber == 0) {
+            UFX.draw("b textalign center textbaseline middle fs orange ss yellow lw 3")
+            context.fillText(text, x, y)
+            context.strokeText(text, x, y)
+        } else {
+            drawwords(text, x, y, context.font, "orange", "yellow", 4)
+        }
     }
 
     // Fade from white

@@ -8,6 +8,7 @@ var settings = {
     font1: "48px Slackey",
     timefont: "48px 'Kameron'",
     titlefont: "160px Slackey",
+    walkfont: "80px Slackey",
 }
 
 var mechanics = {
