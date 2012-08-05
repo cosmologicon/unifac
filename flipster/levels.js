@@ -41,6 +41,23 @@ Level.prototype = {
 }
 
 var levels = [
+    new Level(300, 600, 6,  // triangle you have to reverse
+        [[400, 350], [400, 550], [200, 550]]
+    ),
+
+    new Level(300, 440, 6,  // square you have to carve a ramp out of 
+        [[200, 200], [400, 200], [400, 400], [200, 400]]
+    ),
+
+    new Level(200, 540, 8,  // two opposing triangles - move the one on the right
+        [[100, 220], [300, 360], [100, 360]],
+        [[500, 320], [300, 460], [500, 460]]
+    ),
+
+    new Level(400, 400, 20,  // two long rectangles - make a hole in each
+        [[40, 160], [760, 160], [760, 240], [40, 240]],
+        [[40, 460], [760, 460], [760, 540], [40, 540]]
+    ),
     new Level(400, 400, 10, [[400, 300], [500, 400], [400, 500], [300, 400]]),
     new Level(300, 500, 20, [[100, 400], [500, 300], [220, 600]]),
 ]

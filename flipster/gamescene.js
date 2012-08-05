@@ -50,18 +50,15 @@ GameScene.think = function (dt, mpos, clicked) {
         if (this.preptime < 0) {
             this.mode = "act"
             this.skipclicks = 2
+            this.tpool = 0
         }
     } else if (this.mode === "act") {
         var oldx = this.ball.x, oldy = this.ball.y
-        if (oldy > settings.sy && Math.abs(this.level.endx - oldx) < this.level.goalwidth / 2) {
-            alert("victory!")
-            this.start()
-            return
-        } else if (this.tstill > 0.5 || oldy > settings.sy + 100 || this.skipclicks <= 0) {
+        if (this.tstill > 0.5 || oldy > settings.sy + 100 || this.skipclicks <= 0) {
             this.start()
             return
         }
-        
+
         var ball = this.ball
         var x = ball.x, y = ball.y
         var v = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy)
@@ -71,11 +68,13 @@ GameScene.think = function (dt, mpos, clicked) {
         var closepoints = this.points.filter(function(p) {
             return (p[0] - x) * (p[0] - x) + (p[1] - y) * (p[1] - y) < Rplus2
         })
+        this.tpool += dt
 
-        for (var jt = 0 ; jt < 10 ; ++jt) {
-            ball.vy += mechanics.g * dt / 10.
-            ball.x += ball.vx * dt / 10.
-            ball.y += ball.vy * dt / 10.
+        while (this.tpool > settings.tstep) {
+            this.tpool -= settings.tstep
+            ball.vy += mechanics.g * settings.tstep
+            ball.x += ball.vx * settings.tstep
+            ball.y += ball.vy * settings.tstep
             
             closepoints.forEach(function (point) {
                 var x0 = point[0], y0 = point[1]
@@ -85,12 +84,19 @@ GameScene.think = function (dt, mpos, clicked) {
                 var p = -(1 + mechanics.elasticity) * (ball.vx * dx + ball.vy * dy) / (dx * dx + dy * dy)
                 ball.vx += p * dx
                 ball.vy += p * dy
+                ball.vx *= mechanics.friction
+                ball.vy *= mechanics.friction
                 var df = ball.R / Math.sqrt(dx * dx + dy * dy) - 1
                 if (df > 0) {
                     ball.x -= df * dx
                     ball.y -= df * dy
                 }
             })
+            if (ball.y > settings.sy && Math.abs(this.level.endx - ball.x) < this.level.goalwidth / 2) {
+                alert("victory!")
+                this.start()
+                return
+            }
         }
 
         
