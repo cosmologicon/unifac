@@ -50,18 +50,38 @@ var LevelsOut = {
     }
 }*/
 
-var Crashes = {
+var Rocks = {
+    init: function (omega, beta) {
+        this.rockomega = omega || 1.
+        this.rockbeta = beta || 0.3
+    },
     think: function (dt) {
-        if (this.alive && this.y <= 0) {
-            this.alive = false
-        }
+        if (this.rockphi === undefined) this.rockphi = UFX.random(tau)
+        this.rockphi += dt * this.state.rockomega
+    },
+    draw: function () {
+        context.rotate(this.state.rockbeta * Math.sin(this.rockphi))
     },
 }
 
-function drawinvader(obj) {
-//    DrawCircle.draw.apply({ size: 8, color: "white" })
-//    UFX.draw("m 0 0 l", obj.vx*0.3, obj.vy*0.3, "lw 1 ss white s")
+var SpringStepper = {
+    init: function (omega, smax, hmax) {
+        this.springomega = omega || 1.
+        this.springsmax = smax || 0.3
+        this.springhmax = hmax || 3
+    },
+    think: function (dt) {
+        if (this.springphi === undefined) this.springphi = UFX.random(tau)
+        this.springphi += dt * this.state.springomega
+    },
+    draw: function () {
+        var s = this.state.springsmax * Math.sin(this.springphi)
+        var h = this.state.springhmax * Math.cos(this.springphi)
+        context.translate(0, h)
+        context.scale(1+s, 1-s)
+    },
 }
+
 
 var PortalState = {
     enter: function () {
@@ -74,7 +94,6 @@ var PortalState = {
     },
     draw: function () {
         this.portal.setclip()
-        drawinvader(this)
     },
 }
 
@@ -88,7 +107,6 @@ var DriftState = {
         this.y += this.vy * dt
     },
     draw: function () {
-        drawinvader(this)
     },
 }
 
@@ -114,38 +132,11 @@ var TargetState = {
         }
     },
     draw: function () {
-        drawinvader(this)
     },
 }
-/*
-function swoop (obj, dx, dy) {
-    return {
-        x0: obj.x,
-        y0: obj.y,
-        x1: obj.x + dx/2,
-        y1: obj.y,
-        x2: obj.x + dx/2,
-        y2: obj.y + dy,
-        x3: obj.x + dx,
-        y3: obj.y + dy,
-        x: function (h) {
-            return (1-h)*(1-h)*(1-h)*this.x0 + 3*h*(1-h)*(1-h)*this.x1 + 3*h*h*(1-h)*this.x2 + h*h*h*this.x3
-        },
-        y: function (h) {
-            return (1-h)*(1-h)*(1-h)*this.y0 + 3*h*(1-h)*(1-h)*this.y1 + 3*h*h*(1-h)*this.y2 + h*h*h*this.y3
-        },
-        len: function () {
-            var p0 = getpos(this.x0, this.y0)
-            for (var j = 1 ; j <= 40 ; ++j) {
-                var p = getpos(this.x(j/40.), this.y(j/40.))
-                
-            }
-        },
-    }
-}*/
 
 // Follow a flight path
-var FlightState = {
+var FlightState = UFX.Thing({
     enter: function () {
         this.path.start()
     },
@@ -158,11 +149,64 @@ var FlightState = {
             this.vx = 0
             this.vy = 0
             this.nextstate = DriftState
+        } else if (UFX.random() * 20 < dt || this.y < 20) {
+            this.nextstate = DrillState
         }
     },
     draw: function () {
-        drawinvader(this)
     },
+})
+.addcomp(Rocks, 3)
+.addcomp(SpringStepper, 8, 0.2)
+
+
+// Drill into the surface
+var DrillState = {
+    enter: function () {
+        this.tdrill = 0
+        this.sdrill = 0
+        this.Adrill = 0
+        this.drill = new DrillLaser(this)
+        effects.push(this.drill)
+    },
+    exit: function () {
+    },
+    think: function (dt) {
+        this.tdrill += dt
+        this.vx = 0
+        this.vy = 0
+        this.sdrill = Math.min(Math.max(this.sdrill + dt * UFX.random(-30, 30), -0.4), 0.4)
+        this.Adrill = Math.min(Math.max(this.Adrill + dt * UFX.random(-20, 20), -0.3), 0.3)
+        if (this.tdrill > 5) {
+            this.nextstate = PenetrateState
+        }
+    },
+    draw: function () {
+        var s = Math.exp(this.sdrill)
+        UFX.draw("t", 0, -10, "z", s, 1/s, "r", this.Adrill, "t", 0, 10)
+    },
+}
+
+var PenetrateState = {
+    enter: function () {
+        this.y0 = this.y
+        this.vy = 100
+    },
+    exit: function () {
+    },
+    think: function (dt) {
+        this.vy -= 400 * dt
+        this.y += this.vy * dt
+        if (this.y < 0) {
+            this.alive = false
+            if (this.drill) this.drill.alive = false
+        }
+    },
+    draw: function () {
+        var s = this.y / this.y0
+        UFX.draw("[ t 0", -this.y - 10, "b m -1000 0 l 1000 0 l 0 1000 ] clip z", s, (s < 0.5 ? 2 : 1/s))
+    },
+
 }
 
 function PathTracer (obj) {
@@ -189,37 +233,20 @@ function PathTracer (obj) {
     }
 }
 
-var Rocks = {
-    init: function (omega, beta) {
-        this.rockomega = omega || 1.
-        this.rockbeta = beta || 0.3
-    },
-    think: function (dt) {
-        if (this.rockphi === undefined) this.rockphi = UFX.random(tau)
-        this.rockphi += dt * this.rockomega
-    },
-    draw: function () {
-        context.rotate(this.rockbeta * Math.sin(this.rockphi))
-    },
+function DrillLaser (obj) {
+    this.obj = obj
+    this.t = 0
+    this.alive = true
+    this.think = function (dt) {
+        this.t += dt
+        while (this.t > 0.4) this.t -= 0.4
+    }
+    this.draw = function () {
+        UFX.draw("r", -this.obj.x, "t", 0, gamestate.worldr, "b m 0 -10 l 0", this.obj.y-10,
+            "ss white lw", this.t * 10, "s ss darkred lw 2 s [ t 0 -10 z 1 0.3 b o 0 0", this.t * 80, "] ss red lw 1 s")
+    }
 }
 
-var SpringStepper = {
-    init: function (omega, smax, hmax) {
-        this.springomega = omega || 1.
-        this.springsmax = smax || 0.3
-        this.springhmax = hmax || 3
-    },
-    think: function (dt) {
-        if (this.springphi === undefined) this.springphi = UFX.random(tau)
-        this.springphi += dt * this.springomega
-    },
-    draw: function () {
-        var s = this.springsmax * Math.sin(this.springphi)
-        var h = this.springhmax * Math.cos(this.springphi)
-        context.translate(0, h)
-        context.scale(1+s, 1-s)
-    },
-}
 
 var DrawAphid = {
     draw: function () {
@@ -248,12 +275,11 @@ Aphid.prototype = UFX.Thing()
 //                    .addcomp(ClipsToPortal)
                     .addcomp(WorldBound)
 //                    .addcomp(EntersThroughPortal)
-                    .addcomp(Rocks, 3)
-                    .addcomp(SpringStepper, 8, 0.2)
-                    .addcomp(DrawAphid)
+//                    .addcomp(Rocks, 3)
+//                    .addcomp(SpringStepper, 8, 0.2)
                     .addcomp(HasStates, ["think", "draw"])
+                    .addcomp(DrawAphid)
 //                    .addcomp(DrawCircle, "white")
-                    .addcomp(Crashes)
 //                    .addcomp(HasHealth, 1)
 //                    .addcomp(Clonkable, 15, 15)
 //                    .addcomp(CarriesReward, 10)
