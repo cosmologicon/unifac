@@ -29,6 +29,30 @@ var EntersThroughPortal = {
     },
 }*/
 
+var Clonkable = {
+    init: function (width, height) {
+        this.clonkwidth = width || 10
+        this.clonkheight = height || this.width
+    },
+    draw: function () {
+//        context.strokeRect(-this.width, 0, 2*this.width, this.height)
+    },
+    clonk: function (you, dhp) {
+        if (this.hp <= this.dhp) {
+            this.reward += 2 * you.bounces
+            you.bounces += 1
+        }
+        this.takedamage(dhp)
+    },
+}
+
+
+var KillsEffects = {
+    die: function () {
+        if (this.drill) this.drill.alive = false
+    }
+}
+
 var DrawCircle = {
     init: function (color, size) {
         this.color = color || "gray"
@@ -38,17 +62,6 @@ var DrawCircle = {
         UFX.draw("b o 0 0", this.size, "alpha 0.2 fs", this.color, "f alpha 1 ss", this.color, "s")
     },
 }
-/*
-var LevelsOut = {
-    think: function (dt) {
-        if (this.y < 100) {
-            var v = Math.sqrt(this.vx * this.vx + this.vy * this.vy)
-            var a = tau/4.01 * (100 - this.y) / 100.0
-            this.vy = -v * Math.cos(a)
-            this.vx = v * Math.sin(a)
-        }
-    }
-}*/
 
 var Rocks = {
     init: function (omega, beta) {
@@ -98,6 +111,7 @@ var PortalState = {
 }
 
 var DriftState = {
+    clonkable: true,
     enter: function () {
     },
     exit: function () {
@@ -111,6 +125,7 @@ var DriftState = {
 }
 
 var TargetState = {
+    clonkable: true,
     enter: function () {
         this.targetx = this.x + UFX.random(-2, 2)
         this.targety = UFX.random(Math.max(1, this.y - 50), this.y + 50)
@@ -137,6 +152,9 @@ var TargetState = {
 
 // Follow a flight path
 var FlightState = UFX.Thing({
+    init: function () {
+        this.clonkable = true
+    },
     enter: function () {
         this.path.start()
     },
@@ -162,6 +180,7 @@ var FlightState = UFX.Thing({
 
 // Drill into the surface
 var DrillState = {
+    clonkable: true,
     enter: function () {
         this.tdrill = 0
         this.sdrill = 0
@@ -197,13 +216,11 @@ var PenetrateState = {
     think: function (dt) {
         this.vy -= 400 * dt
         this.y += this.vy * dt
-        if (this.y < 0) {
-            this.alive = false
-            if (this.drill) this.drill.alive = false
-        }
+        if (this.y < 0 && this.drill) this.drill.alive = false
+        if (this.y < -100) this.alive = false
     },
     draw: function () {
-        var s = this.y / this.y0
+        var s = Math.max(this.y / this.y0, 0.1)
         UFX.draw("[ t 0", -this.y - 10, "b m -1000 0 l 1000 0 l 0 1000 ] clip z", s, (s < 0.5 ? 2 : 1/s))
     },
 
@@ -233,6 +250,12 @@ function PathTracer (obj) {
     }
 }
 
+var HasHangingDrill = {
+    draw: function () {
+        UFX.draw("( m 2 0 l 2 -15 l 4 -17 l 4 -19 l -4 -19 l -4 -17 l -2 -15 l -2 0 ) fs rgb(160,160,80) ss black f s")
+    },
+}
+
 function DrillLaser (obj) {
     this.obj = obj
     this.t = 0
@@ -242,15 +265,75 @@ function DrillLaser (obj) {
         while (this.t > 0.4) this.t -= 0.4
     }
     this.draw = function () {
-        UFX.draw("r", -this.obj.x, "t", 0, gamestate.worldr, "b m 0 -10 l 0", this.obj.y-10,
+        var d = 10
+        UFX.draw("r", -this.obj.x, "t", 0, gamestate.worldr, "b m 0 -10 l 0", this.obj.y-d,
             "ss white lw", this.t * 10, "s ss darkred lw 2 s [ t 0 -10 z 1 0.3 b o 0 0", this.t * 80, "] ss red lw 1 s")
     }
 }
 
+var wpaths = [
+  "lw 0.8 ss black ( m -2 0 l 2 0 l 2 32 l -2 32 ) fs gray f s ( m -4 18 l -4 29 l 4 29 l 4 18 ) fs rgba(180,180,180,1) f s",
+  "lw 0.8 ss black ( m -2 0 l 2 0 l 2 32 l -2 32 ) fs gray f s fs rgba(180,180,180,1) ( m -6 18 l -6 22 l 6 22 l 6 18 ) f s ( m -6 25 l -6 29 l 6 29 l 6 25 ) f s",
+  "lw 0.8 ss black ( m -2 0 l 2 0 l 2 32 l -2 32 ) fs gray f s ( m -8 29 aa 0 29 8 0 3.141 ) fs rgba(180,180,180,1) f s",
+  "lw 0.8 ss black ( m -2 0 l 2 0 l 2 20 l -2 20 ) fs gray f s ( m -5 18 l 0 33 l 5 18 ) fs rgba(180,180,180,1) f s",
+  "lw 0.8 ss black ( m -4 0 l -4 23 l 0 21 l -3 30 l 7 14 l 0 17 l 4 0 ) fs gray f s",
+]
+function Whisker(A, path) {
+    this.A0 = A
+    this.sx = -Math.sin(A)
+    this.sy = Math.cos(A)
+    this.path = this.path || UFX.random.choice(wpaths)
+        
+}
+Whisker.prototype = {
+    draw: function (vx, vy) {
+        var A = this.A0 + 0.005 * Math.min(Math.max(vx * this.sy - vy * this.sx, -100), 100)
+        UFX.draw("[ r", A, this.path, "]")
+    },
+}
+var DrawWhiskers = {
+    init: function (nwhiskers) {
+        this.nwhiskers = 4
+    },
+    draw: function () {
+        if (!this.whiskers) {
+            this.whiskers = []
+            var w = this.whiskers
+            UFX.random.spread1d(this.nwhiskers, 1).forEach(function (p) {
+                w.push(new Whisker((p * 0.8 + 0.6) * tau))
+            })
+        }
+        var vx = this.vx, vy = this.vy
+        if (this.state.springhmax) {
+            vx = 0
+            vy = 20 * this.state.springhmax * Math.cos(this.springphi)
+        } else if (this.state === DrillState) {
+//            vx = UFX.random(-40, 40)
+//            vy = UFX.random(-40, 40)
+            vy = this.sdrill * 200
+            vx = this.Adrill * 200
+
+        }
+        for (var j = 0 ; j < this.whiskers.length ; ++j) this.whiskers[j].draw(vx, vy)
+    },
+}
 
 var DrawAphid = {
+    init: function () {
+        this.aphidpaths = [
+            "ss black lw 1 ( m -7 10 l 7 10 l 7 -10 l -7 -10 ) fs gray f s " +
+            "( m -11 6 l 11 6 l 11 -6 l -11 -6 ) fs rgb(170,170,170) f s " +
+            "lw 0.5 b m -8 -6 l -8 6 m 8 -6 l 8 6 m -5 -6 l -5 6 m 5 -6 l 5 6 m 0 -6 l 0 6 s",
+            
+            "[ vflip ss black lw 1 ( m 0 -9 q -16 -9 -8 2 c 0 14 0 14 8 2 q 16 -9 0 -9 ) fs gray f s " +
+            "lw 0.5 b m 0 -9 c -14 -8 -3 5 0 11 m 0 -9 c 14 -8 3 5 0 11 s " +
+            "lw 1 ( m 3 -10 l -3 -10 l -3 -1 l -11 -1 l -8 4 l 8 4 l 11 -1 l 3 -1 ) fs rgb(170,170,170) f s ]",
+        
+        ]
+    },
     draw: function () {
-        UFX.draw("[ z 2 2 ( m 4 4 l -4 4 l -7 0 l -3 -1 l -4 -8 l 0 -10 l 4 -8 l 3 -1 l 7 0 ) lw 0.6 fs gray ss black f s ]")
+        if (!this.aphidpath) this.aphidpath = UFX.random.choice(this.aphidpaths)
+        UFX.draw(this.aphidpath)
     },
 }
 
@@ -275,13 +358,14 @@ Aphid.prototype = UFX.Thing()
 //                    .addcomp(ClipsToPortal)
                     .addcomp(WorldBound)
 //                    .addcomp(EntersThroughPortal)
-//                    .addcomp(Rocks, 3)
-//                    .addcomp(SpringStepper, 8, 0.2)
+//                    .addcomp(HasHangingDrill)
                     .addcomp(HasStates, ["think", "draw"])
+                    .addcomp(DrawWhiskers, 4)
                     .addcomp(DrawAphid)
 //                    .addcomp(DrawCircle, "white")
-//                    .addcomp(HasHealth, 1)
-//                    .addcomp(Clonkable, 15, 15)
+                    .addcomp(HasHealth, 1)
+                    .addcomp(Clonkable, 15, 5)
+                    .addcomp(KillsEffects)
 //                    .addcomp(CarriesReward, 10)
 //                    .addcomp(Shatters)
 

@@ -301,7 +301,7 @@ LaunchesYou = {
             var oldpos = this.oldxform.localpos(oldx, oldy)
             if (oldpos[1] > 0) {
                 sprite.nextstate = SpringState
-                sprite.vy = 300
+                sprite.vy = 250
                 sprite.springtime = 0.1
                 this.takeimpulse(0, -500, x, y)
                 this.vpx = sprite.vx * 0.4 + x * 4
@@ -543,6 +543,7 @@ function BlockTower(x) {
     this.x = x
     this.y = 0
     this.initblocks()
+    /*
     this.addblock(NormalBlock)
     this.blocks[1].setxform0(0, 60, 0)
     this.addblock(Splitter, null)
@@ -561,6 +562,8 @@ function BlockTower(x) {
     this.addblock(Splitter, this.blocks[6])
     this.addblock(Splitter, this.blocks[7])
     this.addblock(NormalBlock, this.blocks[8])
+    */
+    this.addblock(LaunchBlock)
     this.alive = true
     this.think(0)
 }
@@ -568,8 +571,8 @@ BlockTower.prototype = UFX.Thing()
                     .addcomp(WorldBound)
                     .addcomp(MadeOfBlocks)
                     .addcomp(InteractsWithYou)
-                    .addcomp(CanUpgrade, "tower")
-                    .addcomp(CanDemolish)
+//                    .addcomp(CanUpgrade, "tower")
+//                    .addcomp(CanDemolish)
 
 
 
