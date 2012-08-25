@@ -77,6 +77,15 @@ Island.prototype = {
         this.trace(1, settings.hfac)
         UFX.draw("clip fs rgb(120,60,0) f ] ss rgb(180,90,0) lw 6 s")
     },
+    drawfootprint: function () {
+        this.trace(settings.hfac, settings.hfac)
+        context.miterLimit = 100
+        var d = 20
+        var t = (Date.now() % 2000) / 2000
+        UFX.draw("ss rgba(255,255,255," + 0.08 * (1-t) + ") lw", d*(3+t), "s")
+        UFX.draw("ss rgba(255,255,255,0.08)")
+        UFX.draw("lw", d*(2+t), "s lw", d*(1+t), "s lw", d*t, "s")
+    },
 }
 
 function explore(x0, x1) {
