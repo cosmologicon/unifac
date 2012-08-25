@@ -17,8 +17,9 @@ GameScene.thinkargs = function (dt) {
 GameScene.think = function (dt, kpressed) {
     if (morbels.length < 40 && UFX.random() < dt) {
         var x = UFX.random(camera.xmin, camera.xmax)
-        if (getheight(x) < 0) {
-            morbels.push(new Flopper(x, getheight(x)))
+        if (getheight(x) > 0) {
+//            morbels.push(new Flopper(x))
+            morbels.push(new Flapper(x, UFX.random(200, 300)))
         }
     }
 
