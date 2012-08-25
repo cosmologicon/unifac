@@ -7,29 +7,43 @@ GameScene.start = function () {
     this.skygrad = UFX.draw.lingrad(0, 0, 0, 1, 0, "rgb(40,40,40)", 0.1, "rgb(20,40,0)", 1, "rgb(20,40,0)")
     
     morbels = []
+    effects = []
 }
 
 GameScene.thinkargs = function (dt) {
     var kstate = UFX.key.state()
-    return [Math.min(dt, 0.1), kstate.pressed]
+    return [Math.min(dt, 0.1), kstate.pressed, kstate.down]
 }
 
-GameScene.think = function (dt, kpressed) {
+GameScene.think = function (dt, kpressed, kdowns) {
     if (morbels.length < 40 && UFX.random() < dt) {
         var x = UFX.random(camera.xmin, camera.xmax)
-        if (getheight(x) > 0) {
+        if (getheight(x) < 0) {
+            morbels.push(new Hopper(x))
 //            morbels.push(new Flopper(x))
-            morbels.push(new Yapper(x))
 //            morbels.push(new Flapper(x, UFX.random(200, 300)))
+//            morbels.push(new Yapper(x))
         }
+    }
+    You.move(kpressed)
+    if (kdowns.act) {
+        morbels.forEach(function (morbel) {
+            if (morbel.nearyou()) {
+                morbel.activate()
+            }
+        })
     }
 
     camera.think(dt)
-    You.move(kpressed)
     morbels.forEach(function (morbel) { morbel.think(dt) })
     You.think(dt)
+    effects.forEach(function (effect) { effect.think(dt) })
     camera.x0 = You.x
     camera.y0 = You.y
+
+    function isalive (obj) { return obj.alive }
+    morbels = morbels.filter(isalive)
+    effects = effects.filter(isalive)
 }
 
 GameScene.draw = function () {
@@ -45,6 +59,7 @@ GameScene.draw = function () {
     function draw(obj) { if (obj.isvisible()) { context.save() ; obj.draw() ; context.restore() } }
     morbels.forEach(draw)
     draw(You)
+    effects.forEach(draw)
 
 //    UFX.draw("[ alpha 0.5 fs purple fr 0", settings.sy - camera.y0 + 20, settings.sx, settings.sy, "]")
     UFX.draw("]")

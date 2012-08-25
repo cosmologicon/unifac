@@ -33,6 +33,12 @@ function getheight(x) {
     var d = x / twidth - n0
     return heights[n0] * (1-d) + heights[n1] * d
 }
+function getgrad(x) {
+    x = (x % altx0 + altx0) % altx0
+    var n0 = Math.floor(x / twidth) % nheight
+    var n1 = (n0 + 1) % nheight
+    return (heights[n0] - heights[n1]) / twidth
+}
 
 
 // the island that's above sea level at coordinate x
