@@ -7,25 +7,28 @@ GameScene.start = function () {
 
 GameScene.thinkargs = function (dt) {
     var kstate = UFX.key.state()
-    return [dt, kstate.pressed]
+    return [Math.min(dt, 0.1), kstate.pressed]
 }
 
 GameScene.think = function (dt, kpressed) {
-    var dkx = (kpressed.right ? 1 : 0) - (kpressed.left ? 1 : 0)
-    var dky = (kpressed.up ? 1 : 0) - (kpressed.down ? 1 : 0)
-    camera.x0 += dkx * dt * 1000
-    camera.y0 -= dky * dt * 200
     camera.think(dt)
+    You.move(kpressed)
+    You.think(dt)
+    camera.x0 = You.x
+    camera.y0 = You.y
 }
 
 GameScene.draw = function () {
     UFX.draw("fs black fr 0 0", settings.sx, settings.sy)
 
-    UFX.draw("[ t 0", 1 + settings.sy - camera.y0 - 100, "z", settings.sx, 1000, "vflip fs", this.skygrad, "fr 0 0 1 1 ]")
-    UFX.draw("[ t 0", settings.sy - camera.y0 - 100, "z", settings.sx, settings.sy, "fs", this.oceangrad, "fr 0 0 1 1 ]")
-    UFX.draw("[ t", -camera.x0, settings.sy - camera.y0, "vflip")
+    UFX.draw("[ t 0", 1 + settings.sy + camera.y0 - settings.cy0 - 100, "z", settings.sx, 1000, "vflip fs", this.skygrad, "fr 0 0 1 1 ]")
+    UFX.draw("[ t 0", settings.sy + camera.y0 - settings.cy0 - 100, "z", settings.sx, settings.sy, "fs", this.oceangrad, "fr 0 0 1 1 ]")
+    UFX.draw("[ t", -camera.x0 + settings.sx / 2, settings.sy + camera.y0 - settings.cy0, "vflip")
     islands.forEach(function (island) { island.drawfootprint() })
     islands.forEach(function (island) { island.draw() })
+
+    context.save() ; You.draw() ; context.restore()
+
 //    UFX.draw("[ alpha 0.5 fs purple fr 0", settings.sy - camera.y0 + 20, settings.sx, settings.sy, "]")
     UFX.draw("]")
 }
