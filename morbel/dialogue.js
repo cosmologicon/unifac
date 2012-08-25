@@ -5,7 +5,7 @@ var dialogue = {
             "My name is Ajax Omari. I am a terraformer.",
             "While performing a routine terraforming on planet Horus 14045b, my ship was struck by an eletrical storm and fell into the ocean. I had to eject.",
             "My life support can hold out for some time, but without a ship, I don't see how I'm going anywhere.",
-            "For now, I find myself on a land mass with one of the meteorological dissipation devices I installed before losing my ship.",
+            "For now, I find myself on an island with one of the meteorological dissipation devices I installed before losing my ship.",
             "It's currently inactive, but If I can activate it, I should be safe from the lightning for now.",
         ],
         [

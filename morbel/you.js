@@ -1,4 +1,50 @@
 
+// States for a state machine - copied from Twondy and Zoop
+var HasStates = {
+    init: function (methodnames) {
+        var methods = {}
+        methodnames.forEach(function (methodname) {
+            methods[methodname] = function () {
+                return this.state[methodname].apply(this, arguments)
+            }
+        })
+        this.addcomp(methods)
+    },
+    // Call this to set the state immediately.
+    // For state changes that should be set at the end of the think cycle, assign to this.nextstate
+    setstate: function (state) {
+        if (this.state) {
+            this.state.exit.call(this)
+        }
+        this.state = state
+        this.state.enter.call(this)
+        this.nextstate = null
+        this.think(0)
+    },
+    updatestate: function () {
+        if (this.nextstate) {
+            this.state.exit.call(this)
+            this.state = this.nextstate
+            this.state.enter.call(this)
+            this.nextstate = null
+            this.think(0)
+        }
+    },
+}
+
+var CanActivate = {
+    move: function (kpress, kdowns) {
+        if (kdowns.act) {
+            morbels.forEach(function (morbel) {
+                if (morbel.nearyou()) {
+                    morbel.activate()
+                }
+            })
+        }
+    },
+}
+
+
 var AlwaysVisible = {
     isvisible: function () {
         return true
@@ -63,7 +109,7 @@ var ControlMove = {
 }
 
 var Hops = {
-    init: function () {
+    enter: function () {
         this.h = 0
         this.vh = 0
     },
@@ -85,22 +131,46 @@ var Hops = {
     },
 }
 
+var RideCarrier = {
+    think: function () {
+        this.x = this.carrier.x
+        this.y = this.carrier.y + 12
+    },
+    draw: function () {
+    
+    }
+}
+
 var DrawYou = {
     draw: function () {
         UFX.draw("b m 0 -8 l 8 20 l -8 20 l 0 -8 o 0 24 4 fs gray f")
     }
 }
 
+var LandState = UFX.Thing()
+    .definemethod("enter")
+    .definemethod("exit")
+    .addcomp(ControlMove)
+    .addcomp(CanActivate)
+    .addcomp(Hops)
+    .addcomp(LandBound)
+    .addcomp(FeelsGravity)
+    .addcomp(DrawYou)
+
+// Carried by a flopper
+var CarriedState = UFX.Thing()
+    .definemethod("enter")
+    .definemethod("exit")
+    .definemethod("move")
+    .addcomp(RideCarrier)
+    .addcomp(DrawYou)
 
 var You = UFX.Thing()
     .addcomp(Earthbound)
     .addcomp(AlwaysVisible)
-    .addcomp(ControlMove)
-    .addcomp(LandBound)
-    .addcomp(FeelsGravity)
-    .addcomp(Hops)
-    .addcomp(DrawYou)
+    .addcomp(HasStates, ["think", "draw", "move"])
 
+You.setstate(LandState)
 You.vy = 0
 You.x = 0
 You.y = 200

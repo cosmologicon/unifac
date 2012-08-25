@@ -19,27 +19,21 @@ GameScene.thinkargs = function (dt) {
 }
 
 GameScene.think = function (dt, kpressed, kdowns) {
-    if (morbels.length < 40 && UFX.random() < dt) {
+    if (morbels.length < 10 && UFX.random() < dt) {
         var x = UFX.random(camera.xmin, camera.xmax)
         if (getheight(x) < 0) {
-            morbels.push(new Hopper(x))
-//            morbels.push(new Flopper(x))
+//            morbels.push(new Hopper(x))
+            morbels.push(new Flopper(x))
 //            morbels.push(new Flapper(x, UFX.random(200, 300)))
 //            morbels.push(new Yapper(x))
         }
     }
-    You.move(kpressed)
-    if (kdowns.act) {
-        morbels.forEach(function (morbel) {
-            if (morbel.nearyou()) {
-                morbel.activate()
-            }
-        })
-    }
+    You.move(kpressed, kdowns)
 
     camera.think(dt)
     morbels.forEach(function (morbel) { morbel.think(dt) })
     You.think(dt)
+    You.updatestate()
     devices.forEach(function (device) { device.think(dt) })
     effects.forEach(function (effect) { effect.think(dt) })
     camera.x0 = You.x
