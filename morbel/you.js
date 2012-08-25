@@ -1,4 +1,19 @@
 
+var AlwaysVisible = {
+    isvisible: function () {
+        return true
+    },
+}
+
+var HorizontalClipping = {
+    init: function (margin) {
+        this.hcmargin = margin || 60
+    },
+    isvisible: function () {
+        return this.x + 60 > camera.xmin && this.x - 60 < camera.xmax
+    },
+}
+
 
 var Earthbound = {
     draw: function () {
@@ -79,6 +94,7 @@ var DrawYou = {
 
 var You = UFX.Thing()
     .addcomp(Earthbound)
+    .addcomp(AlwaysVisible)
     .addcomp(ControlMove)
     .addcomp(LandBound)
     .addcomp(FeelsGravity)
