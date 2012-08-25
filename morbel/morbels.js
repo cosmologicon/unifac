@@ -69,6 +69,24 @@ var FliesAbout = {
     },
 }
 
+var TalksToYou = {
+    init: function (text) {
+        this.text = text || "yello"
+    },
+    think: function (dt) {
+        this.talking = Math.abs(this.x - You.x) < 20
+    },
+    draw: function () {
+        if (this.talking) {
+            context.font = "40px bold Arial"
+            UFX.draw("fs white ss black lw 0.5 [ t 20 30 vflip")
+            context.fillText(this.text, 0, 0)
+            context.strokeText(this.text, 0, 0)
+            UFX.draw("]")
+        }
+    }
+}
+
 
 var AvoidsLand = {
     bounce: function () {
@@ -97,6 +115,13 @@ var PointsUpward = {
     },
 }
 
+var StandsUpward = {
+    draw: function () {
+        var dy = getheight(this.x + 0.5) - getheight(this.x - 0.5)
+        UFX.draw("r", Math.atan2(dy/2, 1))
+    }
+}
+
 var DrawBall = {
     draw: function () {
         UFX.draw("b o 0 8 8 fs rgb(100,0,100) ss rgb(160,0,160) lw 2 f s")
@@ -115,6 +140,16 @@ var DrawBird = {
         UFX.draw("b o 0 0 8 fs rgb(100,0,100) ss rgb(160,0,160) lw 2 f s")
         UFX.draw("( m 5 5 l 14 0 l 20 12 ) f s")
         UFX.draw("( m -5 5 l -14 0 l -20 12 ) f s")
+    }
+}
+
+var DrawGuy = {
+    draw: function () {
+        UFX.draw("fs rgb(100,0,100) ss rgb(160,0,160) lw 2")
+        UFX.draw("( m -8 0 l 8 0 l 0 8 ) f s")
+        UFX.draw("( m 2 5 l 0 13 l 8 16 ) f s")
+        UFX.draw("( m -2 5 l 0 13 l -8 16 ) f s")
+        UFX.draw("b o 0 24 8 f s")
     }
 }
 
@@ -168,5 +203,19 @@ Flapper.prototype = UFX.Thing()
     .addcomp(PointsUpward)
     .addcomp(DrawBird)
 
+
+function Yapper(x) {
+    this.x = x
+    this.y = getheight(x)
+    this.y0 = this.x0 = 0
+    this.alive = true
+    this.think(0)
+}
+Yapper.prototype = UFX.Thing()
+    .addcomp(Earthbound)
+    .addcomp(HorizontalClipping)
+    .addcomp(TalksToYou)
+    .addcomp(StandsUpward)
+    .addcomp(DrawGuy)
 
 
