@@ -10,5 +10,7 @@ var mechanics = {
     hopgravity: 400,
     hopspeed: 100,
     walkspeed: 300,
+    
+    followdist: 100,
 }
 

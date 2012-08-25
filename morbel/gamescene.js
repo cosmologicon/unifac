@@ -1,8 +1,12 @@
 var GameScene = Object.create(UFX.scene.Scene)
 
+var morbels
+
 GameScene.start = function () {
     this.oceangrad = UFX.draw.lingrad(0, 1, 0, 0, 0, "rgb(120,0,120)", 0.7, "rgb(120,0,120)", 1, "rgb(40,40,40)")
     this.skygrad = UFX.draw.lingrad(0, 0, 0, 1, 0, "rgb(40,40,40)", 0.1, "rgb(20,40,0)", 1, "rgb(20,40,0)")
+    
+    morbels = [new Hopper(20, 0), new Hopper(100, 0)]
 }
 
 GameScene.thinkargs = function (dt) {
@@ -13,6 +17,7 @@ GameScene.thinkargs = function (dt) {
 GameScene.think = function (dt, kpressed) {
     camera.think(dt)
     You.move(kpressed)
+    morbels.forEach(function (morbel) { morbel.think(dt) })
     You.think(dt)
     camera.x0 = You.x
     camera.y0 = You.y
@@ -27,7 +32,10 @@ GameScene.draw = function () {
     islands.forEach(function (island) { island.drawfootprint() })
     islands.forEach(function (island) { island.draw() })
 
-    context.save() ; You.draw() ; context.restore()
+
+    function draw(obj) { context.save() ; obj.draw() ; context.restore() }
+    morbels.forEach(draw)
+    draw(You)
 
 //    UFX.draw("[ alpha 0.5 fs purple fr 0", settings.sy - camera.y0 + 20, settings.sx, settings.sy, "]")
     UFX.draw("]")
