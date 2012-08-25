@@ -1,7 +1,7 @@
 var settings = {
     sx: 800,
     sy: 300,
-    cy0: 50,
+    cy0: 120,
     hfac: 0.15,  // horizon factor for islands
 
     showdialogue: true,
@@ -19,7 +19,7 @@ var settings = {
 var mechanics = {
     gravity: 600,
     hopgravity: 400,
-    hopspeed: 100,
+    hopspeed: 80,
     walkspeed: 300,
     
     followdist: 100,

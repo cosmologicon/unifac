@@ -1,7 +1,11 @@
 
 var ReactsNearYou = {
+    init: function (dx, dy) {
+        this.reactx = dx || 80
+        this.reacty = dy || 50
+    },
     nearyou: function () {
-        return Math.abs(this.x - You.x) < 100 && Math.abs(this.y - You.y) < 50
+        return Math.abs(this.x - You.x) < this.reactx && Math.abs(this.y - You.y) < this.reacty
     },
     draw: function () {
         if (this.nearyou()) {
@@ -21,6 +25,38 @@ var Discharges = {
                 device.charge()
             }
         })
+    },
+}
+
+var CarriesYou = {
+    activate: function () {
+        You.carrier = this
+        You.nextstate = CarriedState
+        this.carrybounced = false
+        console.log("carrying")
+    },
+    bounce: function () {
+        if (You.carrier === this) {
+            if (this.carrybounced && getheight(this.x) > 0) {
+                this.alive = false
+                You.nextstate = LandState
+                effects.push(new Splat(this.x, this.y))
+            }
+            this.carrybounced = true
+        }
+    },
+}
+
+var RandomlyDiesOnBounce = {
+    init: function (dieprob) {
+        this.dieprob = dieprob || 0.05
+    },
+    bounce: function () {
+        if (You.carrier !== this && getheight(this.x) < 0) {
+            if (UFX.random() < this.dieprob) {
+                this.alive = false
+            }
+        }
     },
 }
 
@@ -223,6 +259,9 @@ Flopper.prototype = UFX.Thing()
     .addcomp(SwimsAbout)
     .addcomp(AvoidsLand)
     .addcomp(DisappearsUnderwater)
+    .addcomp(ReactsNearYou)
+    .addcomp(CarriesYou)
+    .addcomp(RandomlyDiesOnBounce)
     .addcomp(PointsForward)
     .addcomp(DrawFish)
 

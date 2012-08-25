@@ -23,6 +23,8 @@ heights = fractalize(heights)
 for (var j = 0 ; j < heights.length ; ++j) {
     heights[j] -= sealevel
     heights[j] *= 200
+    if (heights[j] < 0) heights[j] = -15 + heights[j] / 2
+    if (heights[j] > 0) heights[j] += 10
 }
 
 
