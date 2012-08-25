@@ -9,6 +9,8 @@ var camera = {
     think: function (dt) {
         this.xmin = this.x0 - settings.sx / (2.0 * this.zoom)
         this.xmax = this.x0 + settings.sx / (2.0 * this.zoom)
+        
+        explore(this.xmin - 100, this.xmax + 100)
     },
 
 }

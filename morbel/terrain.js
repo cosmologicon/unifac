@@ -1,7 +1,7 @@
 
 
 var nheight = 16384, twidth = 10
-var sealevel = -0.2
+var sealevel = 0
 var altx0 = nheight * twidth
 var heights = UFX.noise.wrap2d([nheight, 1], [256,8])
 
@@ -60,38 +60,63 @@ function Island(x) {
 }
 Island.prototype = {
     isvisible: function () {
-        return this.xmax > camera.xmin || this.xmin < camera.xmax
+        return this.xmax > camera.xmin && this.xmin < camera.xmax
     },
     trace: function (pfac, nfac) {
-        UFX.draw("( m", this.x[0], this.y[0])
+        UFX.draw("m", this.x[0], this.y[0])
         for (var j = 1 ; j < this.n ; ++j) {
             UFX.draw("l", this.x[j], this.y[j] * pfac)
         }
-        for (var j = this.n - 1 ; j >= 1 ; --j) {
+        for (var j = this.n - 2 ; j >= 0 ; --j) {
             UFX.draw("l", this.x[j], -this.y[j] * nfac)
         }
-        UFX.draw(")")
+        UFX.draw("l", this.x[1], this.y[1] * pfac)
     },
     draw: function () {
-        UFX.draw("[")
+        UFX.draw("[ b")
         this.trace(1, settings.hfac)
         UFX.draw("clip fs rgb(120,60,0) f ] ss rgb(180,90,0) lw 6 s")
     },
     drawfootprint: function () {
         this.trace(settings.hfac, settings.hfac)
-        context.miterLimit = 100
-        var d = 20
-        var t = (Date.now() % 2000) / 2000
-        UFX.draw("ss rgba(255,255,255," + 0.08 * (1-t) + ") lw", d*(3+t), "s")
-        UFX.draw("ss rgba(255,255,255,0.08)")
-        UFX.draw("lw", d*(2+t), "s lw", d*(1+t), "s lw", d*t, "s")
     },
 }
 
-function explore(x0, x1) {
-
+function drawwaves () {
+    UFX.draw("b")
+    islands.forEach(function (island) {
+        if (island.isvisible) {
+            island.trace(settings.hfac, settings.hfac)
+        }
+    })
+    context.miterLimit = 100
+    var d = 20
+    var t = (Date.now() % 2000) / 2000
+    UFX.draw("ss rgba(255,255,255," + 0.08 * (1-t) + ") lw", d*(3+t), "s")
+    UFX.draw("ss rgba(255,255,255,0.08)")
+    UFX.draw("lw", d*(2+t), "s lw", d*(1+t), "s lw", d*t, "s")
 }
-var islands = [new Island(0)]
+
+var exploredmin = 0, exploredmax = 0
+function explore(x0, x1) {
+    while (x0 < exploredmin) {
+        exploredmin -= twidth
+        if (getheight(exploredmin) > 0) {
+            var island = new Island(exploredmin)
+            islands.push(island)
+            exploredmin = island.xmin
+        }
+    }
+    while (x1 > exploredmax) {
+        exploredmax += twidth
+        if (getheight(exploredmax) > 0) {
+            var island = new Island(exploredmax)
+            islands.push(island)
+            exploredmax = island.xmax
+        }
+    }
+}
+var islands = []
 
 
 
