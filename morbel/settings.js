@@ -23,5 +23,6 @@ var mechanics = {
     walkspeed: 300,
     
     followdist: 100,
+    launchspeed: 550,
 }
 
