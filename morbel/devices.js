@@ -12,6 +12,7 @@ Device.prototype = UFX.Thing()
     .definemethod("think")
     .addcomp(Earthbound)
     .addcomp(HorizontalClipping)
+    .addcomp(DisappearsUnderwater)
     .addcomp(StandsUpward)
     .addcomp({
         charge: function () {

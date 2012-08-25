@@ -127,7 +127,7 @@ var Hops = {
     },
     draw: function () {
         if (this.y < getheight(this.x) + 10) {
-            context.rotate(this.vh * 0.005)
+            context.rotate(this.vh * 0.002)
             context.translate(0, this.h)
         }
     },
@@ -145,17 +145,12 @@ var RideCarrier = {
 
 var DrawYou = {
     draw: function () {
-/*        UFX.draw("lw 1 ss black fs gray [ z 0.8 1 b o 0 17 12 ] f s")
-        UFX.draw("[ z 0.8 1 b o 0 17 12 ] f s")
-        UFX.draw("[ b o 0 32 9 f s clip fs rgb(200,200,255) fr -2 36 10 -7 ]")*/
         if (camera.zoom < 3) {
             UFX.draw("vflip")
             context.drawImage(UFX.resource.images.youz5, -96/5, -282/5)
-            UFX.draw("b o 0 0 2 fs orange f")
         } else {
             UFX.draw("z 0.2 -0.2")
             context.drawImage(UFX.resource.images.you, -96, -282)
-            UFX.draw("b o 0 0 10 fs orange f")
         }
     }
 }
