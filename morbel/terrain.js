@@ -4,6 +4,7 @@ var nheight = 16384, twidth = 10
 var sealevel = 0
 var altx0 = nheight * twidth
 var heights = UFX.noise.wrap2d([nheight, 1], [256,8])
+var bheights = UFX.noise.wrap2d([nheight, 1], [256,4])
 
 
 // 1-dimensional fractalization
@@ -28,12 +29,13 @@ for (var j = 0 ; j < heights.length ; ++j) {
 }
 
 
-function getheight(x) {
+function getheight(x, hmap) {
+    hmap = hmap || heights
     x = (x % altx0 + altx0) % altx0
     var n0 = Math.floor(x / twidth) % nheight
     var n1 = (n0 + 1) % nheight
     var d = x / twidth - n0
-    return heights[n0] * (1-d) + heights[n1] * d
+    return hmap[n0] * (1-d) + hmap[n1] * d
 }
 function getgrad(x) {
     x = (x % altx0 + altx0) % altx0
@@ -44,21 +46,23 @@ function getgrad(x) {
 
 
 // the island that's above sea level at coordinate x
-function Island(x) {
+function Island(x, hmap, zoom) {
+    this.hmap = hmap
+    this.zoom = zoom
     var n0 = Math.floor(x / twidth + 0.5)
-    while (getheight((n0 - 1) * twidth) > 0) n0 -= 1
+    while (getheight((n0 - 1) * twidth, hmap) > 0) n0 -= 1
     var n1 = n0
-    while (getheight((n1 + 1) * twidth) > 0) n1 += 1
+    while (getheight((n1 + 1) * twidth, hmap) > 0) n1 += 1
     this.n0 = n0  // min index that's above sea level
     this.n1 = n1  // max index that's above sea level
-    var d = getheight(n0*twidth) / (getheight(n0*twidth)-getheight((n0-1)*twidth))
+    var d = getheight(n0*twidth, hmap) / (getheight(n0*twidth, hmap)-getheight((n0-1)*twidth, hmap))
     this.xmin = ((n0-1)*d + n0*(1-d)) * twidth
-    d = getheight(n1*twidth) / (getheight(n1*twidth)-getheight((n1+1)*twidth))
+    d = getheight(n1*twidth, hmap) / (getheight(n1*twidth, hmap)-getheight((n1+1)*twidth, hmap))
     this.xmax = ((n1+1)*d + n1*(1-d)) * twidth
     this.x = [this.xmin]
     this.y = [0]
     for (var n = n0 ; n <= n1 ; ++n) {
-        var x = n * twidth, y = getheight(x)
+        var x = n * twidth, y = getheight(x, hmap)
         this.x.push(x)
         this.y.push(y)
     }
@@ -110,7 +114,7 @@ function explore(x0, x1) {
     while (x0 < exploredmin) {
         exploredmin -= twidth
         if (getheight(exploredmin) > 0) {
-            var island = new Island(exploredmin)
+            var island = new Island(exploredmin, heights, 1)
             islands.push(island)
             exploredmin = island.xmin
         }
@@ -118,13 +122,13 @@ function explore(x0, x1) {
     while (x1 > exploredmax) {
         exploredmax += twidth
         if (getheight(exploredmax) > 0) {
-            var island = new Island(exploredmax)
+            var island = new Island(exploredmax, heights, 1)
             islands.push(island)
             exploredmax = island.xmax
         }
     }
 }
-var islands = []
+var islands = [], backislands = []
 
 
 

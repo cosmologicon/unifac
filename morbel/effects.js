@@ -41,3 +41,37 @@ Splat.prototype = UFX.Thing()
             UFX.draw("z 1 0.5 b o 0 0", this.t * 100, "lw 5 ss purple s")
         },
     })
+
+function Windmill(x, y) {
+    this.t = 0
+    this.x = x
+    this.y = y
+    this.alive = true
+    this.think(0)
+}
+Windmill.prototype = UFX.Thing()
+    .addcomp(Earthbound)
+    .addcomp(AlwaysVisible)
+    .addcomp(DiesAfter, 2)
+    .addcomp({
+        draw: function () {
+            var A = 10 * this.t * this.t
+            UFX.draw("t 0", this.t * 70 + 16, "r", A, "t 0 -16")
+        },
+    })
+    .addcomp(DrawGear)
+    .addcomp({
+        think: function (dt) {
+            var x = this.x
+            devices.forEach(function (device) {
+                var dx = device.x - x
+                if (Math.abs(dx) < 120) {
+                    device.x += 4000 * dt / (40 + Math.abs(dx)) * (dx > 0 ? 1 : -1)
+                    device.y = getheight(device.x)
+                }
+            })
+        },
+    })
+
+
+

@@ -43,6 +43,13 @@ var LaunchesYou = {
     },
 }
 
+var WhipsItGood = {
+    activate: function () {
+        effects.push(new Windmill(this.x, this.y + 16))
+        this.alive = false
+    },
+}
+
 var CarriesYou = {
     activate: function () {
         You.carrier = this
@@ -94,8 +101,8 @@ var FollowsYou = {
 
 var DisappearsUnderwater = {
     draw: function () {
-        if (this.y < 10) {
-            UFX.draw("( m -100", -this.y, "l 100", -this.y, "l 0 100 ) clip")
+        if (this.y < 40) {
+            UFX.draw("( m -1000", -this.y, "l 1000", -this.y, "l 0 1000 ) clip")
         }
     },
 }
@@ -234,7 +241,7 @@ var PointsUpward = {
 
 var StandsUpward = {
     draw: function () {
-        UFX.draw("r", Math.atan2(0.5 * getgrad(this.x), 1))
+        UFX.draw("r", -Math.atan2(0.5 * getgrad(this.x), 1))
     }
 }
 
@@ -269,6 +276,17 @@ var DrawWheel = {
         UFX.draw("( m -8 0 l -16 8 l -16 -8 ) f s")
     }
 }
+
+var DrawGear = {
+    draw: function () {
+        UFX.draw("t 0 16 r", -this.x / 16)
+        UFX.draw("b o 0 0 8 fs rgb(100,0,100) ss rgb(160,0,160) lw 2 f s")
+        for (var j = 0 ; j < 3 ; ++j) {
+            UFX.draw("[ r", j*2*Math.PI/3, "( m 0 6 l 0 22 l 8 14 ) f s ]")
+        }
+    }
+}
+
 
 var DrawGuy = {
     draw: function () {
@@ -352,6 +370,24 @@ Gripper.prototype = UFX.Thing()
     .addcomp(ReactsNearYou)
     .addcomp(LaunchesYou)
     .addcomp(DrawWheel)
+
+
+function Whipper(x) {
+    this.x = x
+    this.y = getheight(this.x)
+    this.vx = 0
+    this.resting = true
+    this.alive = true
+    this.think(0)
+}
+Whipper.prototype = UFX.Thing()
+    .addcomp(Earthbound)
+    .addcomp(HorizontalClipping)
+    .addcomp(WindsUpRandomly)
+    .addcomp(DisappearsUnderwater)
+    .addcomp(ReactsNearYou)
+    .addcomp(WhipsItGood)
+    .addcomp(DrawGear)
 
 
 function Yapper(x) {
