@@ -9,6 +9,8 @@ GameScene.start = function () {
     morbels = []
     effects = []
     devices = [new Device(-400)]
+    
+    dialogue.init()
 }
 
 GameScene.thinkargs = function (dt) {
@@ -47,6 +49,8 @@ GameScene.think = function (dt, kpressed, kdowns) {
     morbels = morbels.filter(isalive)
     effects = effects.filter(isalive)
     devices = devices.filter(isalive)
+    
+    dialogue.think(dt)
 }
 
 GameScene.draw = function () {
@@ -67,6 +71,8 @@ GameScene.draw = function () {
 
 //    UFX.draw("[ alpha 0.5 fs purple fr 0", settings.sy - camera.y0 + 20, settings.sx, settings.sy, "]")
     UFX.draw("]")
+
+    dialogue.draw()
 
     context.fillStyle = "white"
     context.font = "14px Arial"
