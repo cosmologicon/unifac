@@ -56,6 +56,20 @@ var SwimsAbout = {
     },
 }
 
+var FliesAbout = {
+    init: function (fxmax, fymax) {
+        this.fxmax = fxmax || 200
+        this.fymax = fymax || 200
+    },
+    think: function (dt) {
+        this.vx = Math.min(Math.max(this.vx + dt * 50 * (this.x > this.x0 ? -1 : 1), -this.fxmax), this.fxmax)
+        this.vy = Math.min(Math.max(this.vy + dt * 8 * (this.y > this.y0 ? -1 : 1), -this.fymax), this.fymax)
+        this.y += this.vy * dt
+        this.x += this.vx * dt
+    },
+}
+
+
 var AvoidsLand = {
     bounce: function () {
         if (getheight(this.x) > 0) {
@@ -68,8 +82,18 @@ var AvoidsLand = {
 var PointsForward = {
     draw: function () {
         if (!this.vx && !this.vy) return
-        var A = Math.atan2(this.vy, this.vx)
-        UFX.draw("r", A)
+        UFX.draw("r", Math.atan2(this.vy, this.vx))
+    },
+}
+
+var PointsUpward = {
+    draw: function () {
+        if (!this.vx && !this.vy) return
+        if (this.vx > 0) {
+            UFX.draw("r", Math.atan2(this.vy, this.vx))
+        } else {
+            UFX.draw("hflip r", Math.atan2(this.vy, -this.vx))
+        }
     },
 }
 
@@ -85,6 +109,15 @@ var DrawFish = {
         UFX.draw("( m -8 0 l -16 8 l -16 -8 ) fs rgb(100,0,100) ss rgb(160,0,160) lw 2 f s")
     }
 }
+
+var DrawBird = {
+    draw: function () {
+        UFX.draw("b o 0 0 8 fs rgb(100,0,100) ss rgb(160,0,160) lw 2 f s")
+        UFX.draw("( m 5 5 l 14 0 l 20 12 ) f s")
+        UFX.draw("( m -5 5 l -14 0 l -20 12 ) f s")
+    }
+}
+
 
 function Hopper(x) {
     this.x = x
@@ -103,7 +136,7 @@ Hopper.prototype = UFX.Thing()
     .addcomp(DrawBall)
 
 
-function Flopper(x, y) {
+function Flopper(x) {
     this.x = x
     this.vx = UFX.random.choice([-1, 1]) * UFX.random(80, 140)
     this.bounce()
@@ -118,5 +151,22 @@ Flopper.prototype = UFX.Thing()
     .addcomp(DisappearsUnderwater)
     .addcomp(PointsForward)
     .addcomp(DrawFish)
+
+
+function Flapper(x, y) {
+    this.x0 = this.x = x
+    this.y0 = this.y = y
+    this.vy = UFX.random(10, 20)
+    this.vx = UFX.random.choice([-1, 1]) * UFX.random(80, 140)
+    this.alive = true
+    this.think(0)
+}
+Flapper.prototype = UFX.Thing()
+    .addcomp(Earthbound)
+    .addcomp(HorizontalClipping)
+    .addcomp(FliesAbout)
+    .addcomp(PointsUpward)
+    .addcomp(DrawBird)
+
 
 
