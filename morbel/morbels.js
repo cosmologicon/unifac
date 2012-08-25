@@ -1,11 +1,30 @@
 
+var ReactsNearYou = {
+    nearyou: function () {
+        return Math.abs(this.x - You.x) < 100 && Math.abs(this.y - You.y) < 50
+    },
+    draw: function () {
+        if (this.nearyou()) {
+            UFX.draw("b o 0 20 2 fs white f")
+        }
+    },
+}
+
+var Discharges = {
+    activate: function () {
+        effects.push(new Discharge(this.x, this.y + 10))
+        this.alive = false
+    },
+}
+
+
 var FollowsYou = {
     init: function (vxmax) {
         this.vxmax = vxmax
     },
     think: function (dt) {
-        var d = You.x - this.x
-        if (Math.abs(d) < mechanics.followdist) {
+        if (this.nearyou()) {
+            var d = You.x - this.x
             this.vx += dt * 50 * (d > 0 ? 1 : -1)
             this.vx = Math.min(Math.max(this.vx, -this.vxmax), this.vxmax)
         } else {
@@ -96,6 +115,15 @@ var AvoidsLand = {
     },
 }
 
+var BouncesRandomDirections = {
+    bounce: function () {
+        if (!this.nearyou()) {
+            this.vx = this.vx / 2 + UFX.random(-40, 40)
+            if (getheight(this.x) > 0) this.vx += getgrad(this.x) * 35
+        }
+    },
+}
+
 
 var PointsForward = {
     draw: function () {
@@ -117,8 +145,7 @@ var PointsUpward = {
 
 var StandsUpward = {
     draw: function () {
-        var dy = getheight(this.x + 0.5) - getheight(this.x - 0.5)
-        UFX.draw("r", Math.atan2(dy/2, 1))
+        UFX.draw("r", Math.atan2(0.5 * getgrad(this.x), 1))
     }
 }
 
@@ -166,7 +193,10 @@ Hopper.prototype = UFX.Thing()
     .addcomp(Earthbound)
     .addcomp(HorizontalClipping)
     .addcomp(FollowsYou, 100)
+    .addcomp(BouncesRandomDirections)
     .addcomp(DisappearsUnderwater)
+    .addcomp(ReactsNearYou)
+    .addcomp(Discharges)
     .addcomp(Bounces)
     .addcomp(DrawBall)
 
