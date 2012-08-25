@@ -28,6 +28,21 @@ var Discharges = {
     },
 }
 
+var LaunchesYou = {
+    activate: function () {
+        effects.push(new Discharge(this.x, this.y + 16))
+        this.alive = false
+        if (this.nearyou()) {
+            var dx = You.x - this.x, dy = You.y - this.y + 40
+            if (Math.abs(dy) < 0.1) dy = 1
+            var f = mechanics.launchspeed / Math.sqrt(dx*dx + dy*dy)
+            You.vx = f * dx
+            You.vy = f * dy
+            
+        }
+    },
+}
+
 var CarriesYou = {
     activate: function () {
         You.carrier = this
@@ -131,6 +146,35 @@ var FliesAbout = {
     },
 }
 
+var WindsUpRandomly = {
+    init: function (vxmax) {
+        this.vxmax = vxmax || 160
+    },
+    think: function (dt) {
+        if (this.resting) {
+            this.vx *= Math.exp(-1 * dt)
+            if (Math.abs(this.vx) < 1) this.vx = 0
+            if (this.vx == 0 && UFX.random() * 2 < dt) {
+                if (this.nearyou()) {
+                    this.vx = You.x > this.x ? 1 : -1
+                } else {
+                    this.vx = UFX.random.choice([-1, 1])
+                }
+                this.resting = false
+            }
+        } else {
+            this.vx += (this.vx > 0 ? 1 : -1) * 200 * dt
+            this.vx = Math.min(Math.max(this.vx, -this.vxmax), this.vxmax)
+            if (UFX.random() * 2 < dt) {
+                this.resting = true
+            }
+        }
+        this.x += this.vx * dt
+        this.y = getheight(this.x)
+    },
+}
+
+
 var TalksToYou = {
     init: function (text) {
         this.text = text || "yello"
@@ -215,6 +259,17 @@ var DrawBird = {
     }
 }
 
+var DrawWheel = {
+    draw: function () {
+        UFX.draw("t 0 16 r", -this.x / 16)
+        UFX.draw("b o 0 0 8 fs rgb(100,0,100) ss rgb(160,0,160) lw 2 f s")
+        UFX.draw("( m 0 8 l 8 16 l -8 16 ) f s")
+        UFX.draw("( m 0 -8 l 8 -16 l -8 -16 ) f s")
+        UFX.draw("( m 8 0 l 16 8 l 16 -8 ) f s")
+        UFX.draw("( m -8 0 l -16 8 l -16 -8 ) f s")
+    }
+}
+
 var DrawGuy = {
     draw: function () {
         UFX.draw("fs rgb(100,0,100) ss rgb(160,0,160) lw 2")
@@ -280,6 +335,23 @@ Flapper.prototype = UFX.Thing()
     .addcomp(FliesAbout)
     .addcomp(PointsUpward)
     .addcomp(DrawBird)
+
+function Gripper(x) {
+    this.x = x
+    this.y = getheight(this.x)
+    this.vx = 0
+    this.resting = true
+    this.alive = true
+    this.think(0)
+}
+Gripper.prototype = UFX.Thing()
+    .addcomp(Earthbound)
+    .addcomp(HorizontalClipping)
+    .addcomp(WindsUpRandomly)
+    .addcomp(DisappearsUnderwater)
+    .addcomp(ReactsNearYou)
+    .addcomp(LaunchesYou)
+    .addcomp(DrawWheel)
 
 
 function Yapper(x) {

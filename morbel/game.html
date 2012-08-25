@@ -42,6 +42,7 @@ td {
 <script src="../UFX/src/draw.js"></script>
 <script src="../UFX/src/random.js"></script>
 <script src="../UFX/src/noise.js"></script>
+<script src="../UFX/src/resource.js"></script>
 
 <!-- game code -->
 <script src="settings.js"></script>
@@ -78,8 +79,14 @@ UFX.key.remaparrows(true)
 UFX.key.remap({ space: "act", enter: "act" })
 UFX.key.watchlist = "up down left right act".split(" ")
 UFX.draw.setcontext(context)
-UFX.scene.init()
-UFX.scene.push(GameScene)
+UFX.resource.onload = function () {
+    UFX.scene.init()
+    UFX.scene.push(GameScene)
+}
+UFX.resource.load({
+    youz5: "img/you-z5.png",
+    you: "img/you.png",
+})
 </script>
 
 
