@@ -14,6 +14,13 @@ var Discharges = {
     activate: function () {
         effects.push(new Discharge(this.x, this.y + 10))
         this.alive = false
+        var x = this.x, y = this.y + 10
+        devices.forEach(function (device) {
+            var dx = x - device.x, dy = y - (device.y + 20)
+            if (dx * dx + dy * dy < 120 * 120) {
+                device.charge()
+            }
+        })
     },
 }
 

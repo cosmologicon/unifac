@@ -8,6 +8,7 @@ GameScene.start = function () {
     
     morbels = []
     effects = []
+    devices = [new Device(-400)]
 }
 
 GameScene.thinkargs = function (dt) {
@@ -37,6 +38,7 @@ GameScene.think = function (dt, kpressed, kdowns) {
     camera.think(dt)
     morbels.forEach(function (morbel) { morbel.think(dt) })
     You.think(dt)
+    devices.forEach(function (device) { device.think(dt) })
     effects.forEach(function (effect) { effect.think(dt) })
     camera.x0 = You.x
     camera.y0 = You.y
@@ -44,6 +46,7 @@ GameScene.think = function (dt, kpressed, kdowns) {
     function isalive (obj) { return obj.alive }
     morbels = morbels.filter(isalive)
     effects = effects.filter(isalive)
+    devices = devices.filter(isalive)
 }
 
 GameScene.draw = function () {
@@ -52,11 +55,12 @@ GameScene.draw = function () {
     UFX.draw("[ t 0", 1 + settings.sy + camera.y0 - settings.cy0 - 100, "z", settings.sx, 1000, "vflip fs", this.skygrad, "fr 0 0 1 1 ]")
     UFX.draw("[ t 0", settings.sy + camera.y0 - settings.cy0 - 100, "z", settings.sx, settings.sy, "fs", this.oceangrad, "fr 0 0 1 1 ]")
     UFX.draw("[ t", -camera.x0 + settings.sx / 2, settings.sy + camera.y0 - settings.cy0, "vflip")
+    function draw(obj) { if (obj.isvisible()) { context.save() ; obj.draw() ; context.restore() } }
+    devices.forEach(draw)
     drawwaves()
     islands.forEach(function (island) { if (island.isvisible()) island.draw() })
 
 
-    function draw(obj) { if (obj.isvisible()) { context.save() ; obj.draw() ; context.restore() } }
     morbels.forEach(draw)
     draw(You)
     effects.forEach(draw)
