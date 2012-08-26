@@ -1,15 +1,26 @@
 
 var ReactsNearYou = {
-    init: function (dx, dy) {
+    init: function (dx, dy, excheight) {
         this.reactx = dx || 80
         this.reacty = dy || 50
+        this.excheight = excheight || 20
     },
     nearyou: function () {
         return Math.abs(this.x - You.x) < this.reactx && Math.abs(this.y - You.y) < this.reacty
     },
+    think: function (dt) {
+        if (this.nearyou() && You.state === LandState) {
+            this.exctime = 0.6
+        } else {
+            this.exctime = Math.max(this.exctime - dt, 0)
+        }
+    },
     draw: function () {
         if (this.nearyou()) {
-            UFX.draw("b o 0 20 2 fs white f")
+            UFX.draw("[ t 0", this.excheight, "fs white textalign center textbaseline middle vflip")
+            context.font = settings.fonts.exc
+            context.fillText("!", 0, 0)
+            UFX.draw("]")
         }
     },
 }
@@ -27,6 +38,14 @@ var Discharges = {
         })
     },
 }
+
+var FlySplats = {
+    activate: function () {
+        effects.push(new BirdSplat(this.x, this.y, this.x - You.x, this.y - You.y))
+        this.alive = false
+    },
+}
+
 
 var LaunchesYou = {
     activate: function () {
@@ -111,6 +130,7 @@ var Bounces = {
     bounce: function () {
         this.y = getheight(this.x)
         this.vy = UFX.random(200, 300)
+        if (this.exctime) playsound("boing")
     },
     think: function (dt) {
         this.vy -= dt * mechanics.gravity
@@ -147,7 +167,14 @@ var FliesAbout = {
     },
     think: function (dt) {
         this.vx = Math.min(Math.max(this.vx + dt * 50 * (this.x > this.x0 ? -1 : 1), -this.fxmax), this.fxmax)
-        this.vy = Math.min(Math.max(this.vy + dt * 8 * (this.y > this.y0 ? -1 : 1), -this.fymax), this.fymax)
+//        this.vy = Math.min(Math.max(this.vy + dt * 8 * (this.y > this.y0 ? -1 : 1), -this.fymax), this.fymax)*/
+        if (this.ascending) {
+            this.vy = Math.min(this.vy + dt * 15, 50)
+            if (this.y - getheight(this.x) > 400) this.ascending = false
+        } else {
+            this.vy = Math.min(this.vy - dt * 5, -20)
+            if (this.y - getheight(this.x) < 120) this.ascending = true
+        }
         this.y += this.vy * dt
         this.x += this.vx * dt
     },
@@ -161,7 +188,7 @@ var WindsUpRandomly = {
         if (this.resting) {
             this.vx *= Math.exp(-1 * dt)
             if (Math.abs(this.vx) < 1) this.vx = 0
-            if (this.vx == 0 && UFX.random() * 2 < dt) {
+            if (this.vx == 0 && UFX.random() * 0.6 < dt) {
                 if (this.nearyou()) {
                     this.vx = You.x > this.x ? 1 : -1
                 } else {
@@ -172,7 +199,7 @@ var WindsUpRandomly = {
         } else {
             this.vx += (this.vx > 0 ? 1 : -1) * 200 * dt
             this.vx = Math.min(Math.max(this.vx, -this.vxmax), this.vxmax)
-            if (UFX.random() * 2 < dt) {
+            if (UFX.random() * 1.4 < dt) {
                 this.resting = true
             }
         }
@@ -186,15 +213,22 @@ var TalksToYou = {
     init: function (text) {
         this.text = text || "yello"
     },
+    activate: function () {
+        this.talking = true
+    },
     think: function (dt) {
-        this.talking = Math.abs(this.x - You.x) < 20
+        this.talking = this.talking && this.nearyou()
     },
     draw: function () {
         if (this.talking) {
-            context.font = "40px bold Arial"
-            UFX.draw("fs white ss black lw 0.5 [ t 20 30 vflip")
-            context.fillText(this.text, 0, 0)
-            context.strokeText(this.text, 0, 0)
+            var texts = dialogue.wordwrap(this.text, 24)
+            context.font = settings.fonts.yapper
+            UFX.draw("fs white ss black lw 0.5 [ t 20 40 vflip textalign center textbaseline middle")
+            texts.forEach(function (text, jline, texts) {
+                var y = 24 * (-texts.length + jline)
+                context.fillText(text, 0, y)
+                context.strokeText(text, 0, y)
+            })
             UFX.draw("]")
         }
     }
@@ -232,9 +266,9 @@ var PointsUpward = {
     draw: function () {
         if (!this.vx && !this.vy) return
         if (this.vx > 0) {
-            UFX.draw("r", Math.atan2(this.vy, this.vx))
+            UFX.draw("r", Math.atan2(this.vy, this.vx) * 0.5)
         } else {
-            UFX.draw("hflip r", Math.atan2(this.vy, -this.vx))
+            UFX.draw("hflip r", Math.atan2(this.vy, -this.vx) * 0.5)
         }
     },
 }
@@ -261,8 +295,9 @@ var DrawFish = {
 var DrawBird = {
     draw: function () {
         UFX.draw("b o 0 0 8 fs rgb(100,0,100) ss rgb(160,0,160) lw 2 f s")
-        UFX.draw("( m 5 5 l 14 0 l 20 12 ) f s")
-        UFX.draw("( m -5 5 l -14 0 l -20 12 ) f s")
+        var A = this.ascending ? -1 * Math.abs(Math.sin(Date.now() / 200)) : 0
+        UFX.draw("[ t 5 5 r", A, "( m 0 0 l 9 -5 l 15 7 ) f s ]")
+        UFX.draw("[ hflip t 5 5 r", A, "( m 0 0 l 9 -5 l 15 7 ) f s ]")
     }
 }
 
@@ -292,9 +327,11 @@ var DrawGuy = {
     draw: function () {
         UFX.draw("fs rgb(100,0,100) ss rgb(160,0,160) lw 2")
         UFX.draw("( m -8 0 l 8 0 l 0 8 ) f s")
-        UFX.draw("( m 2 5 l 0 13 l 8 16 ) f s")
-        UFX.draw("( m -2 5 l 0 13 l -8 16 ) f s")
-        UFX.draw("b o 0 24 8 f s")
+        UFX.draw("( m 3 7 l 0 16 l 10 20 ) f s")
+        UFX.draw("( m -3 7 l 0 16 l -10 20 ) f s")
+        UFX.draw("( m 5 36 l 8 48 l 20 46 ) f s")
+        UFX.draw("( m -5 36 l -8 48 l -20 46 ) f s")
+        UFX.draw("b o 0 30 8 f s")
     }
 }
 
@@ -313,7 +350,7 @@ Hopper.prototype = UFX.Thing()
     .addcomp(FollowsYou, 100)
     .addcomp(BouncesRandomDirections)
     .addcomp(DisappearsUnderwater)
-    .addcomp(ReactsNearYou)
+    .addcomp(ReactsNearYou, 80, 100, 25)
     .addcomp(Discharges)
     .addcomp(Bounces)
     .addcomp(DrawBall)
@@ -332,7 +369,7 @@ Flopper.prototype = UFX.Thing()
     .addcomp(SwimsAbout)
     .addcomp(AvoidsLand)
     .addcomp(DisappearsUnderwater)
-    .addcomp(ReactsNearYou)
+    .addcomp(ReactsNearYou, 30, 30, 20)
     .addcomp(CarriesYou)
     .addcomp(RandomlyDiesOnBounce)
     .addcomp(PointsForward)
@@ -345,10 +382,13 @@ function Flapper(x, y) {
     this.vy = UFX.random(10, 20)
     this.vx = UFX.random.choice([-1, 1]) * UFX.random(80, 140)
     this.alive = true
+    this.ascending = true
     this.think(0)
 }
 Flapper.prototype = UFX.Thing()
     .addcomp(Earthbound)
+    .addcomp(ReactsNearYou, 50, 120)
+    .addcomp(FlySplats)
     .addcomp(HorizontalClipping)
     .addcomp(FliesAbout)
     .addcomp(PointsUpward)
@@ -390,16 +430,18 @@ Whipper.prototype = UFX.Thing()
     .addcomp(DrawGear)
 
 
-function Yapper(x) {
+function Yapper(x, text) {
     this.x = x
     this.y = getheight(x)
     this.y0 = this.x0 = 0
     this.alive = true
+    this.text = text
     this.think(0)
 }
 Yapper.prototype = UFX.Thing()
     .addcomp(Earthbound)
     .addcomp(HorizontalClipping)
+    .addcomp(ReactsNearYou, 120, 100, 55)
     .addcomp(TalksToYou)
     .addcomp(StandsUpward)
     .addcomp(DrawGuy)

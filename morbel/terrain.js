@@ -122,6 +122,7 @@ function drawwaves () {
         }
     })
     context.miterLimit = 100
+    context.lineJoin = "miter"
     var d = 20
     var t = (Date.now() % 2000) / 2000
     UFX.draw("ss rgba(255,255,255," + 0.08 * (1-t) + ") lw", d*(3+t), "s")

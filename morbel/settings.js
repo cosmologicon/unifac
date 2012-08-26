@@ -9,10 +9,12 @@ var settings = {
     voiceover: false,
 
     fonts: {
-        title: "50px Arial",
-        stagetitle0: "60px Arial",
-        stagetitle1: "120px Arial",
-        dialogue: "30px Arial",
+        exc: "22px 'Squada One'",
+        title: "80px 'Squada One'",
+        stagetitle0: "60px 'Squada One'",
+        stagetitle1: "120px 'Squada One'",
+        dialogue: "30px 'Squada One'",
+        yapper: "24px 'Squada One'",
     },
 }
 
