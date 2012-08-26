@@ -14,9 +14,11 @@ GameScene.start = function () {
     youinit()
     morbels = []
     effects = []
-    devices = [new Device(-400)]
+    devices = gamestate.getdevices()
     
     dialogue.init()
+    this.winning = false
+    this.wintime = 0
 }
 
 GameScene.thinkargs = function (dt) {
@@ -25,18 +27,9 @@ GameScene.thinkargs = function (dt) {
 }
 
 GameScene.think = function (dt, kpressed, kdowns) {
-    if (morbels.length < 10 && UFX.random() < dt) {
-        var x = UFX.random(camera.xmin, camera.xmax)
-        if (getheight(x) < 0) {
-//            morbels.push(new Hopper(x))
-//            morbels.push(new Flopper(x))
-//            morbels.push(new Gripper(x))
-            morbels.push(new Whipper(x))
-//            morbels.push(new Flapper(x, UFX.random(200, 300)))
-//            morbels.push(new Yapper(x))
-        }
-    }
     You.move(kpressed, kdowns)
+
+    gamestate.generatemorbels(dt)
 
     camera.think(dt)
     morbels.forEach(function (morbel) { morbel.think(dt) })
@@ -55,6 +48,23 @@ GameScene.think = function (dt, kpressed, kdowns) {
     devices = devices.filter(isalive)
     
     dialogue.think(dt)
+    
+    if (kdowns.F1) this.winning = true
+    if (kdowns.F2) {
+        this.winning = true
+        this.wintime = 3
+    }
+    
+    if (gamestate.checkwin()) this.winning = true
+    
+    if (this.winning) {
+        this.wintime += dt
+        if (this.wintime >= 3) {
+            UFX.scene.pop()
+            gamestate.stage += 1
+            UFX.scene.push(GameScene)
+        }
+    }
 }
 
 GameScene.draw = function () {
@@ -80,6 +90,10 @@ GameScene.draw = function () {
     UFX.draw("] ]")
 
     dialogue.draw()
+    
+    if (this.winning) {
+        UFX.draw("[ alpha", Math.min(this.wintime / 1.5, 1), "fs white fr 0 0", settings.sx, settings.sy, "]")
+    }
 
     context.fillStyle = "white"
     context.font = "14px Arial"

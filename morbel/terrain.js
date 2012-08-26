@@ -38,6 +38,7 @@ function terraininit() {
         h += hnoise[j] * 40
         if (h < 0) h = -5 + h
         if (h > 0) h += 5
+        if (h < -40) h = -40
         heights.push(h)
     }
 }
