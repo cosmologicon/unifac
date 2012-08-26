@@ -1,10 +1,9 @@
 
 
-var nheight = 16384, twidth = 10
+var nheight = 1024, twidth = 10
 var sealevel = 0
 var altx0 = nheight * twidth
-var heights = UFX.noise.wrap2d([nheight, 1], [256,8])
-var bheights = UFX.noise.wrap2d([nheight, 1], [256,4])
+var hnoise = UFX.noise.wrap2d([nheight, 1], [32, 4])
 
 
 // 1-dimensional fractalization
@@ -20,13 +19,29 @@ function fractalize(h) {
     }
     return h
 }
-heights = fractalize(heights)
-for (var j = 0 ; j < heights.length ; ++j) {
-    heights[j] -= sealevel
-    heights[j] *= 200
-    if (heights[j] < 0) heights[j] = -15 + heights[j] / 2
-    if (heights[j] > 0) heights[j] += 10
+hnoise = fractalize(hnoise)
+
+function terraininit() {
+    var peaks = gamestate.getpeaks()
+    heights = []
+    for (var j = 0 ; j < nheight ; ++j) {
+        var h = -100
+        for (var k = 0 ; k < peaks.length ; ++k) {
+            var peak = peaks[k]
+            var x0 = peak[0] / twidth, w = peak[1], h0 = peak[2]
+            var dx = x0 - j
+            while (dx < -nheight / 2) dx += nheight
+            while (dx > nheight / 2) dx -= nheight
+            var s = dx / w * twidth
+            h += h0 * Math.exp(-s * s)
+        }
+        h += hnoise[j] * 40
+        if (h < 0) h = -5 + h
+        if (h > 0) h += 5
+        heights.push(h)
+    }
 }
+
 
 
 function getheight(x, hmap) {
@@ -75,14 +90,18 @@ Island.prototype = {
         return this.xmax > camera.xmin && this.xmin < camera.xmax
     },
     trace: function (pfac, nfac) {
-        UFX.draw("m", this.x[0], this.y[0])
-        for (var j = 1 ; j < this.n ; ++j) {
+        var jmin = 0, jmax = this.n
+        while (jmin + 1 < jmax && this.x[jmin+1] < camera.xmin - 4*twidth) jmin += 1
+        while (jmax > jmin + 1 && this.x[jmax-1] > camera.xmax + 4*twidth) jmax -= 1
+        if (jmin + 1 >= jmax) return
+        UFX.draw("m", this.x[jmin], this.y[jmin])
+        for (var j = jmin + 1 ; j < jmax ; ++j) {
             UFX.draw("l", this.x[j], this.y[j] * pfac)
         }
-        for (var j = this.n - 2 ; j >= 0 ; --j) {
+        for (var j = jmax - 1 ; j >= jmin ; --j) {
             UFX.draw("l", this.x[j], -this.y[j] * nfac)
         }
-        UFX.draw("l", this.x[1], this.y[1] * pfac)
+        UFX.draw("l", this.x[jmin+1], this.y[jmin+1] * pfac)
     },
     draw: function () {
         UFX.draw("[ b")
@@ -109,7 +128,6 @@ function drawwaves () {
     UFX.draw("lw", d*(2+t), "s lw", d*(1+t), "s lw", d*t, "s")
 }
 
-var exploredmin = 0, exploredmax = 0
 function explore(x0, x1) {
     while (x0 < exploredmin) {
         exploredmin -= twidth
@@ -128,7 +146,6 @@ function explore(x0, x1) {
         }
     }
 }
-var islands = [], backislands = []
 
 
 

@@ -3,9 +3,15 @@ var GameScene = Object.create(UFX.scene.Scene)
 var morbels
 
 GameScene.start = function () {
+
+    terraininit()
+    islands = [], backislands = []
+    exploredmin = 0, exploredmax = 0
+
     this.oceangrad = UFX.draw.lingrad(0, 1, 0, 0, 0, "rgb(120,0,120)", 0.5, "rgb(120,0,120)", 1, "rgb(40,40,40)")
     this.skygrad = UFX.draw.lingrad(0, 0, 0, 1, 0, "rgb(40,40,40)", 0.1, "rgb(20,40,0)", 1, "rgb(20,40,0)")
     
+    youinit()
     morbels = []
     effects = []
     devices = [new Device(-400)]

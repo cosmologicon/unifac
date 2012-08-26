@@ -120,6 +120,7 @@ var Hops = {
             this.h = 0
             if (this.vx) {
                 this.vh = mechanics.hopspeed
+                playsound("step")
             } else {
                 this.vh = 0
             }
@@ -173,14 +174,16 @@ var CarriedState = UFX.Thing()
     .addcomp(RideCarrier)
     .addcomp(DrawYou)
 
-var You = UFX.Thing()
-    .addcomp(Earthbound)
-    .addcomp(AlwaysVisible)
-    .addcomp(HasStates, ["think", "draw", "move"])
 
-You.setstate(LandState)
-You.vy = 0
-You.x = 0
-You.y = 200
+function youinit() {
+    You = UFX.Thing()
+        .addcomp(Earthbound)
+        .addcomp(AlwaysVisible)
+        .addcomp(HasStates, ["think", "draw", "move"])
 
+    You.setstate(LandState)
+    You.vy = 0
+    You.x = 0
+    You.y = 200
+}
 
