@@ -214,7 +214,7 @@ var BouncesRandomDirections = {
         if (this.nearyou()) {
             this.vx = this.vx * 0.8 + UFX.random(-15, 15)
         } else {
-            this.vx = this.vx / 2 + UFX.random(-40, 40)
+            this.vx = this.vx / 2 + UFX.random(-60, 60)
             if (getheight(this.x) > 0) this.vx += getgrad(this.x) * 35
         }
     },
