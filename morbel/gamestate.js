@@ -1,5 +1,5 @@
 var gamestate = {
-    stage: 3,
+    stage: 6,
     getpeaks: function () {
         if (this.stage == 0) {
             return [[300, 500, 100], [-300, 300, 150], [-800, 300, 100]]
@@ -13,6 +13,8 @@ var gamestate = {
             return [[300, 400, 180], [1700, 200, 130], [2400, 500, 280]]
         } else if (this.stage == 5) {
             return [[-300, 300, 140], [-300, 600, 100], [1100, 400, 200], [2000, 400, 200]]
+        } else if (this.stage == 6) {
+            return [[-2800, 200, 140], [-1700, 200, 250], [-1000, 350, 350], [100, 300, 200], [600, 300, 220], [1700, 400, 190], [2400, 400, 360]]
         } else if (this.stage == 7) {
             return [[0, 300, 260]]
         }
@@ -27,9 +29,11 @@ var gamestate = {
         } else if (this.stage == 3) {
             return [new Tower(0), new Tower(2000)]
         } else if (this.stage == 4) {
-            return [new Device(330), new Device(2300)]
+            return [new Device(330), new Tower(2300)]
         } else if (this.stage == 5) {
             return [new Device(-550), new Device(1550), new Barrier(-300), new Barrier(1200), new Barrier(1900)]
+        } else if (this.stage == 6) {
+            return [new Device(500), new Device (1600), new Tower(-1000), new Tower(2500), new Barrier(-1200), new Barrier(100)]
         } else if (this.stage == 7) {
             return []
         }
@@ -60,22 +64,21 @@ var gamestate = {
             if (UFX.random(5) < dt) morbels.push(new Flopper(800))
             if (UFX.random(1) < dt) morbels.push(new Flapper(UFX.random(-1100, 2800), 600))
         } else if (this.stage == 4) {
-            morbels = morbels.filter(function (m) { return m.x > -400 && m.x < 3200 })
-            while (morbels.length < 24) {
-                var x = UFX.random(-400, 3200)
-                if (getheight(x) < -20) {
-                    morbels.push(new Whipper(x))
-                }
+            if (morbels.length < 20) dt = 1
+            if (UFX.random(5) < dt) morbels.push(new Flopper(800))
+            if (UFX.random(1) < dt) {
+                var x = UFX.random.choice([-200, 800, 1250, 1300, 1350, 3100, 3200])
+                morbels.push(new Whipper(x))
             }
         } else if (this.stage == 5) {
             morbels = morbels.filter(function (m) { return m.x > -1100 && m.x < 2600 })
             if (morbels.length < 12) dt = 5
-            if (UFX.random(5) < dt) morbels.push(new Gripper(2300))
+            if (UFX.random(12) < dt) morbels.push(new Gripper(2300))
             if (UFX.random(5) < dt) morbels.push(new Gripper(-800))
             if (UFX.random(2) < dt) morbels.push(new Gripper(200))
             if (UFX.random(5) < dt) morbels.push(new Gripper(600))
             if (UFX.random(10) < dt) morbels.push(new Whipper(600))
-            if (UFX.random(10) < dt) morbels.push(new Whipper(2300))
+            if (UFX.random(15) < dt) morbels.push(new Whipper(2300))
             if (UFX.random(5) < dt) morbels.push(new Hopper(-800))
             if (UFX.random(5) < dt) morbels.push(new Hopper(200))
             if (UFX.random(5) < dt) morbels.push(new Hopper(600))
@@ -84,25 +87,37 @@ var gamestate = {
             if (UFX.random(4) < dt) morbels.push(new Flapper(UFX.random(-1100, 2600), 600))
         } else if (this.stage == 6) {
             if (!morbels.length) {
-                morbels.push(new Yapper(-200, "So you're God, huh? I figured you'd be taller."))
-                morbels.push(new Yapper(200, "Wow you're more than a whole day old? You're ancient!"))
+                morbels.push(new Yapper(-2850, "So you're God, huh? I figured you'd be taller."))
+                morbels.push(new Yapper(-1700, "Wow you're more than a whole day old? You're ancient!"))
+                morbels.push(new Yapper(-700, "Wow you're more than a whole day old? You're ancient!"))
+                morbels.push(new Yapper(300, "Wow you're more than a whole day old? You're ancient!"))
+                morbels.push(new Yapper(1800, "Wow you're more than a whole day old? You're ancient!"))
+                morbels.push(new Yapper(2700, "Wow you're more than a whole day old? You're ancient!"))
             }
+            if (morbels.length < 50) dt = 1
+            if (UFX.random(1) < dt) morbels.push(new Flapper(UFX.random(-2000, 500), 600))
+            if (UFX.random(2) < dt) morbels.push(new Flapper(UFX.random(1200, 3000), 700))
+            if (UFX.random(5) < dt) morbels.push(new Flopper(-400))
+            if (UFX.random(5) < dt) morbels.push(new Flopper(1000))
+            if (UFX.random(5) < dt) morbels.push(new Flopper(-2500))
+            if (UFX.random(5) < dt) morbels.push(new Hopper(-2000))
+            if (UFX.random(5) < dt) morbels.push(new Hopper(-400))
+            if (UFX.random(5) < dt) morbels.push(new Hopper(-200))
+            if (UFX.random(5) < dt) morbels.push(new Hopper(1000))
+            if (UFX.random(5) < dt) morbels.push(new Hopper(1200))
+            if (UFX.random(5) < dt) morbels.push(new Hopper(3000))
+            if (UFX.random(20) < dt) morbels.push(new Whipper(-2000))
+            if (UFX.random(20) < dt) morbels.push(new Whipper(-400))
+            if (UFX.random(20) < dt) morbels.push(new Whipper(-200))
+            if (UFX.random(20) < dt) morbels.push(new Whipper(1000))
+            if (UFX.random(20) < dt) morbels.push(new Whipper(1200))
+            if (UFX.random(20) < dt) morbels.push(new Whipper(3000))
+            if (UFX.random(10) < dt) morbels.push(new Gripper(-2000))
+            if (UFX.random(10) < dt) morbels.push(new Gripper(-400))
+            if (UFX.random(10) < dt) morbels.push(new Gripper(-200))
+            if (UFX.random(10) < dt) morbels.push(new Gripper(1000))
+            if (UFX.random(10) < dt) morbels.push(new Gripper(1200))
         }
-
-
-/*    if (morbels.length < 10 && UFX.random() < dt) {
-        var x = UFX.random(camera.xmin, camera.xmax)
-        if (getheight(x) < 0) {
-//            morbels.push(new Hopper(x))
-//            morbels.push(new Flopper(x))
-//            morbels.push(new Gripper(x))
-            morbels.push(new Whipper(x))
-//            morbels.push(new Flapper(x, UFX.random(200, 300)))
-//            morbels.push(new Yapper(x))
-        }
-    }*/
-
-
     },
     checkwin: function () {
         if (this.stage == 0) {
@@ -115,6 +130,10 @@ var gamestate = {
             return devices[0].charges >= 3 && devices[1].charges >= 3
         } else if (this.stage == 4) {
             return devices[0].charges >= 3 && devices[1].charges >= 3
+        } else if (this.stage == 5) {
+            return devices[0].charges >= 3 && devices[1].charges >= 3
+        } else if (this.stage == 6) {
+            return devices[0].charges >= 3 && devices[1].charges >= 3 && devices[2].charges >= 3 && devices[3].charges >= 3
         } else if (this.stage == 7) {
             return !dialogue.active
         }

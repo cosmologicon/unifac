@@ -64,8 +64,8 @@ var dialogue = {
         ],
         [
             "Day 31",
-            "I've located a master terraforming station.",
-            "If I can activate it, it'll start the planet-wide terraforming process. I can finally go home.",
+            "I've been hard at work activating terraforming devices. I'm down to the last four.",
+            "If I can activate these, it'll start the planet-wide terraforming process. I can finally go home.",
             "Unfortunately, the resulting climate change will make the entire planet completely uninhabitable for Morbels.",
             "If it works, none of them will survive.",
             "This is especially troubling since some of them have started talking to me.",

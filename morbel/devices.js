@@ -47,6 +47,9 @@ Tower.prototype = UFX.Thing()
     .addcomp(DisappearsUnderwater)
     .addcomp(StandsUpward)
     .addcomp({
+        think: function () {
+            if (this.y < -5) this.charge(3)
+        },
         charge: function (n) {
             n = n || 1
             if (this.charges < 3) playsound("poweron")
@@ -86,9 +89,6 @@ Glower.prototype = UFX.Thing()
             var s = Math.floor(64 + 90 + 90 * Math.sin(Date.now() / 1000))
             var color = this.glowing ? "rgb(" + s + ",64,64)" : "rgb(64,64,64)"
             UFX.draw("( m -20 60 l 20 60 l 30 -30 l -30 -30 ) fs", color, "ss gray lw 2 f s")
-//            for (var j = 0 ; j < 3 ; ++j) {
-//                UFX.draw("b o", (j-1)*15, "70 6 fs", (this.charges > j ? "green" : "red"), "f")
-//            }
         },
     })
     

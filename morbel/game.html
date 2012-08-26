@@ -71,8 +71,10 @@ td {
 
 <script>
 var canvas = document.getElementById("canvas")
-canvas.width = settings.sx ; canvas.height = settings.sy
+canvas.width = settings.sx * settings.sz
+canvas.height = settings.sy * settings.sz
 var context = canvas.getContext("2d")
+context.scale(settings.sz, settings.sz)
 
 window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
                                window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
