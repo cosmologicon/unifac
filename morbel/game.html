@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<title>Morbels</title>
-<!-- link href='http://fonts.googleapis.com/css?family=Viga' rel='stylesheet' type='text/css' -->
+<title>Rise of the Morbels</title>
+<link href='http://fonts.googleapis.com/css?family=Squada+One' rel='stylesheet' type='text/css'>
 <style>
 body {
     background: black; color: white;
-    font-family: 'Viga';
+    font-family: 'Squada One';
     font-size: 110%;
 }
 h1 {
@@ -58,7 +58,7 @@ td {
 <script src="sound.js"></script>
 
 <body>
-<h1>Morbels</h1>
+<h1>Rise of the Morbels</h1>
 <h2>by Christopher Night - please use Chrome</h2>
 
 <canvas id=canvas style="border: medium gray outset"></canvas>
@@ -84,13 +84,23 @@ UFX.key.remap({ space: "act", enter: "act" })
 UFX.key.watchlist = "left right act F1 F2".split(" ")
 UFX.draw.setcontext(context)
 UFX.resource.onload = function () {
+    UFX.resource.sounds.boing = UFX.resource.Multisound(UFX.resource.sounds.boing)
+    UFX.resource.sounds.zot = UFX.resource.Multisound(UFX.resource.sounds.zot)
+    UFX.resource.sounds.pshow = UFX.resource.Multisound(UFX.resource.sounds.pshow)
     UFX.scene.init()
     UFX.scene.push(GameScene)
+    
 }
 UFX.resource.load({
     youz5: "img/you-z5.png",
     you: "img/you.png",
     step: "sounds/originals/step.wav",
+    splatter: "sounds/originals/splatter.wav",
+    boing: "sounds/originals/boing.wav",
+    poweron: "sounds/originals/poweron.wav",
+    winning: "sounds/originals/beammeup.wav",
+    zot: "sounds/originals/faze.wav",
+    pshow: "sounds/originals/explode.wav",
 })
 </script>
 

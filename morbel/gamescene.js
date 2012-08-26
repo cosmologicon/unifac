@@ -58,11 +58,12 @@ GameScene.think = function (dt, kpressed, kdowns) {
     if (gamestate.checkwin()) this.winning = true
     
     if (this.winning) {
+        if (this.wintime == 0) playsound("winning")
         this.wintime += dt
         if (this.wintime >= 3) {
             UFX.scene.pop()
             gamestate.stage += 1
-            UFX.scene.push(GameScene)
+            UFX.scene.push(gamestate.stage == 8 ? EndScene : GameScene)
         }
     }
 }
@@ -98,5 +99,50 @@ GameScene.draw = function () {
     context.fillStyle = "white"
     context.font = "14px Arial"
     context.fillText(UFX.ticker.getfpsstr(), 5, 15)
+    context.fillText("" + Math.floor(You.x), 5, 35)
 }
+
+
+
+
+var EndScene = Object.create(UFX.scene.Scene)
+EndScene.start = function () {
+    this.shown = false
+    this.t = 0
+    this.xstand = []
+    for (var j = 0 ; j < 50 ; ++j) this.xstand.push(UFX.random(settings.sx))
+}
+EndScene.think = function (dt) {
+    this.t += dt
+}
+EndScene.draw = function () {
+    if (this.t < 0.2 || !this.shown) {
+        UFX.draw("fs black fr 0 0", settings.sx, settings.sy)
+/*        for (var y = 0 ; y < 50 ; ++y) {
+            var z = (30 + y) / 15
+            UFX.draw("[ t", this.xstand[y], settings.sy/2 - 50 + 5 * y, "z", z, -z)
+            DrawGuy.draw()
+            UFX.draw("]")
+            if (y % 10 == 0) UFX.draw("fs rgba(0,0,0,0.1) fr 0 0", settings.sx, settings.sy)
+        }*/
+        UFX.draw("[ t", settings.sx/2, settings.sy/2)
+        UFX.draw("[ t -300 80 z 4 -4") ; DrawGuy.draw() ; UFX.draw("]")
+        UFX.draw("[ t 300 80 z 4 -4") ; DrawGuy.draw() ; UFX.draw("]")
+        UFX.draw("[ t 0 150 z 6 -6") ; DrawGuy.draw() ; UFX.draw("]")
+        UFX.draw("]")
+        this.shown = true
+    } else if (this.t < 2.5) {
+        UFX.draw("fs white fr 0 0", settings.sx, settings.sy)
+    } else {
+        context.save()
+        UFX.draw("fs white textalign center textbaseline middle")
+        context.clearRect(0, 0, settings.sx, settings.sy)
+        context.translate(settings.sx / 2, settings.sy / 2)
+        context.font = settings.fonts.title
+        context.fillText("Rise of the Morbels", 0, 0)
+        context.restore()
+    }
+}
+
+
 

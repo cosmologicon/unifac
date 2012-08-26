@@ -34,7 +34,16 @@ var dialogue = {
             "Still another kind of Morbel has appeared, this one in the air.",
             "This is very fortunate for me, as I need something high to charge the troposcopic vaporators.",
         ],
-        
+        [
+            "Day 21",
+            "I've discovered the the Morbel material that makes up the ocean is extremely electrochemically active.",
+            "I believe that by moving a terraforming device into the ocean, it may become active simply on contact.",
+            "I came to an amazing realization today.",
+            "It may be possible for me to completely terraform this world and complete my assignment.",
+            "If I can change the composition of the atmosphere enough, the long-range scanners at headquarters will notice.",
+            "They'll determine that the job is done and send a probe.",
+            "I may be going home after all.",
+        ],
         [
             "Day 29",
             "In the meantime, I've been trying to solve the mystery of the Morbels' origin.",
@@ -62,15 +71,16 @@ var dialogue = {
             "Day 93",
             "This will be my final entry.",
             "I've been imprisoned on a remote island for the past 24 days.",
-            "The Morbels periodically tell me of their progress, but otherwise I am completely cut off. I have no hope of escape.",
-            "It's clear to me that I will die here.",
+            "The Morbels periodically tell me of their progress, but otherwise I am completely cut off.",
+            "There is no hope of escape for me. I know that I'm going to die here.",
             "But first, I want to apologize, in whatever way I can.",
-            "You see, after the incident with my attempted genocide, the Morbels have accelerated their work.",
-            "They have quickly developed faster-than-light vehicles and weapons far beyond any technology of ours.",
-            "I'm afraid I didn't make a very good impression, because they're coming, and they're angry.",
+            "You see, after I tried to complete the terraforming process, the Morbels have become single-minded.",
+            "They have been advancing at an alarming rate, hundreds of years of technology achieved in a single day.",
+            "They've created an armada with weapons far beyond anything else in existence.",
+            "Their goal is retribution for what they see as an act of attempted genocide.",
             "I don't know how long their rage will last, or what the toll will be when it's complete.",
             "I do know that if they decide to wipe out every last person in existence, they're capable of it.",
-            "I'm grateful only that, if that transpires, I will not be there to see it.",
+            "I'm grateful only that, if that happens, I won't be there to see it.",
             "Goodbye.",
         ],
     ],
@@ -81,16 +91,19 @@ var dialogue = {
         this.alpha = 1
         this.settext()
     },
-    settext: function () {
-        var text = this.script[gamestate.stage][this.jline]
-        var llen = 60
-        this.texts = [text]
-        while (this.texts[this.texts.length - 1].length > llen) {
-            var t = this.texts[this.texts.length - 1]
+    wordwrap: function (text, llen) {
+        llen = llen || 60
+        var texts = [text]
+        while (texts[texts.length - 1].length > llen) {
+            var t = texts[texts.length - 1]
             var a = t.lastIndexOf(" ", llen)
-            this.texts[this.texts.length - 1] = t.substr(0, a)
-            this.texts.push(t.substr(a))
+            texts[texts.length - 1] = t.substr(0, a)
+            texts.push(t.substr(a))
         }
+        return texts
+    },
+    settext: function () {
+        this.texts = this.wordwrap(this.script[gamestate.stage][this.jline], 60)
     },
     think: function (dt) {
         if (!this.active) return
