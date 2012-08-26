@@ -8,7 +8,7 @@ GameScene.start = function () {
     islands = [], backislands = []
     exploredmin = 0, exploredmax = 0
 
-    this.oceangrad = UFX.draw.lingrad(0, 1, 0, 0, 0, "rgb(120,0,120)", 0.5, "rgb(120,0,120)", 1, "rgb(40,40,40)")
+    this.oceangrad = UFX.draw.lingrad(0, 1, 0, 0, 0, "rgba(40,40,40,0)", 0.5, "rgba(40,40,40,0)", 1, "rgb(40,40,40)")
     this.skygrad = UFX.draw.lingrad(0, 0, 0, 1, 0, "rgb(40,40,40)", 0.1, "rgb(20,40,0)", 1, "rgb(20,40,0)")
     
     youinit()
@@ -74,7 +74,10 @@ GameScene.draw = function () {
     UFX.draw("[ t", settings.sx/2, settings.sy/2, "z", camera.zoom, camera.zoom)
 //    UFX.draw("[ t 0", 1 + settings.sy + camera.y0 - settings.cy0 - 100, "z", settings.sx, 1000, "vflip fs", this.skygrad, "fr 0 0 1 1 ]")
     var y0 = camera.y0 + settings.cy0
-    UFX.draw("[ t", -settings.sx/2, -180 + y0, "z", settings.sx, settings.sy, "fs", this.oceangrad, "fr 0 0 1 1 ]")
+    UFX.draw("[ t", -settings.sx/2, -180 + y0, "z", settings.sx, settings.sy)
+    var t = Date.now() / 1000., r = 100 + 50 * Math.sin(0.06 * t + 123), b = 100 + 50 * Math.sin(0.028 * t + 999)
+    var oceancolor = "rgb(" + Math.floor(r) + ",0," + Math.floor(b) + ")"
+    UFX.draw("fs", oceancolor, "fr 0 0 1 1 fs", this.oceangrad, "fr 0 0 1 1 ]")
     UFX.draw("[ vflip t", -camera.x0, -y0)
     function draw(obj) { if (obj.isvisible()) { context.save() ; obj.draw() ; context.restore() } }
     backislands.forEach(function (island) { if (island.isvisible()) island.draw() })

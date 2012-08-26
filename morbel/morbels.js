@@ -29,13 +29,6 @@ var Discharges = {
     activate: function () {
         effects.push(new Discharge(this.x, this.y + 10))
         this.alive = false
-        var x = this.x, y = this.y + 10
-        devices.forEach(function (device) {
-            var dx = x - device.x, dy = y - (device.y + 20)
-            if (dx * dx + dy * dy < 120 * 120) {
-                device.charge()
-            }
-        })
     },
 }
 
@@ -49,7 +42,7 @@ var FlySplats = {
 
 var LaunchesYou = {
     activate: function () {
-        effects.push(new Discharge(this.x, this.y + 16))
+        effects.push(new ShockWave(this.x, this.y + 16))
         this.alive = false
         if (this.nearyou()) {
             var dx = You.x - this.x, dy = You.y - this.y + 40
@@ -82,6 +75,8 @@ var CarriesYou = {
                 this.alive = false
                 You.nextstate = LandState
                 effects.push(new Splat(this.x, this.y))
+                You.vy = 50
+                You.y = getheight(You.x)
             }
             this.carrybounced = true
         }
@@ -167,13 +162,15 @@ var FliesAbout = {
     },
     think: function (dt) {
         this.vx = Math.min(Math.max(this.vx + dt * 50 * (this.x > this.x0 ? -1 : 1), -this.fxmax), this.fxmax)
-//        this.vy = Math.min(Math.max(this.vy + dt * 8 * (this.y > this.y0 ? -1 : 1), -this.fymax), this.fymax)*/
         if (this.ascending) {
             this.vy = Math.min(this.vy + dt * 15, 50)
-            if (this.y - getheight(this.x) > 400) this.ascending = false
+            if (this.y - getheight(this.x) > 400) {
+                this.ascending = false
+                if (UFX.random() < 0.2) this.alive = false
+            }
         } else {
             this.vy = Math.min(this.vy - dt * 5, -20)
-            if (this.y - getheight(this.x) < 120) this.ascending = true
+            if (this.y - Math.max(0, getheight(this.x)) < 160) this.ascending = true
         }
         this.y += this.vy * dt
         this.x += this.vx * dt
@@ -186,9 +183,9 @@ var WindsUpRandomly = {
     },
     think: function (dt) {
         if (this.resting) {
-            this.vx *= Math.exp(-1 * dt)
+            this.vx *= Math.exp(-2 * dt)
             if (Math.abs(this.vx) < 1) this.vx = 0
-            if (this.vx == 0 && UFX.random() * 0.6 < dt) {
+            if (this.vx == 0 && UFX.random() * 0.1 < dt) {
                 if (this.nearyou()) {
                     this.vx = You.x > this.x ? 1 : -1
                 } else {
@@ -197,10 +194,13 @@ var WindsUpRandomly = {
                 this.resting = false
             }
         } else {
-            this.vx += (this.vx > 0 ? 1 : -1) * 200 * dt
+            this.vx += (this.vx > 0 ? 1 : -1) * 320 * dt
             this.vx = Math.min(Math.max(this.vx, -this.vxmax), this.vxmax)
-            if (UFX.random() * 1.4 < dt) {
+            if (UFX.random() * 0.6 < dt) {
                 this.resting = true
+                if (this.y < -20 && UFX.random() < 0.3) {
+                    this.alive = false
+                }
             }
         }
         this.x += this.vx * dt
@@ -274,27 +274,31 @@ var PointsUpward = {
 }
 
 var StandsUpward = {
+    tilt: function () {
+        return -Math.atan2(0.5 * getgrad(this.x), 1)
+    },
     draw: function () {
-        UFX.draw("r", -Math.atan2(0.5 * getgrad(this.x), 1))
+        UFX.draw("r", this.tilt())
     }
 }
 
 var DrawBall = {
     draw: function () {
-        UFX.draw("b o 0 8 8 fs rgb(100,0,100) ss rgb(160,0,160) lw 2 f s")
+        UFX.draw("b o 0 8 8 fs rgb(140,0,140) ss rgb(200,0,200) lw 2 f s")
     },
 }
 
 var DrawFish = {
     draw: function () {
-        UFX.draw("b o 0 0 8 fs rgb(100,0,100) ss rgb(160,0,160) lw 2 f s")
+        UFX.draw("b o 0 0 8 fs rgb(140,0,140) ss rgb(200,0,200) lw 2 f s")
         UFX.draw("( m -8 0 l -16 8 l -16 -8 ) fs rgb(100,0,100) ss rgb(160,0,160) lw 2 f s")
     }
 }
 
 var DrawBird = {
     draw: function () {
-        UFX.draw("b o 0 0 8 fs rgb(100,0,100) ss rgb(160,0,160) lw 2 f s")
+        UFX.draw("b o 0 0 8 fs rgb(140,0,140) ss rgb(200,0,200) lw 2 f s")
+        UFX.draw("fs rgb(100,0,100) ss rgb(160,0,160)")
         var A = this.ascending ? -1 * Math.abs(Math.sin(Date.now() / 200)) : 0
         UFX.draw("[ t 5 5 r", A, "( m 0 0 l 9 -5 l 15 7 ) f s ]")
         UFX.draw("[ hflip t 5 5 r", A, "( m 0 0 l 9 -5 l 15 7 ) f s ]")
@@ -304,7 +308,8 @@ var DrawBird = {
 var DrawWheel = {
     draw: function () {
         UFX.draw("t 0 16 r", -this.x / 16)
-        UFX.draw("b o 0 0 8 fs rgb(100,0,100) ss rgb(160,0,160) lw 2 f s")
+        UFX.draw("b o 0 0 8 fs rgb(140,0,140) ss rgb(200,0,200) lw 2 f s")
+        UFX.draw("fs rgb(100,0,100) ss rgb(160,0,160)")
         UFX.draw("( m 0 8 l 8 16 l -8 16 ) f s")
         UFX.draw("( m 0 -8 l 8 -16 l -8 -16 ) f s")
         UFX.draw("( m 8 0 l 16 8 l 16 -8 ) f s")
@@ -315,7 +320,8 @@ var DrawWheel = {
 var DrawGear = {
     draw: function () {
         UFX.draw("t 0 16 r", -this.x / 16)
-        UFX.draw("b o 0 0 8 fs rgb(100,0,100) ss rgb(160,0,160) lw 2 f s")
+        UFX.draw("b o 0 0 8 fs rgb(140,0,140) ss rgb(200,0,200) lw 2 f s")
+        UFX.draw("fs rgb(100,0,100) ss rgb(160,0,160)")
         for (var j = 0 ; j < 3 ; ++j) {
             UFX.draw("[ r", j*2*Math.PI/3, "( m 0 6 l 0 22 l 8 14 ) f s ]")
         }
@@ -331,7 +337,7 @@ var DrawGuy = {
         UFX.draw("( m -3 7 l 0 16 l -10 20 ) f s")
         UFX.draw("( m 5 36 l 8 48 l 20 46 ) f s")
         UFX.draw("( m -5 36 l -8 48 l -20 46 ) f s")
-        UFX.draw("b o 0 30 8 f s")
+        UFX.draw("b o 0 30 8 fs rgb(140,0,140) ss rgb(200,0,200) lw 2 f s")
     }
 }
 
@@ -349,8 +355,9 @@ Hopper.prototype = UFX.Thing()
     .addcomp(HorizontalClipping)
     .addcomp(FollowsYou, 100)
     .addcomp(BouncesRandomDirections)
+    .addcomp(RandomlyDiesOnBounce)
     .addcomp(DisappearsUnderwater)
-    .addcomp(ReactsNearYou, 80, 100, 25)
+    .addcomp(ReactsNearYou, 120, 100, 25)
     .addcomp(Discharges)
     .addcomp(Bounces)
     .addcomp(DrawBall)
@@ -407,7 +414,7 @@ Gripper.prototype = UFX.Thing()
     .addcomp(HorizontalClipping)
     .addcomp(WindsUpRandomly)
     .addcomp(DisappearsUnderwater)
-    .addcomp(ReactsNearYou)
+    .addcomp(ReactsNearYou, 60, 60, 44)
     .addcomp(LaunchesYou)
     .addcomp(DrawWheel)
 
@@ -425,7 +432,7 @@ Whipper.prototype = UFX.Thing()
     .addcomp(HorizontalClipping)
     .addcomp(WindsUpRandomly)
     .addcomp(DisappearsUnderwater)
-    .addcomp(ReactsNearYou)
+    .addcomp(ReactsNearYou, 60, 60, 44)
     .addcomp(WhipsItGood)
     .addcomp(DrawGear)
 
@@ -446,4 +453,47 @@ Yapper.prototype = UFX.Thing()
     .addcomp(StandsUpward)
     .addcomp(DrawGuy)
 
+
+var CrashLands = {
+    think: function (dt) {
+        if (this.y < 0 && getheight(this.x) < 0) {
+            this.alive = false
+        } else if (this.y < getheight(this.x)) {
+            this.alive = false
+            effects.push(new Discharge(this.x, this.y, 90))
+        }
+    },
+}
+
+function Zapper(x, y) {
+    this.x = x
+    this.y = y
+    this.vx = 0
+    this.vy = -50
+    this.alive = true
+    this.think(0)
+}
+Zapper.prototype = UFX.Thing()
+    .addcomp(Earthbound)
+    .addcomp(HorizontalClipping)
+    .addcomp({
+        think: function (dt) {
+            this.vx = UFX.random(-200, 200)
+            if (Math.abs(You.x - this.x) < 100 && Math.abs(You.y - this.y) < 200) {
+                this.vx += You.x > this.x ? 100 : -100
+            }
+            this.x += this.vx * dt
+            this.y += this.vy * dt
+        },
+    })
+    .addcomp({
+        draw: function () {
+            UFX.draw("fs rgba(255,255,128,0.3)")
+            for (var j = 0 ; j < 6 ; ++j) {
+                var A0 = UFX.random(100), A1 = UFX.random(100), s = UFX.random(1, 4)
+                UFX.draw("[ r", A0, "z", s, 1/s, "r", A1, "fr -6 -6 12 12 ]")
+            }
+        }
+    })
+    .addcomp(CrashLands)
 
