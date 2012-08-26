@@ -67,7 +67,6 @@ var CarriesYou = {
         You.carrier = this
         You.nextstate = CarriedState
         this.carrybounced = false
-        console.log("carrying")
     },
     bounce: function () {
         if (You.carrier === this) {
@@ -196,7 +195,7 @@ var WindsUpRandomly = {
         } else {
             this.vx += (this.vx > 0 ? 1 : -1) * 320 * dt
             this.vx = Math.min(Math.max(this.vx, -this.vxmax), this.vxmax)
-            if (UFX.random() * 0.6 < dt) {
+            if (UFX.random() * 0.6 < dt && !(this.nearyou() && (You.x - this.x) * this.vx > 0)) {
                 this.resting = true
                 if (this.y < -20 && UFX.random() < 0.3) {
                     this.alive = false

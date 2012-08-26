@@ -1,6 +1,7 @@
 var settings = {
     sx: 800,
     sy: 300,
+    sz: 1, //900 / window.innerHeight,
     cy0: 50, // how far below the center of the window should the focal point be?
     hfac: 0.15,  // horizon factor for islands
 
