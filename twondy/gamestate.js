@@ -1,9 +1,10 @@
 
 gamestate = Object.create({
     setworldsize: function (s) {
-        this.nslots = Math.floor(s / 50)
+        //this.nslots = Math.floor(s / 50)
         // A cunning algorithm to fairly choose which buildings get destroyed when the world shrinks
         //   or which slots get added when the world grows
+        /*
         if (this.nslots) {
             var nstructures = new Array(this.nslots)
             for (var j = 0 ; j < this.nslots ; ++j) nstructures[j] = null
@@ -17,7 +18,7 @@ gamestate = Object.create({
                 }
             }
             structures = nstructures
-        }
+        }*/
 
         if (s < 20) s = 20
         this.worldsize = s
