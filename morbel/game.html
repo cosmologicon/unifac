@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<title>Rise of the Morbels</title>
+<link href='http://fonts.googleapis.com/css?family=Squada+One' rel='stylesheet' type='text/css'>
+<style>
+body {
+    background: black; color: white;
+    font-family: 'Squada One';
+    font-size: 130%;
+}
+h1 {
+    font-size: 180%;
+    text-align: center;
+    margin: 0.5em auto 0;
+}
+h2 {
+    margin: 0 auto 1em;
+    font-size: 150%;
+}
+* {
+    margin: auto;
+    text-align: center;
+}
+
+input {
+    background: inherit; color: inherit; border: none;
+    font-family: inherit; font-size: inherit;
+    width: 20em;
+}
+td {
+    text-align: right
+}
+#canvasbox {
+    position: relative;
+}
+</style>
+
+<!-- UFX libraries -->
+<script src="../UFX/src/ticker.js"></script>
+<script src="../UFX/src/scene.js"></script>
+<script src="../UFX/src/key.js"></script>
+<script src="../UFX/src/Thing.js"></script>
+<script src="../UFX/src/draw.js"></script>
+<script src="../UFX/src/random.js"></script>
+<script src="../UFX/src/noise.js"></script>
+<script src="../UFX/src/resource.js"></script>
+
+<!-- game code -->
+<script src="settings.js"></script>
+<script src="camera.js"></script>
+<script src="gamestate.js"></script>
+<script src="dialogue.js"></script>
+<script src="terrain.js"></script>
+<script src="gamescene.js"></script>
+<script src="you.js"></script>
+<script src="morbels.js"></script>
+<script src="effects.js"></script>
+<script src="devices.js"></script>
+<script src="sound.js"></script>
+
+<body>
+<h1>Rise of the Morbels</h1>
+<h2>by Christopher Night - please use Chrome</h2>
+
+<canvas id=canvas style="border: medium purple outset"></canvas>
+
+
+<table>
+<tr>
+<td>
+<p><input id=playvo name=playvo type=checkbox onclick="setvo()">Play Voiceover</input>
+<p><input id=playmusic name=playmusic type=checkbox onclick="setmusic()"> Play music</input>
+<p><input id=playsound name=playsound type=checkbox> Play sound effects</input>
+<p><input id=slowcaptions name=slowcaptions type=checkbox>Slow captions</input>
+
+<td>
+<h2>Controls</h2>
+<p>Arrow keys or WASD: move left and right
+<p>Space or enter: interact
+<p>Tab: Advance dialogue
+<p>F1: beat current level
+<p>F2: skip to next level
+</table>
+
+<script>
+var canvas = document.getElementById("canvas")
+canvas.width = settings.sx * settings.sz
+canvas.height = settings.sy * settings.sz
+var context = canvas.getContext("2d")
+//context.scale(settings.sz, settings.sz)
+
+context.fillStyle = "rgb(20,0,20)"
+context.fillRect(0, 0, settings.sx, settings.sy)
+context.fillStyle = "rgb(200,0,200)"
+context.strokeStyle = "black"
+context.font = settings.fonts.loading
+context.textAlign = "center"
+context.textBaseline = "middle"
+context.fillText("Loading audio....", settings.sx/2, settings.sy/2)
+context.strokeText("Loading audio....", settings.sx/2, settings.sy/2)
+
+
+window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
+                               window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
+UFX.key.init()
+UFX.key.qup = false
+UFX.key.qdown = true
+UFX.key.remaparrows(true)
+UFX.key.remap({ space: "act", enter: "act" })
+UFX.key.watchlist = "left right act F1 F2 tab".split(" ")
+UFX.draw.setcontext(context)
+UFX.resource.onload = function () {
+    UFX.resource.sounds.music.loop = true
+    UFX.resource.sounds.music.play()
+    stopmusic()
+    UFX.resource.sounds.boing = UFX.resource.Multisound(UFX.resource.sounds.boing)
+    UFX.resource.sounds.zot = UFX.resource.Multisound(UFX.resource.sounds.zot)
+    UFX.resource.sounds.pshow = UFX.resource.Multisound(UFX.resource.sounds.pshow)
+    for (var sound in UFX.resource.sounds) {
+//        UFX.resource.sounds[sound].volume  = 0.3
+    }
+    UFX.resource.sounds.boing.volume = 0.3
+    UFX.resource.sounds.step.volume = 0.5
+    UFX.scene.init()
+    UFX.scene.push(GameScene)
+    
+}
+var res = {
+    youz5: "img/you-z5.png",
+    you: "img/you.png",
+    step: "sounds/originals/step.wav",
+    splatter: "sounds/originals/splatter.wav",
+    boing: "sounds/originals/boing.wav",
+    poweron: "sounds/originals/poweron.wav",
+    winning: "sounds/originals/beammeup.wav",
+    zot: "sounds/originals/faze.wav",
+    pshow: "sounds/originals/explode.wav",
+    hiss: "sounds/originals/hiss.wav",
+    hiccup: "sounds/originals/hiccup.wav",
+    bomb: "sounds/originals/bomb.wav",
+    whirl: "sounds/originals/whirl.wav",
+    pop: "sounds/originals/pop.wav",
+    
+    music: "sounds/originals/soundtrack.wav",
+}
+for (var j = 0 ; j < dialogue.script.length ; ++j) {
+    var lines = dialogue.script[j]
+    for (var k = 0 ; k < lines.length ; ++k) {
+        res["v" + j + k] = "sounds/v" + j + "-" + k + ".ogg"
+    }
+}
+UFX.resource.load(res)
+
+</script>
+
+
