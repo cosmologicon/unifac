@@ -1,5 +1,5 @@
 var gamestate = {
-    stage: 6,
+    stage: 0,
     getpeaks: function () {
         if (this.stage == 0) {
             return [[300, 500, 100], [-300, 300, 150], [-800, 300, 100]]
@@ -54,7 +54,7 @@ var gamestate = {
         } else if (this.stage == 2) {
             morbels = morbels.filter(function (m) { return Math.abs(m.x) < 1800 })
             if (morbels.length < 32 && UFX.random(2) < dt) {
-                morbels.push(new Hopper(UFX.random.choice([-1200, -600, 800, 1700])))
+                morbels.push(new Hopper(UFX.random.choice([-1400, -600, 800, 1700])))
             }
             if (UFX.random(2) < dt) {
                 morbels.push(new Flopper(UFX.random.choice([-600, 700])))
@@ -89,10 +89,10 @@ var gamestate = {
             if (!morbels.length) {
                 morbels.push(new Yapper(-2850, "So you're God, huh? I figured you'd be taller."))
                 morbels.push(new Yapper(-1700, "Wow you're more than a whole day old? You're ancient!"))
-                morbels.push(new Yapper(-700, "Wow you're more than a whole day old? You're ancient!"))
-                morbels.push(new Yapper(300, "Wow you're more than a whole day old? You're ancient!"))
-                morbels.push(new Yapper(1800, "Wow you're more than a whole day old? You're ancient!"))
-                morbels.push(new Yapper(2700, "Wow you're more than a whole day old? You're ancient!"))
+                morbels.push(new Yapper(-700, "What do you think of me?"))
+                morbels.push(new Yapper(300, "Do you know what all these ancient machines are for? I do, but I'm not telling!"))
+                morbels.push(new Yapper(1800, "You're not going anywhere, are you?"))
+                morbels.push(new Yapper(2700, "You sure are good at blowing things up."))
             }
             if (morbels.length < 50) dt = 1
             if (UFX.random(1) < dt) morbels.push(new Flapper(UFX.random(-2000, 500), 600))

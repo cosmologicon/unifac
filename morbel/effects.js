@@ -48,6 +48,7 @@ function ShockWave(x, y) {
     this.y = y
     this.alive = true
     this.think(0)
+    playsound("bomb")
 }
 ShockWave.prototype = UFX.Thing()
     .addcomp(Earthbound)
@@ -88,7 +89,7 @@ function Pop(x, y) {
     this.alive = true
     this.think(0)
     this.ps = UFX.random.spread(12)
-//    playsound("pop")
+    playsound("pop")
 }
 Pop.prototype = UFX.Thing()
     .addcomp(Earthbound)
@@ -112,6 +113,7 @@ function Whirl(x, y) {
     this.y = y
     this.alive = true
     this.think(0)
+    playsound("whirl")
 }
 Whirl.prototype = UFX.Thing()
     .addcomp(Earthbound)

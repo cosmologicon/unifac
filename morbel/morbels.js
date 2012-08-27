@@ -438,8 +438,8 @@ Whipper.prototype = UFX.Thing()
 
 function Yapper(x, text) {
     this.x = x
-    this.y = getheight(x)
-    this.y0 = this.x0 = 0
+    this.x0 = x
+    this.bounce()
     this.alive = true
     this.text = text
     this.think(0)
@@ -449,7 +449,40 @@ Yapper.prototype = UFX.Thing()
     .addcomp(HorizontalClipping)
     .addcomp(ReactsNearYou, 120, 100, 55)
     .addcomp(TalksToYou)
-    .addcomp(StandsUpward)
+    .addcomp({
+        bounce: function () {
+            this.y = getheight(this.x)
+            this.vy = UFX.random(200, 300)
+            this.vx = 0.5 * (this.x0 - this.x) + UFX.random(-50, 50)
+            this.bouncing = true
+//            if (this.exctime) playsound("boing")
+        },
+        think: function (dt) {
+            if (this.bouncing) {
+                this.vy -= dt * mechanics.gravity
+                if (this.y < getheight(this.x)) {
+                    if (this.exctime) {
+                        this.bouncing = false
+                        this.vx = this.vy = 0
+                        this.y = getheight(this.x)
+                    } else {
+                        this.bounce()
+                    }
+                }
+            } else {
+                if (!this.exctime) {
+                    this.bounce()
+                }
+            }
+            this.x += this.vx * dt
+            this.y += this.vy * dt
+        },
+        draw: function () {
+            var s = 1 + this.vy / 1000
+            UFX.draw("z", 1/s, s)
+        },
+    })
+//    .addcomp(StandsUpward)
     .addcomp(DrawGuy)
 
 

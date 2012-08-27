@@ -10,6 +10,7 @@ var settings = {
     voiceover: false,
 
     fonts: {
+        loading: "50px 'Arial'",
         exc: "22px 'Squada One'",
         title: "80px 'Squada One'",
         stagetitle0: "60px 'Squada One'",
