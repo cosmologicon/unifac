@@ -2,24 +2,24 @@ var dialogue = {
     script: [
         [
             "Day 1",
-            "My name is Jemery Maker. I am a terraformer.",
+            "My name is Coleridge Maker. I am a terraformer.",
             "While performing a routine terraforming on a remote planet, my ship was struck by an eletrical storm.",
             "I was forced to abandon ship as it fell into the ocean.",
             "My ship fails to respond to pings, even though my transponder signal should be able to penetrate several kilometers of fluid.",
             "Scans suggest that the ocean on this world is made of an unknown substance, which must cause massive interference.",
             "My life support can hold out for some time, but with no ship, I don't see how I'm going anywhere.",
-            "For now, I find myself on an island with one of the meteorological dissipation devices I deployed.",
+            "For now, I find myself on an island with one of the meteorological devices I deployed before the crash.",
             "If I can charge it using the ball lightning in the area, I should be safe from the storms for now.",
         ],
         [
             "Day 3",
             "Today, something came out of the ocean.",
             "This planet was certified devoid of life, so I was, to say the least, surprised.",
-            "Indeed the object doesn't register on any lifeform tests. You'd never know it wasn't alive to look at it, though.",
-            "Whatever it is, it carries enough electromotive force to charge the terraforming devices I deployed.",
+            "The object doesn't register on any lifeform tests. You'd never know it wasn't alive to look at it, though.",
+            "Whatever it is, it carries enough electrical potential to charge my terraforming devices.",
             "It doesn't appear dangerous. I might even say it appears... willing to help.",
             "I've found two devices on this island. If I can completely charge them, they'll activate.",
-            "With luck, I can make the immediate vicinity hospitable enough for me to hold on until help arrives.",
+            "With luck, I can make the immediate vicinity habitable enough for me to hold on until help arrives.",
         ],
         [
             "Day 7",
@@ -28,12 +28,13 @@ var dialogue = {
             "Continued scans confirm that the objects are made of the same exotic material as the ocean itself.",
             "The computer refers to it as a mimeo-organic bio-electric plasmino.",
             "I've started calling them Morbels for short.",
-            "While they continue to pose no threat, their sudden appearance is startling.",
+            "While they continue to pose no threat, their sudden appearance is startling,",
+            "but I must admit they are extremely handy.",
         ],
         [
             "Day 13",
             "Still another kind of Morbel has appeared, this one in the air.",
-            "This is very fortunate for me, as I need something high to charge the troposcopic vaporators.",
+            "This is fortunate for me, as I need something high to charge the troposcopic vaporators.",
             "I came to an amazing realization today.",
             "By using the Morbels to charge enough devices,",
             "I may be able to terraform this entire world and complete my assignment.",
@@ -43,24 +44,25 @@ var dialogue = {
         ],
         [
             "Day 16",
-            "I've discovered the the Morbel material that makes up the ocean is extremely electrochemically active.",
+            "I've discovered the the material that makes up the ocean is extremely electrochemically active.",
             "By moving a terraforming device into the ocean, it may activate simply on contact.",
             "As the Morbels continue to increase in complexity, their origin puzzles me more and more.",
             "How is it that there was no trace of activity when I first arrived, and now I'm surrounded by it?",
-            "I've begun a series of analyses to determine the most likely explanation.",
+            "I've begun an analysis to determine the most likely explanation.",
         ],
         [
-            "Day 25",
+            "Day 22",
             "My analysis leaves me with an inescapable conclusion:",
             "The origin of the Morbels is me.",
-            "The mimeo-organic plasmino that makes up the ocean on this planet can copy patterns it encounters,",
-            "and that's the way it's been for billions of years, ready to copy whatever it can,",
-            "except there hasn't been anything of significant complexity to copy.",
+            "The mimeo-organic plasmino that makes up the ocean on this planet can copy patterns it encounters.",
+            "However, this planet has never seen anything of significant complexity to copy,",
+            "and so the ocean has remained featureless for billions of years.",
             "When my ship crash-landed in the ocean, the plasmino was able to interact with the ship's systems",
             "and emulate the patterns it encountered there.",
             "My crash landing was an abiogenic event that kick-started what might be considered life on this planet.",
             "Once exposed, the plasmino was extremely capable at evolving more and more complex systems,",
             "resulting in the rapid development I've seen over a matter of weeks.",
+            "Fascinating to say the least, but I still have a lot of work to do.",
         ],
         [
             "Day 31",
@@ -112,10 +114,33 @@ var dialogue = {
         this.texts = this.wordwrap(this.script[gamestate.stage][this.jline], 60)
         this.tnext = this.script[gamestate.stage][this.jline].length * 0.04 + 2
         if (this.jline == 0) this.tnext = 3
+        if (this.jline == 1) playmusic()
+        if (settings.voiceover) {
+            this.soundplaying = true
+            this.sound = UFX.resource.sounds["v" + gamestate.stage + this.jline]
+            this.sound.play()
+            this.sound.addEventListener("ended", function () { dialogue.soundplaying = false })
+        } else {
+            this.sound = null
+        }
+    },
+    skip: function () {
+        if (!this.active || this.t < 0.5) return
+        this.jline += 1
+        this.alpha = 0
+        this.t = 0
+        if (this.jline >= this.script[gamestate.stage].length) {
+            this.active = false
+        } else {
+            this.settext()
+        }
     },
     think: function (dt) {
         if (!this.active) return
-        this.t += dt
+        if (!this.soundplaying) {
+            this.t += document.getElementById("slowcaptions") ? dt/2.0 : dt
+        }
+        if (this.sound && !this.soundplaying) this.t = 1000
         if (this.t > this.tnext) {
             this.alpha -= 4 * dt
             if (this.alpha < 0) {
@@ -141,7 +166,7 @@ var dialogue = {
             context.clearRect(0, 0, settings.sx, settings.sy)
             context.translate(settings.sx / 2, settings.sy / 2)
             context.font = settings.fonts.stagetitle0
-            context.fillText("CASTAWAY LOG", 0, -70)
+            context.fillText("CASTAWAY'S LOG", 0, -70)
             context.font = settings.fonts.stagetitle1
             context.fillText(this.texts[0], 0, 10)
         } else {

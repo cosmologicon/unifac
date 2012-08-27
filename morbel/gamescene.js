@@ -19,6 +19,8 @@ GameScene.start = function () {
     dialogue.init()
     this.winning = false
     this.wintime = 0
+    
+    playsound("hiss")
 }
 
 GameScene.thinkargs = function (dt) {
@@ -28,6 +30,7 @@ GameScene.thinkargs = function (dt) {
 
 GameScene.think = function (dt, kpressed, kdowns) {
     You.move(kpressed, kdowns)
+    if (kdowns.tab) dialogue.skip()
 
     gamestate.generatemorbels(dt)
 
@@ -58,12 +61,18 @@ GameScene.think = function (dt, kpressed, kdowns) {
     if (gamestate.checkwin()) this.winning = true
     
     if (this.winning) {
+        if (dialogue.sound) dialogue.sound.pause()
+        stopmusic()
         if (this.wintime == 0) playsound("winning")
         this.wintime += dt
         if (this.wintime >= 3) {
             UFX.scene.pop()
             gamestate.stage += 1
-            UFX.scene.push(gamestate.stage == 8 ? EndScene : GameScene)
+            if (gamestate.stage == 7) {
+                UFX.scene.push(CutScene)
+            } else {
+                UFX.scene.push(gamestate.stage == 8 ? EndScene : GameScene)
+            }
         }
     }
 }
@@ -95,8 +104,9 @@ GameScene.draw = function () {
 
     dialogue.draw()
     
+    var alpha = gamestate.stage == 6 ? 0 : Math.min(this.wintime / 1.5, 1)
     if (this.winning) {
-        UFX.draw("[ alpha", Math.min(this.wintime / 1.5, 1), "fs white fr 0 0", settings.sx, settings.sy, "]")
+        UFX.draw("[ alpha", alpha, "fs white fr 0 0", settings.sx, settings.sy, "]")
     }
 
     context.fillStyle = "white"
@@ -106,20 +116,101 @@ GameScene.draw = function () {
 }
 
 
+// Cutscene that appears after stage 6
+var CutScene = Object.create(UFX.scene.Scene)
+CutScene.start = function () {
+    this.script = [
+        "Huh. That should have worked. Why isn't the terraforming starting?",
+        "I'm afraid we can't let you do that, Maker.",
+        "Oh crap.",
+        "We know what your devices do. We've disabled them.",
+        "Oh crap.",
+        "We won't let you do that to our planet. We won't let you kill us.",
+        "Oh crap.",
+        "Please come with us.",
+    ]
+    this.jline = 0
+    this.t = 0
+    this.active = true
+    this.alpha = 0
+}
+CutScene.think = function (dt) {
+    var k = UFX.key.state()
+    if (!this.active) return
+    this.t += dt
+    var tnext = this.script[this.jline].length * 0.04 + 2
+    
+    if (this.t > 0.5 && k.down.tab) {
+        this.t = 100
+        this.alpha = 0
+    }
+
+    if (this.t > tnext) {
+        this.alpha -= 4 * dt
+        if (this.alpha < 0) {
+            this.alpha = 0
+            this.t = 0
+            this.jline += 1
+        }
+    } else {
+        this.alpha = Math.min(this.alpha + 4 * dt, 1)
+    }
+    if (this.jline >= this.script.length) {
+        this.active = false
+        UFX.scene.pop()
+        UFX.scene.push(GameScene)
+    }
+}
+CutScene.draw = function () {
+    if (!this.active) return
+    context.save()
+    var tcolor
+    if (this.jline % 2 == 0) {
+//        UFX.draw("hflip")
+        context.fillStyle = "rgb(40,40,40)"
+        context.fillRect(0, 0, settings.sx, settings.sy)
+        context.drawImage(UFX.resource.images.you, settings.sx / 2 - 100, settings.sy / 2 - 100)
+        tcolor = "white"
+    } else {
+        context.fillStyle = "rgb(40,0,40)"
+        context.fillRect(0, 0, settings.sx, settings.sy)
+        UFX.draw("[ t", settings.sx/2, settings.sy/2)
+        UFX.draw("[ t -300 80 z 4 -4") ; DrawGuy.draw() ; UFX.draw("]")
+        UFX.draw("[ t 300 80 z 4 -4") ; DrawGuy.draw() ; UFX.draw("]")
+        UFX.draw("[ t 0 150 z 6 -6") ; DrawGuy.draw() ; UFX.draw("]")
+        UFX.draw("]")
+        tcolor = "rgb(255,100,255)"
+    }
+    this.texts = [this.script[this.jline]]
+    UFX.draw("fs", tcolor, "ss black lw 2 alpha", this.alpha, "textalign center textbaseline middle")
+    context.translate(settings.sx / 2, settings.sy * 1.05)
+    context.font = settings.fonts.dialogue
+    this.texts.forEach(function (text, jtext, texts) {
+        var y = (-texts.length + jtext) * 30
+        context.strokeText(text, 0, y)
+        context.fillText(text, 0, y)
+    })
+    context.restore()
+}
 
 
+
+// Game over scene that appears after stage 7
 var EndScene = Object.create(UFX.scene.Scene)
 EndScene.start = function () {
     this.shown = false
     this.t = 0
     this.xstand = []
     for (var j = 0 ; j < 50 ; ++j) this.xstand.push(UFX.random(settings.sx))
+    this.hissed = false
+    playsound("hiccup")
 }
 EndScene.think = function (dt) {
+    UFX.key.state()
     this.t += dt
 }
 EndScene.draw = function () {
-    if (this.t < 0.2 || !this.shown) {
+    if (this.t < 0.1 || !this.shown) {
         UFX.draw("fs black fr 0 0", settings.sx, settings.sy)
 /*        for (var y = 0 ; y < 50 ; ++y) {
             var z = (30 + y) / 15
@@ -144,6 +235,10 @@ EndScene.draw = function () {
         context.font = settings.fonts.title
         context.fillText("Rise of the Morbels", 0, 0)
         context.restore()
+        if (!this.hissed) {
+            playsound("hiss")
+            this.hissed = true
+        }
     }
 }
 
