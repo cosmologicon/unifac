@@ -7,14 +7,15 @@ var settings = {
 
     showdialogue: true,
     captions: true,
-    voiceover: false,
+    voiceover: true,
 
     fonts: {
+        intro: "50px 'Squada One'",
         loading: "50px 'Arial'",
         exc: "22px 'Squada One'",
         title: "80px 'Squada One'",
         stagetitle0: "60px 'Squada One'",
-        stagetitle1: "120px 'Squada One'",
+        stagetitle1: "120px 'Russo One'",
         dialogue: "30px 'Squada One'",
         yapper: "24px 'Squada One'",
     },

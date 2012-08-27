@@ -129,6 +129,7 @@ var dialogue = {
         this.jline += 1
         this.alpha = 0
         this.t = 0
+        if (this.sound) this.sound.pause()
         if (this.jline >= this.script[gamestate.stage].length) {
             this.active = false
         } else {
@@ -137,7 +138,7 @@ var dialogue = {
     },
     think: function (dt) {
         if (!this.active) return
-        if (!this.soundplaying) {
+        if (!this.soundplaying || this.t < 0.5) {
             this.t += document.getElementById("slowcaptions") ? dt/2.0 : dt
         }
         if (this.sound && !this.soundplaying) this.t = 1000

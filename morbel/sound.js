@@ -13,8 +13,10 @@ function setvo() {
     settings.voiceover = document.getElementById("playvo").checked
 }
 function setmusic() {
-    if (document.getElementById("playsound").checked && musicplaying) {
+    if (document.getElementById("playmusic").checked && musicplaying) {
         UFX.resource.sounds.music.volume = 0.35
+    } else {
+        UFX.resource.sounds.music.volume = 0
     }
 }
 var musicplaying = false

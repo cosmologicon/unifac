@@ -214,6 +214,7 @@ var TalksToYou = {
     },
     activate: function () {
         this.talking = true
+        playsound("yap")
     },
     think: function (dt) {
         this.talking = this.talking && this.nearyou()
@@ -283,7 +284,7 @@ var StandsUpward = {
 
 var DrawBall = {
     draw: function () {
-        UFX.draw("b o 0 8 8 fs rgb(140,0,140) ss rgb(200,0,200) lw 2 f s")
+        UFX.draw("b o 0 8 8 fs rgb(80,0,160) ss rgb(120,0,240) lw 2 f s")
     },
 }
 
@@ -296,8 +297,8 @@ var DrawFish = {
 
 var DrawBird = {
     draw: function () {
-        UFX.draw("b o 0 0 8 fs rgb(140,0,140) ss rgb(200,0,200) lw 2 f s")
-        UFX.draw("fs rgb(100,0,100) ss rgb(160,0,160)")
+        UFX.draw("b o 0 0 8 fs rgb(140,80,0) ss rgb(200,100,0) lw 2 f s")
+        UFX.draw("fs rgb(100,60,0) ss rgb(160,80,0)")
         var A = this.ascending ? -1 * Math.abs(Math.sin(Date.now() / 200)) : 0
         UFX.draw("[ t 5 5 r", A, "( m 0 0 l 9 -5 l 15 7 ) f s ]")
         UFX.draw("[ hflip t 5 5 r", A, "( m 0 0 l 9 -5 l 15 7 ) f s ]")
@@ -307,8 +308,8 @@ var DrawBird = {
 var DrawWheel = {
     draw: function () {
         UFX.draw("t 0 16 r", -this.x / 16)
-        UFX.draw("b o 0 0 8 fs rgb(140,0,140) ss rgb(200,0,200) lw 2 f s")
-        UFX.draw("fs rgb(100,0,100) ss rgb(160,0,160)")
+        UFX.draw("b o 0 0 8 fs rgb(0,80,140) ss rgb(0,100,200) lw 2 f s")
+        UFX.draw("fs rgb(0,60,100) ss rgb(0,80,160)")
         UFX.draw("( m 0 8 l 8 16 l -8 16 ) f s")
         UFX.draw("( m 0 -8 l 8 -16 l -8 -16 ) f s")
         UFX.draw("( m 8 0 l 16 8 l 16 -8 ) f s")
@@ -319,8 +320,8 @@ var DrawWheel = {
 var DrawGear = {
     draw: function () {
         UFX.draw("t 0 16 r", -this.x / 16)
-        UFX.draw("b o 0 0 8 fs rgb(140,0,140) ss rgb(200,0,200) lw 2 f s")
-        UFX.draw("fs rgb(100,0,100) ss rgb(160,0,160)")
+        UFX.draw("b o 0 0 8 fs rgb(140,0,0) ss rgb(200,0,0) lw 2 f s")
+        UFX.draw("fs rgb(100,0,0) ss rgb(160,0,0)")
         for (var j = 0 ; j < 3 ; ++j) {
             UFX.draw("[ r", j*2*Math.PI/3, "( m 0 6 l 0 22 l 8 14 ) f s ]")
         }
@@ -330,13 +331,13 @@ var DrawGear = {
 
 var DrawGuy = {
     draw: function () {
-        UFX.draw("fs rgb(100,0,100) ss rgb(160,0,160) lw 2")
+        UFX.draw("fs rgb(160,160,160) ss rgb(240,240,240) lw 2")
         UFX.draw("( m -8 0 l 8 0 l 0 8 ) f s")
         UFX.draw("( m 3 7 l 0 16 l 10 20 ) f s")
         UFX.draw("( m -3 7 l 0 16 l -10 20 ) f s")
         UFX.draw("( m 5 36 l 8 48 l 20 46 ) f s")
         UFX.draw("( m -5 36 l -8 48 l -20 46 ) f s")
-        UFX.draw("b o 0 30 8 fs rgb(140,0,140) ss rgb(200,0,200) lw 2 f s")
+        UFX.draw("b o 0 30 8 fs rgb(0,140,0) ss rgb(0,200,0) lw 2 f s")
     }
 }
 
