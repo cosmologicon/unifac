@@ -510,6 +510,7 @@ Zapper.prototype = UFX.Thing()
     .addcomp(Earthbound)
     .addcomp(HorizontalClipping)
     .addcomp({
+        nearyou: function () { return false },
         think: function (dt) {
             this.vx = UFX.random(-200, 200)
             if (Math.abs(You.x - this.x) < 100 && Math.abs(You.y - this.y) < 200) {
