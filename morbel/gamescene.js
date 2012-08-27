@@ -9,7 +9,7 @@ GameScene.start = function () {
     exploredmin = 0, exploredmax = 0
 
     this.oceangrad = UFX.draw.lingrad(0, 1, 0, 0, 0, "rgba(40,40,40,0)", 0.5, "rgba(40,40,40,0)", 1, "rgb(40,40,40)")
-    this.skygrad = UFX.draw.lingrad(0, 0, 0, 1, 0, "rgb(40,40,40)", 0.1, "rgb(20,40,0)", 1, "rgb(20,40,0)")
+    this.skygrad = UFX.draw.lingrad(0, 0, 0, 1, 0, "rgb(40,40,40)", 0.1, "rgb(60,30,0)", 1, "rgb(60,30,0)")
     
     youinit()
     morbels = []
@@ -81,8 +81,8 @@ GameScene.draw = function () {
     UFX.draw("fs black fr 0 0", settings.sx, settings.sy)
 
     UFX.draw("[ t", settings.sx/2, settings.sy/2, "z", camera.zoom, camera.zoom)
-//    UFX.draw("[ t 0", 1 + settings.sy + camera.y0 - settings.cy0 - 100, "z", settings.sx, 1000, "vflip fs", this.skygrad, "fr 0 0 1 1 ]")
     var y0 = camera.y0 + settings.cy0
+    UFX.draw("[ t", -settings.sx/2, -170 + y0, "z", settings.sx, "1000 vflip fs", this.skygrad, "fr 0 0 1 1 ]")
     UFX.draw("[ t", -settings.sx/2, -180 + y0, "z", settings.sx, settings.sy)
     var t = Date.now() / 1000., r = 100 + 50 * Math.sin(0.06 * t + 123), b = 100 + 50 * Math.sin(0.028 * t + 999)
     var oceancolor = "rgb(" + Math.floor(r) + ",0," + Math.floor(b) + ")"
@@ -108,11 +108,12 @@ GameScene.draw = function () {
     if (this.winning) {
         UFX.draw("[ alpha", alpha, "fs white fr 0 0", settings.sx, settings.sy, "]")
     }
-
+/*
     context.fillStyle = "white"
     context.font = "14px Arial"
     context.fillText(UFX.ticker.getfpsstr(), 5, 15)
     context.fillText("" + Math.floor(You.x), 5, 35)
+*/
 }
 
 
@@ -241,6 +242,31 @@ EndScene.draw = function () {
         }
     }
 }
+
+
+var IntroScene = Object.create(UFX.scene.Scene)
+IntroScene.start = function () {
+}
+IntroScene.think = function (dt) {
+    var k = UFX.key.state()
+    if (k.down.act) {
+        UFX.scene.pop()
+        UFX.scene.push(GameScene)
+    }
+
+}
+IntroScene.draw = function () {
+    context.fillStyle = "black"
+    context.fillRect(0, 0, settings.sx, settings.sy)
+    context.fillStyle = "white"
+    context.textAlign = "center"
+    context.textBaseline = "middle"
+    context.font = settings.fonts.title
+    context.fillText("Rise of the Morbels", settings.sx/2, settings.sy/3)
+    context.font = settings.fonts.intro
+    context.fillText("Press space or enter to begin", settings.sx/2, 2*settings.sy/3)
+}
+
 
 
 

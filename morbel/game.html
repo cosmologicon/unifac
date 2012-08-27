@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <title>Rise of the Morbels</title>
 <link href='http://fonts.googleapis.com/css?family=Squada+One' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Russo+One' rel='stylesheet' type='text/css'>
 <style>
 body {
     background: black; color: white;
-    font-family: 'Squada One';
+    font-family: 'Russo One';
     font-size: 130%;
 }
 h1 {
@@ -16,7 +17,7 @@ h2 {
     margin: 0 auto 1em;
     font-size: 150%;
 }
-* {
+canvas, table, body {
     margin: auto;
     text-align: center;
 }
@@ -24,13 +25,9 @@ h2 {
 input {
     background: inherit; color: inherit; border: none;
     font-family: inherit; font-size: inherit;
-    width: 20em;
 }
 td {
-    text-align: right
-}
-#canvasbox {
-    position: relative;
+    text-align: left
 }
 </style>
 
@@ -59,7 +56,7 @@ td {
 
 <body>
 <h1>Rise of the Morbels</h1>
-<h2>by Christopher Night - please use Chrome</h2>
+<h2>by Christopher Night</h2>
 
 <canvas id=canvas style="border: medium purple outset"></canvas>
 
@@ -67,18 +64,18 @@ td {
 <table>
 <tr>
 <td>
-<p><input id=playvo name=playvo type=checkbox onclick="setvo()">Play Voiceover</input>
-<p><input id=playmusic name=playmusic type=checkbox onclick="setmusic()"> Play music</input>
-<p><input id=playsound name=playsound type=checkbox> Play sound effects</input>
+<h2>Options</h2>
+<p><input id=playvo name=playvo type=checkbox onclick="setvo()" checked>Play Voiceover</input>
+<p><input id=playmusic name=playmusic type=checkbox onclick="setmusic()" checked>Play music</input>
+<p><input id=playsound name=playsound type=checkbox checked>Play sound effects</input>
 <p><input id=slowcaptions name=slowcaptions type=checkbox>Slow captions</input>
 
-<td>
+<td style="padding-left: 2em">
 <h2>Controls</h2>
 <p>Arrow keys or WASD: move left and right
 <p>Space or enter: interact
 <p>Tab: Advance dialogue
 <p>F1: beat current level
-<p>F2: skip to next level
 </table>
 
 <script>
@@ -112,35 +109,38 @@ UFX.resource.onload = function () {
     UFX.resource.sounds.music.loop = true
     UFX.resource.sounds.music.play()
     stopmusic()
-    UFX.resource.sounds.boing = UFX.resource.Multisound(UFX.resource.sounds.boing)
+/*    UFX.resource.sounds.boing = UFX.resource.Multisound(UFX.resource.sounds.boing)
     UFX.resource.sounds.zot = UFX.resource.Multisound(UFX.resource.sounds.zot)
-    UFX.resource.sounds.pshow = UFX.resource.Multisound(UFX.resource.sounds.pshow)
+    UFX.resource.sounds.pshow = UFX.resource.Multisound(UFX.resource.sounds.pshow)*/
     for (var sound in UFX.resource.sounds) {
 //        UFX.resource.sounds[sound].volume  = 0.3
     }
     UFX.resource.sounds.boing.volume = 0.3
     UFX.resource.sounds.step.volume = 0.5
+    setvo()
+    setmusic()
     UFX.scene.init()
-    UFX.scene.push(GameScene)
+    UFX.scene.push(IntroScene)
     
 }
 var res = {
     youz5: "img/you-z5.png",
     you: "img/you.png",
-    step: "sounds/originals/step.wav",
-    splatter: "sounds/originals/splatter.wav",
-    boing: "sounds/originals/boing.wav",
-    poweron: "sounds/originals/poweron.wav",
-    winning: "sounds/originals/beammeup.wav",
-    zot: "sounds/originals/faze.wav",
-    pshow: "sounds/originals/explode.wav",
-    hiss: "sounds/originals/hiss.wav",
-    hiccup: "sounds/originals/hiccup.wav",
-    bomb: "sounds/originals/bomb.wav",
-    whirl: "sounds/originals/whirl.wav",
-    pop: "sounds/originals/pop.wav",
+    step: "sounds/step.ogg",
+    splatter: "sounds/splatter.ogg",
+    boing: "sounds/boing.ogg",
+    poweron: "sounds/poweron.ogg",
+    winning: "sounds/beammeup.ogg",
+    zot: "sounds/faze.ogg",
+    pshow: "sounds/explode.ogg",
+    hiss: "sounds/hiss.ogg",
+    hiccup: "sounds/hiccup.ogg",
+    bomb: "sounds/bomb.ogg",
+    whirl: "sounds/whirl.ogg",
+    yap: "sounds/yap.ogg",
+    pop: "sounds/pop.ogg",
     
-    music: "sounds/originals/soundtrack.wav",
+    music: "sounds/music.ogg",
 }
 for (var j = 0 ; j < dialogue.script.length ; ++j) {
     var lines = dialogue.script[j]
@@ -149,6 +149,7 @@ for (var j = 0 ; j < dialogue.script.length ; ++j) {
     }
 }
 UFX.resource.load(res)
+
 
 </script>
 
