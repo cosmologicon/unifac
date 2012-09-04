@@ -98,15 +98,65 @@ var SpringStepper = {
 
 var PortalState = {
     enter: function () {
-        
+        this.portalp = -200
+        this.portal.addentity(this)
+        this.portalv = 400
+    },
+    exit: function () {
+        this.portal.removeentity(this)
+    },
+    think: function (dt) {
+        if (this.portal.open) {
+            this.portalp += this.portalv * dt
+            this.vx = Math.sin(this.portal.A) * this.portalv
+            this.vy = -Math.cos(this.portal.A) * this.portalv
+        } else {
+            this.vx = 0
+            this.vy = 0
+        }
+        this.x = this.portal.x + Math.sin(this.portal.A) * this.portalp / this.portal.xfactor
+        this.y = this.portal.y - Math.cos(this.portal.A) * this.portalp
+        if (this.portalp > 40) {
+            this.nextstate = MatchSpeedState
+        }
+    },
+    draw: function () {
+        // TODO: how to do this???
+        context.restore()
+        context.save()
+        this.portal.setclip()
+        WorldBound.draw.apply(this)
+    },
+}
+
+// Speed up or slow down to full speed
+var MatchSpeedState = {
+    enter: function () {
+        this.vfinal = this.v
+        this.t0v = 0.25
     },
     exit: function () {
     },
     think: function (dt) {
-    
+        var v = Math.sqrt(this.vx * this.vx + this.vy * this.vy), f, next
+        if (v > this.vfinal) {
+            f = Math.exp(-dt / this.t0v)
+            next = v * f <= this.vfinal
+        } else {
+            f = Math.exp(dt / this.t0v)
+            next = v * f >= this.vfinal
+        }
+        if (next) {
+            this.path = new LevelPath(this)
+            this.nextstate = FlightState
+            f = this.vfinal / v
+        }
+        this.vx *= f
+        this.vy *= f
+        this.x += this.vx * dt / this.xfactor
+        this.y += this.vy * dt
     },
     draw: function () {
-        this.portal.setclip()
     },
 }
 
@@ -168,7 +218,7 @@ var FlightState = UFX.Thing({
             this.vy = 0
             this.nextstate = DriftState
         } else if (UFX.random() * 20 < dt || this.y < 20) {
-            this.nextstate = DrillState
+//            this.nextstate = DrillState
         }
     },
     draw: function () {
@@ -344,8 +394,9 @@ function Aphid(portal) {
     this.y = 120
     this.alive = true
 //    this.path = new LoopPath(this)
-    this.path = new LevelPath(this)
-    this.setstate(FlightState)
+//    this.path = new LevelPath(this)
+    this.portal = portal
+    this.setstate(PortalState)
 //    effects.push(new PathTracer(this))
 }
 Aphid.prototype = UFX.Thing()
