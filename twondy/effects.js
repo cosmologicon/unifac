@@ -328,6 +328,7 @@ var GrowsInShrinksOut = {
         this.zfactor = 0
         this.disappearing = false
         this.vz = 2
+        this.open = false
     },
     think: function (dt) {
         if (this.disappearing) {
@@ -336,6 +337,7 @@ var GrowsInShrinksOut = {
         } else {
             this.zfactor = Math.min(1, this.zfactor + this.vz * dt)
         }
+        this.open = this.zfactor == 1
     },
     draw: function () {
         UFX.draw("z", this.zfactor, this.zfactor)
@@ -373,7 +375,7 @@ var DrawReticule = {
         UFX.draw("[")
         WorldBound.draw.apply(this)
         HasTilt.draw.apply(this)
-        UFX.draw("z", this.sizex, this.sizey, "( m 100 0 l 1 0 a 0 0 1 0 3.14 l -100 0 l -100 -100 l 100 -100 ) ] clip")
+        UFX.draw("z", this.sizex, this.sizey, "( m 100 0 l 1 0 a 0 0 1 0 3.1416 l -100 0 l -100 -100 l 100 -100 ) ] clip")
     },
 }
 
@@ -390,7 +392,7 @@ Portal.prototype = UFX.Thing()
                     .addcomp(CarriesEntities)
                     .addcomp(GrowsInShrinksOut)
                     .addcomp(HasTilt)
-                    .addcomp(DrawReticule, 16, 6)
+                    .addcomp(DrawReticule, 30, 9)
 
 
 

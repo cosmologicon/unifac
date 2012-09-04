@@ -85,12 +85,13 @@ GameScene.think = function (dt, mkeys, nkeys) {
         console.log(localStorage.twondyrecord.length)
     }
 
-    if (UFX.random() * 3 < dt && monsters.length < 10) {
-//        var p = new Portal(UFX.random(tau), 120)
-//        beffects.push(p)
+    if (UFX.random() * 3 < dt && monsters.length < 1) {
+        var p = new Portal(UFX.random(tau), UFX.random(100, 200))
+//        var p = new Portal(0, 120)
+        beffects.push(p)
 //        monsters.push(new Aphid(p))
-//        monsters.push(new Aphid(p))
-        monsters.push(new Aphid())
+        monsters.push(new Aphid(p))
+//        monsters.push(new Aphid())
     }
 
 /*
