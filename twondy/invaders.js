@@ -322,28 +322,30 @@ function DrillLaser (obj) {
 }
 
 var wpaths = [
-  "lw 0.8 ss black ( m -2 0 l 2 0 l 2 32 l -2 32 ) fs gray f s ( m -4 18 l -4 29 l 4 29 l 4 18 ) fs rgba(180,180,180,1) f s",
-  "lw 0.8 ss black ( m -2 0 l 2 0 l 2 32 l -2 32 ) fs gray f s fs rgba(180,180,180,1) ( m -6 18 l -6 22 l 6 22 l 6 18 ) f s ( m -6 25 l -6 29 l 6 29 l 6 25 ) f s",
-  "lw 0.8 ss black ( m -2 0 l 2 0 l 2 32 l -2 32 ) fs gray f s ( m -8 29 aa 0 29 8 0 3.141 ) fs rgba(180,180,180,1) f s",
-  "lw 0.8 ss black ( m -2 0 l 2 0 l 2 20 l -2 20 ) fs gray f s ( m -5 18 l 0 33 l 5 18 ) fs rgba(180,180,180,1) f s",
-  "lw 0.8 ss black ( m -4 0 l -4 23 l 0 21 l -3 30 l 7 14 l 0 17 l 4 0 ) fs gray f s",
+  UFX.Tracer("lw 0.8 ss black ( m -2 0 l 2 0 l 2 32 l -2 32 ) fs gray f s ( m -4 18 l -4 29 l 4 29 l 4 18 ) fs rgba(180,180,180,1) f s", [-5, 0, 10, 30]),
+  UFX.Tracer("lw 0.8 ss black ( m -2 0 l 2 0 l 2 32 l -2 32 ) fs gray f s fs rgba(180,180,180,1) ( m -6 18 l -6 22 l 6 22 l 6 18 ) f s ( m -6 25 l -6 29 l 6 29 l 6 25 ) f s", [-7, 0, 14, 34]),
+  UFX.Tracer("lw 0.8 ss black ( m -2 0 l 2 0 l 2 32 l -2 32 ) fs gray f s ( m -8 29 aa 0 29 8 0 3.141 ) fs rgba(180,180,180,1) f s", [-9, 0, 18, 34]),
+  UFX.Tracer("lw 0.8 ss black ( m -2 0 l 2 0 l 2 20 l -2 20 ) fs gray f s ( m -5 18 l 0 33 l 5 18 ) fs rgba(180,180,180,1) f s", [-6, 0, 12, 35]),
+  UFX.Tracer("lw 0.8 ss black ( m -4 0 l -4 23 l 0 21 l -3 30 l 7 14 l 0 17 l 4 0 ) fs gray f s", [-5, 0, 14, 32]),
 ]
 function Whisker(A, path) {
     this.A0 = A
     this.sx = -Math.sin(A)
     this.sy = Math.cos(A)
-    this.path = this.path || UFX.random.choice(wpaths)
+    this.path = path || UFX.random.choice(wpaths)
         
 }
 Whisker.prototype = {
     draw: function (vx, vy) {
         var A = this.A0 + 0.005 * Math.min(Math.max(vx * this.sy - vy * this.sx, -100), 100)
-        UFX.draw("[ r", A, this.path, "]")
+        UFX.draw("[ r", A)
+        this.path.draw(camera.zoom)
+        UFX.draw("]")
     },
 }
 var DrawWhiskers = {
     init: function (nwhiskers) {
-        this.nwhiskers = 4
+        this.nwhiskers = nwhiskers || 4
     },
     draw: function () {
         if (!this.whiskers) {
@@ -371,19 +373,21 @@ var DrawWhiskers = {
 var DrawAphid = {
     init: function () {
         this.aphidpaths = [
-            "ss black lw 1 ( m -7 10 l 7 10 l 7 -10 l -7 -10 ) fs gray f s " +
-            "( m -11 6 l 11 6 l 11 -6 l -11 -6 ) fs rgb(170,170,170) f s " +
-            "lw 0.5 b m -8 -6 l -8 6 m 8 -6 l 8 6 m -5 -6 l -5 6 m 5 -6 l 5 6 m 0 -6 l 0 6 s",
-            
-            "[ vflip ss black lw 1 ( m 0 -9 q -16 -9 -8 2 c 0 14 0 14 8 2 q 16 -9 0 -9 ) fs gray f s " +
-            "lw 0.5 b m 0 -9 c -14 -8 -3 5 0 11 m 0 -9 c 14 -8 3 5 0 11 s " +
-            "lw 1 ( m 3 -10 l -3 -10 l -3 -1 l -11 -1 l -8 4 l 8 4 l 11 -1 l 3 -1 ) fs rgb(170,170,170) f s ]",
-        
+            UFX.Tracer(
+                "ss black lw 1 ( m -7 10 l 7 10 l 7 -10 l -7 -10 ) fs gray f s " +
+                "( m -11 6 l 11 6 l 11 -6 l -11 -6 ) fs rgb(170,170,170) f s " +
+                "lw 0.5 b m -8 -6 l -8 6 m 8 -6 l 8 6 m -5 -6 l -5 6 m 5 -6 l 5 6 m 0 -6 l 0 6 s",
+            [-12, -12, 24, 24]),
+            UFX.Tracer(
+                "[ vflip ss black lw 1 ( m 0 -9 q -16 -9 -8 2 c 0 14 0 14 8 2 q 16 -9 0 -9 ) fs gray f s " +
+                "lw 0.5 b m 0 -9 c -14 -8 -3 5 0 11 m 0 -9 c 14 -8 3 5 0 11 s " +
+                "lw 1 ( m 3 -10 l -3 -10 l -3 -1 l -11 -1 l -8 4 l 8 4 l 11 -1 l 3 -1 ) fs rgb(170,170,170) f s ]",
+            [-12, -12, 24, 24]),
         ]
     },
     draw: function () {
         if (!this.aphidpath) this.aphidpath = UFX.random.choice(this.aphidpaths)
-        UFX.draw(this.aphidpath)
+        this.aphidpath.draw(camera.zoom)
     },
 }
 

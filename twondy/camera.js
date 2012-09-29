@@ -67,7 +67,12 @@ var camera = {
         context.scale(this.zoom, -this.zoom)
         context.translate(0, -this.y - gamestate.worldr)
         context.rotate(this.x)
-    }
+    },
+    // Is the position (X, y) within d units of a point that's currently visible?
+    isonscreen: function (X, y, d) {
+        r = r || 0
+        return true
+    },
 }
 
 

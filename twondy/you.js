@@ -62,6 +62,8 @@ var CanShock = {
     },
 }
 
+
+
 var DrawZoop = {
     init: function () {
         this.pose = {
@@ -77,7 +79,39 @@ var DrawZoop = {
         }
         this.lastdraw = Date.now() * 0.001
     },
+    maketracers: function () {
+        var headpath = "M 4.07 -12.79 C -3.43 -13.37 -8.72 -8.64 -7.85 -1.51 C -6.67 8.20 -0.05 9.83 3.36 11.39 C 7.21 13.14 9.77 11.60 11.18 9.57 C 13.74 5.89 14.88 -0.57 13.25 -5.56 C 12.31 -8.44 10.63 -11.70 4.07 -12.79"
+        var bodypath = "M -4.46 3.97 C -6.43 16.11 -9.11 11.29 -9.46 23.97 C -2.50 29.33 4.29 28.61 11.07 24.86 C 12.50 14.33 4.11 17.36 4.11 3.61 C 3.21 -0.32 -3.75 -1.57 -4.46 3.97"
+        this.tracers = {
+            head: UFX.Tracer([
+                // Filled area and clipping region
+                "[ b", headpath, "fs #AA0 f clip",
+                // Facial spots
+                "[ r -0.3 z 0.7 -1 b o 9 0 7 o 20 0 7 o 0 0 4 o 4 -11 6 o -4 -6 1.5 o 2 7 1.5 o 10 -10 8 o 14.3 7.3 1 fs #A80 f",
+                "b o 14.2 2 1.5 o 13 -6 1 fs #AA0 f ]",
+                // shading and outline
+                "] b", headpath, "fs", UFX.draw.radgrad(-4, -8, 0, -4, -8, 35, 0, "rgba(0,0,0,0)", 1, "rgba(0,0,0,0.5)"),
+                "f ss #CC6 lw 0.5 s",
+                // eyes
+                "[ r -0.15 [ z 0.4 1 fs #008 ss black lw 0.4 b o 18 0 4 f s b o 30 0 4 f s ]",
+                "fs white b o 6.4 -2 0.5 o 11.2 -2 0.5 f ]"],
+                [-9, -14, 24, 27]
+            ),
+            body: UFX.Tracer([
+                "b", bodypath, "fs #AA0 f [ clip",
+                // body spots
+                "[ r -0.25 z 0.7 -1 b o 0 -12 5 o -8 -20 5 o 0 -22 6 o 8 -20 5 o -8 -12 2 o -12 -28 6 o -15 -20 1 fs #A80 f",
+                "b o -5 -26 4 o 5 -26 4 o 0 -20 1.5 fs #AA0 f ]", // restore from spot rotation
+                "]", // restore from clipping region
+                // shading and outline
+                "b", bodypath, "fs", UFX.draw.lingrad(0, 0, 30, 10, 0, "rgba(0,0,0,0)", 1, "rgba(0,0,0,0.8)"),
+                "f ss #CC6 lw 0.5 s"],
+                [-10, 0, 23, 28]
+            ),
+        }
+    },
     drawzoop: function (opts) {
+        if (!this.tracers) this.maketracers()
         // TODO: refactor this into an update pose method - shouldn't be solving for dt in draw
         var t = Date.now() * 0.001
         var f = 1 - Math.exp(-8 * (t - this.lastdraw))
@@ -95,21 +129,10 @@ var DrawZoop = {
         if (!this.facingright) UFX.draw("hflip")
 
         // Draw body
-        var bodypath = "M -4.46 3.97 C -6.43 16.11 -9.11 11.29 -9.46 23.97 C -2.50 29.33 4.29 28.61 11.07 24.86 C 12.50 14.33 4.11 17.36 4.11 3.61 C 3.21 -0.32 -3.75 -1.57 -4.46 3.97"
-
         UFX.draw("[ t", 18*p.bodyxshear, 18, "r", p.spin, "t", 6*p.bodyxshear, 6, "vflip")
-        UFX.draw("[ x 1", p.bodyyshear, -p.bodyxshear, "1 0 0 r", p.bodytilt, "zy", 1+p.bodystretch, "b", bodypath, "fs #AA0 f [ clip")
-
-        // body spots
-        UFX.draw("[ r -0.25 z 0.7 -1 b o 0 -12 5 o -8 -20 5 o 0 -22 6 o 8 -20 5 o -8 -12 2 o -12 -28 6 o -15 -20 1 fs #A80 f")
-        UFX.draw("b o -5 -26 4 o 5 -26 4 o 0 -20 1.5 fs #AA0 f ]") // restore from spot rotation
-        UFX.draw("]") // restore from clipping region
-
-        // shading and outline
-        var grad = UFX.draw.lingrad(0, 0, 30, 10, 0, "rgba(0,0,0,0)", 1, "rgba(0,0,0,0.8)")
-        UFX.draw("b", bodypath, "fs", grad, "f ss #CC6 lw 0.5 s")
+        UFX.draw("[ x 1", p.bodyyshear, -p.bodyxshear, "1 0 0 r", p.bodytilt, "zy", 1+p.bodystretch)
+        this.tracers.body.draw(camera.zoom)
         UFX.draw("]") // restore from body shear
-
 
         // Draw head
         UFX.draw("[ r", p.headtilt)
@@ -118,26 +141,13 @@ var DrawZoop = {
         var af = p.antennastretch
         UFX.draw("[ t 3 -7 z -1 1 r", 0.2 + 2*p.antennaspread + af, "yshear", p.antennaspread, "zx", 1-af, antpath, "zx", 1+af, "fs #A80 ss #630 lw 0.3 f s ]")
 
-        // Head
-        var headpath = "M 4.07 -12.79 C -3.43 -13.37 -8.72 -8.64 -7.85 -1.51 C -6.67 8.20 -0.05 9.83 3.36 11.39 C 7.21 13.14 9.77 11.60 11.18 9.57 C 13.74 5.89 14.88 -0.57 13.25 -5.56 C 12.31 -8.44 10.63 -11.70 4.07 -12.79"
-        // Filled area and clipping region
-        UFX.draw("[ b", headpath, "fs #AA0 f clip")
-        // Facial spots
-        UFX.draw("[ r -0.3 z 0.7 -1 b o 9 0 7 o 20 0 7 o 0 0 4 o 4 -11 6 o -4 -6 1.5 o 2 7 1.5 o 10 -10 8 o 14.3 7.3 1 fs #A80 f")
-        UFX.draw("b o 14.2 2 1.5 o 13 -6 1 fs #AA0 f ]")
-        
-        // shading and outline
-        var grad = UFX.draw.radgrad(-4, -8, 0, -4, -8, 35, 0, "rgba(0,0,0,0)", 1, "rgba(0,0,0,0.5)")
-        UFX.draw("] b", headpath, "fs", grad, "f ss #CC6 lw 0.5 s")
-        
-        // eyes
-        UFX.draw("[ r -0.15 [ z 0.4 1 fs #008 ss black lw 0.4 b o 18 0 4 f s b o 30 0 4 f s ]")
-        UFX.draw("fs white b o 6.4 -2 0.5 o 11.2 -2 0.5 f ]")
+        this.tracers.head.draw(camera.zoom)
+                
         // front antenna
-        UFX.draw("t -3 -5")
-        UFX.draw("r", -0.3 - af, "yshear", p.antennaspread, "zx", 1+af, antpath, "zx", 1-af, "fs #A80 ss #630 lw 0.3 f s")
-        UFX.draw("]")
-        UFX.draw("]") // restore from head tilt
+        UFX.draw("t -3 -5",
+            "r", -0.3 - af, "yshear", p.antennaspread, "zx", 1+af, antpath, "zx", 1-af, "fs #A80 ss #630 lw 0.3 f s",
+            "]",
+            "]") // restore from head tilt
     },
 }
 
