@@ -6,7 +6,7 @@ var CanNab = {
     },
     nab: function (objs) {
         for (var j = 0 ; j < objs.length ; ++j) {
-            var dx = getdx(this.x, objs[j].x) * this.xfactor
+            var dx = getdX(this.X, objs[j].X) * this.xfactor
             var dy = this.y + 24 - objs[j].y
             if (dx * dx + dy * dy < this.radius * this.radius) {
                 objs[j].benabbed(this)
@@ -21,7 +21,7 @@ var CanNab = {
     clonk: function (objs) {
 /*        if (this.vy >= 0) return
         for (var j = 0 ; j < objs.length ; ++j) {
-            var dx = Math.abs(getdx(this.x, objs[j].x)) * this.xfactor
+            var dx = Math.abs(getdX(this.X, objs[j].X)) * this.xfactor
             if (dx > objs[j].width * objs[j].scale) continue
             var dy = Math.abs(this.y - objs[j].y)
             if (dy > objs[j].height * objs[j].scale) continue
@@ -34,7 +34,7 @@ var CanNab = {
         objs.forEach(function (obj) {
             if (!obj.state.clonkable) return
             if (clonker.vy > obj.vy) return
-            if (Math.abs(getdx(clonker.x, obj.x)) * clonker.xfactor > obj.clonkwidth) return
+            if (Math.abs(getdX(clonker.X, obj.X)) * clonker.xfactor > obj.clonkwidth) return
             if (Math.abs(clonker.y - obj.y) > obj.clonkheight) return
             obj.clonk(clonker, dhp)
             clonker.vy = mechanics.clonkvy
@@ -121,8 +121,8 @@ var DrawZoop = {
                 this.pose[attrib] = (1-f) * this.pose[attrib] + f * (opts[attrib] || 0)
             }
         }
-        this.pose.spin += f * getdx(this.pose.spin, (opts.spin || 0))
-        this.pose.tilt += f * getdx(this.pose.tilt, (opts.tilt || 0))
+        this.pose.spin += f * getdX(this.pose.spin, (opts.spin || 0))
+        this.pose.tilt += f * getdX(this.pose.tilt, (opts.tilt || 0))
         var p = this.pose
         
         context.rotate(-this.pose.tilt)
@@ -187,7 +187,7 @@ var StandState = {
         }
     },
     think: function (dt) {
-        this.x += this.vx * dt / this.xfactor
+        this.X += this.vx * dt / this.xfactor
     },
     draw: function () {
         var a = Math.min(Math.abs(this.vx), 160) / 500
@@ -247,7 +247,7 @@ var FallState = {
         if (this.y <= 0) {
             this.nextstate = StandState
         }
-        this.x += this.vx * dt / this.xfactor
+        this.X += this.vx * dt / this.xfactor
         this.y += this.vy * dt
     },
     draw: function () {
@@ -279,7 +279,7 @@ var SpringState = {
         if (this.t > this.springtime) {
             this.nextstate = FallState
         }
-        this.x += this.vx * dt / this.xfactor
+        this.X += this.vx * dt / this.xfactor
         this.y += this.vy * dt
     },
     draw: function () {
@@ -303,7 +303,7 @@ var ShockState = {
         if (this.t > mechanics.shocktime) {
             this.nextstate = FallState
         }
-        this.x += this.vx * dt / this.xfactor
+        this.X += this.vx * dt / this.xfactor
         this.y += this.vy * dt
     },
     draw: function () {
@@ -331,7 +331,7 @@ var ReelState = {
         if (this.y <= 0) {
             this.nextstate = StandState
         }
-        this.x += this.vx * dt / this.xfactor
+        this.X += this.vx * dt / this.xfactor
         this.y += this.vy * dt
     },
     draw: function () {
@@ -363,8 +363,8 @@ ClimbState.think = function (dt) {
     var pos = this.block.xform.worldpos(this.blockx, 0, 1)
     var dy = this.block.tower.y + gamestate.worldr
     var x = pos[0], y = pos[1] + dy
-    var dx = Math.atan2(x, y)
-    this.x = this.block.tower.x + dx
+    var dX = Math.atan2(x, y)
+    this.X = this.block.tower.X + dX
     this.y = Math.sqrt(x*x + y*y) - dy
     this.xfactor = Math.max(gamestate.worldr + this.y, 1)
     var fpos = this.block.xform.worldpos(this.blockx, this.blocky)

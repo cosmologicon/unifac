@@ -1,33 +1,3 @@
-/*
-var EntersThroughPortal = {
-    init: function () {
-        this.portalvx = 0
-        this.portalvy = -40
-    },
-    setportal: function (portal) {
-        this.portal = portal
-        var d = 20 * (1 + portal.entities.length)
-        this.x = portal.x - Math.sin(portal.A) * d
-        this.y = portal.y + Math.cos(portal.A) * d
-        this.portal.addentity(this)
-    },
-    think: function (dt) {
-        if (this.portal) {
-            if (this.portal.zfactor == 1) {
-                var S = Math.sin(this.portal.A), C = Math.cos(this.portal.A)
-                this.vx = this.portalvx * C - this.portalvy * S
-                this.vy = this.portalvx * S + this.portalvy * C
-            } else {
-                this.vx = 0
-                this.vy = 0
-            }
-            if (this.portal.y - this.y > 40) {
-                this.portal.removeentity(this)
-                this.portal = null
-            }
-        }
-    },
-}*/
 
 var Clonkable = {
     init: function (width, height) {
@@ -114,7 +84,7 @@ var PortalState = {
             this.vx = 0
             this.vy = 0
         }
-        this.x = this.portal.x + Math.sin(this.portal.A) * this.portalp / this.portal.xfactor
+        this.X = this.portal.X + Math.sin(this.portal.A) * this.portalp / this.portal.xfactor
         this.y = this.portal.y - Math.cos(this.portal.A) * this.portalp
         if (this.portalp > 40) {
             this.nextstate = MatchSpeedState
@@ -167,7 +137,7 @@ var DriftState = {
     exit: function () {
     },
     think: function (dt) {
-        this.x += this.vx * dt / this.xfactor
+        this.X += this.vx * dt / this.xfactor
         this.y += this.vy * dt
     },
     draw: function () {
@@ -177,21 +147,21 @@ var DriftState = {
 var TargetState = {
     clonkable: true,
     enter: function () {
-        this.targetx = this.x + UFX.random(-2, 2)
+        this.targetX = this.X + UFX.random(-2, 2)
         this.targety = UFX.random(Math.max(1, this.y - 50), this.y + 50)
     },
     exit: function () {
     },
     think: function (dt) {
-        var dx = (this.targetx - this.x) * this.xfactor, dy = this.targety - this.y
+        var dx = (this.targetX - this.X) * this.xfactor, dy = this.targety - this.y
         var d = Math.sqrt(dx * dx + dy * dy)
         this.vx = this.v * dx / d
         this.vy = this.v * dy / d
         if (this.v * dt < d) {
-            this.x += this.vx * dt / this.xfactor
+            this.X += this.vx * dt / this.xfactor
             this.y += this.vy * dt
         } else {
-            this.x = this.targetx
+            this.X = this.targetX
             this.y = this.targety
             this.nextstate = TargetState
         }
@@ -285,7 +255,7 @@ function PathTracer (obj) {
     this.jps = 0
     this.think = function (dt) {
         if (this.jps == 0) {
-            this.ps.push(getpos(this.obj.x, this.obj.y))
+            this.ps.push(getpos(this.obj.X, this.obj.y))
             while (this.ps.length > this.nps) {
                 this.ps.shift()
             }
@@ -316,7 +286,7 @@ function DrillLaser (obj) {
     }
     this.draw = function () {
         var d = 10
-        UFX.draw("r", -this.obj.x, "t", 0, gamestate.worldr, "b m 0 -10 l 0", this.obj.y-d,
+        UFX.draw("r", -this.obj.X, "t", 0, gamestate.worldr, "b m 0 -10 l 0", this.obj.y-d,
             "ss white lw", this.t * 10, "s ss darkred lw 2 s [ t 0 -10 z 1 0.3 b o 0 0", this.t * 80, "] ss red lw 1 s")
     }
 }
@@ -394,7 +364,7 @@ var DrawAphid = {
 
 function Aphid(portal) {
     this.v = 60
-    this.x = 0
+    this.X = 0
     this.y = 120
     this.alive = true
 //    this.path = new LoopPath(this)
@@ -404,15 +374,8 @@ function Aphid(portal) {
 //    effects.push(new PathTracer(this))
 }
 Aphid.prototype = UFX.Thing()
-/*                    .addcomp({ draw: function () {
-                        var r0 = this.y + gamestate.worldr, r1 = this.targety + gamestate.worldr
-                        UFX.draw("b m", r0 * Math.sin(this.x), r0 * Math.cos(this.x),
-                                   "l", r1 * Math.sin(this.targetx), r1 * Math.cos(this.targetx),
-                                   "lw 1 ss white s")
-                    } })*/
-//                    .addcomp(ClipsToPortal)
+                    .addcomp(ClipsToCamera, 50)
                     .addcomp(WorldBound)
-//                    .addcomp(EntersThroughPortal)
 //                    .addcomp(HasHangingDrill)
                     .addcomp(HasStates, ["think", "draw"])
                     .addcomp(DrawWhiskers, 4)
