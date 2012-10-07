@@ -71,6 +71,7 @@ var camera = {
     // Is the position (X, y) within d units of a point that's currently visible?
     // TODO: needs work
     isvisible: function (X, y, d) {
+        return true
         var p = getpos(X, y)
         var dx = p[0] - this.p0[0], dy = p[1] - this.p0[1]
         var r = (300 + d) / this.zoom

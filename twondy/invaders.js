@@ -194,8 +194,8 @@ var FlightState = UFX.Thing({
     draw: function () {
     },
 })
-.addcomp(Rocks, 3)
-.addcomp(SpringStepper, 8, 0.2)
+//.addcomp(Rocks, 3)
+//.addcomp(SpringStepper, 8, 0.2)
 
 
 // Drill into the surface
@@ -300,45 +300,75 @@ var wpaths = [
 ]
 function Whisker(A, path) {
     this.A0 = A
-    this.sx = -Math.sin(A)
-    this.sy = Math.cos(A)
+    this.dA = 0
+    this.sx = -Math.sin(this.A0)
+    this.sy = Math.cos(this.A0)
     this.path = path || UFX.random.choice(wpaths)
-        
 }
 Whisker.prototype = {
+    think: function (dt, vx, vy) {
+        this.dA += 0.05 * dt * (vx * this.sy - vy * this.sx)
+        this.dA *= 1 - dt
+        this.dA = Math.min(Math.max(this.dA, -1), 1)
+        console.log(vx, vy, this.sx, this.sy, vx * this.sy - vy * this.sx, this.dA)
+    },
     draw: function (vx, vy) {
-        var A = this.A0 + 0.005 * Math.min(Math.max(vx * this.sy - vy * this.sx, -100), 100)
-        UFX.draw("[ r", A)
+        UFX.draw("[ r", this.A0 + this.dA)
         this.path.draw(camera.zoom)
         UFX.draw("]")
     },
 }
-var DrawWhiskers = {
+var HasWhiskers = {
     init: function (nwhiskers) {
         this.nwhiskers = nwhiskers || 4
+        this.nwhiskers = 40
     },
-    draw: function () {
+    think: function (dt) {
         if (!this.whiskers) {
-            this.whiskers = []
-            var w = this.whiskers
+            var w = this.whiskers = []
             UFX.random.spread1d(this.nwhiskers, 1).forEach(function (p) {
-                w.push(new Whisker((p * 0.8 + 0.6) * tau))
+//                w.push(new Whisker((p * 0.8 + 0.6) * tau))
+                w.push(new Whisker(p * tau))
             })
         }
         var vx = this.vx, vy = this.vy
         if (this.state.springhmax) {
-            vx = 0
-            vy = 20 * this.state.springhmax * Math.cos(this.springphi)
+            vx = this.vx
+            vy = this.vy + 0 * this.state.springhmax * Math.cos(this.springphi)
         } else if (this.state === DrillState) {
 //            vx = UFX.random(-40, 40)
 //            vy = UFX.random(-40, 40)
             vy = this.sdrill * 200
             vx = this.Adrill * 200
-
         }
-        for (var j = 0 ; j < this.whiskers.length ; ++j) this.whiskers[j].draw(vx, vy)
+        this.whiskers.forEach(function (w) { w.think(dt, vx, vy) })
+    },
+    draw: function () {
+        this.whiskers.forEach(function (w) { w.draw() })
+    },
+    die: function () {
+        effects.push(new WhiskerBloom(this))
     },
 }
+var DrawWhiskerPieces = {
+    draw: function () {
+        for (var j = 0 ; j < this.whiskers.length ; ++j) this.whiskers[j].draw(0, 0)
+    },
+}
+
+function WhiskerBloom(obj) {
+    this.whiskers = obj.whiskers
+    this.X = obj.X
+    this.y = obj.y
+    this.alive = true
+    this.think(0)
+}
+WhiskerBloom.prototype = UFX.Thing()
+    .addcomp(WorldBound)
+    .addcomp(FadesAway, 0.5)
+    .addcomp(DrawWhiskerPieces)
+
+
 
 var DrawAphid = {
     init: function () {
@@ -378,7 +408,7 @@ Aphid.prototype = UFX.Thing()
                     .addcomp(WorldBound)
 //                    .addcomp(HasHangingDrill)
                     .addcomp(HasStates, ["think", "draw"])
-                    .addcomp(DrawWhiskers, 4)
+                    .addcomp(HasWhiskers, 14)
                     .addcomp(DrawAphid)
 //                    .addcomp(DrawCircle, "white")
                     .addcomp(HasHealth, 1)
