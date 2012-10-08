@@ -51,8 +51,16 @@ UFX.resource.onload = function () {
     UFX.scene.init()
     gamestart()
 }
+// Guitar sample used under a CC0 license
+// http://www.freesound.org/people/debudding/sounds/44532/
 UFX.resource.load({
-//    success: "success.ogg",
+    guitar0: "guitar-0.ogg",
+    guitar1: "guitar-1.ogg",
+    guitar2: "guitar-2.ogg",
+    guitar3: "guitar-3.ogg",
+    guitar4: "guitar-4.ogg",
+    guitar5: "guitar-5.ogg",
+    guitar6: "guitar-6.ogg",
 })
 
 // IMPLEMENTING MY OWN VECTORS. WHAT YOU GOING TO DO ABOUT IT?
@@ -130,6 +138,7 @@ var GameScene = Object.create(UFX.scene.Scene)
 GameScene.start = function () {
     this.state = [true, false, false, false, false, false]  // lit up faces
     this.score = 1
+    playsound("guitar1")
     this.stime = 0  // Amount of time to zoom in the score
     this.z = 1
     this.htext = 800
@@ -159,6 +168,7 @@ GameScene.arrive = function () {
         this.state[nf] = !this.state[nf]
         this.score += this.state[nf] ? 1 : -1
         this.stime = 0.2
+        playsound("guitar" + this.score)
     }
     this.b = times(this.currentface, settings.vantage)
     this.n = this.nextface
@@ -271,7 +281,7 @@ GameScene.draw = function () {
         UFX.draw("( m", sps[0])
         for (var j = 1 ; j < sps.length ; ++j) UFX.draw("l", sps[j])
         if (!unclose) UFX.draw(")")
-        UFX.draw("fs", color, "f ss white lw 0.5 s")
+        UFX.draw("fs", color, "f ss white lw 0.3 s")
     }
     
 
