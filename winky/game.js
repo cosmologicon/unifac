@@ -4,7 +4,11 @@ var settings = {
     sy: 480,
     
     // transition time
-    ttime: 0.2,
+    ttime: 0.25,
+    
+    
+    nstars: 200,
+    dstar: 6,
     
     // 3d viewing settings
     H: 1.5,
@@ -64,13 +68,40 @@ function normalize(v) {
 }
 
 
+// Cube specs
+var faces = [[1,0,0],[0,1,0],[0,0,1],[-1,0,0],[0,-1,0],[0,0,-1]]
+var fcolors = "red green blue red green blue".split(" ")
+var verts = [[1, 1, 1], [1, 1, -1], [1, -1, 1], [1, -1, -1],
+             [-1, 1, 1], [-1, 1, -1], [-1, -1, 1], [-1, -1, -1]]
+var polys = []
+faces.forEach(function (f) { verts.forEach(function (v) {
+    if (dot(f, v) < 0) return
+    var p = times(plus(cross(v, f), minus(v, f)), 0.5)
+    var q = times(plus(cross(f, v), minus(v, f)), 0.5)
+    console.log(f, v, p, q)
+    var C = 0.4
+    polys.push([[
+        plus(f, plus(times(p, 1-C), times(q, 1-C))),
+        plus(f, plus(p, times(q, 1-C))),
+        v,
+        plus(f, plus(times(p, 1-C), q))
+      ], "white"])
+})})
+
 
 var GameScene = Object.create(UFX.scene.Scene)
 
 GameScene.start = function () {
     this.currentface = [1, 0, 0]
     this.nextface = [0, 0, 1]
+    this.f = [0, 0, 0]  // Always looking at the center of the cube
     this.arrive()
+    
+    this.stars = []
+    for (var j = 0 ; j < settings.nstars ; ++j) {
+        var p = UFX.random.rsphere()
+        this.stars.push([p[0]*settings.dstar, p[1]*settings.dstar, p[2]*settings.dstar])
+    }
 }
 
 GameScene.thinkargs = function (dt) {
@@ -82,26 +113,28 @@ GameScene.thinkargs = function (dt) {
 GameScene.arrive = function () {
     this.b = times(this.currentface, settings.vantage)
     this.n = this.nextface
-    this.f = [0, 0, 0]
     this.ttype = null  // transition type can be left, right, or up
 }
 
-
 GameScene.transition = function (dt) {
     this.tfrac += dt / settings.ttime
+    var f = Math.pow(this.tfrac, 0.5)
     if (this.tfrac >= 1) {
         this.arrive()
-    } else if (this.ttype === "up") {
-        var S = Math.sin(this.tfrac * Math.PI / 2), C = Math.cos(this.tfrac * Math.PI / 2)
-        this.b = plus(times(this.oldface, C * settings.vantage),
-                      times(this.currentface, S * settings.vantage))
-        this.n = plus(times(this.currentface, C),
-                      times(this.nextface, S))
-    } else if (this.ttype === "left" || this.ttype === "right") {
-        var S = Math.sin(this.tfrac * Math.PI / 2), C = Math.cos(this.tfrac * Math.PI / 2)
-        this.n = plus(times(this.oldnext, C),
-                      times(this.nextface, S))
-    
+    } else {
+        var A = f * Math.PI / 2
+        var S = Math.sin(A), C = Math.cos(A)
+        switch (this.ttype) {
+          case "up":
+            this.b = plus(times(this.oldface, C * settings.vantage),
+                          times(this.currentface, S * settings.vantage))
+            this.n = plus(times(this.currentface, C),
+                          times(this.nextface, S))
+            break
+          case "left": case "right":
+            this.n = plus(times(this.oldnext, C),
+                          times(this.nextface, S))
+        }    
     }
 }
 
@@ -150,17 +183,46 @@ GameScene.screenpos = function (p) {
     var X = -y/x, Y = z/x
     return [settings.scale * X, settings.scale * Y]
 }
+GameScene.viewward = function (p) {
+    return dot(minus(p, this.h), this.i) > 0
+}
+// Given screen positions of points of a polygon, is it facing camera?
+GameScene.facing = function (ps) {
+    var A = 0
+    for (var j = 0 ; j < ps.length ; ++j) {
+        var k = (j + 1) % ps.length
+        A += ps[j][0] * ps[k][1] - ps[j][1] * ps[k][0]
+    }
+    return A > 0
+}
 
 GameScene.draw = function () {
     context.fillStyle = "#222"
     context.fillRect(0, 0, settings.sx, settings.sy)
     
-    var ps = [[1, 1, 1], [1, 1, -1], [1, -1, 1], [1, -1, -1], [-1, 1, 1], [-1, 1, -1], [-1, -1, 1], [-1, -1, -1]]
     var that = this
     UFX.draw("[ t", settings.sx/2, settings.sy/2, "vflip fs white")
-    ps.forEach(function (p) {
-        UFX.draw("b o", that.screenpos(p), "3 f")
+
+    function drawpoly(poly) {
+        var ps = poly[0], color = poly[1]
+        var sps = []
+        ps.forEach(function (p) { sps.push(that.screenpos(p)) })
+        if (!that.facing(sps)) return
+        UFX.draw("( m", sps[0])
+        for (var j = 1 ; j < sps.length ; ++j) UFX.draw("l", sps[j])
+        UFX.draw(") fs", color, "f ss blue s")
+    }
+    
+    polys.forEach(drawpoly)
+
+    UFX.draw("b")
+    this.stars.forEach(function (star) {
+        if (that.viewward(star)) {
+            UFX.draw("o", that.screenpos(star), 1)
+        }
     })
+    UFX.draw("fs white f")
+
     UFX.draw("]")
 }
 
