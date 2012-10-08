@@ -79,7 +79,13 @@ function normalize(v) {
 
 // Cube specs
 var faces = [[1,0,0],[0,1,0],[0,0,1],[-1,0,0],[0,-1,0],[0,0,-1]]
-var fcolors = "red green blue red green blue".split(" ")
+function nface(face) {
+    var s = face.toString()
+    for (var j = 0 ; j < 6 ; ++j) if (faces[j].toString() == s) return j
+    return -1
+}
+var offcolors = "#300 #330 #003 #030 #303 #420".split(" ")
+var oncolors = "#F22 #FF3 #22F #0D0 #F0F #F70".split(" ")
 function scolor(vec) {
     return vec[0] ? "#555" : vec[1] ? "#666" : "#444"
 }
@@ -112,7 +118,7 @@ faces.forEach(function (f,fj) { verts.forEach(function (v) {
     bpolys.push([[plus(br[3],d), plus(br[2],d), plus(br[1],d), plus(br[0],d)], f, scolor(p), true])
     
     if (fpolys.length <= fj) {
-        fpolys.push([[vec(cD,cD,cD), vec(-cD,cD,cD), vec(-cD,-cD,cD), vec(cD,-cD,cD)], f, fcolors[fj]])
+        fpolys.push([[vec(cD,cD,cD), vec(-cD,cD,cD), vec(-cD,-cD,cD), vec(cD,-cD,cD)], f, "yellow"])
     }
 })})
 
@@ -120,6 +126,8 @@ faces.forEach(function (f,fj) { verts.forEach(function (v) {
 var GameScene = Object.create(UFX.scene.Scene)
 
 GameScene.start = function () {
+    this.state = [true, false, false, false, false, false]  // lit up faces
+
     this.currentface = [1, 0, 0]
     this.nextface = [0, 0, 1]
     this.f = [0, 0, 0]  // Always looking at the center of the cube
@@ -148,6 +156,10 @@ GameScene.transition = function (dt) {
     this.tfrac += dt / settings.ttime
     var f = Math.pow(this.tfrac, 0.5)
     if (this.tfrac >= 1) {
+        if (this.ttype == "up") {
+            var nf = nface(this.currentface)
+            this.state[nf] = !this.state[nf]
+        }
         this.arrive()
     } else {
         var A = f * Math.PI / 2
@@ -254,11 +266,14 @@ GameScene.draw = function () {
 
     var face0 = null
     bpolys.forEach(drawpoly)
-    faces.sort(function comp(a, b) { return dot(a, that.h) - dot(b, that.h) })
-    faces.forEach(function (face) {
+    var fs = faces.slice(0)
+    fs.sort(function comp(a, b) { return dot(a, that.h) - dot(b, that.h) })
+    fs.forEach(function (face) {
         if (dot(face, that.i) > -0.01) return
         face0 = face
-        fpolys.forEach(drawpoly)
+        var fcol = (that.state[nface(face)] ? oncolors : offcolors)[nface(face)]
+//        var fcol = "yellow"
+        fpolys.forEach(function (poly) { drawpoly([poly[0], poly[1], fcol]) })
         bpolys.forEach(drawpoly)
         dpolys.forEach(drawpoly)
         epolys.forEach(drawpoly)
