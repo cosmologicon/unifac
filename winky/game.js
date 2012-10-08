@@ -4,16 +4,19 @@ var settings = {
     sy: 480,
     
     // transition time
-    ttime: 0.2,
+    ttime: 0.25,
     
     // stars
     nstars: 200,
-    dstar: 6,
+    dstar: 8,
     
     // 3d viewing settings
-    H: 2,
-    vantage: 5,
+    Hfac: 0.3,
+    vantage: 8,
     scale: 560,
+    
+    // Game time
+    gtime: 5,
 }
 
 // Cube dimensions
@@ -30,10 +33,9 @@ var canvas = document.getElementById("canvas")
 canvas.width = settings.sx ; canvas.height = settings.sy
 var context = canvas.getContext("2d")
 UFX.draw.setcontext(context)
-UFX.key.remaparrows()
 UFX.key.qup = false
 UFX.key.qdown = true
-UFX.key.watchlist = "up down left right".split(" ")
+UFX.key.watchlist = "up down left right space".split(" ")
 UFX.key.init()
 
 function playsound(soundname) {
@@ -127,6 +129,11 @@ var GameScene = Object.create(UFX.scene.Scene)
 
 GameScene.start = function () {
     this.state = [true, false, false, false, false, false]  // lit up faces
+    this.score = 1
+    this.stime = 0  // Amount of time to zoom in the score
+    this.z = 1
+    this.htext = 800
+    this.tick = settings.gtime
 
     this.currentface = [1, 0, 0]
     this.nextface = [0, 0, 1]
@@ -147,6 +154,12 @@ GameScene.thinkargs = function (dt) {
 
 // Snap to final position, at the end of a transition
 GameScene.arrive = function () {
+    if (this.ttype == "up") {
+        var nf = nface(this.currentface)
+        this.state[nf] = !this.state[nf]
+        this.score += this.state[nf] ? 1 : -1
+        this.stime = 0.2
+    }
     this.b = times(this.currentface, settings.vantage)
     this.n = this.nextface
     this.ttype = null  // transition type can be left, right, or up
@@ -156,10 +169,6 @@ GameScene.transition = function (dt) {
     this.tfrac += dt / settings.ttime
     var f = Math.pow(this.tfrac, 0.5)
     if (this.tfrac >= 1) {
-        if (this.ttype == "up") {
-            var nf = nface(this.currentface)
-            this.state[nf] = !this.state[nf]
-        }
         this.arrive()
     } else {
         var A = f * Math.PI / 2
@@ -210,10 +219,20 @@ GameScene.think = function (dt, kdown) {
 
     
     // Set up 3d projection matrix
-    this.h = plus(this.b, times(this.n, settings.H))
+    this.h = plus(this.b, times(this.n, 1 + settings.Hfac * settings.vantage))
     this.i = normalize(minus(this.f, this.h))
     this.j = normalize(cross(this.n, this.i))
     this.k = cross(this.i, this.j)
+    
+    this.stime -= dt
+
+    var f = 1 - Math.exp(-10 * dt)
+    var ztarget = this.score * 0.25 + 1
+    this.z = Math.exp(Math.log(this.z) * (1-f) + Math.log(ztarget) * f)
+    
+    this.htext -= (Math.abs(this.htext) < 80 ? 200 : 2000) * dt
+    
+    this.tick -= dt
 }
 
 // Apply 3d projection matrix
@@ -237,11 +256,11 @@ GameScene.facing = function (ps) {
 }
 
 GameScene.draw = function () {
-    context.fillStyle = "#222"
+    context.fillStyle = "black"
     context.fillRect(0, 0, settings.sx, settings.sy)
     
     var that = this
-    UFX.draw("[ t", settings.sx/2, settings.sy/2, "vflip fs white")
+    UFX.draw("[ t", settings.sx/2, settings.sy/2, "vflip fs white z", this.z, this.z)
 
     function drawpoly(poly) {
         var ps = poly[0], face = poly[1], color = poly[2], unclose = poly[3]
@@ -252,17 +271,16 @@ GameScene.draw = function () {
         UFX.draw("( m", sps[0])
         for (var j = 1 ; j < sps.length ; ++j) UFX.draw("l", sps[j])
         if (!unclose) UFX.draw(")")
-        UFX.draw("fs", color, "f ss white s")
+        UFX.draw("fs", color, "f ss white lw 0.5 s")
     }
     
 
-    UFX.draw("b")
+    UFX.draw("fs white")
     this.stars.forEach(function (star) {
         if (that.viewward(star)) {
-            UFX.draw("o", that.screenpos(star), 1)
+            UFX.draw("b o", that.screenpos(star), 1, "f")
         }
     })
-    UFX.draw("fs white f")
 
     var face0 = null
     bpolys.forEach(drawpoly)
@@ -272,7 +290,6 @@ GameScene.draw = function () {
         if (dot(face, that.i) > -0.01) return
         face0 = face
         var fcol = (that.state[nface(face)] ? oncolors : offcolors)[nface(face)]
-//        var fcol = "yellow"
         fpolys.forEach(function (poly) { drawpoly([poly[0], poly[1], fcol]) })
         bpolys.forEach(drawpoly)
         dpolys.forEach(drawpoly)
@@ -281,6 +298,32 @@ GameScene.draw = function () {
     })
 
     UFX.draw("]")
+    
+    context.font = (60 + 10 * this.score) + "px 'Slackey'"
+    UFX.draw("[ textalign left textbaseline top fs #840 ss yellow lw", 2 + 0.2 * this.score)
+    var s = this.score + "/6"
+    context.fillText(s, 10, 0)
+    context.strokeText(s, 10, 0)
+    if (this.tick > 0) {
+        context.font = Math.floor(120 - 10 * this.tick) + "px 'Slackey'"
+        s = Math.floor(this.tick) + "." + Math.floor(this.tick * 10) % 10 + "s"
+        UFX.draw("textalign right fs #400 ss #F88 lw", 3 - 0.2 * this.tick)
+        context.fillText(s, settings.sx - 10, 0)
+        context.strokeText(s, settings.sx - 10, 0)
+    }
+    UFX.draw("]")
+
+    
+
+    if (this.htext > -400) {
+        var s = "Light all 6"
+        context.font = "100px 'Slackey'"
+        UFX.draw("[ textalign center textbaseline middle fs blue ss #AFA lw 2 t", settings.sx/2, settings.sy*0.7)
+        UFX.draw("t 0", -this.htext)
+        context.fillText(s, 0, 0)
+        context.strokeText(s, 0, 0)
+        UFX.draw("]")
+    }
 }
 
 
