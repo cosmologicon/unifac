@@ -3,8 +3,11 @@ var settings = {
     sx: 640,
     sy: 480,
     
+    // transition time
+    ttime: 0.2,
+    
     // 3d viewing settings
-    H: 2,
+    H: 1.5,
     vantage: 5,
     scale: 560,
 }
@@ -64,29 +67,83 @@ function normalize(v) {
 
 var GameScene = Object.create(UFX.scene.Scene)
 
+GameScene.start = function () {
+    this.currentface = [1, 0, 0]
+    this.nextface = [0, 0, 1]
+    this.arrive()
+}
+
 GameScene.thinkargs = function (dt) {
     var kdown = UFX.key.state().down
     return [dt, kdown]
 }
 
+// Snap to final position, at the end of a transition
+GameScene.arrive = function () {
+    this.b = times(this.currentface, settings.vantage)
+    this.n = this.nextface
+    this.f = [0, 0, 0]
+    this.ttype = null  // transition type can be left, right, or up
+}
+
+
+GameScene.transition = function (dt) {
+    this.tfrac += dt / settings.ttime
+    if (this.tfrac >= 1) {
+        this.arrive()
+    } else if (this.ttype === "up") {
+        var S = Math.sin(this.tfrac * Math.PI / 2), C = Math.cos(this.tfrac * Math.PI / 2)
+        this.b = plus(times(this.oldface, C * settings.vantage),
+                      times(this.currentface, S * settings.vantage))
+        this.n = plus(times(this.currentface, C),
+                      times(this.nextface, S))
+    } else if (this.ttype === "left" || this.ttype === "right") {
+        var S = Math.sin(this.tfrac * Math.PI / 2), C = Math.cos(this.tfrac * Math.PI / 2)
+        this.n = plus(times(this.oldnext, C),
+                      times(this.nextface, S))
+    
+    }
+}
+
 GameScene.think = function (dt, kdown) {
     kdown = kdown || {}
     
-    this.t = this.t || 0
-    this.t += dt
+    if (kdown.up) {
+        this.arrive()
+        this.ttype = "up"
+        this.tfrac = 0
+        this.oldface = this.currentface
+        this.currentface = this.nextface
+        this.nextface = times(this.oldface, -1)
+    }
+    if (kdown.left) {
+        this.arrive()
+        this.ttype = "left"
+        this.tfrac = 0
+        this.oldnext = this.nextface
+        this.nextface = cross(this.currentface, this.nextface)
+    }
+    if (kdown.right) {
+        this.arrive()
+        this.ttype = "right"
+        this.tfrac = 0
+        this.oldnext = this.nextface
+        this.nextface = cross(this.nextface, this.currentface)
+    }
     
+    if (this.ttype) {
+        this.transition(dt)
+    }
+
     
-    var S = Math.sin(this.t*2), C = Math.cos(this.t*2)
-    this.b = [5*C, 0, 5*S]
-    this.f = [0, 0, 0]
-    this.n = [-S, 0, C]
-    
+    // Set up 3d projection matrix
     this.h = plus(this.b, times(this.n, settings.H))
     this.i = normalize(minus(this.f, this.h))
     this.j = normalize(cross(this.n, this.i))
     this.k = cross(this.i, this.j)
 }
 
+// Apply 3d projection matrix
 GameScene.screenpos = function (p) {
     var a = minus(p, this.h)
     var x = dot(a, this.i), y = dot(a, this.j), z = dot(a, this.k)
