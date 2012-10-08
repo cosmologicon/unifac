@@ -4,16 +4,25 @@ var settings = {
     sy: 480,
     
     // transition time
-    ttime: 0.25,
+    ttime: 0.2,
     
-    
+    // stars
     nstars: 200,
     dstar: 6,
     
     // 3d viewing settings
-    H: 1.5,
+    H: 2,
     vantage: 5,
     scale: 560,
+}
+
+// Cube dimensions
+var cdim = {
+    C: 0.5,
+    D: 0.2,
+    G: 0.1,
+    L: 0.3,
+    B: 0.11,
 }
 
 // SETUP
@@ -71,21 +80,40 @@ function normalize(v) {
 // Cube specs
 var faces = [[1,0,0],[0,1,0],[0,0,1],[-1,0,0],[0,-1,0],[0,0,-1]]
 var fcolors = "red green blue red green blue".split(" ")
+function scolor(vec) {
+    return vec[0] ? "#555" : vec[1] ? "#666" : "#444"
+}
 var verts = [[1, 1, 1], [1, 1, -1], [1, -1, 1], [1, -1, -1],
              [-1, 1, 1], [-1, 1, -1], [-1, -1, 1], [-1, -1, -1]]
-var polys = []
-faces.forEach(function (f) { verts.forEach(function (v) {
+var cpolys = []  // Corner caps
+var bpolys = []  // Corner borders
+var dpolys = []  // drop edges
+var epolys = []  // Edges
+var fpolys = []  // faces
+faces.forEach(function (f,fj) { verts.forEach(function (v) {
     if (dot(f, v) < 0) return
     var p = times(plus(cross(v, f), minus(v, f)), 0.5)
     var q = times(plus(cross(f, v), minus(v, f)), 0.5)
-    console.log(f, v, p, q)
-    var C = 0.4
-    polys.push([[
-        plus(f, plus(times(p, 1-C), times(q, 1-C))),
-        plus(f, plus(p, times(q, 1-C))),
-        v,
-        plus(f, plus(times(p, 1-C), q))
-      ], "white"])
+    function vec(x, y, z) {
+        return plus(times(f, z), plus(times(p, x), times(q, y)))
+    }
+    var cC = 1 - cdim.C, cD = 1 - cdim.D
+    var a = vec(cC, cD+cdim.G-cdim.L, cD)
+    var b = plus(a, times(f, cdim.G))
+    var c = plus(b, times(q, cdim.L))
+    var d = times(p, -2*cC)
+
+    cpolys.push([[vec(cC, cC, 1), vec(1, cC, 1), vec(1+cdim.B, 1+cdim.B, 1+cdim.B), vec(1-cC, 1, 1)], f, scolor(f)])
+    dpolys.push([[a, b, plus(b, d), plus(a, d)], f, scolor(q)])
+    epolys.push([[b, c, plus(c, d), plus(b, d)], f, scolor(f)])
+
+    var br = [vec(cC, cD, cD), vec(cC, cC, cD), vec(cC, cC, 1), vec(cC, 1, 1)]
+    bpolys.push([br, f, scolor(p), true])
+    bpolys.push([[plus(br[3],d), plus(br[2],d), plus(br[1],d), plus(br[0],d)], f, scolor(p), true])
+    
+    if (fpolys.length <= fj) {
+        fpolys.push([[vec(cD,cD,cD), vec(-cD,cD,cD), vec(-cD,-cD,cD), vec(cD,-cD,cD)], f, fcolors[fj]])
+    }
 })})
 
 
@@ -204,16 +232,17 @@ GameScene.draw = function () {
     UFX.draw("[ t", settings.sx/2, settings.sy/2, "vflip fs white")
 
     function drawpoly(poly) {
-        var ps = poly[0], color = poly[1]
+        var ps = poly[0], face = poly[1], color = poly[2], unclose = poly[3]
+        if (face0 && face != face0) return
         var sps = []
         ps.forEach(function (p) { sps.push(that.screenpos(p)) })
         if (!that.facing(sps)) return
         UFX.draw("( m", sps[0])
         for (var j = 1 ; j < sps.length ; ++j) UFX.draw("l", sps[j])
-        UFX.draw(") fs", color, "f ss blue s")
+        if (!unclose) UFX.draw(")")
+        UFX.draw("fs", color, "f ss white s")
     }
     
-    polys.forEach(drawpoly)
 
     UFX.draw("b")
     this.stars.forEach(function (star) {
@@ -222,6 +251,19 @@ GameScene.draw = function () {
         }
     })
     UFX.draw("fs white f")
+
+    var face0 = null
+    bpolys.forEach(drawpoly)
+    faces.sort(function comp(a, b) { return dot(a, that.h) - dot(b, that.h) })
+    faces.forEach(function (face) {
+        if (dot(face, that.i) > -0.01) return
+        face0 = face
+        fpolys.forEach(drawpoly)
+        bpolys.forEach(drawpoly)
+        dpolys.forEach(drawpoly)
+        epolys.forEach(drawpoly)
+        cpolys.forEach(drawpoly)
+    })
 
     UFX.draw("]")
 }
