@@ -39,7 +39,8 @@ UFX.key.watchlist = "up down left right space".split(" ")
 UFX.key.init()
 
 function playsound(soundname) {
-    if (document.getElementById("playsound").checked) {
+    var soundcheckbox = document.getElementById("playsound")
+    if (!soundcheckbox || soundcheckbox.checked) {
         UFX.resource.sounds[soundname].play()
     }
 }
@@ -138,6 +139,8 @@ var GameScene = Object.create(UFX.scene.Scene)
 GameScene.start = function () {
     this.state = [true, false, false, false, false, false]  // lit up faces
     this.score = 1
+    this.playing = true
+    this.qtime = 0   // Time after winning before game ends
     playsound("guitar1")
     this.stime = 0  // Amount of time to zoom in the score
     this.z = 1
@@ -167,6 +170,10 @@ GameScene.arrive = function () {
         var nf = nface(this.currentface)
         this.state[nf] = !this.state[nf]
         this.score += this.state[nf] ? 1 : -1
+        if (this.score == 6) {
+            this.qtime = 0.4
+            this.playing = false
+        }
         this.stime = 0.2
         playsound("guitar" + this.score)
     }
@@ -200,27 +207,29 @@ GameScene.transition = function (dt) {
 GameScene.think = function (dt, kdown) {
     kdown = kdown || {}
     
-    if (kdown.up) {
-        this.arrive()
-        this.ttype = "up"
-        this.tfrac = 0
-        this.oldface = this.currentface
-        this.currentface = this.nextface
-        this.nextface = times(this.oldface, -1)
-    }
-    if (kdown.left) {
-        this.arrive()
-        this.ttype = "left"
-        this.tfrac = 0
-        this.oldnext = this.nextface
-        this.nextface = cross(this.currentface, this.nextface)
-    }
-    if (kdown.right) {
-        this.arrive()
-        this.ttype = "right"
-        this.tfrac = 0
-        this.oldnext = this.nextface
-        this.nextface = cross(this.nextface, this.currentface)
+    if (this.playing) {
+        if (kdown.up) {
+            this.arrive()
+            this.ttype = "up"
+            this.tfrac = 0
+            this.oldface = this.currentface
+            this.currentface = this.nextface
+            this.nextface = times(this.oldface, -1)
+        }
+        if (kdown.left) {
+            this.arrive()
+            this.ttype = "left"
+            this.tfrac = 0
+            this.oldnext = this.nextface
+            this.nextface = cross(this.currentface, this.nextface)
+        }
+        if (kdown.right) {
+            this.arrive()
+            this.ttype = "right"
+            this.tfrac = 0
+            this.oldnext = this.nextface
+            this.nextface = cross(this.nextface, this.currentface)
+        }
     }
     
     if (this.ttype) {
@@ -243,6 +252,16 @@ GameScene.think = function (dt, kdown) {
     this.htext -= (Math.abs(this.htext) < 80 ? 200 : 2000) * dt
     
     this.tick -= dt
+    if (this.qtime) {
+        this.qtime -= dt
+        if (this.qtime < 0) {
+            gamewin()
+            UFX.scene.pop()
+        }
+    } else if (this.tick < 0) {
+        gamefail()
+        UFX.scene.pop()
+    }
 }
 
 // Apply 3d projection matrix
@@ -293,6 +312,7 @@ GameScene.draw = function () {
     })
 
     var face0 = null
+    cpolys.forEach(drawpoly)
     bpolys.forEach(drawpoly)
     var fs = faces.slice(0)
     fs.sort(function comp(a, b) { return dot(a, that.h) - dot(b, that.h) })

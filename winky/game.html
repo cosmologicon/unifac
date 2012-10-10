@@ -1,72 +1,23 @@
 <!DOCTYPE html>
 <title>Winky</title>
-<link href='http://fonts.googleapis.com/css?family=Slackey|Kameron|Boogaloo' rel='stylesheet' type='text/css'>
-<style>
-body {
-    background: black; color: white;
-    font-family: 'Boogaloo';
-    font-size: 130%;
-}
-h1 {
-    font-size: 160%;
-    text-align: center;
-    margin: 0.5em auto 0;
-}
-h2 {
-    margin: 0 auto 0;
-    font-size: 120%;
-}
-* {
-    margin: auto;
-    text-align: center;
-}
-p {
-    margin: 1em auto 1em;
-}
-
-#canvasbox {
-    position: relative;
-}
-</style>
-
+<link href='http://fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
 <!-- UFX libraries -->
-<script src="../UFX/src/ticker.js"></script>
-<script src="../UFX/src/resource.js"></script>
-<script src="../UFX/src/scene.js"></script>
-<script src="../UFX/src/mouse.js"></script>
-<script src="../UFX/src/key.js"></script>
-<script src="../UFX/src/Thing.js"></script>
-<script src="../UFX/src/draw.js"></script>
-<script src="../UFX/src/random.js"></script>
-<script src="../UFX/src/noise.js"></script>
-
-<table>
-<tr><td style="padding-right: 20px ; width: 20em">
-<h1>Winky</h1>
-<h2>by Christopher Night</h2>
-<h2>Universe Factory games</h2>
-
-<p>Created for the BDAYBASH game jam
-<p>Use the arrow keys to hit all faces in 5 seconds
-
-<p><input id=playsound name=playsound type=checkbox checked> Play sound</input>
-
-<td>
-<canvas id=canvas style="border: medium gray outset"></canvas>
-</table>
-
+<script src="UFX.js"></script>
+<!-- game canvas -->
+<canvas id=canvas></canvas>
 <!-- game code -->
 <script src="game.js"></script>
-
+<!-- template code for BDAYBASH -->
 <script>
 parent = parent || {}
 function gamestart() {
     parent.letsgo = true;
 }
-function gameend(winstate) {
-    parent.winstate = winstate;
+function gamewin() {
+    parent.winstate = true;
+}
+function gamefail() {
+    parent.winstate = false;
 }
 </script>
-
-
 
