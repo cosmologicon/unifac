@@ -62,6 +62,7 @@ UFX.resource.load({
     guitar4: "guitar-4.ogg",
     guitar5: "guitar-5.ogg",
     guitar6: "guitar-6.ogg",
+    instructions: "instructions.png",
 })
 
 // IMPLEMENTING MY OWN VECTORS. WHAT YOU GOING TO DO ABOUT IT?
@@ -329,13 +330,13 @@ GameScene.draw = function () {
 
     UFX.draw("]")
     
-    context.font = (60 + 10 * this.score) + "px 'Slackey'"
+    context.font = (60 + 10 * this.score) + "px 'Slackey', serif"
     UFX.draw("[ textalign left textbaseline top fs #840 ss yellow lw", 2 + 0.2 * this.score)
     var s = this.score + "/6"
     context.fillText(s, 10, 0)
     context.strokeText(s, 10, 0)
     if (this.tick > 0) {
-        context.font = Math.floor(120 - 10 * this.tick) + "px 'Slackey'"
+        context.font = Math.floor(120 - 10 * this.tick) + "px 'Slackey', serif"
         s = Math.floor(this.tick) + "." + Math.floor(this.tick * 10) % 10 + "s"
         UFX.draw("textalign right fs #400 ss #F88 lw", 3 - 0.2 * this.tick)
         context.fillText(s, settings.sx - 10, 0)
@@ -346,13 +347,20 @@ GameScene.draw = function () {
     
 
     if (this.htext > -400) {
-        var s = "Light all 6"
-        context.font = "100px 'Slackey'"
-        UFX.draw("[ textalign center textbaseline middle fs blue ss #AFA lw 2 t", settings.sx/2, settings.sy*0.7)
-        UFX.draw("t 0", -this.htext)
-        context.fillText(s, 0, 0)
-        context.strokeText(s, 0, 0)
-        UFX.draw("]")
+        if (false) {
+            var icanvas = document.createElement("canvas")
+            icanvas.width = 6000
+            icanvas.height = 120
+            var icontext = icanvas.getContext("2d")
+            var s = "Light all 6"
+            icontext.font = "100px 'Slackey'"
+            UFX.draw(icontext, "textbaseline middle textalign center t 270 60 fs blue ss #AFA lw 2")
+            icontext.fillText(s, 0, 0)
+            icontext.strokeText(s, 0, 0)
+            this.instructions = icanvas
+            window.location = icanvas.toDataURL()
+        }
+        context.drawImage(UFX.resource.images.instructions, settings.sx/2 - 300, -this.htext + 240)
     }
 }
 
