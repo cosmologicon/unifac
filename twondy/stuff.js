@@ -1,18 +1,31 @@
 // Game objects - will probably separate this out when I get an idea what's actually
 // going to be in the game
 
+// Coordinates explained:
+//   X = angle with respect to north pole
+//   y = height above surface
+//   vx = speed with respect to x, which is X * (r + y)
+
+var ClipsToCamera = {
+    init: function (r) {
+        this.clipr = r || 0
+        this.setmethodmode("draw", "any")
+    },
+    draw: function () {
+        return !camera.isvisible(this.X, this.y, this.clipr)
+    },
+}
 
 var WorldBound = {
-    init: function (x, y) {
-        // TODO: replace x with X, which is more intuitive for me since it's actually an angle
-        this.x = x || 0
+    init: function (X, y) {
+        this.X = X || 0
         this.y = y || 0
         this.vx = 0
         this.vy = 0
         this.facingright = true
     },
     think: function () {
-        this.oldx = this.x
+        this.oldX = this.X
         this.oldy = this.y
         this.xfactor = Math.max(gamestate.worldr + this.y, 1)
     },
@@ -26,13 +39,13 @@ var WorldBound = {
             context.rotate(-Math.atan2(Twondy.b * S, Twondy.a * C))
             context.translate(0, this.y)
         } else {
-            context.rotate(-this.x)
+            context.rotate(-this.X)
             context.translate(0, this.xfactor)
         }
     },
     lookingat: function () {
-        var dx = (this.facingright ? 1 : -1) * Math.min(mechanics.lookahead / this.xfactor, 0.5)
-        return [this.x + dx, this.y * 0.6]
+        var dX = (this.facingright ? 1 : -1) * Math.min(mechanics.lookahead / this.xfactor, 0.5)
+        return [this.X + dX, this.y * 0.6]
     },
 }
 
@@ -177,7 +190,7 @@ var Drifts = {
         this.vy = vy || 0
     },
     think: function (dt) {
-        this.x += this.vx * dt / this.xfactor
+        this.X += this.vx * dt / this.xfactor
         this.y += this.vy * dt
     },
 }
@@ -188,7 +201,7 @@ var SeeksOrbit = {
         this.ymax = ymax || 200
     },
     think: function (dt) {
-        this.x += this.vx * dt / this.xfactor
+        this.X += this.vx * dt / this.xfactor
         if (this.y < this.ymax) {
             this.y += this.vy * dt
             if (this.y >= this.ymax) {
@@ -273,7 +286,7 @@ var HitsWithin = {
     },
     hit: function (objs) {
         for (var j = 0 ; j < objs.length ; ++j) {
-            var dx = getdx(this.x, objs[j].x) * this.xfactor
+            var dx = getdX(this.X, objs[j].X) * this.xfactor
             var dy = this.y - objs[j].y
             if (dx * dx + dy * dy < this.s * this.s) {
                 objs[j].takedamage(this.dhp)
@@ -291,7 +304,7 @@ var GivesMoney = {
         if (this.alive) {
             this.alive = false
             gamestate.bank += this.money
-            effects.push(new MoneyBox(this.money, this.x, this.y))
+            effects.push(new MoneyBox(this.money, this.X, this.y))
         }
     },
 }
@@ -300,7 +313,7 @@ var ExplodesOnTouch = {
     benabbed: function (nabber) {
         if (this.alive) {
             this.alive = false
-            ehitters.push(new Wave(this.x, this.y, 300, 500))
+            ehitters.push(new Wave(this.X, this.y, 300, 500))
         }
     },
 }
@@ -334,8 +347,8 @@ var HasHealth = {
 
 
 
-function Token(x, y) {
-    this.x = x
+function Token(X, y) {
+    this.X = X
     this.y = y
     this.vx = UFX.random.choice([-50, 50])
     this.vy = -30
@@ -351,8 +364,8 @@ Token.prototype = UFX.Thing()
 
 
 
-function Bubble(x, y) {
-    this.x = x
+function Bubble(X, y) {
+    this.X = X
     this.y = y
     this.vx = UFX.random(-20, 20)
     this.vy = 20
@@ -368,8 +381,8 @@ Bubble.prototype = UFX.Thing()
                      .addcomp(GivesBoost, 360)
 
 
-function Bomb(x, y) {
-    this.x = x
+function Bomb(X, y) {
+    this.X = X
     this.y = y
     this.vx = UFX.random.choice([-40, 40])
     this.vy = 60
@@ -384,8 +397,8 @@ Bomb.prototype = UFX.Thing()
 
 
 
-function Wave (x0, y0, smax, vs) {
-    this.x = x0
+function Wave (X0, y0, smax, vs) {
+    this.X = X0
     this.y = y0
     if (smax) this.smax = smax
     if (vs) this.vs = vs

@@ -30,7 +30,7 @@ var BezierPath = {
         }
         h = this.h ; g = 1 - h
         this.obj.y = g*g*g*this.y0 + 3*h*g*g*this.y1 + 3*h*h*g*this.y2 + h*h*h*this.y3
-        this.obj.x += dxdh * dh / (this.obj.y + r)
+        this.obj.X += dxdh * dh / (this.obj.y + r)
         this.obj.vy = dydh * dhdt   // could be better approximation
         this.obj.vx = dxdh * dhdt
         
@@ -88,18 +88,25 @@ function LevelPath(obj) {
     this.obj = obj
     this.y0 = 5
     this.alive = true
+    this.xdir = this.obj.vx > 0 ? 1 : -1
 }
 LevelPath.prototype = {
     start: function () {
-        this.y0 = UFX.random(0, 40)
+        this.y0 = UFX.random(20, 50)
     },
     update: function (dt) {
-        var dy = this.y0 - this.obj.y
-        var dx = 200
-        var d = Math.sqrt(dx * dx + dy * dy)
-        this.obj.vx = dx * this.obj.v / d
-        this.obj.vy = dy * this.obj.v / d
-        this.obj.x += (this.obj.vx * dt) / (this.obj.y + gamestate.worldr)
+//        var dy = this.y0 - this.obj.y
+//        var dx = 200
+//        var d = Math.sqrt(dx * dx + dy * dy)
+//        this.obj.vx = dx * this.obj.v / d
+//        this.obj.vy = dy * this.obj.v / d
+//        console.log(this.obj.vx, this.obj.vy)
+        this.obj.vx += 50 * dt * this.xdir
+        this.obj.vy += 2 * (this.y0 - this.obj.y) * dt
+        var d = Math.sqrt(this.obj.vx * this.obj.vx + this.obj.vy * this.obj.vy)
+        this.obj.vx *= this.obj.v / d
+        this.obj.vy *= this.obj.v / d
+        this.obj.X += (this.obj.vx * dt) / (this.obj.y + gamestate.worldr)
         this.obj.y += this.obj.vy * dt
     },
 }
