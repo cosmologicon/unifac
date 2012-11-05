@@ -30,7 +30,7 @@ GameScene.start = function () {
     gamestate.setworldsize(450)
 
     you.y = 0
-    you.x = 0
+    you.X = 0
     you.vx = 0
     you.vy = 0
     you.setstate(StandState)
@@ -85,12 +85,13 @@ GameScene.think = function (dt, mkeys, nkeys) {
         console.log(localStorage.twondyrecord.length)
     }
 
-    if (UFX.random() * 3 < dt && monsters.length < 10) {
-//        var p = new Portal(UFX.random(tau), 120)
-//        beffects.push(p)
+    if (UFX.random() * 3 < dt && monsters.length < 1) {
+        var p = new Portal(UFX.random(tau), UFX.random(100, 200))
+//        var p = new Portal(0, 120)
+        beffects.push(p)
 //        monsters.push(new Aphid(p))
-//        monsters.push(new Aphid(p))
-        monsters.push(new Aphid())
+        monsters.push(new Aphid(p))
+//        monsters.push(new Aphid())
     }
 
 /*
@@ -359,7 +360,7 @@ GameOverScene.think = function (dt) {
     if (this.t > 0.7) {
         this.alpha = Math.min(this.alpha + dt, 0.8)
         camera.mode = "planet"
-        camera.settarget([you.x, you.y + 44])
+        camera.settarget([you.X, you.y + 44])
         camera.think(dt)
         GameOverTitle.think(dt)
         disableall()

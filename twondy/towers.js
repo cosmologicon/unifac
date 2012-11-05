@@ -529,18 +529,19 @@ var MadeOfBlocks = {
 var InteractsWithYou = {
     interact: function () {
 //        if (you.vy > 0) return
-        var dx = getdx(this.x, you.x), r = you.y + gamestate.worldr
-        var x = r * Math.sin(dx), y = r * Math.cos(dx) - gamestate.worldr
-        var dx = getdx(this.x, you.oldx), r = you.oldy + gamestate.worldr
-        var oldx = r * Math.sin(dx), oldy = r * Math.cos(dx) - gamestate.worldr
+        // Get player position and old position in local coordinates
+        var dX = getdX(this.X, you.X), r = you.y + gamestate.worldr
+        var x = r * Math.sin(dX), y = r * Math.cos(dX) - gamestate.worldr
+        var dX = getdX(this.X, you.oldX), r = you.oldy + gamestate.worldr
+        var oldx = r * Math.sin(dX), oldy = r * Math.cos(dX) - gamestate.worldr
         this.blocks.forEach(function (block) {
             block.interact(you, oldx, oldy, x, y)
         })
     },
 }
 
-function BlockTower(x) {
-    this.x = x
+function BlockTower(X) {
+    this.X = X
     this.y = 0
     this.initblocks()
     /*
