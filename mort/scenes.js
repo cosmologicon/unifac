@@ -48,15 +48,35 @@ MapScene.draw = function () {
 var CutScene = Object.create(UFX.scene.Scene)
 
 CutScene.start = function () {
+	if (record.maxvisited >= gamestate.level) {  // Have we already seen this cutscene?
+		if (gamestate.level <= settings.nlevels && !settings.alwaysshow) {
+			UFX.scene.swap(TipScene)
+		}
+	}
 	UFX.key.qdown = true
 	UFX.key.qcombo = false
 	UFX.key.watchlist = "act tab esc".split(" ")
+	this.dq = getdialogue(gamestate.level)
 }
 
-CutScene.think = function (dt) {
-	
+CutScene.thinkargs = function (dt) {
+	var kstate = UFX.key.state()
+    return [dt, kstate.down]
 }
 
+CutScene.think = function (dt, kdown) {
+	if (kdown.act) {
+		this.dq.splice(0, 1)
+		if (!this.dq.length) UFX.scene.swap(TipScene)
+	}
+}
+
+CutScene.draw = function () {
+	if (!this.dq[0]) return
+	var who = this.dq[0][0], text = this.dq[0][1]
+	UFX.draw("fs black fr 0 0", settings.sx, settings.sy, "fs white textalign center textbaseline middle")
+	context.fillText(text, settings.sx/2, settings.sy/2)
+}
 
 var TipScene = Object.create(UFX.scene.Scene)
 
