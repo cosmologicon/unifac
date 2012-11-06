@@ -104,7 +104,6 @@ var gamestate = {
 	
 	// TODO: visit
 	// TODO: checkvisit
-	// TODO: gettip
 	// TODO: gethcrecord
 	
 	
