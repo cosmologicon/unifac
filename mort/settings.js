@@ -5,5 +5,7 @@ var settings = {
 	fonts: {
 		loading: "80px sans-serif",
 	},
+	
+	savegamename: "mortimersave",
 }
 
