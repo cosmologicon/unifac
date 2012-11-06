@@ -1,3 +1,5 @@
+
+
 var canvas = document.getElementById("canvas")
 canvas.width = settings.sx
 canvas.height = settings.sy
@@ -10,7 +12,7 @@ UFX.scene.init()
 UFX.scene.push(LoadScene)
 UFX.resource.onload = function () {
 	UFX.scene.pop()
-	UFX.scene.push(WorldMapScene)
+	UFX.scene.push(record.maxvisited ? MapScene : CutScene)
 }
 
 UFX.key.init()
@@ -21,4 +23,9 @@ UFX.key.watchlist = "left right up act esc".split(" ")
 UFX.resource.load({
 })
 
+record.unlocked = 6
+record.maxvisited = 6
+
+// utilities
+function clip(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
 
