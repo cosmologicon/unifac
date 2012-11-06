@@ -5,8 +5,8 @@ var record = {
 	comborecord: 1,
 	collected: {},
 	bank: 0,
-	hiscore = {},
-	seentips = {},
+	hiscore: {},
+	seentips: {},
 }
 
 var gamestate = {
