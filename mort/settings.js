@@ -20,6 +20,8 @@ var settings = {
 	savegamename: "mortimersave",
 	
 	
+	alwaysshow: true, // show cutscenes you've already seen
+	
 	// Cheat modes
 	easy: false,
 	unlockall: false,
