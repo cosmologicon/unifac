@@ -18,10 +18,15 @@ UFX.resource.onload = function () {
 UFX.key.init()
 UFX.key.remaparrows(true)
 UFX.key.remap({ space: "act", enter: "act" })
-UFX.key.watchlist = "left right up act esc".split(" ")
+UFX.key.watchlist = "left right up act tab esc".split(" ")
+UFX.key.qdown = true
+UFX.key.qcombo = true
 
-UFX.resource.load({
-})
+var res = {}
+for (var fname in frameoffsets) {
+	res[fname] = "img/" + fname + ".png"
+}
+UFX.resource.load(res)
 
 record.unlocked = 6
 record.maxvisited = 6

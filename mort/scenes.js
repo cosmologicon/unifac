@@ -1,6 +1,6 @@
 var LoadScene = Object.create(UFX.scene.Scene)
 
-LoadScene.think = function (dt) {
+LoadScene.start = function (dt) {
 	UFX.draw("fs rgb(20,0,20) fr 0 0", settings.sx, settings.sy, "fs rgb(200,0,200) ss black",
 		"textalign center textbaseline middle")
 	context.font = settings.fonts.loading
@@ -12,10 +12,8 @@ LoadScene.think = function (dt) {
 var MapScene = Object.create(UFX.scene.Scene)
 
 MapScene.start = function () {
-	UFX.key.qdown = true
-	UFX.key.qcombo = false
-	UFX.key.watchlist = "up down left right act esc".split(" ")
 	if (settings.unlockall) record.unlocked = settings.nlevels
+	context.font = settings.fonts.loading
 	this.udseq = []
 }
 
@@ -25,6 +23,7 @@ MapScene.thinkargs = function (dt) {
 }
 
 MapScene.think = function (dt, kdown) {
+	dt = dt || 0 ; kdown = kdown || {}
 	var dx = (kdown.right ? 1 : 0) - (kdown.left ? 1 : 0)
 	if (dx) {
 		gamestate.level = clip(gamestate.level + dx, 1, record.unlocked)
@@ -53,9 +52,6 @@ CutScene.start = function () {
 			UFX.scene.swap(TipScene)
 		}
 	}
-	UFX.key.qdown = true
-	UFX.key.qcombo = false
-	UFX.key.watchlist = "act tab esc".split(" ")
 	this.dq = getdialogue(gamestate.level)
 }
 
@@ -65,6 +61,7 @@ CutScene.thinkargs = function (dt) {
 }
 
 CutScene.think = function (dt, kdown) {
+	dt = dt || 0 ; kdown = kdown || {}
 	if (kdown.act) {
 		this.dq.splice(0, 1)
 		if (!this.dq.length) UFX.scene.swap(TipScene)
@@ -81,9 +78,6 @@ CutScene.draw = function () {
 var TipScene = Object.create(UFX.scene.Scene)
 
 TipScene.start = function () {
-	UFX.key.qdown = true
-	UFX.key.qcombo = false
-	UFX.key.watchlist = "act esc".split(" ")
 	this.tip = gettip()
 }
 
@@ -93,6 +87,7 @@ TipScene.thinkargs = function (dt) {
 }
 
 TipScene.think = function (dt, kdown) {
+	dt = dt || 0 ; kdown = kdown || {}
 	if (kdown.act) {
 		UFX.scene.swap(ActionScene)
 	}
@@ -107,11 +102,25 @@ TipScene.draw = function () {
 var ActionScene = Object.create(UFX.scene.Scene)
 
 ActionScene.start = function () {
-	UFX.key.qdown = true
-	UFX.key.qcombo = true
-	UFX.key.watchlist = "up left right act esc".split(" ")
+	// TODO: vista.levelinit(gamestate.level)
+	
 }
 
+ActionScene.thinkargs = function (dt) {
+	var kstate = UFX.key.state()
+    return [dt, kstate.down, kstate.pressed, kstate.combo]
+}
+
+ActionScene.think = function (dt, kdown, kpressed, kcombo) {
+	dt = dt || 0 ; kdown = kdown || {}
+	kpressed = kpressed || {} ; kcombo = kcombo || {}
+}
+
+ActionScene.draw = function () {
+	UFX.draw("fs black f0 fs white textalign center textbaseline middle [ t 400 200")
+	drawframe("stand")
+	UFX.draw("]")
+}
 
 
 
