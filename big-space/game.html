@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Big Space</title>
+<link href='http://fonts.googleapis.com/css?family=Viga' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Syncopate:700|Russo+One|Chau+Philomene+One' rel='stylesheet' type='text/css'>
+<style>
+body {
+    background: #003; color: white;
+    font-family: 'Viga';
+    font-size: 110%;
+    margin: 0;
+    text-align: center;
+}
+#canvas {
+    margin: 0 auto 0;
+    border: 0;
+    padding: 0;
+}
+
+</style>
+
+<!-- UFX libraries -->
+<script src="../UFX/src/ticker.js"></script>
+<script src="../UFX/src/scene.js"></script>
+<script src="../UFX/src/mouse.js"></script>
+<script src="../UFX/src/key.js"></script>
+<script src="../UFX/src/Thing.js"></script>
+<script src="../UFX/src/draw.js"></script>
+<script src="../UFX/src/random.js"></script>
+<script src="../UFX/src/noise.js"></script>
+<script src="../UFX/src/resource.js"></script>
+
+<script src="settings.js"></script>
+
+<!-- Scenes -->
+<script src="gamescene.js"></script>
+<script src="state.js"></script>
+
+<!-- game objects -->
+<script src="entity.js"></script>
+<script src="effect.js"></script>
+<script src="mask.js"></script>
+<script src="camera.js"></script>
+<script src="quests.js"></script>
+
+<body>
+<canvas id=canvas></canvas>
+
+<script>
+var canvas = document.getElementById("canvas")
+canvas.width = settings.sx ; canvas.height = settings.sy
+var context = canvas.getContext("2d")
+
+window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
+                               window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
+UFX.mouse.init(canvas)
+UFX.mouse.capture.right = true
+UFX.key.init()
+UFX.key.watchlist = "tab space".split(" ")
+UFX.draw.setcontext(context)
+
+UFX.resource.onload = function () {
+    UFX.resource.sounds.music.addEventListener('ended', function() {
+        this.currentTime = 0;
+        this.play();
+    }, false)
+    UFX.scene.push(GameScene)
+    UFX.scene.init()
+}
+UFX.resource.load({music: "big-space.ogg", chime: "chime.wav"})
+
+
+</script>
+
+
