@@ -103,7 +103,8 @@ var ActionScene = Object.create(UFX.scene.Scene)
 
 ActionScene.start = function () {
 	// TODO: vista.levelinit(gamestate.level)
-	
+	You.reset()
+	vista.snapto(You.lookingat())
 }
 
 ActionScene.thinkargs = function (dt) {
@@ -114,13 +115,27 @@ ActionScene.thinkargs = function (dt) {
 ActionScene.think = function (dt, kdown, kpressed, kcombo) {
 	dt = dt || 0 ; kdown = kdown || {}
 	kpressed = kpressed || {} ; kcombo = kcombo || {}
+	
+	if (kdown.esc) { UFX.scene.push(PauseScene) ; return }
+	if (kdown.tab) settings.hidefeatnames = !settings.hidefeatnames
+	// TODO: F for fullscreen?
+	
+	You.move(kdown, kpressed, kcombo)
+	You.think(dt)
+
+	vista.lookat(You.lookingat())
+	vista.think(dt)
 }
 
 ActionScene.draw = function () {
-	UFX.draw("fs black f0 fs white textalign center textbaseline middle [ t 400 200")
-	drawframe("stand")
+	UFX.draw("[")
+	vista.draw()
+	function draw(obj) { context.save() ; obj.draw() ; context.restore() }
+	draw(You)
 	UFX.draw("]")
 }
+
+// TODO: pause scene
 
 
 

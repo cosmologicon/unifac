@@ -20,10 +20,28 @@ var settings = {
 	savegamename: "mortimersave",
 	
 	
+	hidefeatnames: false, 
 	alwaysshow: true, // show cutscenes you've already seen
 	
 	// Cheat modes
 	easy: false,
 	unlockall: false,
 }
+
+var mechanics = {
+	featkeys: {
+		nab: "space",
+		leap: "up",
+		turn: "back",
+		twirl: "space up",
+		bound: "back up",
+		dart: "forward up",
+		roll: "forward space",
+	},
+	
+	
+	runvx: 300,
+	
+}
+
 

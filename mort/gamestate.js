@@ -1,4 +1,8 @@
 var record = {
+	knownfeats: {
+		leap: 2,
+		nab: 1,
+	},
 	unlocked: 1,
 	maxvisited: 0,
 	heightrecord: 1,
