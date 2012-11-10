@@ -1,11 +1,24 @@
 
 var vista = {
-	vx: 1000, vy: 600,  // size of entire playing field
-	x: 0, y: 0,  // Current camera target
-	xmin: 0, ymin: -40,
-	tx: 0, ty: 0,  // Desired camera target
 
 
+	levelinit: function (level) {
+		level = level || gamestate.level
+		this.xmin = 0 ; this.ymin = -40
+		this.vx = 1000 ; this.vy = 600  // size of entire playing field
+		this.snapto([0, 0])
+		
+		this.backdrop = document.createElement("canvas")
+		var bx = this.vx - this.xmin, by = this.vy - this.ymin
+		this.backdrop.width = bx
+		this.backdrop.height = by
+		var context = this.backdrop.getContext("2d")
+		UFX.draw(context, "fs rgb(20,20,80) f0")
+		UFX.random.spread().forEach(function (p) {
+			UFX.draw(context, "b o", p[0]*bx, p[1]*by, "10 fs white f")
+		})
+		UFX.draw(context, "lw 20 ss yellow sr 0 0", bx, by)
+	},
 
 	lookat: function (p) {
 		this.tx = clip(p[0] - settings.sx/2, this.xmin, this.vx - settings.sx)
@@ -26,7 +39,7 @@ var vista = {
 	},
 	
 	draw: function () {
-		UFX.draw("fs blue f0 t", -this.x, -this.y)
+		UFX.draw("t", -this.x, this.y+settings.sy, "[ vflip drawimage", this.backdrop, this.xmin, this.ymin, "]")
 		
 	},
 }
