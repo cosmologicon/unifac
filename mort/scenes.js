@@ -102,8 +102,9 @@ TipScene.draw = function () {
 var ActionScene = Object.create(UFX.scene.Scene)
 
 ActionScene.start = function () {
-	// TODO: vista.levelinit(gamestate.level)
+	gamestate.startlevel()
 	You.reset()
+	vista.levelinit()
 	vista.snapto(You.lookingat())
 }
 

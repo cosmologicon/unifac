@@ -13,8 +13,7 @@ function drawframe(fname, hflip) {
 	UFX.draw("[")
 	if (hflip) UFX.draw("hflip")
 	var off = frameoffsets[fname]
-	context.drawImage(UFX.resource.images[fname], -off[0], -off[1])
-	UFX.draw("]")
+	UFX.draw("drawimage", UFX.resource.images[fname], -off[0], -off[1], "]")
 }
 
 

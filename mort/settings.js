@@ -29,19 +29,25 @@ var settings = {
 }
 
 var mechanics = {
-	featkeys: {
-		nab: "space",
-		leap: "up",
-		turn: "back",
-		twirl: "space up",
-		bound: "back up",
-		dart: "forward up",
-		roll: "forward space",
+	feat: {
+		nab:   { keys: "act",         vx: 400 , vy:   0, time: 1, },
+		leap:  { keys: "up",          vx: 200 , vy: 200, time: 1, },
+		turn:  { keys: "back",        vx: 200 , vy: 200, time: 1, },
+		twirl: { keys: "act up",      vx:   0 , vy: 200, time: 1, },
+		bound: { keys: "back up",     vx:-100 , vy: 250, time: 1, },
+		dart:  { keys: "forward up",  vx: 250 , vy: 300, time: 1, },
+		roll:  { keys: "act forward", vx: 250 , vy: 250, time: 1, },
 	},
-	
-	
+
 	runvx: 300,
+	g: 500,   // TODO: 250 in easy mode
 	
+	growtime: function (n, m) {  // how long to refill the nth bar if there are m total bars?
+		return 2.0 + 0.5 * (m - n)
+	},
 }
+mechanics.featlookup = {}
+for (var fname in mechanics.feat) { mechanics.featlookup[mechanics.feat[fname].keys] = fname }
+
 
 
