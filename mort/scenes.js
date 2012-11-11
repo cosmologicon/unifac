@@ -102,9 +102,9 @@ TipScene.draw = function () {
 var ActionScene = Object.create(UFX.scene.Scene)
 
 ActionScene.start = function () {
+	vista.levelinit()
 	gamestate.startlevel()
 	You.reset()
-	vista.levelinit()
 	vista.snapto(You.lookingat())
 }
 
@@ -126,6 +126,8 @@ ActionScene.think = function (dt, kdown, kpressed, kcombo) {
 
 	vista.lookat(You.lookingat())
 	vista.think(dt)
+	
+	gamestate.think(dt)
 }
 
 ActionScene.draw = function () {
@@ -133,6 +135,7 @@ ActionScene.draw = function () {
 	vista.draw()
 	function draw(obj) { context.save() ; obj.draw() ; context.restore() }
 	draw(You)
+	gamestate.butterflies.forEach(draw)
 	UFX.draw("]")
 }
 

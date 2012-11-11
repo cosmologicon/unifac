@@ -21,6 +21,7 @@ var gamestate = {
 	catchamount: 0,
 	bonusamount: 0,
 	combocount: 0,
+	butterflies: [],
 
 	// Save game
 	save: function () {
@@ -41,6 +42,13 @@ var gamestate = {
 	startlevel: function () {
 		this.bars = {} ; this.feattick = {}
 		this.resetcounts()
+		this.butterflies = []
+		var btime = mechanics.levelinfo[this.level].btime
+		for (var j = 0 ; j < btime.length ; ++j) {
+			for (var k = 0 ; k < btime[j] ; ++k) {
+				this.butterflies.push(new Butterfly(mechanics.butterfly[j]))
+			}
+		}
 	},
 	resetcounts: function () {
 		for (var f in record.knownfeats) {
@@ -127,6 +135,16 @@ var gamestate = {
 		record.bank += this.catchamount + this.bonusamount
 		this.catchamount = 0
 		this.bonusamount = 0
+	},
+	
+	think: function (dt) {
+		var btime = mechanics.levelinfo[this.level].btime
+		for (var j = 0 ; j < btime.length ; ++j) {
+			if (btime[j] && UFX.random(btime[j]) < dt) {
+				this.butterflies.push(new Butterfly(mechanics.butterfly[j]))
+			}
+		}
+		this.butterflies.forEach(function (b) { b.think(dt) })
 	},
 	
 	// TODO: visit
