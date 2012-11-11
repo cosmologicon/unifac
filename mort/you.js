@@ -10,8 +10,10 @@ var LooksAhead = {
 	},
 }
 
-
 var PerformCombos = {
+	init: function () {
+		this.ctime = 0
+	},
 	move: function (kdown, kpressed, kcombo) {
 		for (var combo in kcombo) {
 			if (this.facingright) {
@@ -26,20 +28,23 @@ var PerformCombos = {
 			if (!gamestate.attempt(feat)) continue
 			this.currentfeat = feat
 			if (feat !== "nab") this.grounded = false
-			if (!this.grounded) gamestate.incrementcombo()
+			if (this.grounded) gamestate.resetcounts()
+			else gamestate.incrementcombo()
 			if (feat === "turn") this.facingright = !this.facingright
 			this.vx = mechanics.feat[feat].vx * (this.facingright ? 1 : -1)
 			this.vy = mechanics.feat[feat].vy
 			this.feattime = mechanics.feat[feat].time
+			this.ctime = 0
 			// TODO: play a joyful noise
 		}
 	},
 	think: function (dt) {
+		this.ctime += dt
 		if (!this.grounded) {
 			this.x += this.vx * dt
-			this.y += this.vy * dt - 0.5 * mechanics.g * dt * dt
-			// TODO: no falling whilst nabbing
-			this.vy -= mechanics.g * dt
+			var g = this.currentfeat == "nab" && this.ctime < mechanics.nabtime ? 0 : mechanics.g
+			this.y += this.vy * dt - 0.5 * g * dt * dt
+			this.vy -= g * dt
 			
 			if (this.y <= 0) {
 				this.y = 0
@@ -48,8 +53,24 @@ var PerformCombos = {
 				this.currentfeat = null
 				var r = gamestate.resetcounts()
 			}
+			switch (this.currentfeat) {
+				case "turn": case "leap":
+					this.frame = "run2" ; break
+				case "nab":
+					var n = Math.floor(4 * this.ctime / mechanics.nabtime)
+					this.frame = n < 4 ? "skynab" + n : "run2" ; break
+				case "twirl":
+					this.frame = "twirl" + (Math.floor(16 * this.ctime) % 4) ; break
+				case "bound": case "dart": case "roll":
+					this.frame = this.currentfeat ; break
+			}
 		}
 	},
+	draw: function () {
+		if (this.currentfeat == "roll" && this.frame == "roll") {
+			UFX.draw("t 0 -50 r", 18 * this.ctime * (this.facingright ? 1 : -1), "t 0 50")
+		}
+	}
 }
 
 var RunAlongGround = {
@@ -61,9 +82,17 @@ var RunAlongGround = {
 	},
 	think: function (dt) {
 		if (!this.grounded) return
-		if (this.vx) {
+		if (this.currentfeat == "nab") {
+			this.vx = 0
+			var n = Math.floor(4 * this.ctime / mechanics.nabtime)
+			if (n >= 4) {
+				this.currentfeat = null
+			} else {
+				this.frame = "nab" + n
+			}
+		} else if (this.vx) {
 			this.x += this.vx * dt
-			this.frame = "run0"
+			this.frame = "run" + [0, 1, 2, 1][Math.floor(10 * this.ctime) % 4]
 		} else {
 			this.frame = "stand"
 		}

@@ -7,6 +7,17 @@ var frameoffsets = {
 	nab1: [94, 150],
 	nab2: [94, 150],
 	nab3: [94, 150],
+	skynab0: [94, 150],
+	skynab1: [94, 150],
+	skynab2: [94, 150],
+	skynab3: [94, 150],
+	bound: [94, 150],
+	dart: [94, 150],
+	roll: [94, 150],
+	twirl0: [84, 150],
+	twirl1: [84, 150],
+	twirl2: [84, 150],
+	twirl3: [84, 150],
 }
 
 function drawframe(fname, hflip) {

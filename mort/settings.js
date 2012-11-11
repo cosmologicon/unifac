@@ -39,6 +39,7 @@ var mechanics = {
 		roll:  { keys: "act forward", vx: 250 , vy: 250, time: 1, },
 	},
 
+	nabtime: 0.25,
 	runvx: 300,
 	g: 500,   // TODO: 250 in easy mode
 	
