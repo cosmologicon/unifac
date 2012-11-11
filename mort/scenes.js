@@ -139,7 +139,28 @@ ActionScene.draw = function () {
 	UFX.draw("]")
 }
 
-// TODO: pause scene
+var PauseScene = Object.create(UFX.scene.Scene)
+
+PauseScene.start = function () {
+	this.drawn = false
+}
+
+PauseScene.thinkargs = function (dt) {
+	var kstate = UFX.key.state()
+    return [dt, kstate.down]
+}
+
+PauseScene.think = function (dt, kdown) {
+	dt = dt || 0 ; kdown = kdown || {}
+	if (kdown.esc) UFX.scene.pop()
+}
+
+PauseScene.draw = function () {
+	if (this.drawn) return
+	this.drawn = true
+	UFX.draw("[ alpha 0.7 fs black f0 ]")
+}
+
 
 
 

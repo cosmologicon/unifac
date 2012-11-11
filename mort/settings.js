@@ -30,13 +30,13 @@ var settings = {
 
 var mechanics = {
 	feat: {
-		nab:   { keys: "act",         vx: 400 , vy:   0, time: 1, },
+		nab:   { keys: "act",         vx: 400 , vy:   0, time: 1, r: 50, dx: 40, dy: 80, },
 		leap:  { keys: "up",          vx: 200 , vy: 200, time: 1, },
 		turn:  { keys: "back",        vx: 200 , vy: 200, time: 1, },
-		twirl: { keys: "act up",      vx:   0 , vy: 200, time: 1, },
+		twirl: { keys: "act up",      vx:   0 , vy: 200, time: 1, r: 80, dx: 0, dy: 80 },
 		bound: { keys: "back up",     vx:-100 , vy: 250, time: 1, },
 		dart:  { keys: "forward up",  vx: 250 , vy: 300, time: 1, },
-		roll:  { keys: "act forward", vx: 250 , vy: 250, time: 1, },
+		roll:  { keys: "act forward", vx: 250 , vy: 250, time: 1, r: 80, dx: 0, dy: 50 },
 	},
 
 	nabtime: 0.25,
