@@ -1,7 +1,6 @@
 
 var vista = {
 
-
 	levelinit: function (level) {
 		level = level || gamestate.level
 		this.xmin = 0 ; this.ymin = -40
@@ -10,14 +9,22 @@ var vista = {
 		
 		this.backdrop = document.createElement("canvas")
 		var bx = this.vx - this.xmin, by = this.vy - this.ymin
+		var h = 200  // ground height
 		this.backdrop.width = bx
 		this.backdrop.height = by
 		var context = this.backdrop.getContext("2d")
-		UFX.draw(context, "fs rgb(20,20,80) f0")
-		UFX.random.spread().forEach(function (p) {
-			UFX.draw(context, "b o", p[0]*bx, p[1]*by, "10 fs white f")
-		})
-		UFX.draw(context, "lw 20 ss yellow sr 0 0", bx, by)
+
+		var gzx = 8, gzy = 2
+		var ground = UFX.texture.dirt({ width: bx / gzx, height: h / gzy })
+		var szx = 6, szy = 6
+		var sky = UFX.texture.overcast({ size: 256 })
+		var c0 = "rgba(128,128,128,0)", c1 = "rgba(128,128,128,1)"
+
+		UFX.draw(context, "[ z", gzx, gzy, "drawimage0", ground, "]",
+		    "[ t 0", h, "z", szx, szy, "drawimage0", sky, "]",
+		    "fs", UFX.draw.lingrad(context, 0, 0, 0, by, 0.3*h/by, c0, h/by, c1, 1.7*h/by, c0), "f0"
+		)
+		
 	},
 
 	lookat: function (p) {
