@@ -100,25 +100,35 @@ var gamestate = {
 		// TODO: highlight the effect
 	},
 	
-	// When nabbing a butterfly of type b in the air, update record accordingly
-	checknab: function (b) {
-		this.catchamount += (settings.easy ? 3 : 1) * b.value
-		if (record.collected[b.name]) {
-			record.collected[b.name] += 1
-		} else {
-			record.collected[b.name] = 1
-			this.newcollections.push(b.fullname)
+	nabarea: function (x, y, r, grounded) {
+		var collect = false
+		for (var j = 0 ; j < this.butterflies.length ; ++j) {
+			var b = this.butterflies[j]
+			var dx = b.x - x, dy = b.y - y
+			if (dx*dx + dy*dy > r*r) continue
+			b.collected = true
+			collect = true
+			console.log(b.info)
+			this.checknab(b.info, grounded)
+		}
+		if (collect) {
+			this.butterflies = this.butterflies.filter(function (b) { return !b.collected })
 		}
 	},
 	
-	// When you catch a butterfly on the ground
-	checknabgrounded: function (b) {
+	// When nabbing a butterfly of type b in the air, update record accordingly
+	checknab: function (b, grounded) {
 		this.catchamount += (settings.easy ? 3 : 1) * b.value
 		if (record.collected[b.name]) {
 			record.collected[b.name] += 1
 		} else {
 			record.collected[b.name] = 1
-			return "You caught a " + b.fullname + "!"
+			if (grounded) {
+				// TODO: add an effect
+				return "You caught a " + b.fullname + "!"
+			} else {
+				this.newcollections.push(b.fullname)
+			}
 		}
 	},
 			

@@ -16,7 +16,6 @@ var PerformCombos = {
 				combo = combo.replace("left", "forward").replace("right", "back")
 			}
 			var feat = mechanics.featlookup[combo]
-			console.log(combo, feat)
 			if (!feat) continue
 			if (this.grounded && feat === "turn") continue  // can't perform a turn from the ground
 			if (!gamestate.attempt(feat)) continue
@@ -93,6 +92,33 @@ var RunAlongGround = {
 	},
 }
 
+var PerformNabs = {
+	think: function (dt) {
+		var feat = this.currentfeat
+		if (!feat) return
+		if (feat === "nab" && this.ctime > mechanics.nabtime) return
+		if (!mechanics.feat[feat]) return
+		var r = mechanics.feat[feat].r
+		if (!r) return
+		var x = this.x + mechanics.feat[feat].dx * (this.facingright ? 1 : -1)
+		var y = this.y + mechanics.feat[feat].dy
+		gamestate.nabarea(x, y, r, this.grounded)
+	},
+	draw: function () {
+	/*
+		var feat = this.currentfeat
+		if (!feat) return
+		if (feat === "nab" && this.ctime > mechanics.nabtime) return
+		if (!mechanics.feat[feat]) return
+		var r = mechanics.feat[feat].r
+		if (!r) return
+//		var x = this.x + mechanics.feat[feat].dx * (this.facingright ? 1 : -1)
+//		var y = this.y + mechanics.feat[feat].dy
+		var x = mechanics.feat[feat].dx * (this.facingright ? 1 : -1)
+		var y = mechanics.feat[feat].dy
+		UFX.draw("b o", x, -y, r, "ss orange lw 2 s")*/
+	},
+}
 
 var You = UFX.Thing()
              .addcomp(WorldBound)
@@ -101,6 +127,7 @@ var You = UFX.Thing()
              .addcomp(RunAlongGround)
              .addcomp(BoxConstrain, 30, 0)
              .addcomp(DrawSprite)
+             .addcomp(PerformNabs)
 
 You.reset = function () {
 	this.x = 100 ; this.y = 0
