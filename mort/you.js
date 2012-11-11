@@ -1,9 +1,3 @@
-var WorldBound = {
-	draw: function () {
-		UFX.draw("t", this.x, -this.y)
-	},
-}
-
 var LooksAhead = {
 	lookingat: function () {
 		return [this.x + (this.facingright ? 200 : -200), this.y + 60]
@@ -96,17 +90,6 @@ var RunAlongGround = {
 		} else {
 			this.frame = "stand"
 		}
-	},
-}
-
-var BoxConstrain = {
-	init: function (xborder, yborder) {
-		this.xborder = xborder || 0
-		this.yborder = yborder || 0
-	},
-	think: function (dt) {
-		this.x = clip(this.x, this.xborder, vista.vx - this.xborder)
-		this.y = clip(this.y, this.yborder, vista.vy - this.yborder)
 	},
 }
 
