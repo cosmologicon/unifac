@@ -9,7 +9,7 @@ var vista = {
 		
 		this.backdrop = document.createElement("canvas")
 		var bx = this.vx - this.xmin, by = this.vy - this.ymin
-		var h = 200  // ground height
+		var h = 200  // distance from horizon to bottom of viewport
 		this.backdrop.width = bx
 		this.backdrop.height = by
 		var context = this.backdrop.getContext("2d")
@@ -20,9 +20,10 @@ var vista = {
 		var sky = UFX.texture.overcast({ size: 256 })
 		var c0 = "rgba(128,128,128,0)", c1 = "rgba(128,128,128,1)"
 
-		UFX.draw(context, "[ z", gzx, gzy, "drawimage0", ground, "]",
-		    "[ t 0", h, "z", szx, szy, "drawimage0", sky, "]",
-		    "fs", UFX.draw.lingrad(context, 0, 0, 0, by, 0.3*h/by, c0, h/by, c1, 1.7*h/by, c0), "f0"
+		UFX.draw(context,
+			"[ z", szx, szy, "drawimage0", sky, "]",
+			"[ t 0", by-h, "z", gzx, gzy, "drawimage0", ground, "]",
+			"fs", UFX.draw.lingrad(context, 0, by, 0, 0, 0.3*h/by, c0, h/by, c1, 1.7*h/by, c0), "f0"
 		)
 		
 	},
@@ -46,7 +47,8 @@ var vista = {
 	},
 	
 	draw: function () {
-		UFX.draw("t", -this.x, this.y+settings.sy, "[ vflip drawimage", this.backdrop, this.xmin, this.ymin, "]")
+		UFX.draw("t", -this.x, this.y+settings.sy,
+			"drawimage", this.backdrop, this.xmin, -this.backdrop.height - this.ymin)
 		
 	},
 }
