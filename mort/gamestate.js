@@ -43,6 +43,7 @@ var gamestate = {
 		this.bars = {} ; this.feattick = {}
 		this.resetcounts()
 		this.goal = mechanics.levelinfo[this.level].goal
+		this.time = mechanics.levelinfo[this.level].t
 		this.butterflies = []
 		var btime = mechanics.levelinfo[this.level].btime
 		for (var j = 0 ; j < btime.length ; ++j) {
@@ -73,7 +74,6 @@ var gamestate = {
 		this.bars[feat] -= 1
 		this.feattick[feat] = mechanics.growtime(this.bars[feat], record.knownfeats[feat])
 		// TODO: highlight the HUD effect for this feat
-		this.checkcomborecord()
 		return true
 	},
 	
@@ -90,6 +90,8 @@ var gamestate = {
 	// When a combo amount of c is reached, update records accordingly
 	checkcomborecord: function (c) {
 		if (c <= record.comborecord) return false
+		console.log(c)
+		ActionHUD.addcombocasheffect(c)
 		record.comborecord = c
 		this.newcomborecord = true
 		this.bonusamount += c
@@ -156,6 +158,7 @@ var gamestate = {
 			}
 		}
 		this.butterflies.forEach(function (b) { b.think(dt) })
+		this.time -= dt
 	},
 	
 	// TODO: visit
