@@ -42,6 +42,7 @@ var gamestate = {
 	startlevel: function () {
 		this.bars = {} ; this.feattick = {}
 		this.resetcounts()
+		this.goal = mechanics.levelinfo[this.level].goal
 		this.butterflies = []
 		var btime = mechanics.levelinfo[this.level].btime
 		for (var j = 0 ; j < btime.length ; ++j) {

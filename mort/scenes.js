@@ -128,6 +128,7 @@ ActionScene.think = function (dt, kdown, kpressed, kcombo) {
 	vista.think(dt)
 	
 	gamestate.think(dt)
+	ActionHUD.think(dt)
 }
 
 ActionScene.draw = function () {
@@ -137,6 +138,7 @@ ActionScene.draw = function () {
 	draw(You)
 	gamestate.butterflies.forEach(draw)
 	UFX.draw("]")
+	ActionHUD.draw()
 }
 
 var PauseScene = Object.create(UFX.scene.Scene)
