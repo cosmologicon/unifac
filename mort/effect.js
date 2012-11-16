@@ -207,11 +207,21 @@ var ZoomOnChange = {
 
 
 
+function drawkey(keyname) {
+	UFX.draw("[ fs white ss black lw 1 rr 0 0 26 26 5 f s t 13 13")
+	if (!You.facingright) UFX.draw("hflip")
+	if (keyname == "forward") UFX.draw("r 1.571")
+	if (keyname == "back") UFX.draw("r -1.571")
+	if (keyname != "act") UFX.draw("fs lightblue ss black lw 1 ( m 0 -11 l -8 0 l -2 -2 l -4 10 l 4 10 l 2 -2 l 8 0 ) f s")
+	UFX.draw("]")
+}
+
+
 var ActionHUD = {
 	effects: [
 		// progress indicator
 		UFX.Thing()
-		.addcomp(AnchorBottomRight, settings.sx - 5, settings.sy)
+		.addcomp(AnchorBottomRight, settings.sx - 5, settings.sy + 3)
 		.addcomp(FillStroke, "bold 44px 'Norican'", "silver", "black", 1.5)
 		.addcomp(ZoomOnChange)
 		.addcomp(NoCache)
@@ -220,13 +230,16 @@ var ActionHUD = {
 		}),
 		// countdown indicator
 		UFX.Thing()
-		.addcomp(AnchorBottomRight, settings.sx * 0.73, settings.sy - 5)
+		.addcomp(AnchorBottomRight, settings.sx * 0.73, settings.sy - 1)
 		.addcomp(FillStroke, "bold italic 40px 'Shojumaru'", "rgb(32,255,32)", "black", 1.5)
 		.addcomp({
+			init: function () {
+				this.grad0 = UFX.draw.lingrad(0, -40, 0, -30, 0, "rgb(32,255,32)", 0.5, "rgb(100,100,255)", 1, "rgb(32,255,32)")
+			},
 			think: function (dt) {
 				var t = gamestate.time
 				this.settext(t > 0 ? "TIME:" + Math.floor(t) : "")
-				this.fstyle = t > 10 ? "rgb(32,255,32)" : "rgb(255,32,32)"
+				this.fstyle = t > 10 ? this.grad0 : "rgb(255,32,32)"
 			},
 			draw: function () {
 				if (gamestate.time < 10) context.scale(1.2, 1.2)
@@ -235,8 +248,10 @@ var ActionHUD = {
 		.addcomp(NoCache),
 		// height indicator
 		UFX.Thing()
-		.addcomp(AnchorBottomLeft, 10, settings.sy)
-		.addcomp(FillStroke, "bold 60px 'Kaushan Script'", "rgb(200,200,255)", "black", 1.5)
+		.addcomp(AnchorBottomLeft, 10, settings.sy + 7)
+		.addcomp(FillStroke, "bold 60px 'Kaushan Script'",
+			UFX.draw.lingrad(0, 0, 100, -100, 0, "blue", 0.2, "white", 0.4, "blue", 0.6, "white", 0.8, "blue", 1, "white"),
+			"black", 1.5)
 		.addcomp(NoCache)
 		.addcomp({
 			think: function (dt) {
@@ -248,7 +263,7 @@ var ActionHUD = {
 		// combo indicator
 		UFX.Thing()
 		.addcomp(AnchorBottomCenter, settings.sx * 0.32, settings.sy)
-		.addcomp(FillStroke, "bold 40px 'Contrail One'", "yellow", "black", 1.5)
+		.addcomp(FillStroke, "bold 40px 'Contrail One'", UFX.draw.lingrad(0, -35, 0, -15, 0, "yellow", 0.5, "white", 1, "orange"), "black", 1.5)
 		.addcomp(ZoomOnChange, 1.5)
 		.addcomp(NoCache)
 		.addcomp({
@@ -259,9 +274,12 @@ var ActionHUD = {
 		}),
 		// Feat listings
 		UFX.Thing()
-		.addcomp(AnchorTopRight, 110, 4)
+		.addcomp(AnchorTopRight, 84, 4)
 		.addcomp({
 			draw: function () {
+				if (settings.hidefeatnames) {
+					UFX.draw("t -82 0")
+				}
 				context.font = "bold 32px 'Marko One'"
 				context.fillStyle = "rgb(255,200,200)"
 				context.strokeStyle = "black"
@@ -269,16 +287,32 @@ var ActionHUD = {
 					var fname = mechanics.featnames[j]
 					if (!record.knownfeats[fname]) continue
 					UFX.draw("[ t 0", 30*j)
-					context.fillText(fname, 0, 0)
-					context.strokeText(fname, 0, 0)
+					if (!settings.hidefeatnames) {
+						UFX.draw("[")
+						if (fname == "bound") UFX.draw("xscale 0.75")
+						context.fillText(fname, 0, 0)
+						context.strokeText(fname, 0, 0)
+						UFX.draw("]")
+					}
+					var keys = mechanics.feat[fname].keys.split(" ")
+					if (keys.length == 1) {
+						UFX.draw("t 17 7")
+						drawkey(keys[0])
+					} else {
+						UFX.draw("t 4 7")
+						drawkey(keys[0])
+						UFX.draw("t 26 0")
+						drawkey(keys[1])
+					}
 					UFX.draw("]")
 				}
-				UFX.draw("[ alpha 0.5 t 23 6 fs black ss white lw 2 b")
+				var w = settings.hidefeatnames ? 7 : 16
+				UFX.draw("[ alpha 0.5 t 60 7 fs black ss white lw 2 b")
 				for (var j = 0 ; j < mechanics.featnames.length ; ++j) {
 					var fname = mechanics.featnames[j]
 					if (!record.knownfeats[fname]) continue
 					for (var k = gamestate.bars[fname] ; k < record.knownfeats[fname] ; ++k) {
-						UFX.draw("[ t", 18*k, 30*j, "m 0 0 l 16 0 l 16 26 l 0 26 l 0 0 ]")
+						UFX.draw("[ t", (w+2)*k, 30*j, "m 0 0 l", w, "0 l", w, "26 l 0 26 l 0 0 ]")
 					}
 				}
 				UFX.draw("f s fs red b")
@@ -286,7 +320,7 @@ var ActionHUD = {
 					var fname = mechanics.featnames[j]
 					if (!record.knownfeats[fname]) continue
 					for (var k = 0 ; k < gamestate.bars[fname] ; ++k) {
-						UFX.draw("[ t", 18*k, 30*j, "m 0 0 l 16 0 l 16 26 l 0 26 l 0 0 ]")
+						UFX.draw("[ t", (w+2)*k, 30*j, "m 0 0 l", w, "0 l", w, "26 l 0 26 l 0 0 ]")
 					}
 				}
 				UFX.draw("f s ]")
@@ -302,11 +336,13 @@ var ActionHUD = {
 			"Collect",
 			"\u00A3" + linfo.goal + " in " + linfo.t + "s"
 		]
+		var rgrad = UFX.draw.lingrad(0, -100, 0, 100, 0, "yellow", 1, "red")
+		var ggrad = UFX.draw.lingrad(0, 0, 0, 60, 0, "green", 1, "blue")
 		for (var j = 0 ; j < 3 ; ++j) {
 			var StageName =	UFX.Thing()
 				.addcomp(DelayEntry, 0.1 + 0.15 * j)
 				.addcomp(AnchorCenter, settings.sx * 0.5 + [-100, 0, 100][j], settings.sy * 0.5 + [-110, 0, 110][j])
-				.addcomp(FillStroke, "140px 'Ceviche One'", "rgb(200,255,200)", "black", 2)
+				.addcomp(FillStroke, "140px 'Ceviche One'", ggrad, "black", 2)
 				.addcomp(FlyAcross, [-100, 100, -100][j], [-3000, 3000, -3000][j], 0.6)
 //				.addcomp({ draw: function () { context.scale(1.3, 1) } })
 				.addcomp(NoCache)
@@ -320,7 +356,7 @@ var ActionHUD = {
 				.addcomp(ZoomIn, 0.2, 2)
 				.addcomp(FadeIn, 0.2)
 				.addcomp(FadeOut, 0.2, 0.2)
-				.addcomp(FillStroke, "italic 240px 'Bangers'", "red", "black", 3)
+				.addcomp(FillStroke, "italic 240px 'Bangers'", rgrad, "black", 3)
 				.addcomp(NoCache)
 			Directive.settext(["READY", "SET", "COLLECT"][j])
 			this.effects.push(Directive)
@@ -333,6 +369,7 @@ var ActionHUD = {
 	draw: function () {
 		function draw(e) { context.save() ; e.draw() ; context.restore() }
 		this.effects.forEach(draw)
+		//UFX.draw("ss red lw 1 b m 0 388 l 800 388 s")
 	},
 
 	addcombocasheffect: function (c) {
