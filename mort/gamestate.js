@@ -81,6 +81,7 @@ var gamestate = {
 	checkheightrecord: function (h) {
 		h = Math.floor(h)
 		if (h <= record.heightrecord) return false
+		ActionHUD.addheightcasheffect(h)
 		record.heightrecord = h
 		this.newheightrecord = true
 		this.bonusamount += h
@@ -90,7 +91,6 @@ var gamestate = {
 	// When a combo amount of c is reached, update records accordingly
 	checkcomborecord: function (c) {
 		if (c <= record.comborecord) return false
-		console.log(c)
 		ActionHUD.addcombocasheffect(c)
 		record.comborecord = c
 		this.newcomborecord = true
@@ -111,26 +111,27 @@ var gamestate = {
 			if (dx*dx + dy*dy > r*r) continue
 			b.collected = true
 			collect = true
-			console.log(b.info)
-			this.checknab(b.info, grounded)
+			this.checknab(b, grounded)
 		}
 		if (collect) {
 			this.butterflies = this.butterflies.filter(function (b) { return !b.collected })
 		}
 	},
 	
-	// When nabbing a butterfly of type b in the air, update record accordingly
+	// When nabbing a butterfly of type b, update record accordingly
 	checknab: function (b, grounded) {
-		this.catchamount += (settings.easy ? 3 : 1) * b.value
-		if (record.collected[b.name]) {
-			record.collected[b.name] += 1
+        var v = (settings.easy ? 3 : 1) * b.info.value
+		this.catchamount += v
+		WorldEffects.addcasheffect(v, b.x, b.y)
+		if (record.collected[b.info.name]) {
+			record.collected[b.info.name] += 1
 		} else {
-			record.collected[b.name] = 1
+			record.collected[b.info.name] = 1
 			if (grounded) {
 				// TODO: add an effect
-				return "You caught a " + b.fullname + "!"
+				return "You caught a " + b.info.fullname + "!"
 			} else {
-				this.newcollections.push(b.fullname)
+				this.newcollections.push(b.info.fullname)
 			}
 		}
 	},

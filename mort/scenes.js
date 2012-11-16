@@ -106,6 +106,7 @@ ActionScene.start = function () {
 	gamestate.startlevel()
 	You.reset()
 	vista.snapto(You.lookingat())
+    ActionHUD.levelinit()
 }
 
 ActionScene.thinkargs = function (dt) {
@@ -128,17 +129,19 @@ ActionScene.think = function (dt, kdown, kpressed, kcombo) {
 	vista.think(dt)
 	
 	gamestate.think(dt)
+	WorldEffects.think(dt)
 	ActionHUD.think(dt)
 }
 
 ActionScene.draw = function () {
+	function draw(obj) { context.save() ; obj.draw() ; context.restore() }
 	UFX.draw("[")
 	vista.draw()
-	function draw(obj) { context.save() ; obj.draw() ; context.restore() }
 	draw(You)
 	gamestate.butterflies.forEach(draw)
+    draw(WorldEffects)
 	UFX.draw("]")
-	ActionHUD.draw()
+	draw(ActionHUD)
 }
 
 var PauseScene = Object.create(UFX.scene.Scene)
