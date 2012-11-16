@@ -42,6 +42,14 @@ var FillStroke = {
 	},
 }
 
+var AnchorTopRight = {
+	init: function (dx, dy) {
+		this.x = dx || 0 ; this.y = dy || 0
+	},
+	draw: function () {
+		UFX.draw("textalign right textbaseline top t", this.x, this.y)
+	},
+}
 var AnchorBottomLeft = {
 	init: function (dx, dy) {
 		this.x = dx || 0 ; this.y = dy || 0
@@ -249,6 +257,42 @@ var ActionHUD = {
 				this.settext(c > 1 ? "" + c + "xCombo" : "")
 			},
 		}),
+		// Feat listings
+		UFX.Thing()
+		.addcomp(AnchorTopRight, 110, 4)
+		.addcomp({
+			draw: function () {
+				context.font = "bold 32px 'Marko One'"
+				context.fillStyle = "rgb(255,200,200)"
+				context.strokeStyle = "black"
+				for (var j = 0 ; j < mechanics.featnames.length ; ++j) {
+					var fname = mechanics.featnames[j]
+					if (!record.knownfeats[fname]) continue
+					UFX.draw("[ t 0", 30*j)
+					context.fillText(fname, 0, 0)
+					context.strokeText(fname, 0, 0)
+					UFX.draw("]")
+				}
+				UFX.draw("[ alpha 0.5 t 23 6 fs black ss white lw 2 b")
+				for (var j = 0 ; j < mechanics.featnames.length ; ++j) {
+					var fname = mechanics.featnames[j]
+					if (!record.knownfeats[fname]) continue
+					for (var k = gamestate.bars[fname] ; k < record.knownfeats[fname] ; ++k) {
+						UFX.draw("[ t", 18*k, 30*j, "m 0 0 l 16 0 l 16 26 l 0 26 l 0 0 ]")
+					}
+				}
+				UFX.draw("f s fs red b")
+				for (var j = 0 ; j < mechanics.featnames.length ; ++j) {
+					var fname = mechanics.featnames[j]
+					if (!record.knownfeats[fname]) continue
+					for (var k = 0 ; k < gamestate.bars[fname] ; ++k) {
+						UFX.draw("[ t", 18*k, 30*j, "m 0 0 l 16 0 l 16 26 l 0 26 l 0 0 ]")
+					}
+				}
+				UFX.draw("f s ]")
+			},
+		})
+		.definemethod("think"),
 		
 	],
 	levelinit: function () {

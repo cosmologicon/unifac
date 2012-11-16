@@ -28,6 +28,8 @@ var settings = {
 }
 
 var mechanics = {
+    featnames: "nab leap turn twirl bound dart roll".split(" "),
+
 	feat: {
 		nab:   { keys: "act",         vx: 400 , vy:   0, time: 1, r: 50, dx: 40, dy: 80, },
 		leap:  { keys: "up",          vx: 200 , vy: 200, time: 1, },
