@@ -152,6 +152,13 @@ var gamestate = {
 	},
 	
 	think: function (dt) {
+	    for (var f in record.knownfeats) {
+	        if (this.bars[f] >= record.knownfeats[f]) continue
+	        this.feattick[f] -= dt
+	        if (this.feattick[f] >= 0) continue
+		    this.bars[f] += 1
+		    this.feattick[f] = mechanics.growtime(this.bars[f], record.knownfeats[f])
+	    }
 		var btime = mechanics.levelinfo[this.level].btime
 		for (var j = 0 ; j < btime.length ; ++j) {
 			if (btime[j] && UFX.random(btime[j]) < dt) {

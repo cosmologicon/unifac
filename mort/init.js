@@ -28,7 +28,7 @@ for (var fname in frameoffsets) {
 	res[fname] = "img/" + fname + ".png"
 }
 UFX.resource.load(res)
-UFX.resource.loadwebfonts("Contrail One", "Norican", "Kaushan Script", "Shojumaru", "Bangers", "Condiment", "Ceviche One")
+UFX.resource.loadwebfonts("Contrail One", "Norican", "Kaushan Script", "Shojumaru", "Bangers", "Condiment", "Ceviche One", "Marko One")
 
 // utilities
 function clip(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
