@@ -88,6 +88,7 @@ var Flutters = {
 			this.frame = this.info.name
 		}
 		this.x += this.vx * dt
+		this.y = clip(this.y + this.vy * dt, this.info.ymin, this.info.ymax)
 		this.facingright = this.vx < 0 // TODO: flip all the butterfly images so they're facing right
 	},
 }

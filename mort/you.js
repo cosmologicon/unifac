@@ -21,7 +21,9 @@ var PerformCombos = {
 			if (!gamestate.attempt(feat)) continue
 			this.currentfeat = feat
 			if (feat !== "nab") this.grounded = false
-			if (this.grounded) gamestate.resetcounts()
+			if (this.grounded) {
+		        gamestate.resetcounts()
+		    }
 			else gamestate.incrementcombo()
 			if (feat === "turn") this.facingright = !this.facingright
 			this.vx = mechanics.feat[feat].vx * (this.facingright ? 1 : -1)
@@ -44,7 +46,8 @@ var PerformCombos = {
 				this.vy = 0
 				this.grounded = true
 				this.currentfeat = null
-				var r = gamestate.resetcounts()
+			    gamestate.proclaimcounts()
+				gamestate.resetcounts()
 			}
 			switch (this.currentfeat) {
 				case "turn": case "leap":
