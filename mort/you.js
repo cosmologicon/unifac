@@ -9,6 +9,7 @@ var PerformCombos = {
 		this.ctime = 0
 	},
 	move: function (kdown, kpressed, kcombo) {
+	    if (gamestate.endingproclaimed) return
 		for (var combo in kcombo) {
 			if (this.facingright) {
 				combo = combo.replace("right", "forward").replace("left", "back")

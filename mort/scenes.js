@@ -2,7 +2,7 @@ function showfps() {
     if (!settings.showfps) return
     var s = UFX.ticker.getfpsstr()
     UFX.draw("[ t 790 10 textalign right textbaseline top fs white ss black")
-    context.font = "bold 44px Arial"
+    context.font = "bold 44px monospace"
     context.fillText(s, 0, 0)
     context.strokeText(s, 0, 0)
     UFX.draw("]")
@@ -153,6 +153,11 @@ ActionScene.think = function (dt, kdown, kpressed, kcombo) {
 	gamestate.think(dt)
 	WorldEffects.think(dt)
 	ActionHUD.think(dt)
+	
+	if (gamestate.endingproclaimed && ActionHUD.proclamationscomplete()) {
+	    gamestate.combinemoney()
+	    UFX.scene.swap(MapScene)
+	}
 }
 
 ActionScene.draw = function () {
@@ -170,7 +175,11 @@ ActionScene.draw = function () {
 var PauseScene = Object.create(UFX.scene.Scene)
 
 PauseScene.start = function () {
-	this.drawn = false
+	this.effect = new PauseEffect()
+	this.img0 = document.createElement("canvas")
+	this.img0.width = canvas.width ; this.img0.height = canvas.height
+	var con = this.img0.getContext("2d")
+	UFX.draw(con, "drawimage0", canvas, "alpha 0.7 fs black f0")
 }
 
 PauseScene.thinkargs = function (dt) {
@@ -181,12 +190,13 @@ PauseScene.thinkargs = function (dt) {
 PauseScene.think = function (dt, kdown) {
 	dt = dt || 0 ; kdown = kdown || {}
 	if (kdown.esc) UFX.scene.pop()
+	this.effect.think(dt)
 }
 
 PauseScene.draw = function () {
-	if (this.drawn) return
-	this.drawn = true
-	UFX.draw("[ alpha 0.7 fs black f0 ]")
+    UFX.draw("drawimage0", this.img0, "[")
+	this.effect.draw()
+	UFX.draw("]")
 	showfps()
 }
 
