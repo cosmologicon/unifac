@@ -10,6 +10,7 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequest
                                window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
 UFX.scene.init()
 UFX.scene.push(LoadScene)
+UFX.resource.onloading = LoadScene.onloading
 UFX.resource.onload = function () {
 	UFX.scene.pop()
 //	UFX.scene.push(record.maxvisited ? MapScene : CutScene)
@@ -34,7 +35,7 @@ UFX.resource.loadwebfonts("Contrail One", "Norican", "Kaushan Script", "Shojumar
 function clip(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
 
 // cheats
-record.unlocked = 6
+/*record.unlocked = 6
 record.maxvisited = 6
 record.knownfeats = {
 	nab: 6,
@@ -44,5 +45,5 @@ record.knownfeats = {
 	dart: 6,
 	bound: 6,
 	roll: 6,
-}
+}*/
 

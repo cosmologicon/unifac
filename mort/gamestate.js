@@ -52,20 +52,22 @@ var gamestate = {
 			}
 		}
 	},
+	proclaimcounts: function () {
+		var r = []
+		if (this.newheightrecord) r.push("New height record!")
+		if (this.newcomborecord) r.push("New combo record!")
+		this.newcollections.forEach(function (c) { r.push("You caught a|" + c + "!") })
+		if (r) ActionHUD.addproclamations(r)
+    },
 	resetcounts: function () {
 		for (var f in record.knownfeats) {
 			this.bars[f] = record.knownfeats[f]
 			this.feattick[f] = 0
 		}
-		var r = []
-		if (this.newheightrecord) r.push("New height record!")
-		if (this.newcomborecord) r.push("New combo record!")
-		this.newcollections.forEach(function (c) { r.push("You caught a " + c + "!") })
 		this.newheightrecord = false
 		this.newcomborecord = false
 		this.newcollections = []
 		this.combocount = 0
-		return r
 	},
 	
 	attempt: function (feat) {
@@ -129,9 +131,9 @@ var gamestate = {
 			record.collected[b.info.name] = 1
 			if (grounded) {
 				// TODO: add an effect
-				return "You caught a " + b.info.fullname + "!"
+				ActionHUD.addproclamations(["You caught a|" + b.info.fname + "!"])
 			} else {
-				this.newcollections.push(b.info.fullname)
+				this.newcollections.push(b.info.fname)
 			}
 		}
 	},

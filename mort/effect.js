@@ -1,14 +1,63 @@
 
-// All effects of this type have a shared cache of text images
-var FullCache = {
-	init: function () {
-		this.imgs = {}
+// Each instance effect of this type has its own single cached image
+var SingleCache = {
+	init: function (imgw, imgh, imgedge) {
+		this.img = document.createElement("canvas")
+		this.imgedge = imgedge || 0
+		this.imgw = imgw
+		this.imgh = imgh
+		this.img.width = this.imgw + 2 * this.imgedge
+		this.img.height = this.imgh + 2 * this.imgedge
+		this.context = this.img.getContext("2d")
+	},
+	settext: function (text) {
+		if (this.text == text) return
+		this.text = text
+		UFX.draw(this.context, "c0")
+		if (settings.tracecaches) {
+			UFX.draw(this.context, "fs rgba(255,255,255,0.3) f0 ss red lw 4 sr 0 0", this.img.width, this.img.height)
+		}
+		UFX.draw(this.context, "[ t", this.imgedge + this.imgw * this.hafactor, this.imgedge + this.imgh * this.vafactor)
+		this.align(this.context)
+		this.draw0(this.context)
+		UFX.draw(this.context, "]")
+	},
+	draw: function () {
+		UFX.draw("[ t", -this.imgedge - this.imgw * this.hafactor, -this.imgedge - this.imgh * this.vafactor, "drawimage0", this.img, "]")
+//		this.draw0()
 	},
 }
 
-// Each instance effect of this type has its own single cached image
-var SingleCache = {
-
+// All effects of this type have a shared cache of text images
+var FullCache = {
+	init: function (imgw, imgh, imgedge) {
+		this.imgs = {}
+		this.imgedge = imgedge || 0
+		this.imgw = imgw
+		this.imgh = imgh
+	},
+	settext: function (text) {
+		if (this.text == text) return
+		this.text = text
+		if (!this.imgs[text]) {
+			var img = this.imgs[text] = document.createElement("canvas")
+			img.width = this.imgw + 2 * this.imgedge
+			img.height = this.imgh + 2 * this.imgedge
+			var con = img.getContext("2d")
+			if (settings.tracecaches) {
+				UFX.draw(con, "c0 fs rgba(255,255,255,0.3) f0 ss red lw 4 sr 0 0", img.width, img.height)
+			}
+			UFX.draw(con, "[ t", this.imgedge + this.imgw * this.hafactor, this.imgedge + this.imgh * this.vafactor)
+			this.align(con)
+			this.draw0(con)
+			UFX.draw(con, "]")
+		}
+		this.img = this.imgs[text]
+	},
+	draw: function () {
+		UFX.draw("[ t", -this.imgedge - this.imgw * this.hafactor, -this.imgedge - this.imgh * this.vafactor, "drawimage0", this.img, "]")
+//		this.draw0()
+	},
 }
 
 var NoCache = {
@@ -28,61 +77,55 @@ var FillStroke = {
 		this.sstyle = sstyle
 		this.lwidth = lwidth
 	},
-	draw0: function () {
-		context.font = this.font
-		if (this.fstyle) {
-			context.fillStyle = this.fstyle
-			context.fillText(this.text, 0, 0)
-		}
-		if (this.sstyle) {
-			if (this.lwidth) context.lineWidth = this.lwidth
-			context.strokeStyle = this.sstyle
-			context.strokeText(this.text, 0, 0)
+	draw0: function (con) {
+		con = con || context
+		con.font = this.font
+		if (this.fstyle) con.fillStyle = this.fstyle
+		if (this.sstyle) con.strokeStyle = this.sstyle
+		if (this.lwidth) con.lineWidth = this.lwidth
+		if (this.text.indexOf("|") > -1) {
+			var lines = this.text.split("|")
+			// Get the text size for multiple lines
+			// Note: this method has all kinds of problems, but it should work with my data
+			var tsize = this.font.split(" ").map(function (a) { return parseInt(a) }).filter(function (a) { return a })[0]
+			con.save()
+			con.translate(0, -this.vafactor * tsize * (lines.length - 1))
+			for (var j = 0 ; j < lines.length ; ++j) {
+				if (this.fstyle) con.fillText(lines[j], 0, 0)
+				if (this.sstyle) con.strokeText(lines[j], 0, 0)
+				con.translate(0, tsize)
+			}
+			con.restore()
+		} else {
+			if (this.fstyle) con.fillText(this.text, 0, 0)
+			if (this.sstyle) con.strokeText(this.text, 0, 0)
 		}
 	},
 }
 
-var AnchorTopRight = {
-	init: function (dx, dy) {
-		this.x = dx || 0 ; this.y = dy || 0
-	},
-	draw: function () {
-		UFX.draw("textalign right textbaseline top t", this.x, this.y)
-	},
+function Anchor(valign, halign) {
+	var hafactor = {left: 0, center: 0.5, right: 1}[halign]
+	var vafactor = {bottom: 1, middle: 0.5, top: 0}[valign]
+	return {
+		init: function (x, y) {
+			this.x = x || 0 ; this.y = y || 0
+			this.hafactor = hafactor
+			this.vafactor = vafactor
+		},
+		align: function (con) {
+			UFX.draw(con || context, "textalign", halign, "textbaseline", valign)
+		},
+		draw: function () {
+			this.align()
+			UFX.draw("t", this.x, this.y)
+		},
+	}
 }
-var AnchorBottomLeft = {
-	init: function (dx, dy) {
-		this.x = dx || 0 ; this.y = dy || 0
-	},
-	draw: function () {
-		UFX.draw("textalign left textbaseline bottom t", this.x, this.y)
-	},
-}
-var AnchorBottomRight = {
-	init: function (dx, dy) {
-		this.x = dx || 0 ; this.y = dy || 0
-	},
-	draw: function () {
-		UFX.draw("textalign right textbaseline bottom t", this.x, this.y)
-	},
-}
-var AnchorCenter = {
-	init: function (dx, dy) {
-		this.x = dx || 0 ; this.y = dy || 0
-	},
-	draw: function () {
-		UFX.draw("textalign center textbaseline middle t", this.x, this.y)
-	},
-}
-var AnchorBottomCenter = {
-	init: function (dx, dy) {
-		this.x = dx || 0 ; this.y = dy || 0
-	},
-	draw: function () {
-		UFX.draw("textalign center textbaseline bottom t", this.x, this.y)
-	},
-}
-
+var AnchorTopRight = Anchor("top", "right")
+var AnchorBottomLeft = Anchor("bottom", "left")
+var AnchorBottomRight = Anchor("bottom", "right")
+var AnchorCenter = Anchor("middle", "center")
+var AnchorBottomCenter = Anchor("bottom", "center")
 
 var DelayEntry = {
 	init: function (tenter) {
@@ -224,7 +267,7 @@ var ActionHUD = {
 		.addcomp(AnchorBottomRight, settings.sx - 5, settings.sy + 3)
 		.addcomp(FillStroke, "bold 44px 'Norican'", "silver", "black", 1.5)
 		.addcomp(ZoomOnChange)
-		.addcomp(NoCache)
+		.addcomp(SingleCache, 180, 60, 20)
 		.addcomp({
 			think: function (dt) { this.settext("\u00A3" + gamestate.catchamount + "/" + gamestate.goal) },
 		}),
@@ -245,14 +288,14 @@ var ActionHUD = {
 				if (gamestate.time < 10) context.scale(1.2, 1.2)
 			},
 		})
-		.addcomp(NoCache),
+		.addcomp(SingleCache, 180, 60, 20),
 		// height indicator
 		UFX.Thing()
 		.addcomp(AnchorBottomLeft, 10, settings.sy + 7)
 		.addcomp(FillStroke, "bold 60px 'Kaushan Script'",
 			UFX.draw.lingrad(0, 0, 100, -100, 0, "blue", 0.2, "white", 0.4, "blue", 0.6, "white", 0.8, "blue", 1, "white"),
 			"black", 1.5)
-		.addcomp(NoCache)
+		.addcomp(FullCache, 160, 90)
 		.addcomp({
 			think: function (dt) {
 				var h = Math.floor(You.y / 25)
@@ -265,7 +308,7 @@ var ActionHUD = {
 		.addcomp(AnchorBottomCenter, settings.sx * 0.32, settings.sy)
 		.addcomp(FillStroke, "bold 40px 'Contrail One'", UFX.draw.lingrad(0, -35, 0, -15, 0, "yellow", 0.5, "white", 1, "orange"), "black", 1.5)
 		.addcomp(ZoomOnChange, 1.5)
-		.addcomp(NoCache)
+		.addcomp(FullCache, 200, 90)
 		.addcomp({
 			think: function (dt) {
 				var c = gamestate.combocount
@@ -345,7 +388,7 @@ var ActionHUD = {
 				.addcomp(FillStroke, "140px 'Ceviche One'", ggrad, "black", 2)
 				.addcomp(FlyAcross, [-100, 100, -100][j], [-3000, 3000, -3000][j], 0.6)
 //				.addcomp({ draw: function () { context.scale(1.3, 1) } })
-				.addcomp(NoCache)
+				.addcomp(SingleCache, 600, 100, 30)
 			StageName.settext(names[j])
 			this.effects.push(StageName)
 		}
@@ -357,7 +400,7 @@ var ActionHUD = {
 				.addcomp(FadeIn, 0.2)
 				.addcomp(FadeOut, 0.2, 0.2)
 				.addcomp(FillStroke, "italic 240px 'Bangers'", rgrad, "black", 3)
-				.addcomp(NoCache)
+				.addcomp(SingleCache, 700, 300, 30)
 			Directive.settext(["READY", "SET", "COLLECT"][j])
 			this.effects.push(Directive)
 		}
@@ -377,6 +420,11 @@ var ActionHUD = {
 	},
 	addheightcasheffect: function (c) {
 		this.effects.push(new CashEffect(c, 50, settings.sy - 20))
+	},
+	addproclamations: function (r) {
+		for (var j = 0 ; j < r.length ; ++j) {
+			this.effects.push(new Proclamation(r[j], j))
+		}
 	},
 }
 
@@ -411,19 +459,32 @@ CashEffect.prototype = UFX.Thing()
 	.addcomp(Decelerate, 5)
 	.addcomp(FadeOut, 0.5)
 	.addcomp(FillStroke, "bold 40px 'Norican'", "white", "black", 1)
-	.addcomp(NoCache)
+	.addcomp(FullCache, 80, 60)
 
 function WorldCashEffect(amount, x, y) {
 	this.settext("\u00A3" + amount)
 	this.x = x
-	this.y = y
+	this.y = -y
 }
 WorldCashEffect.prototype = UFX.Thing()
-	.addcomp(WorldBound)
-	.addcomp(Float, 500)
+	.addcomp(AnchorCenter)
+	.addcomp(Float, -500)
 	.addcomp(Decelerate, 5)
 	.addcomp(FadeOut, 0.8)
 	.addcomp(FillStroke, "bold 40px 'Norican'", "white", "black", 1)
-	.addcomp(NoCache)
+	.addcomp(FullCache, 80, 60)
+
+function Proclamation(text, delay) {
+	this.settext(text)
+	this.tenter = delay
+}
+Proclamation.prototype = UFX.Thing()
+	.addcomp(DelayEntry, 0)
+	.addcomp(AnchorCenter, settings.sx * 0.5, settings.sy * 0.7)
+	.addcomp(ZoomIn, 0.2, 2)
+	.addcomp(FadeIn, 0.2)
+	.addcomp(FadeOut, 1.2, 0.2)
+	.addcomp(FillStroke, "italic 80px 'Bangers'", UFX.draw.lingrad(0, -40, 0, 40, 0, "yellow", 1, "red"), "black", 2)
+	.addcomp(FullCache, 700, 200)
 
 

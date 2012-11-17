@@ -1,11 +1,30 @@
+function showfps() {
+    if (!settings.showfps) return
+    var s = UFX.ticker.getfpsstr()
+    UFX.draw("[ t 790 10 textalign right textbaseline top fs white ss black")
+    context.font = "bold 44px Arial"
+    context.fillText(s, 0, 0)
+    context.strokeText(s, 0, 0)
+    UFX.draw("]")
+}
+
 var LoadScene = Object.create(UFX.scene.Scene)
 
-LoadScene.start = function (dt) {
+LoadScene.start = function () {
+    this.f = 0
+}
+
+LoadScene.draw = function () {
 	UFX.draw("fs rgb(20,0,20) fr 0 0", settings.sx, settings.sy, "fs rgb(200,0,200) ss black",
 		"textalign center textbaseline middle")
 	context.font = settings.fonts.loading
-	context.fillText("Loading....", settings.sx/2, settings.sy/2)
-	context.strokeText("Loading....", settings.sx/2, settings.sy/2)
+	var s = "Loading (" + Math.floor(this.f*100) + "%)..."
+	context.fillText(s, settings.sx/2, settings.sy/2)
+	context.strokeText(s, settings.sx/2, settings.sy/2)
+	showfps()
+}
+LoadScene.onloading = function (f) {
+    this.f = f
 }
 
 
@@ -41,6 +60,7 @@ MapScene.think = function (dt, kdown) {
 MapScene.draw = function () {
 	UFX.draw("fs black f0 fs white")
 	context.fillText("Current level: " + gamestate.level, settings.sx/2, settings.sy/2)
+	showfps()
 }
 
 
@@ -73,6 +93,7 @@ CutScene.draw = function () {
 	var who = this.dq[0][0], text = this.dq[0][1]
 	UFX.draw("fs black f0 fs white textalign center textbaseline middle")
 	context.fillText(text, settings.sx/2, settings.sy/2)
+	showfps()
 }
 
 var TipScene = Object.create(UFX.scene.Scene)
@@ -96,6 +117,7 @@ TipScene.think = function (dt, kdown) {
 TipScene.draw = function () {
 	UFX.draw("fs black f0 fs white textalign center textbaseline middle")
 	context.fillText(this.tip, settings.sx/2, settings.sy/2)
+	showfps()
 }
 
 
@@ -142,6 +164,7 @@ ActionScene.draw = function () {
     draw(WorldEffects)
 	UFX.draw("]")
 	draw(ActionHUD)
+	showfps()
 }
 
 var PauseScene = Object.create(UFX.scene.Scene)
@@ -164,6 +187,7 @@ PauseScene.draw = function () {
 	if (this.drawn) return
 	this.drawn = true
 	UFX.draw("[ alpha 0.7 fs black f0 ]")
+	showfps()
 }
 
 

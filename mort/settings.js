@@ -21,6 +21,8 @@ var settings = {
 	
 	hidefeatnames: false, 
 	alwaysshow: true, // show cutscenes you've already seen
+	showfps: true,
+	tracecaches: false,
 	
 	// Cheat modes
 	easy: false,
