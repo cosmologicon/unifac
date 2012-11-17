@@ -71,11 +71,12 @@ var NoCache = {
 
 
 var FillStroke = {
-	init: function (font, fstyle, sstyle, lwidth) {
+	init: function (font, fstyle, sstyle, lwidth, tsize) {
 		this.font = font
 		this.fstyle = fstyle
 		this.sstyle = sstyle
 		this.lwidth = lwidth
+		this.tsize = tsize
 	},
 	draw0: function (con) {
 		con = con || context
@@ -87,13 +88,15 @@ var FillStroke = {
 			var lines = this.text.split("|")
 			// Get the text size for multiple lines
 			// Note: this method has all kinds of problems, but it should work with my data
-			var tsize = this.font.split(" ").map(function (a) { return parseInt(a) }).filter(function (a) { return a })[0]
+			if (!this.tsize) {
+				this.tsize = this.font.split(" ").map(function (a) { return parseInt(a) }).filter(function (a) { return a })[0]
+			}
 			con.save()
-			con.translate(0, -this.vafactor * tsize * (lines.length - 1))
+			con.translate(0, -this.vafactor * this.tsize * (lines.length - 1))
 			for (var j = 0 ; j < lines.length ; ++j) {
 				if (this.fstyle) con.fillText(lines[j], 0, 0)
 				if (this.sstyle) con.strokeText(lines[j], 0, 0)
-				con.translate(0, tsize)
+				con.translate(0, this.tsize)
 			}
 			con.restore()
 		} else {
@@ -422,9 +425,19 @@ var ActionHUD = {
 		this.effects.push(new CashEffect(c, 50, settings.sy - 20))
 	},
 	addproclamations: function (r) {
+		var t = 0
 		for (var j = 0 ; j < r.length ; ++j) {
-			this.effects.push(new Proclamation(r[j], j))
+			if (r[j].indexOf("Stage") > -1) {
+				this.effects.push(new StageProclamation(r[j], t))
+				t += 1.5
+			} else {
+				this.effects.push(new Proclamation(r[j], t))
+				t += 1
+			}
 		}
+	},
+	proclamationscomplete: function () {
+		return this.effects.length === 5
 	},
 }
 
@@ -483,8 +496,32 @@ Proclamation.prototype = UFX.Thing()
 	.addcomp(AnchorCenter, settings.sx * 0.5, settings.sy * 0.7)
 	.addcomp(ZoomIn, 0.2, 2)
 	.addcomp(FadeIn, 0.2)
-	.addcomp(FadeOut, 1.2, 0.2)
+	.addcomp(FadeOut, 0.2, 1.2)
 	.addcomp(FillStroke, "italic 80px 'Bangers'", UFX.draw.lingrad(0, -40, 0, 40, 0, "yellow", 1, "red"), "black", 2)
 	.addcomp(FullCache, 700, 200)
+
+function StageProclamation(text, delay) {
+	this.settext(text)
+	this.tenter = delay
+}
+StageProclamation.prototype = UFX.Thing()
+	.addcomp(DelayEntry, 0)
+	.addcomp(AnchorCenter, settings.sx * 0.5, settings.sy * 0.5)
+	.addcomp(ZoomIn, 0.2, 2)
+	.addcomp(FadeIn, 0.2)
+	.addcomp(FadeOut, 0.2, 1.2)
+	.addcomp(FillStroke, "180px 'Ceviche One'", UFX.draw.lingrad(0, 0, 0, 60, 0, "green", 1, "blue"), "black", 2, 120)
+	.addcomp(FullCache, 800, 360)
+
+
+function PauseEffect() {
+	this.settext("PAUSED")
+}
+PauseEffect.prototype = UFX.Thing()
+	.addcomp(AnchorCenter, settings.sx * 0.5, settings.sy * 0.5)
+	.addcomp(ZoomIn, 0.1, 2)
+	.addcomp(FadeIn, 0.1)
+	.addcomp(FillStroke, "italic 200px 'Bangers'", UFX.draw.lingrad(0, -100, 0, 100, 0, "yellow", 1, "red"), "black", 4)
+	.addcomp(SingleCache, 700, 200)
 
 

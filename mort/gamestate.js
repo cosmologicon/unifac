@@ -8,6 +8,7 @@ var record = {
 	heightrecord: 1,
 	comborecord: 1,
 	collected: {},
+	ncollected: 0,
 	bank: 0,
 	hiscore: {},
 	seentips: {},
@@ -44,6 +45,7 @@ var gamestate = {
 		this.resetcounts()
 		this.goal = mechanics.levelinfo[this.level].goal
 		this.time = mechanics.levelinfo[this.level].t
+		this.time = 5
 		this.butterflies = []
 		var btime = mechanics.levelinfo[this.level].btime
 		for (var j = 0 ; j < btime.length ; ++j) {
@@ -51,12 +53,34 @@ var gamestate = {
 				this.butterflies.push(new Butterfly(mechanics.butterfly[j]))
 			}
 		}
+		this.endingproclaimed = false
 	},
+	// Called when you land to annonouce new records
+	// Also end-of-level logic
 	proclaimcounts: function () {
 		var r = []
 		if (this.newheightrecord) r.push("New height record!")
 		if (this.newcomborecord) r.push("New combo record!")
 		this.newcollections.forEach(function (c) { r.push("You caught a|" + c + "!") })
+		if (!this.endingproclaimed && this.time <= 0) {
+		    this.endingproclaimed = true
+		    if (this.catchamount >= this.goal) {
+		        r.push("Stage|Complete!")
+		        if (this.catchamount > (record.hiscore[this.level] || 0)) {
+		            record.hiscore[this.level] = this.catchamount
+		            r.push("New high score!")
+	            }
+	            this.advance()
+		    } else {
+		        r.push("Stage|Incomplete")
+		    }
+		    for (var f in mechanics.feat) {
+		        if (record.knownfeats[f]) continue
+		        if (record.ncollected < mechanics.feat[f].learnat) continue
+		        record.knownfeats[f] = 1
+		        r.push("New ability|unlocked: " + f)
+            }
+		}
 		if (r) ActionHUD.addproclamations(r)
     },
 	resetcounts: function () {
@@ -129,6 +153,7 @@ var gamestate = {
 			record.collected[b.info.name] += 1
 		} else {
 			record.collected[b.info.name] = 1
+			record.ncollected += 1
 			if (grounded) {
 				// TODO: add an effect
 				ActionHUD.addproclamations(["You caught a|" + b.info.fname + "!"])
@@ -169,6 +194,17 @@ var gamestate = {
 		}
 		this.butterflies.forEach(function (b) { b.think(dt) })
 		this.time -= dt
+		if (this.time < 0 && You.grounded) {
+		    this.proclaimcounts()
+	    }
+	},
+	
+	// when you beat the current level
+	advance: function () {
+	    if (this.level == 6) return
+	    if (this.level == record.unlocked) {    
+	        this.level = record.unlocked++
+	    }
 	},
 	
 	// TODO: visit
