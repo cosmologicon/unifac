@@ -33,7 +33,7 @@ for (var fname in frameoffsets) {
 }
 UFX.resource.load(res)
 UFX.resource.loadwebfonts("Contrail One", "Norican", "Kaushan Script", "Shojumaru", "Bangers",
-    "Condiment", "Ceviche One", "Marko One", "Rosarivo")
+    "Condiment", "Ceviche One", "Marko One", "Rosarivo", "Jolly Lodger")
 
 // utilities
 function clip(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}

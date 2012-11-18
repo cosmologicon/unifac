@@ -73,7 +73,7 @@ CutScene.start = function () {
 		}
 	}
 	this.dq = getdialogue(gamestate.level)
-	this.drawtip(this.dq[0])
+	this.drawtext(this.dq[0])
 }
 
 CutScene.thinkargs = function (dt) {
@@ -83,10 +83,10 @@ CutScene.thinkargs = function (dt) {
 
 CutScene.think = function (dt, kdown) {
 	dt = dt || 0 ; kdown = kdown || {}
-	if (kdown.act) {
+	if (kdown.act || kdown.tab) {
 		this.dq.splice(0, 1)
 		if (this.dq.length) {
-			this.drawtip(this.dq[0])
+			this.drawtext(this.dq[0])
 		} else {
 			UFX.scene.swap(TipScene)
 		}
@@ -94,25 +94,62 @@ CutScene.think = function (dt, kdown) {
 	if (kdown.esc) {
 		UFX.scene.swap(TipScene)
 	}
+	if (this.dq[0]) {
+		var who = this.dq[0][0]
+		for (var j = 0 ; j < 400 ; ++j) {
+			if (UFX.random() < dt) {
+				this.drawline(UFX.random.rand(40, 240), who)
+			}
+		}
+	}
 }
 
-CutScene.drawtip = function (tip) {
-	var who = tip[0], text = tip[1]
+CutScene.drawtext = function (line) {
+	this.backdrop = document.createElement("canvas")
+	this.backdrop.width = settings.sx ; this.backdrop.height = settings.sy
+	var con = this.context = this.backdrop.getContext("2d")
+	var who = line[0], text = line[1]
 	var color0 = "rgb(24,24,24)", color1 = "rgb(64,64,64)"
-	UFX.draw("[ fs black f0 fs", UFX.draw.lingrad(0, -24, 0, 24, 0, color0, 1, color1),
+	UFX.draw(this.context, "[ fs black f0 fs", UFX.draw.lingrad(0, -24, 0, 24, 0, color0, 1, color1),
 		"ss white textalign center textbaseline middle t", settings.sx / 2, settings.sy * 0.5 + 84)
-	context.font = "44px 'Marko One'"
-	var texts = wordwrap(text, 760, context)
+	this.context.font = "44px 'Marko One'"
+	var texts = wordwrap(text, 760, this.context)
 	texts.forEach(function (text, j) {
-		context.fillText(text, 0, 0)
-		context.strokeText(text, 0, 0)
-		context.translate(0, 44)
+		con.fillText(text, 0, 0)
+		con.strokeText(text, 0, 0)
+		con.translate(0, 44)
 	})
-	UFX.draw("]")
+	UFX.draw(this.context, "]")
+	for (var y = 40 ; y < 240 ; ++y) this.drawline(y, who)
+}
+
+CutScene.drawline = function (y, who) {
+	var r = UFX.random.rand(144)
+	switch (who) {
+		case "m":
+			var r = UFX.random.rand(144)
+			var color = "rgb(" + r + "," + r + ",144)"
+			break
+		case "e":
+			var r = UFX.random.rand(64)
+			var color = "rgb(" + (192-r) + "," + (192-2*r) + ",0)"
+			break
+		case "s":
+			var r = UFX.random.rand(64,192)
+			var color = "rgb(" + r + "," + r + "," + r + ")"
+			break
+		case "v":
+			var r = UFX.random.rand(64)
+			var color = "rgb(" + r + "," + (128+r) + "," + r + ")"
+			break
+	}
+	UFX.draw(this.context, "b m 0", y, "l", settings.sx, y, "ss", color, "lw 1 s")
 }
 
 CutScene.draw = function () {
 	if (!this.dq[0]) return
+	UFX.draw("drawimage0", this.backdrop)
+	drawframe("head" + this.dq[0][0])
 	showfps()
 }
 
@@ -120,6 +157,16 @@ var TipScene = Object.create(UFX.scene.Scene)
 
 TipScene.start = function () {
 	this.tip = gettip()
+	context.font = "58px 'Contrail One'"
+	var texts = wordwrap(this.tip, 600, this.context)
+	UFX.draw("fs black f0 fs", UFX.draw.lingrad(0, -32, 0, 32, 0, "black", 1, "rgb(0,100,0)"),
+		"ss white [ t", settings.sx * 0.5, 100)
+	texts.forEach(function (text, j) {
+		context.fillText(text, 0, 0)
+		context.strokeText(text, 0, 0)
+		context.translate(0, 60)
+	})
+	UFX.draw("]")
 }
 
 TipScene.thinkargs = function (dt) {
@@ -129,14 +176,12 @@ TipScene.thinkargs = function (dt) {
 
 TipScene.think = function (dt, kdown) {
 	dt = dt || 0 ; kdown = kdown || {}
-	if (kdown.act) {
+	if (kdown.act || kdown.esc || kdown.tab) {
 		UFX.scene.swap(ActionScene)
 	}
 }
 
 TipScene.draw = function () {
-	UFX.draw("fs black f0 fs white textalign center textbaseline middle")
-	context.fillText(this.tip, settings.sx/2, settings.sy/2)
 	showfps()
 }
 

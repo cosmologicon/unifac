@@ -37,6 +37,11 @@ var frameoffsets = {
 	bfairy: [36, 36],
 	rfairy: [36, 36],
 	gfairy: [36, 36],
+
+	headm: [-100, -40],
+	heade: [-500, -40],
+	heads: [-500, -40],
+	headv: [-500, -40],
 }
 
 function drawframe(fname, hflip) {
