@@ -12,10 +12,6 @@ var settings = {
 		["Final stage", "The Lost Buttefly Garden of Verdania"]
     ],
 
-	fonts: {
-		loading: "bold italic 80px 'Bangers' sans-serif",
-	},
-	
 	savegamename: "mortimersave",
 	
 	
@@ -32,14 +28,14 @@ var settings = {
 var mechanics = {
     featnames: "nab leap turn twirl bound dart roll".split(" "),
 
-	feat: {  // TODO: check these learnat numbers
-		nab:   { keys: "act",         learnat: 0, vx: 400 , vy:   0, time: 1, r: 50, dx: 40, dy: 80, },
-		leap:  { keys: "up",          learnat: 0, vx: 200 , vy: 200, time: 1, },
-		turn:  { keys: "back",        learnat: 1, vx: 200 , vy: 200, time: 1, },
-		twirl: { keys: "act up",      learnat: 3, vx:   0 , vy: 200, time: 1, r: 80, dx: 0, dy: 80 },
-		bound: { keys: "back up",     learnat: 4, vx:-100 , vy: 250, time: 1, },
-		dart:  { keys: "forward up",  learnat: 5, vx: 250 , vy: 300, time: 1, },
-		roll:  { keys: "act forward", learnat: 8, vx: 250 , vy: 250, time: 1, r: 80, dx: 0, dy: 50 },
+	feat: {
+		nab:   { keys: "act",         learnat: 0, ucost: [  5, 10,  30,  80,  200], vx: 400 , vy:   0, time: 1, r: 50, dx: 40, dy: 80, },
+		leap:  { keys: "up",          learnat: 0, ucost: [ 10, 20,  60, 140,  300], vx: 200 , vy: 200, time: 1, },
+		turn:  { keys: "back",        learnat: 2, ucost: [ 20, 50, 120, 280,  400], vx: 200 , vy: 200, time: 1, },
+		twirl: { keys: "act up",      learnat: 4, ucost: [ 80,200, 450, 800, 2000], vx:   0 , vy: 200, time: 1, r: 80, dx: 0, dy: 80 },
+		bound: { keys: "back up",     learnat: 6, ucost: [ 80,200, 450, 800, 2000], vx:-100 , vy: 250, time: 1, },
+		dart:  { keys: "forward up",  learnat: 8, ucost: [ 80,200, 450, 800, 2000], vx: 250 , vy: 300, time: 1, },
+		roll:  { keys: "act forward", learnat:10, ucost: [200,500,2000,5000,20000], vx: 250 , vy: 250, time: 1, r: 80, dx: 0, dy: 50 },
 	},
 
 	nabtime: 0.25,
