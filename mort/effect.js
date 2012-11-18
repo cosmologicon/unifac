@@ -371,7 +371,7 @@ var ActionHUD = {
 		}),
 	],
 	levelinit: function () {
-		this.effects = this.effects.slice(0, 5)
+		this.effects = this.effects.slice(0, 4)
 		var linfo = mechanics.levelinfo[gamestate.level]
 		var names = [
 			settings.levelnames[gamestate.level-1][0],
@@ -438,7 +438,7 @@ var ActionHUD = {
 		}
 	},
 	proclamationscomplete: function () {
-		return this.effects.length === 5
+		return this.effects.length == 4
 	},
 }
 
