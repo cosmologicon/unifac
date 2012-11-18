@@ -45,7 +45,6 @@ var gamestate = {
 		this.resetcounts()
 		this.goal = mechanics.levelinfo[this.level].goal
 		this.time = mechanics.levelinfo[this.level].t
-		this.time = 5
 		this.butterflies = []
 		var btime = mechanics.levelinfo[this.level].btime
 		for (var j = 0 ; j < btime.length ; ++j) {
@@ -77,7 +76,7 @@ var gamestate = {
 		    for (var f in mechanics.feat) {
 		        if (record.knownfeats[f]) continue
 		        if (record.ncollected < mechanics.feat[f].learnat) continue
-		        record.knownfeats[f] = 1
+		        this.bars[f] = record.knownfeats[f] = 1
 		        r.push("New ability|unlocked: " + f)
             }
 		}
@@ -203,7 +202,7 @@ var gamestate = {
 	advance: function () {
 	    if (this.level == 6) return
 	    if (this.level == record.unlocked) {    
-	        this.level = record.unlocked++
+	        this.level = ++record.unlocked
 	    }
 	},
 	

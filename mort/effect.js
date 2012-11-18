@@ -124,6 +124,7 @@ function Anchor(valign, halign) {
 		},
 	}
 }
+var AnchorTopLeft = Anchor("top", "left")
 var AnchorTopRight = Anchor("top", "right")
 var AnchorBottomLeft = Anchor("bottom", "left")
 var AnchorBottomRight = Anchor("bottom", "right")
@@ -261,6 +262,56 @@ function drawkey(keyname) {
 	if (keyname != "act") UFX.draw("fs lightblue ss black lw 1 ( m 0 -11 l -8 0 l -2 -2 l -4 10 l 4 10 l 2 -2 l 8 0 ) f s")
 	UFX.draw("]")
 }
+function drawfeats(hidefeatnames) {
+	if (hidefeatnames) {
+		UFX.draw("t -82 0")
+	}
+	UFX.draw("textalign right textbaseline top")
+	context.font = "bold 32px 'Marko One'"
+	context.fillStyle = "rgb(255,200,200)"
+	context.strokeStyle = "black"
+	for (var j = 0 ; j < mechanics.featnames.length ; ++j) {
+		var fname = mechanics.featnames[j]
+		if (!record.knownfeats[fname]) continue
+		UFX.draw("[ t 0", 30*j)
+		if (!hidefeatnames) {
+			UFX.draw("[")
+			if (fname == "bound") UFX.draw("xscale 0.75")
+			context.fillText(fname, 0, 0)
+			context.strokeText(fname, 0, 0)
+			UFX.draw("]")
+		}
+		var keys = mechanics.feat[fname].keys.split(" ")
+		if (keys.length == 1) {
+			UFX.draw("t 17 7")
+			drawkey(keys[0])
+		} else {
+			UFX.draw("t 4 7")
+			drawkey(keys[0])
+			UFX.draw("t 26 0")
+			drawkey(keys[1])
+		}
+		UFX.draw("]")
+	}
+	var w = hidefeatnames ? 7 : 16
+	UFX.draw("[ alpha 0.5 t 60 7 fs black ss white lw 2 b")
+	for (var j = 0 ; j < mechanics.featnames.length ; ++j) {
+		var fname = mechanics.featnames[j]
+		if (!record.knownfeats[fname]) continue
+		for (var k = gamestate.bars[fname] ; k < record.knownfeats[fname] ; ++k) {
+			UFX.draw("[ t", (w+2)*k, 30*j, "m 0 0 l", w, "0 l", w, "26 l 0 26 l 0 0 ]")
+		}
+	}
+	UFX.draw("f s fs red b")
+	for (var j = 0 ; j < mechanics.featnames.length ; ++j) {
+		var fname = mechanics.featnames[j]
+		if (!record.knownfeats[fname]) continue
+		for (var k = 0 ; k < gamestate.bars[fname] ; ++k) {
+			UFX.draw("[ t", (w+2)*k, 30*j, "m 0 0 l", w, "0 l", w, "26 l 0 26 l 0 0 ]")
+		}
+	}
+	UFX.draw("f s ]")
+}
 
 
 var ActionHUD = {
@@ -318,64 +369,9 @@ var ActionHUD = {
 				this.settext(c > 1 ? "" + c + "xCombo" : "")
 			},
 		}),
-		// Feat listings
-		UFX.Thing()
-		.addcomp(AnchorTopRight, 84, 4)
-		.addcomp({
-			draw: function () {
-				if (settings.hidefeatnames) {
-					UFX.draw("t -82 0")
-				}
-				context.font = "bold 32px 'Marko One'"
-				context.fillStyle = "rgb(255,200,200)"
-				context.strokeStyle = "black"
-				for (var j = 0 ; j < mechanics.featnames.length ; ++j) {
-					var fname = mechanics.featnames[j]
-					if (!record.knownfeats[fname]) continue
-					UFX.draw("[ t 0", 30*j)
-					if (!settings.hidefeatnames) {
-						UFX.draw("[")
-						if (fname == "bound") UFX.draw("xscale 0.75")
-						context.fillText(fname, 0, 0)
-						context.strokeText(fname, 0, 0)
-						UFX.draw("]")
-					}
-					var keys = mechanics.feat[fname].keys.split(" ")
-					if (keys.length == 1) {
-						UFX.draw("t 17 7")
-						drawkey(keys[0])
-					} else {
-						UFX.draw("t 4 7")
-						drawkey(keys[0])
-						UFX.draw("t 26 0")
-						drawkey(keys[1])
-					}
-					UFX.draw("]")
-				}
-				var w = settings.hidefeatnames ? 7 : 16
-				UFX.draw("[ alpha 0.5 t 60 7 fs black ss white lw 2 b")
-				for (var j = 0 ; j < mechanics.featnames.length ; ++j) {
-					var fname = mechanics.featnames[j]
-					if (!record.knownfeats[fname]) continue
-					for (var k = gamestate.bars[fname] ; k < record.knownfeats[fname] ; ++k) {
-						UFX.draw("[ t", (w+2)*k, 30*j, "m 0 0 l", w, "0 l", w, "26 l 0 26 l 0 0 ]")
-					}
-				}
-				UFX.draw("f s fs red b")
-				for (var j = 0 ; j < mechanics.featnames.length ; ++j) {
-					var fname = mechanics.featnames[j]
-					if (!record.knownfeats[fname]) continue
-					for (var k = 0 ; k < gamestate.bars[fname] ; ++k) {
-						UFX.draw("[ t", (w+2)*k, 30*j, "m 0 0 l", w, "0 l", w, "26 l 0 26 l 0 0 ]")
-					}
-				}
-				UFX.draw("f s ]")
-			},
-		})
-		.definemethod("think"),
-		
 	],
 	levelinit: function () {
+		this.effects = this.effects.slice(0, 5)
 		var linfo = mechanics.levelinfo[gamestate.level]
 		var names = [
 			settings.levelnames[gamestate.level-1][0],
@@ -416,6 +412,11 @@ var ActionHUD = {
 		function draw(e) { context.save() ; e.draw() ; context.restore() }
 		this.effects.forEach(draw)
 		//UFX.draw("ss red lw 1 b m 0 388 l 800 388 s")
+
+		// Feat listings
+		UFX.draw("[ t 84 4")
+		drawfeats(settings.hidefeatnames)
+		UFX.draw("]")
 	},
 
 	addcombocasheffect: function (c) {
@@ -457,6 +458,66 @@ var WorldEffects = {
 	addcasheffect: function (v, x, y) {
 		x = clip(x, vista.xmin + 40, vista.vx - 40)
 		this.effects.push(new WorldCashEffect(v, x, y))
+	},
+}
+
+var ShopHUD = {
+	init: function () {
+		this.index = 1
+		this.imax = mechanics.featnames.filter(function(fname) { return record.knownfeats[fname] }).length
+		this.effects = [
+			// "Upgrade abilities"
+			UFX.Thing()
+				.addcomp(AnchorTopLeft, 10, 10)
+				.addcomp(FillStroke, "44px 'Condiment'", "white", "black", 1)
+				.definemethod("think")
+				.addcomp(NoCache),
+			// Bank
+			UFX.Thing()
+				.addcomp(AnchorTopLeft, 20, 100)
+				.addcomp(FillStroke, "bold 50px 'Rosarivo'", "white", "black", 1)
+				.addcomp({
+					think: function (dt) {
+						this.settext("Bank: \u00A3" + record.bank)
+					},
+				})
+				.addcomp(NoCache),
+		]
+		this.effects[0].settext("Upgrade abilities...")
+		this.effects[1].settext("Bank:")
+		gamestate.resetcounts()
+	},
+	think: function (dt) {
+		this.effects.forEach(function (e) { e.think(dt) })
+	},
+	draw: function () {
+		var grad = UFX.draw.lingrad(0, 0, settings.sx, settings.sy, 0, "royalblue", 1, "fuchsia")
+		UFX.draw("[ fs", grad, "f0")
+		function draw(e) { context.save() ; e.draw() ; context.restore() }
+		this.effects.forEach(draw)
+		UFX.draw("t 400 20 z 1.4 1.4")
+		drawfeats()
+		UFX.draw("textalign center textbaseline top fs white ss black")
+		context.font = "bold 32px 'Rosarivo'"
+		mechanics.featnames.forEach(function (fname, j) {
+			var n = record.knownfeats[fname], costs = mechanics.feat[fname].ucost
+			if (!n) return
+			var s = n > costs.length ? "max" : "\u00A3" + costs[n-1]
+			UFX.draw("[ t 230", 0+30*j)
+			context.fillText(s, 0, 0)
+			context.strokeText(s, 0, 0)
+			UFX.draw("]")
+		})
+		var s = "Continue"
+		context.font = "32px Kaushan Script"
+		context.lineWidth = 0.8
+		UFX.draw("[ t -20 210")
+		context.fillText(s, 0, 0)
+		context.strokeText(s, 0, 0)
+		UFX.draw("]")
+		var tz = this.index ? 22 + 30 * (this.index - 1) : 240
+		UFX.draw("[ t -86", tz, "b o 0 0 5 fs white ss black f s ]")
+		UFX.draw("]")
 	},
 }
 
@@ -523,5 +584,9 @@ PauseEffect.prototype = UFX.Thing()
 	.addcomp(FadeIn, 0.1)
 	.addcomp(FillStroke, "italic 200px 'Bangers'", UFX.draw.lingrad(0, -100, 0, 100, 0, "yellow", 1, "red"), "black", 4)
 	.addcomp(SingleCache, 700, 200)
+
+
+
+
 
 
