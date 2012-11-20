@@ -112,12 +112,12 @@ CutScene.drawtext = function (line) {
 	var color0 = "rgb(24,24,24)", color1 = "rgb(64,64,64)"
 	UFX.draw(this.context, "[ fs black f0 fs", UFX.draw.lingrad(0, -24, 0, 24, 0, color0, 1, color1),
 		"ss white textalign center textbaseline middle t", settings.sx / 2, settings.sy * 0.5 + 84)
-	this.context.font = "44px 'Marko One'"
+	this.context.font = "40px 'Marko One'"
 	var texts = wordwrap(text, 760, this.context)
 	texts.forEach(function (text, j) {
 		con.fillText(text, 0, 0)
 		con.strokeText(text, 0, 0)
-		con.translate(0, 44)
+		con.translate(0, 42)
 	})
 	UFX.draw(this.context, "]")
 	for (var y = 40 ; y < 240 ; ++y) this.drawline(y, who)
@@ -294,10 +294,9 @@ ShopScene.thinkargs = function (dt) {
 
 ShopScene.think = function (dt, kdown) {
 	dt = dt || 0 ; kdown = kdown || {}
-	if (kdown.up) ShopHUD.index--
-	if (kdown.down) ShopHUD.index++
-	ShopHUD.index = (ShopHUD.index + (ShopHUD.imax+1)) % (ShopHUD.imax+1)
-    if (kdown.act) {
+	if (kdown.up) ShopHUD.index = ShopHUD.index ? ShopHUD.index - 1 : ShopHUD.imax
+	if (kdown.down) ShopHUD.index = ShopHUD.index < ShopHUD.imax ? ShopHUD.index + 1 : 0
+    if (kdown.act || kdown.tab) {
         if (ShopHUD.index == 0) {
             this.complete()
         } else {
@@ -309,6 +308,9 @@ ShopScene.think = function (dt, kdown) {
 			    gamestate.bars[fname] = ++record.knownfeats[fname]
 		    }
 	    }
+    }
+    if (kdown.esc) {
+    	this.complete()
     }
     ShopHUD.think(dt)
 }
