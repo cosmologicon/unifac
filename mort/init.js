@@ -6,6 +6,23 @@ canvas.height = settings.sy
 var context = canvas.getContext("2d")
 UFX.draw.setcontext(context)
 
+function gofullscreen() {
+	if (canvas.webkitRequestFullScreen) {
+		canvas.webkitRequestFullScreen(true)
+	} else if (canvas.mozRequestFullScreen) {
+		canvas.mozRequestFullScreen()
+	} else if (canvas.requestFullScreen) {
+		canvas.requestFullScreen()
+	}
+}
+window.onresize = function () {
+	if ((document.webkitFullscreenElement || document.mozFullScreenElement) == canvas) {
+		canvas.style.width = document.width + "px"
+	} else {
+		canvas.style.width = ""
+	}
+}
+
 window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
                                window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
 UFX.scene.init()
@@ -22,7 +39,7 @@ UFX.resource.onload = function () {
 
 UFX.key.init()
 UFX.key.remaparrows(true)
-UFX.key.remap({ space: "act", enter: "act" })
+UFX.key.remap({ space: "act", enter: "act", Q: "esc" })
 UFX.key.watchlist = "left right up down act tab esc".split(" ")
 UFX.key.qdown = true
 UFX.key.qcombo = true

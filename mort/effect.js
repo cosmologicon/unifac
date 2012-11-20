@@ -321,7 +321,7 @@ var ActionHUD = {
 		.addcomp(AnchorBottomRight, settings.sx - 5, settings.sy + 3)
 		.addcomp(FillStroke, "bold 44px 'Norican'", "silver", "black", 1.5)
 		.addcomp(ZoomOnChange)
-		.addcomp(SingleCache, 180, 60, 20)
+		.addcomp(SingleCache, 240, 60, 20)
 		.addcomp({
 			think: function (dt) { this.settext("\u00A3" + gamestate.catchamount + "/" + gamestate.goal) },
 		}),
@@ -495,7 +495,7 @@ var ShopHUD = {
 		UFX.draw("[ fs", grad, "f0")
 		function draw(e) { context.save() ; e.draw() ; context.restore() }
 		this.effects.forEach(draw)
-		UFX.draw("t 400 20 z 1.4 1.4")
+		UFX.draw("t 410 20 z 1.4 1.4")
 		drawfeats()
 		UFX.draw("textalign center textbaseline top fs white ss black")
 		context.font = "bold 32px 'Rosarivo'"
@@ -503,7 +503,7 @@ var ShopHUD = {
 			var n = record.knownfeats[fname], costs = mechanics.feat[fname].ucost
 			if (!n) return
 			var s = n > costs.length ? "max" : "\u00A3" + costs[n-1]
-			UFX.draw("[ t 230", 0+30*j)
+			UFX.draw("[ t 220", 0+30*j)
 			context.fillText(s, 0, 0)
 			context.strokeText(s, 0, 0)
 			UFX.draw("]")

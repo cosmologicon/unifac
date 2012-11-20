@@ -67,7 +67,7 @@ var mechanics = {
 		{ name: "green",  fname: "Rib Tickling Skipper", value: 3, ymin:  60, ymax: 500, vx0: 400, vy0: 200, ftime: 0.5 },
 
 		{ name: "bfairy", fname: "Strident Kokiri Fairy", value:  8, ymin: 300, ymax: 500, vx0: 600, vy0: 200, ftime: 2 },
-		{ name: "rfairy", fname: "Scenester Pixie",       value: 12, ymin: 400, ymax: 600, vx0: 600, vy0: 200, ftime: 2 },
+		{ name: "rfairy", fname: "Manic Dreamgirl Pixie", value: 12, ymin: 400, ymax: 600, vx0: 600, vy0: 200, ftime: 2 },
 		{ name: "gfairy", fname: "Laminated Yosei",       value: 15, ymin: 500, ymax: 900, vx0: 600, vy0: 600, ftime: 2 },
 	],
 
