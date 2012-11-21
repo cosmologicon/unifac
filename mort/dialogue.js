@@ -150,10 +150,10 @@ function gettip() {
 }
 
 function wordwrap(text, twidth, con) {
-	twidth = twidth || settings.sx
 	con = con || context
+	twidth = twidth || con.canvas.width
 	var texts = [text], n = 0, s
-	while (context.measureText(texts[n]).width > twidth && (s = texts[n].indexOf(" ")) > -1) {
+	while (con.measureText(texts[n]).width > twidth && (s = texts[n].indexOf(" ")) > -1) {
 		var t = texts[n], a = t.lastIndexOf(" ")
 		while (con.measureText(t.substr(0, a)).width > twidth && a > s) a = t.lastIndexOf(" ", a-1)
 		texts[n++] = t.substr(0, a)

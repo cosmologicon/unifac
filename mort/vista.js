@@ -21,25 +21,30 @@ var vista = {
 		var p0 = 0.3, p1 = 2
 
 		if (level == 1) {
-			var ground = UFX.texture.dirt()
-			var sky = UFX.texture.overcast()
-		} else if (level == 2) {
 			var ground = UFX.texture.cement()
 			var sky = UFX.texture.overcast()
+		} else if (level == 2) {
+			var ground = UFX.texture.stone({scale: 16, color: [80, 80, 160]})
+			UFX.draw(ground.context, "drawimage0", UFX.texture.roughshade())
+			var sky = UFX.texture.overcast({r0: 20, b0: 20, g0: 20})
+			p1 = 5
+			gzx = 4 ; gzy = 1
+			szx = 4 ; szy = 4
 		} else if (level == 3) {
-			var ground = UFX.texture.grass()
+			var ground = UFX.texture.dirt()
 			var sky = UFX.texture.overcast()
 		} else if (level == 4) {
 			var ground = UFX.texture.patchydirt()
-			var sky = UFX.texture.clouds()
+			var sky = UFX.texture.nightsky({size: 1024})
+			var c0 = "rgba(0,0,20,0)", c1 = "rgba(0,0,20,1)"
+			szx = 2 ; szy = 2 ; p1 = 4
 		} else if (level == 5) {
-			var ground = UFX.texture.stone({scale: 16})
-			UFX.draw(ground.context, "drawimage0", UFX.texture.roughshade())
-			var sky = UFX.texture.clouds({scale: 16, sharpness: -2, size: 1024})
-			var c0 = "rgba(255,255,255,0)", c1 = "rgba(255,255,255,1)"
-			p1 = 5
+			var ground = UFX.texture.marble()
+			var sky = UFX.texture.marble({ size: 512, xfactor: 2, yfactor: 4 })
 			gzx = 4 ; gzy = 1
-			szx = 4 ; szy = 2
+			szx = 3 ; szy = 3
+			c0 = "rgba(0,0,0,0)" ; c1 = "rgba(0,0,0,1)"
+			p0 = 0 ; p1 = 4
 		} else if (level == 6) {
 			var ground = UFX.texture.grass()
 			var sky = UFX.texture.clouds({scale: 16, sharpness: -2, size: 1024})
