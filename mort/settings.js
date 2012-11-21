@@ -8,7 +8,7 @@ var settings = {
 		["Stage 2", "Dojo of the Royal Lepidopteral Society"],
 		["Stage 3", "Bucolic Meadow of Doom"],
 		["Stage 4", "Some field you have to cross"],
-		["Stage 5", "Imperial palace of|the Royal Society of Lepidopterists"],
+		["Stage 5", "Imperial palace of the Royal Society of Lepidopterists"],
 		["Final stage", "The Lost Buttefly Garden of Verdania"]
 	],
 
@@ -18,7 +18,7 @@ var settings = {
 	musicvolume: 0.4,
 
 	hidefeatnames: false, 
-	alwaysshow: true, // show cutscenes you've already seen
+	alwaysshow: false, // show cutscenes you've already seen
 	showfps: true,
 	tracecaches: false,
 
@@ -42,7 +42,8 @@ var mechanics = {
 
 	nabtime: 0.25,
 	runvx: 300,
-	g: 500,   // TODO: 250 in easy mode
+	g: 500,
+	easyg: 250,
 	
 	growtime: function (n, m) {  // how long to refill the nth bar if there are m total bars?
 		return 2.0 + 0.5 * (m - n)

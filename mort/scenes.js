@@ -32,7 +32,7 @@ var MapScene = Object.create(UFX.scene.Scene)
 
 MapScene.start = function () {
 	if (settings.unlockall) record.unlocked = settings.nlevels
-	context.font = "80px 'Contrail One' sans-serif"
+	MapHUD.init()
 	this.udseq = []
 	playmusic("girl")
 }
@@ -51,16 +51,21 @@ MapScene.think = function (dt, kdown) {
 	}
 	if (kdown.up) this.udseq.push(0)
 	if (kdown.down) this.udseq.push(1)
-	if (this.udseq.length >= 8) {  // TODO: cheatz!
-	
+	if (this.udseq.length >= 8) {  // cheatz!
+		var s = JSON.stringify(this.udseq)
+		if (s == "[0,0,1,1,0,0,1,1]" && !settings.easy) {
+			settings.easy = true
+			MapHUD.addeasymode()
+		}
+		this.udseq = this.udseq.slice(0, 7)
 	}
 
 	if (kdown.act) UFX.scene.swap(CutScene)
+	MapHUD.think(dt)
 }
 
 MapScene.draw = function () {
-	UFX.draw("fs black f0 fs white")
-	context.fillText("Current level: " + gamestate.level, settings.sx/2, settings.sy/2)
+	MapHUD.draw()
 	showfps()
 }
 

@@ -521,6 +521,81 @@ var ShopHUD = {
 	},
 }
 
+var MapHUD = {
+	diskps: [[150, 310], [250, 270], [350, 290], [450, 250], [550, 270], [650,230]],
+	init: function () {
+		this.effects = []
+	},
+	think: function (dt) {
+		this.effects.forEach(function (e) { e.think(dt) })
+	},
+	draw: function () {
+		UFX.draw("fs rgb(0,0,128) f0")
+		// Disk connectors
+		UFX.draw("[ b m", this.diskps[0])
+		for (var j = 1 ; j < record.unlocked ; ++j) {
+			UFX.draw("l", this.diskps[j])
+		}
+		UFX.draw("yscale 0.5 lw 14 ss black s lw 10 ss white s ]")
+		// Level disks
+		UFX.draw("ss black fs lightgray")
+		for (var j = 0 ; j < record.unlocked ; ++j) {
+			UFX.draw("[ t", this.diskps[j], "[ xscale 2 b o 0 0 16 ] f s t 0 -4 [ xscale 2 b o 0 0 16 ] f s ]")
+		}
+		// Token
+		UFX.draw("[ t", this.diskps[gamestate.level - 1], "t 0 -8")
+		drawframe("stand")
+		UFX.draw("]")
+		// Stage name and title
+		var stext = settings.levelnames[gamestate.level-1]
+		UFX.draw("[ textbaseline top textalign center fs white ss black t", settings.sx/2, 4)
+		context.font = "22px 'Fugaz One'"
+		context.fillText(stext[0], 0, 0)
+		context.strokeText(stext[0], 0, 0)
+		UFX.draw("t 0 24")
+		context.font = "36px 'Fugaz One'"
+		wordwrap(stext[1], 600).forEach(function (text) {
+			context.fillText(text, 0, 0)
+			context.strokeText(text, 0, 0)
+			UFX.draw("t 0 38")
+		})
+		// High score
+		context.font = "20px 'Marko One'"
+		UFX.draw("lw 0.5 t 0 8")
+		var score = record.hiscore[gamestate.level]
+		if (score) {
+			var s = "High score: \u00A3" + score
+			context.fillText(s, 0, 0)
+		}
+		UFX.draw("]")
+		// Records
+		UFX.draw("[ textalign right textbaseline bottom t", settings.sx, settings.sy, "t -12 -10 fs white ss black lw 1")
+		context.font = "bold 32px 'Contrail One'"
+		var texts = [
+			"Species collected: " + record.ncollected,
+			"Height record: " + record.heightrecord + "ft",
+			"Combo record: " + record.comborecord + "x",
+		]
+		texts.forEach(function (text) {
+			context.fillText(text, 0, 0)
+			context.strokeText(text, 0, 0)
+			UFX.draw("t 0 -34")
+		})
+		UFX.draw("]")
+		this.effects.forEach(function (e) { context.save() ; e.draw() ; context.restore() })
+	},
+	addeasymode: function() {
+		var emode = UFX.Thing()
+			.addcomp(AnchorCenter, settings.sx * 0.5, settings.sy * 0.5)
+			.addcomp(FillStroke, "90px 'Bangers'", "yellow", "black", 2)
+			.addcomp(FlyAcross, -100, -3000, 0.6)
+			.addcomp(SingleCache, 600, 100, 30)
+		emode.settext("Easy mode unlocked")
+		this.effects.push(emode)
+	},
+}
+
+
 
 function CashEffect(amount, x, y) {
 	this.settext("\u00A3" + amount)

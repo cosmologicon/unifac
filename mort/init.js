@@ -55,7 +55,7 @@ for (var fname in frameoffsets) {
 }
 UFX.resource.load(res)
 UFX.resource.loadwebfonts("Contrail One", "Norican", "Kaushan Script", "Shojumaru", "Bangers",
-    "Condiment", "Ceviche One", "Marko One", "Rosarivo", "Jolly Lodger")
+    "Condiment", "Ceviche One", "Marko One", "Rosarivo", "Jolly Lodger", "Fugaz One")
 
 // sound and music
 var soundcheck = document.getElementById("playsound"), musiccheck = document.getElementById("playmusic")

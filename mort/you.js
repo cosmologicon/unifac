@@ -38,7 +38,8 @@ var PerformCombos = {
 		this.ctime += dt
 		if (!this.grounded) {
 			this.x += this.vx * dt
-			var g = this.currentfeat == "nab" && this.ctime < mechanics.nabtime ? 0 : mechanics.g
+			var g = this.currentfeat == "nab" && this.ctime < mechanics.nabtime ? 0 :
+			    settings.easy ? mechanics.easyg : mechanics.g
 			this.y += this.vy * dt - 0.5 * g * dt * dt
 			this.vy -= g * dt
 			
