@@ -34,6 +34,7 @@ MapScene.start = function () {
 	if (settings.unlockall) record.unlocked = settings.nlevels
 	context.font = "80px 'Contrail One' sans-serif"
 	this.udseq = []
+	playmusic("girl")
 }
 
 MapScene.thinkargs = function (dt) {
@@ -74,6 +75,7 @@ CutScene.start = function () {
 	}
 	this.dq = getdialogue(gamestate.level)
 	this.drawtext(this.dq[0])
+	playmusic(settings.levelmusic[gamestate.level - 1])
 }
 
 CutScene.thinkargs = function (dt) {
@@ -109,10 +111,19 @@ CutScene.drawtext = function (line) {
 	this.backdrop.width = settings.sx ; this.backdrop.height = settings.sy
 	var con = this.context = this.backdrop.getContext("2d")
 	var who = line[0], text = line[1]
-	var color0 = "rgb(24,24,24)", color1 = "rgb(64,64,64)"
-	UFX.draw(this.context, "[ fs black f0 fs", UFX.draw.lingrad(0, -24, 0, 24, 0, color0, 1, color1),
-		"ss white textalign center textbaseline middle t", settings.sx / 2, settings.sy * 0.5 + 84)
-	this.context.font = "40px 'Marko One'"
+	var color0, color1 = "black"
+	if (who == "m") {
+		color0 = "rgb(0,0,128)"
+	} else if (who == "e") {
+		color0 = "rgb(128,128,0)"
+	} else if (who == "s") {
+		color0 = "rgb(90,90,90)"
+	} else if (who == "v") {
+		color0 = "rgb(0,128,0)"
+	}
+	UFX.draw(this.context, "[ fs black f0 fs", UFX.draw.lingrad(0, 20, 0, -10, 0, color0, 1, color1),
+		"ss white lw 1 textalign center textbaseline middle t", settings.sx / 2, settings.sy * 0.5 + 84)
+	this.context.font = "38px 'Marko One'"
 	var texts = wordwrap(text, 760, this.context)
 	texts.forEach(function (text, j) {
 		con.fillText(text, 0, 0)
@@ -167,6 +178,7 @@ TipScene.start = function () {
 		context.translate(0, 60)
 	})
 	UFX.draw("]")
+	playmusic(settings.levelmusic[gamestate.level - 1])
 }
 
 TipScene.thinkargs = function (dt) {
@@ -194,6 +206,7 @@ ActionScene.start = function () {
 	You.reset()
 	vista.snapto(You.lookingat())
     ActionHUD.levelinit()
+	playmusic(settings.levelmusic[gamestate.level - 1])
 }
 
 ActionScene.thinkargs = function (dt) {
@@ -249,6 +262,7 @@ PauseScene.start = function () {
 	this.img0.width = canvas.width ; this.img0.height = canvas.height
 	var con = this.img0.getContext("2d")
 	UFX.draw(con, "drawimage0", canvas, "alpha 0.8 fs black f0")
+	if (musicplaying) musicplaying.pause()
 }
 
 PauseScene.thinkargs = function (dt) {
@@ -280,11 +294,16 @@ PauseScene.draw = function () {
 	showfps()
 }
 
+PauseScene.stop = function () {
+	if (musicplaying) musicplaying.play()
+}
+
 
 var ShopScene = Object.create(UFX.scene.Scene)
 
 ShopScene.start = function () {
-    ShopHUD.init()
+	ShopHUD.init()
+	playmusic("girl")
 }
 
 ShopScene.thinkargs = function (dt) {
