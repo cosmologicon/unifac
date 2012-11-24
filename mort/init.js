@@ -27,14 +27,10 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequest
                                window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
 UFX.scene.init()
 UFX.scene.push(LoadScene)
-UFX.resource.onloading = LoadScene.onloading
+UFX.resource.onloading = function (f) { LoadScene.onloading(f) }
 UFX.resource.onload = function () {
 	UFX.scene.pop()
-//	UFX.scene.push(record.maxvisited ? MapScene : CutScene)
-    gamestate.startlevel()
-    record.bank = 123
-//	UFX.scene.push(ShopScene)
-    UFX.scene.push(MapScene)
+    UFX.scene.push(TitleScene)
 }
 
 UFX.key.init()
@@ -55,7 +51,7 @@ for (var fname in frameoffsets) {
 }
 UFX.resource.load(res)
 UFX.resource.loadwebfonts("Contrail One", "Norican", "Kaushan Script", "Shojumaru", "Bangers",
-    "Condiment", "Ceviche One", "Marko One", "Rosarivo", "Jolly Lodger", "Fugaz One")
+    "Condiment", "Ceviche One", "Marko One", "Rosarivo", "Jolly Lodger", "Fugaz One", "Marcellus SC")
 
 // sound and music
 var soundcheck = document.getElementById("playsound"), musiccheck = document.getElementById("playmusic")
@@ -88,15 +84,18 @@ function stopmusic() {
 function clip(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
 
 // cheats
-record.unlocked = 6
-record.maxvisited = 6
-record.knownfeats = {
-	nab: 6,
-	leap: 5,
-	turn: 4,
-	twirl: 3,
-	dart: 2,
-	bound: 1,
-	roll: 1,
+function cheat() {
+    record.unlocked = 6
+    record.maxvisited = 6
+    record.knownfeats = {
+	    nab: 5,
+	    leap: 5,
+	    turn: 5,
+	    twirl: 5,
+	    dart: 5,
+	    bound: 5,
+	    roll: 5,
+    }
+    record.bank = 20000
 }
 
