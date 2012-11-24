@@ -4,7 +4,6 @@ var record = {
 		nab: 1,
 	},
 	unlocked: 1,
-	maxvisited: 0,
 	heightrecord: 1,
 	comborecord: 1,
 	collected: {},
@@ -12,7 +11,9 @@ var record = {
 	bank: 0,
 	hiscore: {},
 	seentips: {},
+	seenscenes: {},
 }
+var record0 = JSON.stringify(record)
 
 var gamestate = {
 	level: 1,
@@ -40,6 +41,16 @@ var gamestate = {
 		}
 	},
 	
+	// Reset saved game (after confirmation) and reload page
+	reset: function () {
+		var s = "Reset saved game and start from the beginning?"
+		if (!window.confirm(s)) return
+		record = JSON.parse(record0)
+		this.level = 1
+		this.save()
+		window.location.reload()
+	},
+	
 	startlevel: function () {
 		this.bars = {} ; this.feattick = {}
 		this.resetcounts()
@@ -65,7 +76,7 @@ var gamestate = {
 		    this.endingproclaimed = true
 		    if (this.catchamount >= this.goal) {
 		        r.push("Stage|Complete!")
-		        if (this.catchamount > (record.hiscore[this.level] || 0)) {
+		        if (!settings.easy && this.catchamount > (record.hiscore[this.level] || 0)) {
 		            record.hiscore[this.level] = this.catchamount
 		            r.push("New high score!")
 	            }
@@ -211,6 +222,8 @@ var gamestate = {
 	
 	
 }
+
+gamestate.load()
 
 
 

@@ -27,6 +27,44 @@ LoadScene.onloading = function (f) {
     this.f = f
 }
 
+var TitleScene = Object.create(UFX.scene.Scene)
+
+TitleScene.start = function () {
+}
+
+TitleScene.thinkargs = function (dt) {
+	var kstate = UFX.key.state()
+    return [dt, kstate.down]
+}
+
+TitleScene.think = function (dt, kdown) {
+	dt = dt || 0 ; kdown = kdown || {}
+	if (kdown.act) this.complete()
+}
+
+TitleScene.draw = function () {
+	var grad0 = UFX.draw.lingrad(0, 0, 0, -30, 0, "red", 1, "rgb(255,100,100)")
+	var grad1 = UFX.draw.lingrad(0, 0, 0, -80, 0, "red", 1, "rgb(255,100,100)")
+	var grad2 = UFX.draw.lingrad(0, 0, 0, -20, 0, "red", 1, "rgb(255,100,100)")
+	var grad3 = UFX.draw.lingrad(0, 0, 0, -40, 0, "blue", 1, "rgb(200,200,255)")
+	UFX.draw("fs black f0 [ textbaseline bottom textalign center",
+		"fs", grad0, "ss white",
+		"t", settings.sx/2, settings.sy*0.3,
+			"[ shadowcolor yellow shadowxy 1 1 font bold~40px~'Marcellus~SC' ft0 Mortimer~the ]",
+		"fs", grad1, "ss white",
+		"t 0 110",
+			"[ shadowcolor yellow shadowxy 2 2 font 120px~'Marcellus~SC' ft0 Lepidopterist ]",
+		"fs", grad2, "t 0 10 font 22px~'Marko~One' lw 0.5 ft0 Pyweek~edition",
+		"[ t 250 40 fs grey font 26px~'Contrail~One' ft0 by~Christopher~Night",
+		"t 0 30 ft0 Universe~Factory~games ]",
+		"t 0 140 fs", grad3, "font 40px~'Bangers' ft0 press~space~or~enter",
+	"]")
+	showfps()
+}
+
+TitleScene.complete = function () {
+	UFX.scene.push(record.maxvisited ? MapScene : CutScene)
+}
 
 var MapScene = Object.create(UFX.scene.Scene)
 
@@ -73,11 +111,12 @@ MapScene.draw = function () {
 var CutScene = Object.create(UFX.scene.Scene)
 
 CutScene.start = function () {
-	if (record.maxvisited >= gamestate.level) {  // Have we already seen this cutscene?
+	if (record.seenscenes[gamestate.level]) {  // Have we already seen this cutscene?
 		if (gamestate.level <= settings.nlevels && !settings.alwaysshow) {
-			UFX.scene.swap(TipScene)
+			this.complete()
 		}
 	}
+	record.seenscenes[gamestate.level] = true
 	this.dq = getdialogue(gamestate.level)
 	this.drawtext(this.dq[0])
 	playmusic(settings.levelmusic[gamestate.level - 1])
@@ -95,11 +134,11 @@ CutScene.think = function (dt, kdown) {
 		if (this.dq.length) {
 			this.drawtext(this.dq[0])
 		} else {
-			UFX.scene.swap(TipScene)
+			this.complete()
 		}
 	}
 	if (kdown.esc) {
-		UFX.scene.swap(TipScene)
+		this.complete()
 	}
 	if (this.dq[0]) {
 		var who = this.dq[0][0]
@@ -109,6 +148,10 @@ CutScene.think = function (dt, kdown) {
 			}
 		}
 	}
+}
+
+CutScene.complete = function () {
+	UFX.scene.swap(TipScene)
 }
 
 CutScene.drawtext = function (line) {
@@ -244,6 +287,7 @@ ActionScene.think = function (dt, kdown, kpressed, kcombo) {
 
 ActionScene.complete = function () {
     gamestate.combinemoney()
+    gamestate.save()
     UFX.scene.swap(ShopScene)
 }
 
@@ -332,6 +376,7 @@ ShopScene.think = function (dt, kdown) {
 			    gamestate.bars[fname] = ++record.knownfeats[fname]
 		    }
 	    }
+	    gamestate.save()
     }
     if (kdown.esc) {
     	this.complete()
