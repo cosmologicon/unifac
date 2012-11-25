@@ -31,7 +31,18 @@ var PerformCombos = {
 			this.vy = mechanics.feat[feat].vy
 			this.feattime = mechanics.feat[feat].time
 			this.ctime = 0
-			// TODO: play a joyful noise
+			var featsounds = {
+				nab: "powerup",
+				leap: "jump",
+				turn: "jump",
+				twirl: "powerup",
+				bound: "jump",
+				dart: "jump",
+				roll: "powerup",
+			}
+			if (featsounds[feat]) {
+				playsound(featsounds[feat])
+			}
 		}
 	},
 	think: function (dt) {

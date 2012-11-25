@@ -15,12 +15,9 @@ LoadScene.start = function () {
 }
 
 LoadScene.draw = function () {
-	UFX.draw("fs rgb(20,0,20) fr 0 0", settings.sx, settings.sy, "fs rgb(200,0,200) ss black",
-		"textalign center textbaseline middle")
-	context.font = "80px 'Contrail One' sans-serif"
-	var s = "Loading (" + Math.floor(this.f*100) + "%)..."
-	context.fillText(s, settings.sx/2, settings.sy/2)
-	context.strokeText(s, settings.sx/2, settings.sy/2)
+	UFX.draw("fs black f0 fs rgb(200,0,200) ss black textalign center textbaseline middle",
+		"font 80px~'Contrail~One'~sans-serif fst Loading~(" + Math.floor(this.f*100) + "%)...",
+		settings.sx/2, settings.sy/2)
 	showfps()
 }
 LoadScene.onloading = function (f) {
@@ -54,7 +51,7 @@ TitleScene.draw = function () {
 		"fs", grad1, "ss white",
 		"t 0 110",
 			"[ shadowcolor yellow shadowxy 2 2 font 120px~'Marcellus~SC' ft0 Lepidopterist ]",
-		"fs", grad2, "t 0 10 font 22px~'Marko~One' lw 0.5 ft0 Pyweek~edition",
+		"fs", grad2, "t 0 10 font 22px~'Marko~One' lw 0.5 ft0 PyWeek~edition",
 		"[ t 250 40 fs grey font 26px~'Contrail~One' ft0 by~Christopher~Night",
 		"t 0 30 ft0 Universe~Factory~games ]",
 		"t 0 140 fs", grad3, "font 40px~'Bangers' ft0 press~space~or~enter",
@@ -63,7 +60,8 @@ TitleScene.draw = function () {
 }
 
 TitleScene.complete = function () {
-	UFX.scene.push(record.maxvisited ? MapScene : CutScene)
+	UFX.scene.swap(record.unlocked > 1 ? MapScene : CutScene)
+//	UFX.scene.swap(EndScene)
 }
 
 var MapScene = Object.create(UFX.scene.Scene)
@@ -212,6 +210,18 @@ CutScene.draw = function () {
 	showfps()
 }
 
+var EndScene = Object.create(CutScene)
+
+EndScene.start = function () {
+	this.dq = getdialogue(7)
+	this.drawtext(this.dq[0])
+	playmusic(settings.levelmusic[5])
+}
+
+EndScene.complete = function () {
+	UFX.scene.swap(CreditsScene)
+}
+
 var TipScene = Object.create(UFX.scene.Scene)
 
 TipScene.start = function () {
@@ -288,7 +298,7 @@ ActionScene.think = function (dt, kdown, kpressed, kcombo) {
 ActionScene.complete = function () {
     gamestate.combinemoney()
     gamestate.save()
-    UFX.scene.swap(ShopScene)
+    UFX.scene.swap(gamestate.level == 6 ? EndScene : ShopScene)
 }
 
 ActionScene.draw = function () {
@@ -390,6 +400,73 @@ ShopScene.complete = function () {
 
 ShopScene.draw = function () {
     ShopHUD.draw()
+}
+
+var CreditsScene = Object.create(UFX.scene.Scene)
+
+CreditsScene.start = function () {
+	playmusic("girl")
+	UFX.resource.sounds.girl.currentTime = 8
+	UFX.resource.sounds.girl.loop = false
+	this.t = 0
+}
+
+CreditsScene.think = function (dt) {
+	this.t += dt
+}
+
+CreditsScene.draw = function () {
+	UFX.draw("fs black f0 [ textbaseline bottom textalign center ss white")
+	if (this.t < 3 || this.t >= 15) {
+		var grad0 = UFX.draw.lingrad(0, 0, 0, -30, 0, "red", 1, "rgb(255,100,100)")
+		var grad1 = UFX.draw.lingrad(0, 0, 0, -80, 0, "red", 1, "rgb(255,100,100)")
+		var grad2 = UFX.draw.lingrad(0, 0, 0, -20, 0, "red", 1, "rgb(255,100,100)")
+		UFX.draw(
+			"fs", grad0, "t", settings.sx/2, settings.sy*0.4,
+				"[ shadowcolor yellow shadowxy 1 1 font bold~40px~'Marcellus~SC' ft0 Mortimer~the ]",
+			"fs", grad1, "t 0 110",
+				"[ shadowcolor yellow shadowxy 2 2 font 120px~'Marcellus~SC' ft0 Lepidopterist ]",
+			"fs", grad2, "t 0 10 font 22px~'Marko~One' lw 0.5 ft0 PyWeek~edition"
+		)
+		if (this.t >= 15) {
+			var t = 0
+			for (var level in record.hiscore) t += record.hiscore[level]
+			UFX.draw(
+				"fs white t 0 60 font 17px~Rosarivo ft0 High~score~total:~\u00A3" + t
+			)
+			
+		}
+	} else if (this.t < 7) {
+		var grad0 = UFX.draw.lingrad(0, 0, 0, -48, 0, "lightgray", 1, "gray")
+		UFX.draw(
+			"fs", grad0, "font 48px~'Contrail~One' t", settings.sx/2, settings.sy*0.5, "fst0 by~Christopher~Night",
+			"t 0 64 fst0 Universe~Factory~games"
+		)
+	} else {
+		var s
+		if (this.t < 9) {
+			s = "Gnosseinne 1 by Erik Satie, arranged by Chad Crouch"
+		} else if (this.t < 11) {
+			s = "The Annual New England Xylophone Symposium by DoKashiteru"
+		} else if (this.t < 13) {
+			s = "Another Girl (Instrumental) by duckett"
+		} else {
+			s = "One Five Nine (SR Mix) by IamTheStev"
+		}
+		var grad0 = UFX.draw.lingrad(0, 0, 0, -48, 0, "lightblue", 1, "blue")
+		UFX.draw(
+			"fs", grad0, "font 48px~'Contrail~One'",
+			"t", settings.sx/2, settings.sy*0.38, "fst0 Music~credits",
+			"t 0 90"
+		)
+		wordwrap(s, 550).forEach(function (text) {
+			context.fillText(text, 0, 0)
+			context.strokeText(text, 0, 0)
+			context.translate(0, 48)
+		})
+	}
+	UFX.draw("]")
+	showfps()
 }
 
 

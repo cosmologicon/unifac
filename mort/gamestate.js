@@ -148,6 +148,7 @@ var gamestate = {
 			b.collected = true
 			collect = true
 			this.checknab(b, grounded)
+			playsound("pickup")
 		}
 		if (collect) {
 			this.butterflies = this.butterflies.filter(function (b) { return !b.collected })
