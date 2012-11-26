@@ -30,10 +30,11 @@ UFX.scene.push(LoadScene)
 UFX.resource.onloading = function (f) { LoadScene.onloading(f) }
 UFX.resource.onload = function () {
 	UFX.scene.pop()
-    UFX.scene.push(TitleScene)
-    UFX.resource.mergesounds("jump", "powerup", "pickup")
-    UFX.resource.sounds.jump.volume = 0.3
-    UFX.resource.sounds.powerup.volume = 0.3
+	UFX.scene.push(TitleScene)
+//	UFX.scene.push(EndScene)
+	UFX.resource.mergesounds("jump", "powerup", "pickup")
+	UFX.resource.sounds.jump.volume = 0.3
+	UFX.resource.sounds.powerup.volume = 0.3
 }
 
 UFX.key.init()
@@ -59,8 +60,8 @@ soundnames.forEach(function (sname) {
 	res[sname] = "sound-test/" + sname + ".wav"
 })
 UFX.resource.load(res)
-//UFX.resource.loadwebfonts("Contrail One", "Norican", "Kaushan Script", "Shojumaru", "Bangers",
-//    "Condiment", "Ceviche One", "Marko One", "Rosarivo", "Jolly Lodger", "Fugaz One", "Marcellus SC")
+UFX.resource.loadwebfonts("Contrail One", "Norican", "Kaushan Script", "Shojumaru", "Bangers",
+    "Condiment", "Ceviche One", "Marko One", "Rosarivo", "Jolly Lodger", "Fugaz One", "Marcellus SC")
 
 // sound and music
 var soundcheck = document.getElementById("playsound"), musiccheck = document.getElementById("playmusic")
@@ -74,7 +75,6 @@ document.getElementById("playmusic").onclick = function () {
 	if (musicplaying) musicplaying.volume = musicvolume
 }
 function playmusic(mname) {
-	console.log(mname)
 	var m = UFX.resource.sounds[mname]
 	if (m === musicplaying) return
 	if (musicplaying) musicplaying.pause()
