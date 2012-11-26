@@ -61,6 +61,7 @@ TitleScene.draw = function () {
 
 TitleScene.complete = function () {
 	UFX.scene.swap(record.unlocked > 1 ? MapScene : CutScene)
+//	UFX.scene.recording = true
 //	UFX.scene.swap(EndScene)
 }
 
@@ -68,6 +69,7 @@ var MapScene = Object.create(UFX.scene.Scene)
 
 MapScene.start = function () {
 	if (settings.unlockall) record.unlocked = settings.nlevels
+	gamestate.level = clip(gamestate.level, 1, record.unlocked)
 	MapHUD.init()
 	this.udseq = []
 	playmusic("girl")
@@ -298,7 +300,7 @@ ActionScene.think = function (dt, kdown, kpressed, kcombo) {
 ActionScene.complete = function () {
     gamestate.combinemoney()
     gamestate.save()
-    UFX.scene.swap(gamestate.level == 6 ? EndScene : ShopScene)
+    UFX.scene.swap(gamestate.level == 7 ? EndScene : ShopScene)
 }
 
 ActionScene.draw = function () {
@@ -406,9 +408,12 @@ var CreditsScene = Object.create(UFX.scene.Scene)
 
 CreditsScene.start = function () {
 	playmusic("girl")
-	UFX.resource.sounds.girl.currentTime = 8
+//	UFX.resource.sounds.girl.currentTime = 8
 	UFX.resource.sounds.girl.loop = false
 	this.t = 0
+	UFX.resource.sounds.girl.volume = 0
+	UFX.resource.sounds.xylo.volume = musicvolume
+	UFX.resource.sounds.xylo.play()
 }
 
 CreditsScene.think = function (dt) {
@@ -417,7 +422,11 @@ CreditsScene.think = function (dt) {
 
 CreditsScene.draw = function () {
 	UFX.draw("fs black f0 [ textbaseline bottom textalign center ss white")
-	if (this.t < 3 || this.t >= 15) {
+	if (this.t < 8) {
+		var f = clip((this.t - 2) / 4.0, 0, 1)
+		UFX.resource.sounds.xylo.volume = (1 - f) * musicvolume
+		UFX.resource.sounds.girl.volume = f * musicvolume
+	} else if (this.t < 11 || this.t >= 23) {
 		var grad0 = UFX.draw.lingrad(0, 0, 0, -30, 0, "red", 1, "rgb(255,100,100)")
 		var grad1 = UFX.draw.lingrad(0, 0, 0, -80, 0, "red", 1, "rgb(255,100,100)")
 		var grad2 = UFX.draw.lingrad(0, 0, 0, -20, 0, "red", 1, "rgb(255,100,100)")
@@ -428,7 +437,7 @@ CreditsScene.draw = function () {
 				"[ shadowcolor yellow shadowxy 2 2 font 120px~'Marcellus~SC' ft0 Lepidopterist ]",
 			"fs", grad2, "t 0 10 font 22px~'Marko~One' lw 0.5 ft0 PyWeek~edition"
 		)
-		if (this.t >= 15) {
+		if (this.t >= 23) {
 			var t = 0
 			for (var level in record.hiscore) t += record.hiscore[level]
 			UFX.draw(
@@ -436,7 +445,7 @@ CreditsScene.draw = function () {
 			)
 			
 		}
-	} else if (this.t < 7) {
+	} else if (this.t < 15) {
 		var grad0 = UFX.draw.lingrad(0, 0, 0, -48, 0, "lightgray", 1, "gray")
 		UFX.draw(
 			"fs", grad0, "font 48px~'Contrail~One' t", settings.sx/2, settings.sy*0.5, "fst0 by~Christopher~Night",
@@ -444,11 +453,11 @@ CreditsScene.draw = function () {
 		)
 	} else {
 		var s
-		if (this.t < 9) {
+		if (this.t < 17) {
 			s = "Gnosseinne 1 by Erik Satie, arranged by Chad Crouch"
-		} else if (this.t < 11) {
+		} else if (this.t < 19) {
 			s = "The Annual New England Xylophone Symposium by DoKashiteru"
-		} else if (this.t < 13) {
+		} else if (this.t < 21) {
 			s = "Another Girl (Instrumental) by duckett"
 		} else {
 			s = "One Five Nine (SR Mix) by IamTheStev"

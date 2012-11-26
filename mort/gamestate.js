@@ -57,9 +57,9 @@ var gamestate = {
 		this.goal = mechanics.levelinfo[this.level].goal
 		this.time = mechanics.levelinfo[this.level].t
 		this.butterflies = []
-		var btime = mechanics.levelinfo[this.level].btime
-		for (var j = 0 ; j < btime.length ; ++j) {
-			for (var k = 0 ; k < btime[j] ; ++k) {
+		this.btime = mechanics.levelinfo[this.level].btime
+		for (var j = 0 ; j < this.btime.length ; ++j) {
+			for (var k = 0 ; k < this.btime[j] ; ++k) {
 				this.butterflies.push(new Butterfly(mechanics.butterfly[j]))
 			}
 		}
@@ -197,9 +197,8 @@ var gamestate = {
 		    this.bars[f] += 1
 		    this.feattick[f] = mechanics.growtime(this.bars[f], record.knownfeats[f])
 	    }
-		var btime = mechanics.levelinfo[this.level].btime
-		for (var j = 0 ; j < btime.length ; ++j) {
-			if (btime[j] && UFX.random(btime[j]) < dt) {
+		for (var j = 0 ; j < this.btime.length ; ++j) {
+			if (this.btime[j] && UFX.random(this.btime[j]) < dt) {
 				this.butterflies.push(new Butterfly(mechanics.butterfly[j]))
 			}
 		}
@@ -212,8 +211,11 @@ var gamestate = {
 	
 	// when you beat the current level
 	advance: function () {
-	    if (this.level == 6) return
-	    if (this.level == record.unlocked) {    
+	    if (this.level == 6) {
+	    	this.level++
+	    	return
+    	}
+	    if (this.level == record.unlocked) {
 	        this.level = ++record.unlocked
 	    }
 	},
