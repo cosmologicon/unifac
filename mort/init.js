@@ -15,13 +15,17 @@ function gofullscreen() {
 		canvas.requestFullScreen()
 	}
 }
-window.onresize = function () {
+function setcanvassize() {
 	if ((document.webkitFullscreenElement || document.mozFullScreenElement) == canvas) {
+		canvas.style.border = "none"
 		canvas.style.width = document.width + "px"
 	} else {
+		canvas.style.border = "10px lightgrey outset"
 		canvas.style.width = ""
 	}
 }
+window.onresize = setcanvassize
+setcanvassize()
 
 window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
                                window.webkitRequestAnimationFrame || window.msRequestAnimationFrame

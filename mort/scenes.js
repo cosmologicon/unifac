@@ -119,6 +119,7 @@ CutScene.start = function () {
 	record.seenscenes[gamestate.level] = true
 	this.dq = getdialogue(gamestate.level)
 	this.drawtext(this.dq[0])
+	this.atick = 0  // time since automatically advancing
 	playmusic(settings.levelmusic[gamestate.level - 1])
 }
 
@@ -129,7 +130,10 @@ CutScene.thinkargs = function (dt) {
 
 CutScene.think = function (dt, kdown) {
 	dt = dt || 0 ; kdown = kdown || {}
-	if (kdown.act || kdown.tab) {
+	this.dtick += dt
+	this.atick += dt
+	if (((kdown.act || kdown.tab) && this.atick > 0.4) || (this.dtick > this.dtime)) {
+		if (this.dtick > this.dtime) this.atick = 0
 		this.dq.splice(0, 1)
 		if (this.dq.length) {
 			this.drawtext(this.dq[0])
@@ -180,6 +184,8 @@ CutScene.drawtext = function (line) {
 	})
 	UFX.draw(this.context, "]")
 	for (var y = 40 ; y < 240 ; ++y) this.drawline(y, who)
+	this.dtime = settings.dialoguetime(text)
+	this.dtick = 0
 }
 
 CutScene.drawline = function (y, who) {
@@ -229,7 +235,7 @@ var TipScene = Object.create(UFX.scene.Scene)
 TipScene.start = function () {
 	this.tip = gettip()
 	context.font = "58px 'Contrail One'"
-	var texts = wordwrap(this.tip, 600, this.context)
+	var texts = wordwrap(this.tip, 600, context)
 	UFX.draw("fs black f0 fs", UFX.draw.lingrad(0, -32, 0, 32, 0, "black", 1, "rgb(0,100,0)"),
 		"ss white [ t", settings.sx * 0.5, 100)
 	texts.forEach(function (text, j) {
@@ -239,6 +245,8 @@ TipScene.start = function () {
 	})
 	UFX.draw("]")
 	playmusic(settings.levelmusic[gamestate.level - 1])
+	this.dtime = settings.dialoguetime(this.tip)
+	this.dtick = 0
 }
 
 TipScene.thinkargs = function (dt) {
@@ -248,7 +256,8 @@ TipScene.thinkargs = function (dt) {
 
 TipScene.think = function (dt, kdown) {
 	dt = dt || 0 ; kdown = kdown || {}
-	if (kdown.act || kdown.esc || kdown.tab) {
+	this.dtick += dt
+	if (kdown.act || kdown.esc || kdown.tab || this.dtick > this.dtime) {
 		UFX.scene.swap(ActionScene)
 	}
 }
@@ -267,6 +276,7 @@ ActionScene.start = function () {
 	vista.snapto(You.lookingat())
     ActionHUD.levelinit()
 	playmusic(settings.levelmusic[gamestate.level - 1])
+	UFX.key.state()
 }
 
 ActionScene.thinkargs = function (dt) {

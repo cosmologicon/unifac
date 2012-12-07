@@ -146,7 +146,7 @@ function gettip() {
 		}
 	}
 	// All valid tips have been seen - show an old tip
-	return UFX.random.choice(vtips)
+	return UFX.random.choice(vtips)[2]
 }
 
 function wordwrap(text, twidth, con) {
