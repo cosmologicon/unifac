@@ -321,7 +321,8 @@ var ActionHUD = {
 		.addcomp(AnchorBottomRight, settings.sx - 5, settings.sy + 3)
 		.addcomp(FillStroke, "bold 44px 'Norican'", "silver", "black", 1.5)
 		.addcomp(ZoomOnChange)
-		.addcomp(SingleCache, 240, 60, 20)
+//		.addcomp(SingleCache, 240, 60, 20)
+		.addcomp(NoCache)
 		.addcomp({
 			think: function (dt) { this.settext("\u00A3" + gamestate.catchamount + "/" + gamestate.goal) },
 		}),
@@ -342,7 +343,8 @@ var ActionHUD = {
 				if (gamestate.time < 10) context.scale(1.2, 1.2)
 			},
 		})
-		.addcomp(SingleCache, 180, 60, 20),
+//		.addcomp(SingleCache, 180, 60, 20),
+		.addcomp(NoCache),
 		// height indicator
 		UFX.Thing()
 		.addcomp(AnchorBottomLeft, 10, settings.sy + 7)
@@ -362,7 +364,8 @@ var ActionHUD = {
 		.addcomp(AnchorBottomCenter, settings.sx * 0.32, settings.sy)
 		.addcomp(FillStroke, "bold 40px 'Contrail One'", UFX.draw.lingrad(0, -35, 0, -15, 0, "yellow", 0.5, "white", 1, "orange"), "black", 1.5)
 		.addcomp(ZoomOnChange, 1.5)
-		.addcomp(FullCache, 200, 90)
+//		.addcomp(FullCache, 200, 90)
+		.addcomp(NoCache)
 		.addcomp({
 			think: function (dt) {
 				var c = gamestate.combocount
@@ -387,7 +390,8 @@ var ActionHUD = {
 				.addcomp(FillStroke, "140px 'Ceviche One'", ggrad, "black", 2)
 				.addcomp(FlyAcross, [-100, 100, -100][j], [-3000, 3000, -3000][j], 0.6)
 //				.addcomp({ draw: function () { context.scale(1.3, 1) } })
-				.addcomp(SingleCache, 600, 100, 30)
+//				.addcomp(SingleCache, 600, 100, 30)
+				.addcomp(NoCache)
 			StageName.settext(names[j])
 			this.effects.push(StageName)
 		}
@@ -399,7 +403,8 @@ var ActionHUD = {
 				.addcomp(FadeIn, 0.2)
 				.addcomp(FadeOut, 0.2, 0.2)
 				.addcomp(FillStroke, "italic 240px 'Bangers'", rgrad, "black", 3)
-				.addcomp(SingleCache, 700, 300, 30)
+//				.addcomp(SingleCache, 700, 300, 30)
+				.addcomp(NoCache)
 			Directive.settext(["READY", "SET", "COLLECT"][j])
 			this.effects.push(Directive)
 		}
@@ -589,7 +594,8 @@ var MapHUD = {
 			.addcomp(AnchorCenter, settings.sx * 0.5, settings.sy * 0.5)
 			.addcomp(FillStroke, "90px 'Bangers'", "yellow", "black", 2)
 			.addcomp(FlyAcross, -100, -3000, 0.6)
-			.addcomp(SingleCache, 600, 100, 30)
+//			.addcomp(SingleCache, 600, 100, 30)
+			.addcomp(NoCache)
 		emode.settext("Easy mode unlocked")
 		this.effects.push(emode)
 	},
@@ -608,7 +614,8 @@ CashEffect.prototype = UFX.Thing()
 	.addcomp(Decelerate, 5)
 	.addcomp(FadeOut, 0.5)
 	.addcomp(FillStroke, "bold 40px 'Norican'", "white", "black", 1)
-	.addcomp(FullCache, 80, 60)
+//	.addcomp(FullCache, 80, 60)
+	.addcomp(NoCache)
 
 function WorldCashEffect(amount, x, y) {
 	this.settext("\u00A3" + amount)
@@ -621,7 +628,8 @@ WorldCashEffect.prototype = UFX.Thing()
 	.addcomp(Decelerate, 5)
 	.addcomp(FadeOut, 0.8)
 	.addcomp(FillStroke, "bold 40px 'Norican'", "white", "black", 1)
-	.addcomp(FullCache, 80, 60)
+//	.addcomp(FullCache, 80, 60)
+	.addcomp(NoCache)
 
 function Proclamation(text, delay) {
 	this.settext(text)
@@ -634,7 +642,8 @@ Proclamation.prototype = UFX.Thing()
 	.addcomp(FadeIn, 0.2)
 	.addcomp(FadeOut, 0.2, 1.2)
 	.addcomp(FillStroke, "italic 80px 'Bangers'", UFX.draw.lingrad(0, -40, 0, 40, 0, "yellow", 1, "red"), "black", 2)
-	.addcomp(FullCache, 700, 200)
+//	.addcomp(FullCache, 700, 200)
+	.addcomp(NoCache)
 
 function StageProclamation(text, delay) {
 	this.settext(text)
@@ -647,7 +656,8 @@ StageProclamation.prototype = UFX.Thing()
 	.addcomp(FadeIn, 0.2)
 	.addcomp(FadeOut, 0.2, 1.2)
 	.addcomp(FillStroke, "180px 'Ceviche One'", UFX.draw.lingrad(0, 0, 0, 60, 0, "green", 1, "blue"), "black", 2, 120)
-	.addcomp(FullCache, 800, 360)
+//	.addcomp(FullCache, 800, 360)
+	.addcomp(NoCache)
 
 
 function PauseEffect() {
@@ -658,7 +668,8 @@ PauseEffect.prototype = UFX.Thing()
 	.addcomp(ZoomIn, 0.1, 2)
 	.addcomp(FadeIn, 0.1)
 	.addcomp(FillStroke, "italic 200px 'Bangers'", UFX.draw.lingrad(0, -100, 0, 100, 0, "yellow", 1, "red"), "black", 4)
-	.addcomp(SingleCache, 700, 200)
+//	.addcomp(SingleCache, 700, 200)
+	.addcomp(NoCache)
 
 
 
