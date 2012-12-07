@@ -32,7 +32,7 @@ UFX.resource.onload = function () {
 	UFX.scene.pop()
 	UFX.scene.push(TitleScene)
 //	UFX.scene.push(EndScene)
-	UFX.resource.mergesounds("jump", "powerup", "pickup")
+	UFX.resource.mergesounds("jump", "pickup")
 	UFX.resource.sounds.jump.volume = 0.3
 	UFX.resource.sounds.powerup.volume = 0.3
 }
@@ -53,11 +53,13 @@ var res = {
 for (var fname in frameoffsets) {
 	res[fname] = "img/" + fname + ".png"
 }
-var soundnames = ("jump-0 jump-1 jump-2 jump-3 jump-4 " +
-	"powerup-0 powerup-1 powerup-2 powerup-3 " +
-	"pickup-0 pickup-1 pickup-2 pickup-3 pickup-4 pickup-5").split(" ")
+var soundnames = (
+	"jump-0 jump-1 jump-2 jump-3 jump-4 jump-5 jump-6 jump-7 " +
+	"pickup-0 pickup-1 pickup-2 pickup-3 pickup-4 pickup-5 " +
+	"pickup-6 pickup-7 pickup-8 pickup-9 pickup-10 pickup-11 pickup-12"
+).split(" ")
 soundnames.forEach(function (sname) {
-	res[sname] = "sound-test/" + sname + ".wav"
+	res[sname] = "sfx/" + sname + ".ogg"
 })
 UFX.resource.load(res)
 UFX.resource.loadwebfonts("Contrail One", "Norican", "Kaushan Script", "Shojumaru", "Bangers",

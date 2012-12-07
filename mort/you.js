@@ -32,13 +32,13 @@ var PerformCombos = {
 			this.feattime = mechanics.feat[feat].time
 			this.ctime = 0
 			var featsounds = {
-				nab: "powerup",
+//				nab: "powerup",
 				leap: "jump",
 				turn: "jump",
-				twirl: "powerup",
+//				twirl: "powerup",
 				bound: "jump",
 				dart: "jump",
-				roll: "powerup",
+//				roll: "powerup",
 			}
 			if (featsounds[feat]) {
 				playsound(featsounds[feat])
