@@ -16,6 +16,10 @@ var settings = {
 
 	savegamename: "mortimersave",
 	musicvolume: 0.4,
+	
+	dialoguetime: function (line) {
+		return 1.0 + 0.06 * line.length
+	},
 
 	hidefeatnames: false, 
 	alwaysshow: false, // show cutscenes you've already seen
