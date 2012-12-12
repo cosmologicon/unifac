@@ -1,4 +1,8 @@
 var settings = {
+	gamename: "Mortimer the Lepidopterist",
+	version: "pyweek-0",
+	savegamename: "mortimersave",
+
 	sx: 800,
 	sy: 400,
 
@@ -14,7 +18,6 @@ var settings = {
 
 	levelmusic: "gnos one xylo gnos one xylo".split(" "),
 
-	savegamename: "mortimersave",
 	musicvolume: 0.4,
 	
 	dialoguetime: function (line) {
@@ -23,7 +26,8 @@ var settings = {
 
 	hidefeatnames: false, 
 	alwaysshow: false, // show cutscenes you've already seen
-	showfps: true,
+	showfps: false,
+	showkeys: false,
 	tracecaches: false,
 
 	// Cheat modes

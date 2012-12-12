@@ -25,9 +25,13 @@ var gamestate = {
 	combocount: 0,
 	butterflies: [],
 
+	getstate: function () {
+		return [record, this.level]
+	},
+
 	// Save game
 	save: function () {
-		var obj = [record, this.level]
+		var obj = this.getstate()
 		localStorage[settings.savegamename] = JSON.stringify(obj)
 	},
 	
@@ -220,16 +224,42 @@ var gamestate = {
 	    }
 	},
 	
-	// TODO: visit
-	// TODO: checkvisit
-	
-	
 }
 
 gamestate.load()
+if (!("recordgame" in record)) {
+	var s = "This game is under development. The developer of this game (Christopher Night) would " +
+		"like to upload a recording of your gameplay, in order to make improvements to the game. " +
+		"No personal information will be uploaded, and the recording will not be accessible to " +
+		"anybody but the developer. If you don't want to participate, pick Cancel (you can still " +
+		"play the game)."
+	record.recordgame = window.confirm(s)
+}
+gamestate.save()
 
+var ssn = settings.gamename + "session"
+settings.sessionnumber = localStorage[ssn] = parseInt(localStorage[ssn] || "0") + 1
 
-
-
-
+var initstate = null, statepushes = 0
+function pushrecording(where) {
+	if (!record.recordgame) return
+	var playback = UFX.scene.playback.record()
+	if (initstate) {
+		var data = JSON.stringify([where, initstate, playback])
+		var req = new XMLHttpRequest()
+		req.open("POST", "http://universefactory.net/tools/playback-receiver.py")
+		req.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+		console.log(settings.sessionnumber, statepushes)
+		req.send([
+			"gamename=" + encodeURIComponent(settings.gamename),
+			"gameversion=" + encodeURIComponent(settings.version),
+			"sessionnumber=" + encodeURIComponent(settings.sessionnumber),
+			"playbacknumber=" + encodeURIComponent(statepushes),
+			"data=" + encodeURIComponent(data),
+		].join("&"))
+//		console.log(statepushes, initstate, dt, playback.length, d.length)
+	}
+	initstate = JSON.parse(JSON.stringify(gamestate.getstate()))
+	statepushes += 1
+}
 
