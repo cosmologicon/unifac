@@ -8,10 +8,34 @@ function showfps() {
     UFX.draw("]")
 }
 
+var keystatus = {
+	init: function () {
+		var klist = this.klist = {}
+		UFX.key.watchlist.forEach(function (kname) {
+			klist[kname] = 100
+		})
+	},
+	think: function (dt, kdown) {
+		for (var k in this.klist) {
+			this.klist[k] = kdown[k] ? 0 : this.klist[k] + dt
+		}
+	},
+	draw: function () {
+		if (!settings.showkeys) return
+		var klist = this.klist
+		UFX.draw("[ textalign center textbaseline bottom t 50", settings.sy - 10, "z 2 2 fs white ss black font bold~24px~'Contrail~One'")
+		UFX.key.watchlist.forEach(function (kname) {
+			UFX.draw("[ alpha", 0.2 + 0.8 * Math.exp(-8 * klist[kname]), "fst0", kname, "] t 50 0")
+		})
+		UFX.draw("]")
+	},
+}
+
 var LoadScene = Object.create(UFX.scene.Scene)
 
 LoadScene.start = function () {
     this.f = 0
+	keystatus.init()
 }
 
 LoadScene.draw = function () {
@@ -36,6 +60,7 @@ TitleScene.thinkargs = function (dt) {
 
 TitleScene.think = function (dt, kdown) {
 	dt = dt || 0 ; kdown = kdown || {}
+	keystatus.think(dt, kdown)
 	if (kdown.act) this.complete()
 }
 
@@ -57,6 +82,7 @@ TitleScene.draw = function () {
 		"t 0 140 fs", grad3, "font 40px~'Bangers' ft0 press~space~or~enter",
 	"]")
 	showfps()
+	keystatus.draw()
 }
 
 TitleScene.complete = function () {
@@ -73,6 +99,7 @@ MapScene.start = function () {
 	MapHUD.init()
 	this.udseq = []
 	playmusic("girl")
+	pushrecording("map")
 }
 
 MapScene.thinkargs = function (dt) {
@@ -82,6 +109,7 @@ MapScene.thinkargs = function (dt) {
 
 MapScene.think = function (dt, kdown) {
 	dt = dt || 0 ; kdown = kdown || {}
+	keystatus.think(dt, kdown)
 	var dx = (kdown.right ? 1 : 0) - (kdown.left ? 1 : 0)
 	if (dx) {
 		gamestate.level = clip(gamestate.level + dx, 1, record.unlocked)
@@ -105,6 +133,7 @@ MapScene.think = function (dt, kdown) {
 MapScene.draw = function () {
 	MapHUD.draw()
 	showfps()
+	keystatus.draw()
 }
 
 
@@ -121,6 +150,7 @@ CutScene.start = function () {
 	this.drawtext(this.dq[0])
 	this.atick = 0  // time since automatically advancing
 	playmusic(settings.levelmusic[gamestate.level - 1])
+	pushrecording("cut")
 }
 
 CutScene.thinkargs = function (dt) {
@@ -130,6 +160,7 @@ CutScene.thinkargs = function (dt) {
 
 CutScene.think = function (dt, kdown) {
 	dt = dt || 0 ; kdown = kdown || {}
+	keystatus.think(dt, kdown)
 	this.dtick += dt
 	this.atick += dt
 	if (((kdown.act || kdown.tab) && this.atick > 0.4) || (this.dtick > this.dtime)) {
@@ -216,6 +247,7 @@ CutScene.draw = function () {
 	UFX.draw("drawimage0", this.backdrop)
 	drawframe("head" + this.dq[0][0])
 	showfps()
+	keystatus.draw()
 }
 
 var EndScene = Object.create(CutScene)
@@ -224,6 +256,7 @@ EndScene.start = function () {
 	this.dq = getdialogue(7)
 	this.drawtext(this.dq[0])
 	playmusic(settings.levelmusic[5])
+	pushrecording("end")
 }
 
 EndScene.complete = function () {
@@ -247,6 +280,7 @@ TipScene.start = function () {
 	playmusic(settings.levelmusic[gamestate.level - 1])
 	this.dtime = settings.dialoguetime(this.tip)
 	this.dtick = 0
+	this.vistadrawn = false
 }
 
 TipScene.thinkargs = function (dt) {
@@ -256,27 +290,38 @@ TipScene.thinkargs = function (dt) {
 
 TipScene.think = function (dt, kdown) {
 	dt = dt || 0 ; kdown = kdown || {}
+	keystatus.think(dt, kdown)
 	this.dtick += dt
 	if (kdown.act || kdown.esc || kdown.tab || this.dtick > this.dtime) {
 		UFX.scene.swap(ActionScene)
+	}
+	if (!this.vistadrawn) {
+		vista.levelinit()
+		this.vistadrawn = true
 	}
 }
 
 TipScene.draw = function () {
 	showfps()
+	keystatus.draw()
 }
 
 
 var ActionScene = Object.create(UFX.scene.Scene)
 
-ActionScene.start = function () {
-	vista.levelinit()
+ActionScene.startargs = function () {
+	return [UFX.random.setseed()]
+}
+
+ActionScene.start = function (seed) {
+	UFX.random.setseed(seed)
 	gamestate.startlevel()
 	You.reset()
 	vista.snapto(You.lookingat())
     ActionHUD.levelinit()
 	playmusic(settings.levelmusic[gamestate.level - 1])
-	UFX.key.state()
+	UFX.key.clearcombos(true)
+	pushrecording("action")
 }
 
 ActionScene.thinkargs = function (dt) {
@@ -287,6 +332,7 @@ ActionScene.thinkargs = function (dt) {
 ActionScene.think = function (dt, kdown, kpressed, kcombo) {
 	dt = dt || 0 ; kdown = kdown || {}
 	kpressed = kpressed || {} ; kcombo = kcombo || {}
+	keystatus.think(dt, kdown, kpressed, kcombo)
 	
 	if (kdown.esc) { UFX.scene.push(PauseScene) ; return }
 	if (kdown.tab) settings.hidefeatnames = !settings.hidefeatnames
@@ -323,6 +369,7 @@ ActionScene.draw = function () {
 	UFX.draw("]")
 	draw(ActionHUD)
 	showfps()
+	keystatus.draw()
 }
 
 var PauseScene = Object.create(UFX.scene.Scene)
@@ -343,6 +390,7 @@ PauseScene.thinkargs = function (dt) {
 
 PauseScene.think = function (dt, kdown) {
 	dt = dt || 0 ; kdown = kdown || {}
+	keystatus.think(dt, kdown)
 	if (kdown.esc) UFX.scene.pop()
 	if (kdown.act) {
 	    gamestate.proclaimcounts()
@@ -363,6 +411,7 @@ PauseScene.draw = function () {
 	context.strokeText("Esc: resume    Space: exit level", 0, 0)
     UFX.draw("]")
 	showfps()
+	keystatus.draw()
 }
 
 PauseScene.stop = function () {
@@ -375,6 +424,7 @@ var ShopScene = Object.create(UFX.scene.Scene)
 ShopScene.start = function () {
 	ShopHUD.init()
 	playmusic("girl")
+	pushrecording("shop")
 }
 
 ShopScene.thinkargs = function (dt) {
@@ -384,6 +434,7 @@ ShopScene.thinkargs = function (dt) {
 
 ShopScene.think = function (dt, kdown) {
 	dt = dt || 0 ; kdown = kdown || {}
+	keystatus.think(dt, kdown)
 	if (kdown.up) ShopHUD.index = ShopHUD.index ? ShopHUD.index - 1 : ShopHUD.imax
 	if (kdown.down) ShopHUD.index = ShopHUD.index < ShopHUD.imax ? ShopHUD.index + 1 : 0
     if (kdown.act || kdown.tab) {
@@ -412,18 +463,26 @@ ShopScene.complete = function () {
 
 ShopScene.draw = function () {
     ShopHUD.draw()
+	showfps()
+	keystatus.draw()
 }
 
 var CreditsScene = Object.create(UFX.scene.Scene)
 
 CreditsScene.start = function () {
 	playmusic("girl")
-//	UFX.resource.sounds.girl.currentTime = 8
+	UFX.resource.sounds.girl.currentTime = 4
 	UFX.resource.sounds.girl.loop = false
+//	UFX.resource.sounds.girl.play()
 	this.t = 0
 	UFX.resource.sounds.girl.volume = 0
 	UFX.resource.sounds.xylo.volume = musicvolume
 	UFX.resource.sounds.xylo.play()
+
+	this.img0 = document.createElement("canvas")
+	this.img0.width = canvas.width ; this.img0.height = canvas.height
+	var con = this.img0.getContext("2d")
+	UFX.draw(con, "drawimage0", canvas)
 }
 
 CreditsScene.think = function (dt) {
@@ -432,11 +491,13 @@ CreditsScene.think = function (dt) {
 
 CreditsScene.draw = function () {
 	UFX.draw("fs black f0 [ textbaseline bottom textalign center ss white")
-	if (this.t < 8) {
-		var f = clip((this.t - 2) / 4.0, 0, 1)
+	if (this.t < 4) {
+		var f = clip((this.t - 1) / 2.0, 0, 1)
 		UFX.resource.sounds.xylo.volume = (1 - f) * musicvolume
 		UFX.resource.sounds.girl.volume = f * musicvolume
-	} else if (this.t < 11 || this.t >= 23) {
+		f = clip(this.t * 0.5, 0, 1)
+		UFX.draw("drawimage0", this.img0, "fs black alpha", f, "f0")
+	} else if (this.t < 7 || this.t >= 19) {
 		var grad0 = UFX.draw.lingrad(0, 0, 0, -30, 0, "red", 1, "rgb(255,100,100)")
 		var grad1 = UFX.draw.lingrad(0, 0, 0, -80, 0, "red", 1, "rgb(255,100,100)")
 		var grad2 = UFX.draw.lingrad(0, 0, 0, -20, 0, "red", 1, "rgb(255,100,100)")
@@ -445,9 +506,9 @@ CreditsScene.draw = function () {
 				"[ shadowcolor yellow shadowxy 1 1 font bold~40px~'Marcellus~SC' ft0 Mortimer~the ]",
 			"fs", grad1, "t 0 110",
 				"[ shadowcolor yellow shadowxy 2 2 font 120px~'Marcellus~SC' ft0 Lepidopterist ]",
-			"fs", grad2, "t 0 10 font 22px~'Marko~One' lw 0.5 ft0 PyWeek~edition"
+			"fs", grad2, "t 0 10 font 22px~'Marko~One' lw 0.5 ft0 PyWeek~version"
 		)
-		if (this.t >= 23) {
+		if (this.t >= 19) {
 			var t = 0
 			for (var level in record.hiscore) t += record.hiscore[level]
 			UFX.draw(
@@ -455,7 +516,7 @@ CreditsScene.draw = function () {
 			)
 			
 		}
-	} else if (this.t < 15) {
+	} else if (this.t < 11) {
 		var grad0 = UFX.draw.lingrad(0, 0, 0, -48, 0, "lightgray", 1, "gray")
 		UFX.draw(
 			"fs", grad0, "font 48px~'Contrail~One' t", settings.sx/2, settings.sy*0.5, "fst0 by~Christopher~Night",
@@ -463,11 +524,11 @@ CreditsScene.draw = function () {
 		)
 	} else {
 		var s
-		if (this.t < 17) {
+		if (this.t < 13) {
 			s = "Gnosseinne 1 by Erik Satie, arranged by Chad Crouch"
-		} else if (this.t < 19) {
+		} else if (this.t < 15) {
 			s = "The Annual New England Xylophone Symposium by DoKashiteru"
-		} else if (this.t < 21) {
+		} else if (this.t < 17) {
 			s = "Another Girl (Instrumental) by duckett"
 		} else {
 			s = "One Five Nine (SR Mix) by IamTheStev"
