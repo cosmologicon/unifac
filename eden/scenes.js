@@ -11,8 +11,8 @@ var LoadScene = {
 
 var TitleScene = {
 	thinkargs: function (dt) {
-		var clicks = UFX.mouse.getclicks()
-		return [dt, clicks.down]
+		var mstate = UFX.mouse.state()
+		return [dt, mstate.left.down]
 	},
 	think: function (dt, clicked) {
 		if (clicked) {
@@ -33,17 +33,22 @@ var ActionScene = {
 		HUD.init()
 	},
 	thinkargs: function (dt) {
-		var clicks = UFX.mouse.getclicks()
+		var mstate = UFX.mouse.state()
 		var kstate = UFX.key.state()
-		return [dt, fpos(UFX.mouse.pos), fpos(clicks.down), kstate.pressed, UFX.mouse.getwheeldy()]
+		return [dt, mstate, kstate]
 	},
-	think: function (dt, mpos, clicked, kpress, scroll) {
-		dt = dt || 0 ; kpress = kpress || {}
+	think: function (dt, mstate, kstate) {
+		dt = dt || 0
+		
+		var kpress = kstate.pressed
 		var dx = (kpress.right ? 1 : 0) - (kpress.left ? 1 : 0)
-		if (dx) vista.scootch(dx * dt, 0)
-		if (scroll) vista.zoom(scroll, mpos)
-	
-		HUD.think(dt, mpos, clicked)
+		var dy = (kpress.down ? 1 : 0) - (kpress.up ? 1 : 0)
+		if (dx || dy) vista.scootch(dx * dt, dy * dt)
+		if (mstate.wheeldy) vista.zoom(mstate.wheeldy, mstate.pos)
+		if (mstate.right.down) vista.pan(mstate.right.down)
+		vista.think(dt)
+
+		HUD.think(dt, mstate.pos)
 		function think(obj) { obj.think(dt) }
 		blobs.forEach(think)
 //		platforms.forEach(think)
@@ -65,7 +70,7 @@ var ActionScene = {
 				}
 			})
 		})
-		if (clicked) HUD.handleclick()
+		if (mstate.left.down) HUD.handleclick()
 	},
 	draw: function () {
 		UFX.draw("fs black f0 font 18px~Viga fs white ft", UFX.ticker.getfpsstr(), "700 10 [")

@@ -36,6 +36,29 @@ var SingleDivider = {
 	},
 }
 
+var DrawGrass = {
+	maketracer: function () {
+		var s = []
+		for (var j = 0 ; j < this.d ; ++j) {
+			var x = UFX.random(15, this.d - 15), y = UFX.random(), r = UFX.random(12, 20)
+			y = 10 + y * x * (1 - x/this.d)
+			var color = "rgb(" + UFX.random.rand(80,120) + "," + UFX.random.rand(40,60) + ",0)"
+			s.push(["b o", x*this.ix - y * this.iy, x*this.iy + y*this.ix, r, "fs", color, "f"])
+		}
+		for (var j = 0 ; j < this.d ; ++j) {
+			var x = UFX.random(this.d), y = UFX.random(-5, 10), r = UFX.random(4, 8)
+			var color = "rgb(" + UFX.random.rand(10, 20) + "," + UFX.random.rand(140,240) + ",0)"
+			s.push(["b o", x*this.ix - y * this.iy, x*this.iy + y*this.ix, r, "fs", color, "f"])
+		}
+		this.tracer = UFX.Tracer(s,
+			[Math.min(0, this.dx) - 200, Math.min(0, this.dy) - 200, Math.abs(this.dx) + 400, Math.abs(this.dy) + 400]
+		)
+	},
+	draw: function () {
+		this.tracer.draw(vista.scale)
+	},
+}
+
 
 function SinglePlatform (x0, y0, x1, y1) {
 	this.x = x0
@@ -46,10 +69,11 @@ function SinglePlatform (x0, y0, x1, y1) {
 	this.ix = this.dx / this.d
 	this.iy = this.dy / this.d
 	this.A = Math.atan2(this.dy, this.dx)
+	this.maketracer()
 }
 SinglePlatform.prototype = UFX.Thing()
 	.addcomp(WorldBound)
-	.addcomp(DrawSurface)
+	.addcomp(DrawGrass)
 	.addcomp(SingleDivider)
 
 

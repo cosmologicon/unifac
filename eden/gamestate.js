@@ -26,6 +26,9 @@ var gamestate = {
 			want: 10,
 			rage: 10,
 		}
+		
+		this.xmin = 0 ; this.xmax = 1000
+		this.ymin = 0 ; this.ymax = 1000
 	},
 	nearestgem: function (x, y) {
 		var nearest = null, d2min
