@@ -50,7 +50,7 @@ var ActionScene = {
 			if (blob.platform) return
 			platforms.forEach(function (platform) {
 				if (platform.catches(blob)) {
-					if (platform.canhold()) {
+					if (platform.canhold(blob.x, blob.y)) {
 						blob.land(platform)
 					} else {
 						blob.bounce(platform)

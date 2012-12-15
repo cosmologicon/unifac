@@ -75,3 +75,22 @@ Turner.prototype = UFX.Thing()
 		},
 	})
 
+// Gem that will attract the greedy blobbies
+function Gem(x, y) {
+	this.x = x
+	this.y = y
+	this.h = 20
+}
+Gem.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(ActionRadius, 10)
+	.addcomp({
+		draw: function () {
+			UFX.draw("( m 0 20 l 10 0 l 0 -20 l -10 0 ) fs green f")
+		},
+		interact: function (obj) {
+			if (!obj.state.greedy) return
+			obj.nextstate = HopState
+		},
+	})
+
