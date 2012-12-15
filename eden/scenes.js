@@ -49,12 +49,14 @@ var ActionScene = {
 				}
 			})
 		})
+		if (clicked) HUD.handleclick()
 	},
 	draw: function () {
 		UFX.draw("fs black f0")
 		function draw(obj) { context.save() ; obj.draw() ; context.restore() }
 		blobs.forEach(draw)
 		platforms.forEach(draw)
+		HUD.draw()
 		HUD.drawcursor()
 	},
 }
