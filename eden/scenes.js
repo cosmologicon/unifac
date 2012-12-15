@@ -27,14 +27,22 @@ var TitleScene = {
 }
 
 var ActionScene = {
+	start: function () {
+		gamestate.loadstage()
+		HUD.init()
+	},
 	thinkargs: function (dt) {
 		var clicks = UFX.mouse.getclicks()
-		return [dt, fpos(clicks.down)]
+		return [dt, fpos(UFX.mouse.pos), fpos(clicks.down)]
 	},
-	think: function (dt, clicked) {
-		if (clicked) {
-			UFX.draw("[ t", clicked, "b o 0 0 2 fs orange f ]")
-		}
+	think: function (dt, mpos, clicked) {
+		HUD.think(dt, mpos, clicked)
+	},
+	draw: function () {
+		UFX.draw("fs black f0")
+		function draw(obj) { context.save() ; obj.draw() ; context.restore() }
+		blobs.forEach(draw)
+		HUD.drawcursor()
 	},
 }
 
