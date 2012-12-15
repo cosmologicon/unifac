@@ -63,9 +63,9 @@ var ActionScene = {
 	draw: function () {
 		UFX.draw("fs black f0 font 18px~Viga fs white ft", UFX.ticker.getfpsstr(), "700 10")
 		function draw(obj) { context.save() ; obj.draw() ; context.restore() }
-		blobs.forEach(draw)
 		scenery.forEach(draw)
 		platforms.forEach(draw)
+		blobs.forEach(draw)
 		HUD.draw()
 		HUD.drawcursor()
 	},
