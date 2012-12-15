@@ -64,10 +64,14 @@ var HopState = {
 		this.vx = 0 ; this.vy = 0
 	},
 	bounce: function (platform) {
+		console.log(this.x, this.y, this.vx, this.vy)
+		var p = platform.constrain(this.x, this.y)
 		var v = platform.bouncevector(this.vx, this.vy)
 		this.vx = v[0]
 		this.vy = v[1]
 		this.facingright = this.vx > 0
+		this.x = p[0] + this.vx * 0.001
+		this.y = p[1] + this.vy * 0.001
 	},
 }
 
@@ -100,20 +104,8 @@ var WantState = {
 		UFX.draw("b o 0 0 2 fs orange f")
 	},
 	land: function (platform) {
-		this.platform = platform
-		var p = this.platform.constrain(this.x, this.y)
-		this.x = p[0] ; this.y = p[1]
-		this.hoptick = 0
-		this.vx = 0 ; this.vy = 0
 	},
 	bounce: function (platform) {
-		var p = this.platform.constrain(this.x, this.y)
-		var v = platform.bouncevector(this.vx, this.vy)
-		this.vx = v[0]
-		this.vy = v[1]
-		this.facingright = this.vx > 0
-		this.x = p + this.vx * 0.001
-		this.y = p + this.vy * 0.001
 	},
 }
 
@@ -144,7 +136,15 @@ RageState.draw = function () {
 }
 
 
-
+var Squishes = {
+	draw: function () {
+		if (this.vx || this.vy) {
+			UFX.draw("r", -0.2 * Math.sin(2 * Math.atan2(this.vy, this.vx)))
+		}
+		var s = 1 + clip(this.vy / 600, -0.2, 0.2)
+		UFX.draw("z", 1/s, s)
+	},
+}
 
 function Blob(x, y) {
 	this.x = x
@@ -157,6 +157,7 @@ function Blob(x, y) {
 Blob.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(KeepsLastPosition)
+	.addcomp(Squishes)
 	.addcomp(FacesDirection)
 	.addcomp(HasStates, ["think", "draw", "land", "bounce"])
 	.addcomp({
