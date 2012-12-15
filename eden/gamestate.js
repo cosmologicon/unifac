@@ -20,6 +20,7 @@ var gamestate = {
 		this.sincounts = {
 			defy: 10,
 			want: 10,
+			rage: 10,
 		}
 	},
 	nearestgem: function (x, y) {

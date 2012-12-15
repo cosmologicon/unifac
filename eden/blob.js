@@ -107,11 +107,40 @@ var WantState = {
 		this.vx = 0 ; this.vy = 0
 	},
 	bounce: function (platform) {
+		var p = this.platform.constrain(this.x, this.y)
 		var v = platform.bouncevector(this.vx, this.vy)
 		this.vx = v[0]
 		this.vy = v[1]
 		this.facingright = this.vx > 0
+		this.x = p + this.vx * 0.001
+		this.y = p + this.vy * 0.001
 	},
+}
+
+var RageState = Object.create(HopState)
+RageState.enter = function () {
+	this.hoptick = 0
+	this.ragetick = 0
+}
+RageState.think = function (dt) {
+	this.ragetick += dt
+	if (this.platform) {
+		if (this.ragetick > settings.ragetime) {
+			this.nextstate = HopState
+		} else {
+			this.vx = 0
+			this.vy = -settings.ragehopvy
+			this.platform = null
+		}
+	} else {
+		this.x += this.vx * dt
+		this.y += this.vy * dt + 0.5 * settings.ragegravity * dt * dt
+		this.vy += settings.ragegravity * dt
+	}
+}
+RageState.draw = function () {
+	UFX.draw("b o 0", -this.h, this.h + 2, "fs red ss darkred lw 2 f s")
+	UFX.draw("b o 0 0 2 fs orange f")
 }
 
 
@@ -134,6 +163,7 @@ Blob.prototype = UFX.Thing()
 		applysin: function (sin) {
 			if (sin == "defy") this.nextstate = DefyState
 			if (sin == "want") this.nextstate = WantState
+			if (sin == "rage") this.nextstate = RageState
 		},
 	})
 	.addcomp({ think: function (dt) { this.updatestate() } })
