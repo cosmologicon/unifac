@@ -1,7 +1,11 @@
 var gamestate = {
 	stage: 0,
 	loadstage: function () {
-		blobs = [new Blob(500, 100)]
+		blobs = [
+			new Blob(600, -100),
+//			new Blob(400, -400),
+//			new Blob(500, 100),
+		]
 		platforms = [
 			new SinglePlatform(300, 300, 700, 300),
 			new MultiPlatform(200, 200, 220, 500, 780, 500, 800, 200),

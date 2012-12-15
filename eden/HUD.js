@@ -17,10 +17,12 @@ var HUD = {
 			this.cursorpos = mpos
 		}
 		var mx = this.cursorpos[0], my = this.cursorpos[1]
+		var p = vista.wpos(this.cursorpos)
+		var wx = p[0], wy = p[1]
 		this.target = null
 		for (var j = 0 ; j < blobs.length ; ++j) {
 			var b = blobs[j]
-			var dx = b.x - mx, dy = b.y - b.h - my
+			var dx = b.x - wx, dy = b.y - b.h - wy
 			if (dx * dx + dy * dy < settings.tradius * settings.tradius) {
 				this.target = b
 				break

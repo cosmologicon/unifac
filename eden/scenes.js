@@ -29,13 +29,20 @@ var TitleScene = {
 var ActionScene = {
 	start: function () {
 		gamestate.loadstage()
+		vista.init()
 		HUD.init()
 	},
 	thinkargs: function (dt) {
 		var clicks = UFX.mouse.getclicks()
-		return [dt, fpos(UFX.mouse.pos), fpos(clicks.down)]
+		var kstate = UFX.key.state()
+		return [dt, fpos(UFX.mouse.pos), fpos(clicks.down), kstate.pressed, UFX.mouse.getwheeldy()]
 	},
-	think: function (dt, mpos, clicked) {
+	think: function (dt, mpos, clicked, kpress, scroll) {
+		dt = dt || 0 ; kpress = kpress || {}
+		var dx = (kpress.right ? 1 : 0) - (kpress.left ? 1 : 0)
+		if (dx) vista.scootch(dx * dt, 0)
+		if (scroll) vista.zoom(scroll, mpos)
+	
 		HUD.think(dt, mpos, clicked)
 		function think(obj) { obj.think(dt) }
 		blobs.forEach(think)
@@ -61,11 +68,13 @@ var ActionScene = {
 		if (clicked) HUD.handleclick()
 	},
 	draw: function () {
-		UFX.draw("fs black f0 font 18px~Viga fs white ft", UFX.ticker.getfpsstr(), "700 10")
+		UFX.draw("fs black f0 font 18px~Viga fs white ft", UFX.ticker.getfpsstr(), "700 10 [")
+		vista.draw()
 		function draw(obj) { context.save() ; obj.draw() ; context.restore() }
 		scenery.forEach(draw)
 		platforms.forEach(draw)
 		blobs.forEach(draw)
+		UFX.draw("]")
 		HUD.draw()
 		HUD.drawcursor()
 	},

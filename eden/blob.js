@@ -64,9 +64,10 @@ var HopState = {
 		this.vx = 0 ; this.vy = 0
 	},
 	bounce: function (platform) {
-		console.log(this.x, this.y, this.vx, this.vy)
 		var p = platform.constrain(this.x, this.y)
 		var v = platform.bouncevector(this.vx, this.vy)
+		console.log(this.x, this.y, this.vx, this.vy)
+		console.log(p[0], p[1], v[0], v[1])
 		this.vx = v[0]
 		this.vy = v[1]
 		this.facingright = this.vx > 0
@@ -162,9 +163,9 @@ Blob.prototype = UFX.Thing()
 	.addcomp(HasStates, ["think", "draw", "land", "bounce"])
 	.addcomp({
 		applysin: function (sin) {
-			if (sin == "defy") this.nextstate = DefyState
-			if (sin == "want") this.nextstate = WantState
-			if (sin == "rage") this.nextstate = RageState
+			if (sin == "defy" && this.state !== DefyState) this.nextstate = DefyState
+			if (sin == "want" && this.state !== WantState) this.nextstate = WantState
+			if (sin == "rage" && this.state !== RageState) this.nextstate = RageState
 		},
 	})
 	.addcomp({ think: function (dt) { this.updatestate() } })
