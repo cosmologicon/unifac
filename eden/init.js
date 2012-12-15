@@ -38,6 +38,12 @@ UFX.resource.onload = function () {
 }
 
 UFX.mouse.init(canvas)
+UFX.mouse.capture.right = true
+UFX.mouse.capture.wheel = true
+
+UFX.key.init()
+UFX.key.remaparrows(true)
+UFX.key.watchlist = "up down left right".split(" ")
 
 UFX.resource.load({})
 if (window.location.toString().indexOf("nofonts") == -1) {

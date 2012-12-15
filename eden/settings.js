@@ -17,6 +17,7 @@ var settings = {
 	ragetime: 3,
 
 	tradius: 30,  // cursor target radius
+	zfactor: 0.04,
 
 	
 }
