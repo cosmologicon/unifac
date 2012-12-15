@@ -37,11 +37,24 @@ var ActionScene = {
 	},
 	think: function (dt, mpos, clicked) {
 		HUD.think(dt, mpos, clicked)
+		function think(obj) { obj.think(dt) }
+		blobs.forEach(think)
+//		platforms.forEach(think)
+
+		blobs.forEach(function (blob) {
+			if (blob.platform) return
+			platforms.forEach(function (platform) {
+				if (platform.catches(blob)) {
+					blob.land(platform)
+				}
+			})
+		})
 	},
 	draw: function () {
 		UFX.draw("fs black f0")
 		function draw(obj) { context.save() ; obj.draw() ; context.restore() }
 		blobs.forEach(draw)
+		platforms.forEach(draw)
 		HUD.drawcursor()
 	},
 }
