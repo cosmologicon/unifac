@@ -7,8 +7,8 @@ var settings = {
 	// Game mechanics
 	blobheight: 20,
 	gravity: 600,
-	hopvx: 50,
-	hopvy: 70,
+	hopvx: 100,
+	hopvy: 160,
 	hopdelay: 0.2,
 
 	tradius: 30,  // cursor target radius

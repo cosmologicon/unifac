@@ -66,7 +66,16 @@ var HopState = {
 		this.hoptick = 0
 		this.vx = 0 ; this.vy = 0
 	},
+	bounce: function (platform) {
+		var v = platform.bouncevector(this.vx, this.vy)
+		this.vx = v[0]
+		this.vy = v[1]
+		this.facingright = this.vx > 0
+	},
 }
+
+var DefyState = Object.create(HopState)
+DefyState.defiant = true
 
 
 
@@ -80,10 +89,13 @@ Blob.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(KeepsLastPosition)
 	.addcomp(FacesDirection)
-	.addcomp(HasStates, ["think", "draw", "land"])
+	.addcomp(HasStates, ["think", "draw", "land", "bounce"])
 	.addcomp({
-		applysin: function (sin) { console.log(sin) },
+		applysin: function (sin) {
+			if (sin == "defy") this.nextstate = DefyState
+		},
 	})
+	.addcomp({ think: function (dt) { this.updatestate() } })
 
 var blobs = []
 
