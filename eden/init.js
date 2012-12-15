@@ -46,9 +46,7 @@ UFX.key.remaparrows(true)
 UFX.key.watchlist = "up down left right".split(" ")
 
 UFX.resource.load({})
-if (window.location.toString().indexOf("nofonts") == -1) {
-	UFX.resource.loadwebfonts("Viga")
-}
+UFX.resource.loadwebfonts("Viga")
 
 // sound and music
 var soundcheck = document.getElementById("playsound"), musiccheck = document.getElementById("playmusic")

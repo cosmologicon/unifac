@@ -9,24 +9,42 @@ var vista = {
 		var f = 700 / Math.sqrt(this.scale)
 		this.x += dx * f
 		this.y += dy * f
+		this.target = null
 	},
 	zoom: function (dz, mpos) {
-		console.log(this.wpos(mpos))
 		var oldscale = this.scale
 		this.z = clip(this.z + dz, -20, 20)
 		this.scale = Math.exp(settings.zfactor * this.z)
-		console.log(this.x, this.y, mpos, this.scale, oldscale)
 		this.x += mpos[0] * (1/oldscale - 1/this.scale)
 		this.y += mpos[1] * (1/oldscale - 1/this.scale)
-		console.log(this.x, this.y, mpos)
-		console.log(this.wpos(mpos))
+		this.target = null
+	},
+	pan: function (mpos) {
+		this.target = this.wpos(mpos)
+		this.target[0] -= settings.vx0 / this.scale
+		this.target[1] -= settings.vy0 / this.scale
+		this.tx = this.x
+		this.ty = this.y
 	},
 	wpos: function (pos) {
 		return pos && [pos[0] / this.scale + this.x, pos[1] / this.scale + this.y]
 	},
 	think: function (dt) {
-		this.x = 0
-		this.y = 0
+		if (this.target) {
+			var f = 1 - Math.exp(-8 * dt), dx = this.target[0] - this.tx, dy = this.target[1] - this.ty
+			if (Math.abs(dx) + Math.abs(dy) < 1) {
+				this.target = null
+				f = 1
+			}
+			this.tx += f * dx
+			this.ty += f * dy
+			this.x = this.tx
+			this.y = this.ty
+		}
+		var xmin = gamestate.xmin, xmax = gamestate.xmax - settings.sx / this.scale
+		var ymin = gamestate.ymin, ymax = gamestate.ymax - settings.sy / this.scale
+		this.x = xmin < xmax ? clip(this.x, xmin, xmax) : (xmin + xmax) / 2
+		this.y = ymin < ymax ? clip(this.y, ymin, ymax) : (ymin + ymax) / 2
 	},
 	draw: function () {
 		UFX.draw("z", this.scale, this.scale, "t", -this.x, -this.y)
