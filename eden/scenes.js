@@ -42,19 +42,29 @@ var ActionScene = {
 //		platforms.forEach(think)
 
 		blobs.forEach(function (blob) {
+			scenery.forEach(function (obj) {
+				if (obj.withinrange(blob)) {
+					obj.interact(blob)
+				}
+			})
 			if (blob.platform) return
 			platforms.forEach(function (platform) {
 				if (platform.catches(blob)) {
-					blob.land(platform)
+					if (platform.canhold()) {
+						blob.land(platform)
+					} else {
+						blob.bounce(platform)
+					}
 				}
 			})
 		})
 		if (clicked) HUD.handleclick()
 	},
 	draw: function () {
-		UFX.draw("fs black f0")
+		UFX.draw("fs black f0 font 18px~Viga fs white ft", UFX.ticker.getfpsstr(), "700 10")
 		function draw(obj) { context.save() ; obj.draw() ; context.restore() }
 		blobs.forEach(draw)
+		scenery.forEach(draw)
 		platforms.forEach(draw)
 		HUD.draw()
 		HUD.drawcursor()
