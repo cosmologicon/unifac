@@ -81,6 +81,9 @@ Blob.prototype = UFX.Thing()
 	.addcomp(KeepsLastPosition)
 	.addcomp(FacesDirection)
 	.addcomp(HasStates, ["think", "draw", "land"])
+	.addcomp({
+		applysin: function (sin) { console.log(sin) },
+	})
 
 var blobs = []
 

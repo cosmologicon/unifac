@@ -7,6 +7,10 @@ var gamestate = {
 			new SinglePlatform(420, 400, 600, 330),
 			new SinglePlatform(600, 330, 800, 480),
 		]
+		this.sincounts = {
+			defy: 10,
+			want: 10,
+		}
 	},
 }
 
