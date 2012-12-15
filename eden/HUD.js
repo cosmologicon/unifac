@@ -1,10 +1,13 @@
 var HUD = {
 	init: function () {
 		this.target = null
+		this.cursorpos = [-1000, -1000]
 	},
 	think: function (dt, mpos, click) {
-		this.cursorpos = mpos
-		var mx = mpos[0], my = mpos[1]
+		if (mpos) {
+			this.cursorpos = mpos
+		}
+		var mx = this.cursorpos[0], my = this.cursorpos[1]
 		this.target = null
 		for (var j = 0 ; j < blobs.length ; ++j) {
 			var b = blobs[j]
