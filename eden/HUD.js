@@ -145,12 +145,16 @@ var MenuHUD = {
 	},
 	draw: function () {
 		UFX.draw("[ t 0 0 font 40px~'Jolly~Lodger' textbaseline middle textalign center")
+		var ncomplete = 0, besttime = 0
 		for (var bname in this.buttons) {
 			var button = this.buttons[bname]
 			if (gamestate.unlocked[bname]) {
 				var s = "Stage~" + (+bname+1)
-				if (gamestate.besttime[bname])
+				if (gamestate.besttime[bname]) {
 					s += "~(best~time:~" + gamestate.besttime[bname] + ")"
+					ncomplete += 1
+					besttime += gamestate.besttime[bname]
+				}
 				UFX.draw("lw 4 fs rgb(100,0,0) ss rgb(200,0,0) rr", button, "6 f s")
 				UFX.draw("[ t", button[0] + button[2]/2, button[1] + button[3]/2, "fs white shadowcolor black shadowxy 1 1 ft0", s, "]")
 			} else {
@@ -158,6 +162,10 @@ var MenuHUD = {
 				UFX.draw("[ alpha 0.3 lw 4 fs red ss lightred rr", button, "6 f s")
 				UFX.draw("[ t", button[0] + button[2]/2, button[1] + button[3]/2, "fs white shadowcolor black shadowxy 1 1 ft0", s, "] ]")
 			}
+		}
+		if (ncomplete == 7) {
+			UFX.draw("fs lightgray font 28px~'Jolly~Lodger' textalign right textbaseline bottom",
+				"ft best~time~total:~" + besttime, settings.sx - 10, settings.sy - 2)
 		}
 		UFX.draw("]")
 	},

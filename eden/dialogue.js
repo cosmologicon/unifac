@@ -2,7 +2,7 @@ var dialogue = {
 	intro: [
 		"Once upon a time, God created the Heavens and the Earth.",
 		"And God was like, \"Yeah that's pretty good.\"",
-		"God constructed a garden in the East and populated it with creatures in His own image.",
+		"God constructed a garden and populated it with creatures in His own image.",
 		"And God was like, \"Yeah that's pretty good.\"",
 		"But the creatures knew nothing of Good and Evil, and so they weren't any fun.",
 		"And lo the Lord God got bored, and decided to find out how to make things more interesting.",
@@ -12,11 +12,11 @@ var dialogue = {
 		"g What do you think of My Creation? Is it not perfect?",
 		"d Yes yes yes. A bit TOO perfect if you ask me.",
 		"g Well that's why you're here. Where shall We begin?",
-		"d How about we add some sin to the equation?",
+		"d Let's add some sin to the equation.",
 		"i Select a sin from the menu and click on a creature to apply it.",
 	],
 	1: [
-		"g Well, you killed them.",
+		"g Well, you've officially invented disobedience, the first sin, and introduced the world to death.",
 		"d I told You this would be fun. What's next? Greed? Consumption? Ego?",
 		"d Nothing says good old-fashioned self-destruction like the sins of excess.",
 		"i Scroll using the arrow keys or WASD or right-click",
@@ -28,19 +28,28 @@ var dialogue = {
 		"i You can zoom in and out with your mouse wheel.",
 	],
 	4: [
-		"g You know, there was a time when if you wanted someone dead, you just smote them.",
-		"d How inelegant. Wouldn't You rather imbue them with sin and let them destroy themselves?",
+		"g There was a time when if you wanted someone dead, you would just smite them.",
+		"d How inelegant. Far more poetic to provide them with the tools of their own destruction.",
 		"d Where's Your sense of style?",
 		"g Well excuse Me for being practical.",
+		"i You can use the number keys to select sins from the menu.",
 	],
-
 	6: [
-		"g Okay you've had your fun. I think it's time for you to stop toying with these mortals.",
-		"d What?! No! We haven't even gotten to Lust!",
+		"g You've had your fun. It's time for you to stop toying with these mortals.",
+		"d What?! But we haven't even gotten to Lust!",
 		"g Begone!",
 		"d Noooooooooooo......",
 		"g Heh heh heh....",
 		"g My turn.",
+	],
+	666: [
+		"g I think you should know, I've decided to allow sin to continue in the world.",
+		"d Having that much fun with it, eh? I knew You'd come around.",
+		"g Perhaps a little. But more than that, I've never seen these creatures so satisfied.",
+		"g It's almost as if they thrive off misery.",
+		"g I'm also shutting down the Garden. These people are just not ready for Paradise.",
+		"d What fools these mortals be.",
+		"i Thanks for playing.",
 	],
 }
 
