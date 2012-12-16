@@ -130,3 +130,36 @@ Gem.prototype = UFX.Thing()
 		},
 	})
 
+function Bolt(x,y,color,A) {
+	this.t = 0
+	this.x = x
+	this.y = y
+	this.dx = 0
+	this.dy = 0
+	this.A = A
+	this.time = 0.5
+	this.color = color
+}
+Bolt.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(ActionRadius)
+	.addcomp({
+		think: function (dt) {
+			this.t += dt
+			if (this.t > this.time) {
+				var that = this
+				scenery = scenery.filter(function (s) { return s !== that })
+			}
+			this.x += this.dx
+			this.y += this.dy
+			var v = 1000 * clip(1 - this.t / this.time, 0, 1)
+			this.dx = v * dt * Math.sin(this.A)
+			this.dy = v * dt * Math.cos(this.A)
+			this.A += dt * UFX.random(-60, 60)
+		},
+		draw: function () {
+			UFX.draw("ss", this.color, "b m 0 0 l", this.dx, this.dy, "lw 3 s")
+		},
+	})
+	.definemethod("interact")
+

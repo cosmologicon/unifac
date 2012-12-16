@@ -405,9 +405,21 @@ Blob.prototype = UFX.Thing()
 				pride: PrideState,
 				laze: LazeState,
 			}[sin]
+			if (!nextstate) return false
 			if (nextstate === this.state) return false
 			this.nextstate = nextstate
 			if (sin == "laze") playsound("zzzz")
+			var color = {
+				defy: "yellow",
+				want: "green",
+				rage: "red",
+				gorge: "purple",
+				pride: "white",
+				laze: "orange",
+			}[sin]
+			for (var j = 0 ; j < 17 ; ++j) {
+				scenery.push(new Bolt(this.x, this.y, color, 6.3*j/17))
+			}
 			return true
 		},
 	})
