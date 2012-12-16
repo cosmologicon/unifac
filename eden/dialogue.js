@@ -4,20 +4,40 @@ var dialogue = {
 		"And God was like, \"Yeah that's pretty good.\"",
 		"God constructed a garden in the East and populated it with creatures in His own image.",
 		"And God was like, \"Yeah that's pretty good.\"",
-		"But the creatures knew nothing of Good and Evil, and so they weren't very interesting.",
-		"And lo the Lord God got bored, and decided to make things more interesting.",
-		"Fortunately, He just happened to know someone who was up to the task.",
+		"But the creatures knew nothing of Good and Evil, and so they weren't any fun.",
+		"And lo the Lord God got bored, and decided to find out how to make things more interesting.",
+		"Fortunately, He just happened to know an expert.",
 	],
 	0: [
 		"g What do you think of My Creation? Is it not perfect?",
 		"d Yes yes yes. A bit TOO perfect if you ask me.",
 		"g Well that's why you're here. Where shall We begin?",
+		"d How about we add some sin to the equation?",
+	],
+	1: [
+		"g Well, you killed them.",
+		"d I told You this would be fun. What's next? Greed? Consumption? Ego?",
+		"d Nothing says good old-fashioned self-destruction like the sins of excess.",
+	],
+	2: [
+		"g I think I'm getting the hang of this. What about some Wrath?",
+		"d Not really my style, but I suppose no list of sins would be complete without it.",
+		"d You want Wrath? You've got it.",
+	],
+	4: [
+		"g You know, there was a time when if you wanted someone dead, you just smote them.",
+		"d How inelegant. Wouldn't You rather imbue them with sin and let them destroy themselves?",
+		"d Where's Your sense of style?",
+		"g Well excuse Me for being practical.",
 	],
 
-	9: [
-		"g Okay you've had your fun. I think it's time to stop toying with these mortals.",
-		"d What?! No! I haven't even shown you Lust!",
+	6: [
+		"g Okay you've had your fun. I think it's time for you to stop toying with these mortals.",
+		"d What?! No! We haven't even gotten to Lust!",
 		"g Begone!",
+		"d Noooooooooooo......",
+		"g Heh heh heh....",
+		"g My turn.",
 	],
 }
 
