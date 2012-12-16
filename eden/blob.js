@@ -166,7 +166,7 @@ LazeState.think = function (dt) {
 	}
 	for (var j = 0 ; j < blobs.length ; ++j) {
 		var b = blobs[j]
-		if (b === this || b.state.dead || b.state === LazeState || b.nextstate === LazeState) continue
+		if (b === this || b.state.dead || b.state.immune || b.state === LazeState || b.nextstate === LazeState) continue
 		var dx = b.x - this.x, dy = b.y - this.y
 		if (dx * dx + dy * dy < settings.lazerange * settings.lazerange) {
 			b.nextstate = LazeState
@@ -214,6 +214,7 @@ var WantState = {
 }
 
 var RageState = Object.create(HopState)
+RageState.immune = true
 RageState.enter = function () {
 	this.hoptick = 0
 	this.ragetick = 0
