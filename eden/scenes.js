@@ -27,6 +27,9 @@ var IntroScene = {
 				UFX.scene.swap(DialogueScene)
 			}
 		}
+		if (kdown.esc) {
+			UFX.scene.swap(DialogueScene)
+		}
 		this.fadetimer += dt
 	},
 	draw: function () {
@@ -66,6 +69,9 @@ var DialogueScene = {
 			if (this.j == this.lines.length) {
 				this.complete()
 			}
+		}
+		if (kdown.esc) {
+			UFX.scene.swap(DialogueScene)
 		}
 		this.fadetimer += dt
 	},

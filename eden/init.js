@@ -46,7 +46,7 @@ UFX.mouse.capture.wheel = true
 
 UFX.key.init()
 UFX.key.remaparrows(true)
-UFX.key.watchlist = "up down left right 1 2 3 4 5 6 7 space enter tab".split(" ")
+UFX.key.watchlist = "up down left right 1 2 3 4 5 6 7 space enter tab esc".split(" ")
 
 var res = {
 	tofuslow: "music/black-tofu-slow.ogg",
