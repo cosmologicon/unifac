@@ -13,6 +13,7 @@ var IntroScene = {
 	start: function () {
 		this.j = 0
 		this.fadetimer = 0
+		playmusic("tofuslow")
 	},
 	thinkargs: function (dt) {
 		return [dt, UFX.mouse.state(), UFX.key.state()]
@@ -52,6 +53,7 @@ var DialogueScene = {
 		this.j = 0
 		this.lines = dialogue[gamestate.stage]
 		this.fadetimer = 0
+		playmusic("tofuslow")
 	},
 	thinkargs: function (dt) {
 		return [dt, UFX.mouse.state(), UFX.key.state()]
