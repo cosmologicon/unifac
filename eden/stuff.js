@@ -127,6 +127,7 @@ Gem.prototype = UFX.Thing()
 		interact: function (obj) {
 			if (!obj.state.greedy) return
 			obj.nextstate = HopState
+			playsound("get")
 		},
 	})
 
@@ -152,13 +153,13 @@ Bolt.prototype = UFX.Thing()
 			}
 			this.x += this.dx
 			this.y += this.dy
-			var v = 1000 * clip(1 - this.t / this.time, 0, 1)
+			var v = 500 * clip(1 - this.t / this.time, 0, 1)
 			this.dx = v * dt * Math.sin(this.A)
 			this.dy = v * dt * Math.cos(this.A)
 			this.A += dt * UFX.random(-60, 60)
 		},
 		draw: function () {
-			UFX.draw("ss", this.color, "b m 0 0 l", this.dx, this.dy, "lw 3 s")
+			UFX.draw("ss", this.color, "b m 0 0 l", this.dx, this.dy, "lw 8 s")
 		},
 	})
 	.definemethod("interact")

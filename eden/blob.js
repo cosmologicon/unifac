@@ -261,6 +261,7 @@ GorgeState.think = function (dt) {
 	this.gorgetick += dt
 	if (this.gorgetick > settings.gorgetime) {
 		this.nextstate = PopState
+		playsound("pop")
 	}
 	if (this.platform) {
 	} else {
@@ -409,6 +410,7 @@ Blob.prototype = UFX.Thing()
 			if (nextstate === this.state) return false
 			this.nextstate = nextstate
 			if (sin == "laze") playsound("zzzz")
+			if (sin == "gorge") playsound("eat")
 			var color = {
 				defy: "yellow",
 				want: "green",
@@ -417,6 +419,7 @@ Blob.prototype = UFX.Thing()
 				pride: "white",
 				laze: "orange",
 			}[sin]
+			playsound("bolt")
 			for (var j = 0 ; j < 17 ; ++j) {
 				scenery.push(new Bolt(this.x, this.y, color, 6.3*j/17))
 			}

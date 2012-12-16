@@ -1,7 +1,7 @@
 var settings = {
 	sx: 960, sy: 540,
 	vx0: 500, vy0: 270,
-	musicvolume: 0.3,
+	musicvolume: 0.4,
 	savegamename: "devilshandiworksave",
 	
 	allowzoom: true,
