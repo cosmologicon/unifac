@@ -1,5 +1,19 @@
 var gamestate = {
 	stage: 0,
+	completed: {},
+	besttime: {},
+	unlocked: { 0: true },
+	seen: {},
+	
+	getstate: function () {
+		return [this.completed, this.besttime, this.unlocked, this.seen]
+	},
+	setstate: function (c, b, u, s) {
+		this.completed = c
+		this.besttime = b
+		this.unlocked = u
+		this.seen = s
+	},
 	loadstage: function () {
 		leveldata[this.stage].apply(this)
 		scenery = []
@@ -27,5 +41,23 @@ var gamestate = {
 		})
 		return nearest
 	},
+	save: function () {
+		localStorage[settings.savegamename] = JSON.stringify(this.getstate())
+	},
+	load: function () {
+		var s = localStorage[settings.savegamename]
+		if (s) {
+			var obj = JSON.parse(s)
+			this.setstate.apply(this, obj)
+		}
+	},
+	reset: function () {
+		if (!window.confirm("Reset saved game and start from the beginning?")) return
+		delete localStorage[settings.savegamename]
+		window.location.reload()
+	},
 }
+gamestate.load()
+gamestate.save()
+
 
