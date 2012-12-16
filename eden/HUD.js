@@ -65,21 +65,26 @@ var HUD = {
 		}
 	},
 	draw: function () {
-		UFX.draw("[ t 0 0 fs gray ss brown lw 4 font 30px~'Jolly~Lodger' textbaseline middle textalign center")
+		UFX.draw("[ t 0 0 fs gray ss brown lw 6 font 30px~'Jolly~Lodger' textbaseline middle textalign center")
 		for (var bname in this.buttons) {
+			UFX.draw("[")
+
 			var button = this.buttons[bname]
-			if (bname == this.selected) {
-				UFX.draw("fs white ss lightbrown")
+			if (bname in gamestate.sincounts && !gamestate.sincounts[bname]) {
+				UFX.draw("alpha 0.3 fs white ss gray")
+			} else if (bname == this.selected) {
+				UFX.draw("fs rgb(200,200,200) ss white")
 			} else {
-				UFX.draw("fs gray ss brown")
+				UFX.draw("fs rgb(180,90,0) ss rgb(240,120,0)")
 			}
-			UFX.draw("fr", button, "sr", button)
+			UFX.draw("rr", button, "9 f s")
 			if (bname in gamestate.sincounts) {
-				n = gamestate.sincounts[bname]
-				UFX.draw("[ t", button[0], button[1], "fs black ft", bname, "30 14 ft", ""+n, "30 42 ]")
+				var n = gamestate.sincounts[bname]
+				UFX.draw("[ t", button[0], button[1], "fs black ft", bname, "30 16 ft", ""+n, "30 43 ]")
 			} else {
 				UFX.draw("[ t", button[0], button[1], "fs black ft", bname, "40 30 ]")
 			}
+			UFX.draw("]")
 		}
 		UFX.draw("]")
 		var s0 = "time~elapsed:~" + Math.floor(this.elapsed)
@@ -110,13 +115,13 @@ var MenuHUD = {
 		canvas.style.cursor = "default"
 		
 		this.buttons = {
-			0: [50, 200, 300, 60],
-			1: [50, 280, 300, 60],
-			2: [50, 360, 300, 60],
-			3: [50, 440, 300, 60],
-			4: [450, 280, 300, 60],
-			5: [450, 360, 300, 60],
-			6: [450, 440, 300, 60],
+			0: [100, 200, 300, 60],
+			1: [100, 280, 300, 60],
+			2: [100, 360, 300, 60],
+			3: [100, 440, 300, 60],
+			4: [500, 280, 300, 60],
+			5: [500, 360, 300, 60],
+			6: [500, 440, 300, 60],
 		}
 	},
 	think: function (dt, mpos) {
@@ -139,19 +144,19 @@ var MenuHUD = {
 		return false
 	},
 	draw: function () {
-		UFX.draw("[ t 0 0 font 30px~'Jolly~Lodger' textbaseline middle textalign center")
+		UFX.draw("[ t 0 0 font 40px~'Jolly~Lodger' textbaseline middle textalign center")
 		for (var bname in this.buttons) {
 			var button = this.buttons[bname]
 			if (gamestate.unlocked[bname]) {
 				var s = "Stage~" + (+bname+1)
 				if (gamestate.besttime[bname])
 					s += "~(best~time:~" + gamestate.besttime[bname] + ")"
-				UFX.draw("lw 4 fs gray ss brown fr", button, "sr", button)
-				UFX.draw("[ t", button[0] + button[2]/2, button[1] + button[3]/2, "fs black ft0", s, "]")
+				UFX.draw("lw 4 fs rgb(100,0,0) ss rgb(200,0,0) rr", button, "6 f s")
+				UFX.draw("[ t", button[0] + button[2]/2, button[1] + button[3]/2, "fs white shadowcolor black shadowxy 1 1 ft0", s, "]")
 			} else {
 				var s = "Locked"
-				UFX.draw("[ alpha 0.3 lw 4 fs gray ss brown fr", button, "sr", button)
-				UFX.draw("[ t", button[0] + button[2]/2, button[1] + button[3]/2, "fs black ft0", s, "] ]")
+				UFX.draw("[ alpha 0.3 lw 4 fs red ss lightred rr", button, "6 f s")
+				UFX.draw("[ t", button[0] + button[2]/2, button[1] + button[3]/2, "fs white shadowcolor black shadowxy 1 1 ft0", s, "] ]")
 			}
 		}
 		UFX.draw("]")

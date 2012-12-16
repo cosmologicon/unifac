@@ -13,16 +13,19 @@ var dialogue = {
 		"d Yes yes yes. A bit TOO perfect if you ask me.",
 		"g Well that's why you're here. Where shall We begin?",
 		"d How about we add some sin to the equation?",
+		"i Select a sin from the menu and click on a creature to apply it.",
 	],
 	1: [
 		"g Well, you killed them.",
 		"d I told You this would be fun. What's next? Greed? Consumption? Ego?",
 		"d Nothing says good old-fashioned self-destruction like the sins of excess.",
+		"i Scroll using the arrow keys or WASD or right-click",
 	],
 	2: [
 		"g I think I'm getting the hang of this. What about some Wrath?",
 		"d Not really my style, but I suppose no list of sins would be complete without it.",
 		"d You want Wrath? You've got it.",
+		"i You can zoom in and out with your mouse wheel.",
 	],
 	4: [
 		"g You know, there was a time when if you wanted someone dead, you just smote them.",

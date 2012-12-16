@@ -137,7 +137,7 @@ function Bolt(x,y,color,A) {
 	this.dx = 0
 	this.dy = 0
 	this.A = A
-	this.time = 0.5
+	this.time = 1
 	this.color = color
 }
 Bolt.prototype = UFX.Thing()
