@@ -36,6 +36,8 @@ UFX.resource.onloading = function (f) { LoadScene.f = f }
 UFX.resource.onload = function () {
 //	UFX.scene.swap(IntroScene)
 	UFX.scene.swap(DialogueScene)
+	UFX.resource.mergesounds("jump")
+	UFX.resource.sounds.jump.volume = 0.3
 }
 
 UFX.mouse.init(canvas)
@@ -46,8 +48,20 @@ UFX.key.init()
 UFX.key.remaparrows(true)
 UFX.key.watchlist = "up down left right 1 2 3 4 5 6 7 space enter tab".split(" ")
 
-UFX.resource.load({
+var res = {
+//	girl: "music/another-girl.ogg",
+}
+//for (var fname in frameoffsets) {
+//	res[fname] = "img/" + fname + ".png"
+//}
+var soundnames = (
+	"jump-0 jump-1 jump-2 jump-3 " +
+	"click-0 complete fall grow pound stun zzzz"
+).split(" ")
+soundnames.forEach(function (sname) {
+	res[sname] = "sfx/" + sname + ".ogg"
 })
+UFX.resource.load(res)
 UFX.resource.loadwebfonts("Viga", "Almendra SC", "Germania One", "Jolly Lodger")
 
 // sound and music

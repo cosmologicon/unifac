@@ -14,7 +14,7 @@ var HUD = {
 	},
 	think: function (dt, mpos) {
 		if (mpos) {
-			this.cursorpos = mpos
+			this.cursorpos = fpos(mpos)
 		}
 		var mx = this.cursorpos[0], my = this.cursorpos[1]
 		var p = vista.wpos(this.cursorpos)
@@ -43,12 +43,14 @@ var HUD = {
 		if (this.target == "reload") {
 		} else if (this.target in this.buttons) {
 			this.selected = this.selected == this.target ? null : this.target
+			playsound("click-0")
 		} else {
 			n = gamestate.sincounts[this.selected]
 			if (n < 1) {
 			} else {
 				if (this.target.applysin(this.selected)) {
 					gamestate.sincounts[this.selected] -= 1
+					playsound("click-0")
 				}
 			}
 		}
@@ -74,15 +76,51 @@ var HUD = {
 		UFX.draw("[ t", this.cursorpos, "ss orange lw 2")
 		var r = settings.tradius
 		if (this.target in this.buttons) {
-			
+			canvas.style.cursor = "default"
 		} else if (this.target) {
+			canvas.style.cursor = "none"
 			UFX.draw("b o 0 0", r, "s")
 		} else {
+			canvas.style.cursor = "none"
 			UFX.draw("b m 0", r, "l 0", -r, "m", r, "0 l", -r, "0 s")
 		}
 		UFX.draw("]")
 	},
+}
 
+var MenuHUD = {
+	init: function () {
+		this.cursorpos = [-1000, -1000]
+		canvas.style.cursor = "default"
+		
+		this.buttons = {
+			0: [50, 50, 100, 100],
+		}
+	},
+	think: function (dt, mpos) {
+		if (mpos) {
+			this.cursorpos = mpos
+		}
+	},
+	handleclick: function () {
+		var mx = this.cursorpos[0], my = this.cursorpos[1]
+		for (var bname in this.buttons) {
+		}
+//			playsound("click-0")
+	},
+	draw: function () {
+		UFX.draw("[ t 0 0 fs gray ss brown lw 4 font 30px~Viga textbaseline middle textalign center")
+		for (var bname in this.buttons) {
+			var button = this.buttons[bname]
+			if (bname == this.selected) {
+				UFX.draw("fs white ss lightbrown")
+			} else {
+				UFX.draw("fs gray ss brown")
+			}
+			UFX.draw("fr", button, "sr", button)
+		}
+		UFX.draw("]")
+	},
 }
 
 
