@@ -1,5 +1,5 @@
 var LoadScene = {
-	init: function () {
+	start: function () {
 		this.f = 0
 	},
 	draw: function () {
@@ -9,28 +9,94 @@ var LoadScene = {
 	},
 }
 
-var TitleScene = {
-	thinkargs: function (dt) {
-		var mstate = UFX.mouse.state()
-		return [dt, mstate.left.down]
+var IntroScene = {
+	start: function () {
+		this.j = 0
+		this.fadetimer = 0
 	},
-	think: function (dt, clicked) {
-		if (clicked) {
-			UFX.scene.swap(ActionScene)
+	thinkargs: function (dt) {
+		return [dt, UFX.mouse.state(), UFX.key.state()]
+	},
+	think: function (dt, mstate, kstate) {
+		var kdown = kstate.down
+		if (kdown.space || kstate.enter || kstate.tab || mstate.left.down) {
+			this.j += 1
+			this.fadetimer = 0
+			if (this.j >= dialogue.intro.length) {
+				UFX.scene.swap(DialogueScene)
+			}
 		}
+		this.fadetimer += dt
 	},
 	draw: function () {
-		var s = "Click~to~begin"
+		var t = dialogue.intro[this.j]
+		if (!t) return
+		UFX.draw("fs white f0 textalign center textbaseline middle",
+			"fs black font 70px~'Almendra~SC' [ t", settings.sx / 2, 100)
+		wordwrap(t, 640).forEach(function (text) {
+			context.fillText(text, 0, 0)
+			context.translate(0, 80)
+		})
+		UFX.draw("]")
+		UFX.draw("[ alpha", clip(1-2*this.fadetimer, 0, 1), "fs white f0 ]")
+	},
+	
+}
+
+var DialogueScene = {
+	start: function () {
+		this.j = 0
+		this.lines = dialogue[gamestate.stage]
+		this.fadetimer = 0
+	},
+	thinkargs: function (dt) {
+		return [dt, UFX.mouse.state(), UFX.key.state()]
+	},
+	think: function (dt, mstate, kstate) {
+		var kdown = kstate.down
+		if (kdown.space || kstate.enter || kstate.tab || mstate.left.down) {
+			this.j += 1
+			this.fadetimer = 0
+			if (this.j == this.lines.length) {
+				this.complete()
+			}
+		}
+		this.fadetimer += dt
+	},
+	draw: function () {
+		var t = this.lines[this.j]
+		if (!t) return
+		if (t.substr(0, 1) == "g") {
+			UFX.draw("fs white f0 textalign center textbaseline middle",
+				"fs black font 70px~'Germania~One' [ t", settings.sx / 2, 400)
+		} else if (t.substr(0, 1) == "d") {
+			UFX.draw("fs black f0 textalign center textbaseline middle",
+				"fs red font 70px~'Jolly~Lodger' [ t", settings.sx / 2, 400)
+		}
+
+		wordwrap(t.substr(2), 900).forEach(function (text) {
+			context.fillText(text, 0, 0)
+			context.translate(0, 80)
+		})
+		UFX.draw("]")
+		UFX.draw("[ alpha", clip(1-2*this.fadetimer, 0, 1), "fs white f0 ]")
+	},
+	complete: function () {
+		var s = "Loading~stage...."
 		UFX.draw("fs darkblue f0 font 80px~Viga fs white ss black textalign center textbaseline middle",
 			"[ t", settings.sx/2, settings.sy/2, "fst0", s, "]")
+
+		setTimeout(function () {
+			UFX.scene.swap(ActionScene)
+			gamestate.loadstage()
+			vista.init()
+			HUD.init()
+		}, 10)
 	},
 }
 
 var ActionScene = {
 	start: function () {
-		gamestate.loadstage()
-		vista.init()
-		HUD.init()
 		this.endtime = 0
 	},
 	thinkargs: function (dt) {

@@ -34,7 +34,7 @@ UFX.scene.playback.trimempty = true
 UFX.scene.push(LoadScene)
 UFX.resource.onloading = function (f) { LoadScene.f = f }
 UFX.resource.onload = function () {
-	UFX.scene.swap(TitleScene)
+	UFX.scene.swap(IntroScene)
 }
 
 UFX.mouse.init(canvas)
@@ -43,10 +43,10 @@ UFX.mouse.capture.wheel = true
 
 UFX.key.init()
 UFX.key.remaparrows(true)
-UFX.key.watchlist = "up down left right 1 2 3 4 5 6 7".split(" ")
+UFX.key.watchlist = "up down left right 1 2 3 4 5 6 7 space enter tab".split(" ")
 
 UFX.resource.load({})
-UFX.resource.loadwebfonts("Viga")
+UFX.resource.loadwebfonts("Viga", "Almendra SC", "Germania One", "Jolly Lodger")
 
 // sound and music
 var soundcheck = document.getElementById("playsound"), musiccheck = document.getElementById("playmusic")
