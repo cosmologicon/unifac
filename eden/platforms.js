@@ -11,7 +11,7 @@ var SingleDivider = {
 	},
 	constrain: function (x, y) {
 		var p = (x - this.x) * this.ix + (y - this.y) * this.iy
-		return [this.x + p * this.ix + 10 * this.iy, this.y + p * this.iy - 10 * this.ix]
+		return [this.x + p * this.ix + 1 * this.iy, this.y + p * this.iy - 1 * this.ix]
 	},
 	distance2: function (x, y) {
 		var dx = x - this.x, dy = y - this.y

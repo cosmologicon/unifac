@@ -22,6 +22,7 @@ var HUD = {
 		this.target = null
 		for (var j = 0 ; j < blobs.length ; ++j) {
 			var b = blobs[j]
+			if (b.state.dead) continue
 			var dx = b.x - wx, dy = b.y - b.h - wy
 			if (dx * dx + dy * dy < settings.tradius * settings.tradius) {
 				this.target = b
@@ -46,8 +47,9 @@ var HUD = {
 			n = gamestate.sincounts[this.selected]
 			if (n < 1) {
 			} else {
-				gamestate.sincounts[this.selected] -= 1
-				this.target.applysin(this.selected)
+				if (this.target.applysin(this.selected)) {
+					gamestate.sincounts[this.selected] -= 1
+				}
 			}
 		}
 	},

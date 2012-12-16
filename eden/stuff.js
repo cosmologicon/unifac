@@ -83,7 +83,7 @@ function Gem(x, y) {
 }
 Gem.prototype = UFX.Thing()
 	.addcomp(WorldBound)
-	.addcomp(ActionRadius, 10)
+	.addcomp(ActionRadius, 30)
 	.addcomp({
 		draw: function () {
 			UFX.draw("( m 0 20 l 10 0 l 0 -20 l -10 0 ) fs green f")

@@ -31,6 +31,7 @@ var ActionScene = {
 		gamestate.loadstage()
 		vista.init()
 		HUD.init()
+		this.endtime = 0
 	},
 	thinkargs: function (dt) {
 		var mstate = UFX.mouse.state()
@@ -54,6 +55,7 @@ var ActionScene = {
 //		platforms.forEach(think)
 
 		blobs.forEach(function (blob) {
+			if (blob.state.dead) return
 			scenery.forEach(function (obj) {
 				if (obj.withinrange(blob)) {
 					obj.interact(blob)
@@ -71,9 +73,11 @@ var ActionScene = {
 			})
 		})
 		if (mstate.left.down) HUD.handleclick()
+		this.endtime = gamestate.complete() ? this.endtime + dt : 0
+		if (this.endtime > 1) this.complete()
 	},
 	draw: function () {
-		UFX.draw("fs black f0 font 18px~Viga fs white ft", UFX.ticker.getfpsstr(), "700 10 [")
+		UFX.draw("fs lightblue f0 font 18px~Viga fs white ft", UFX.ticker.getfpsstr(), "700 10 [")
 		vista.draw()
 		function draw(obj) { context.save() ; obj.draw() ; context.restore() }
 		scenery.forEach(draw)
@@ -82,6 +86,9 @@ var ActionScene = {
 		UFX.draw("]")
 		HUD.draw()
 		HUD.drawcursor()
+	},
+	complete: function () {
+		UFX.scene.swap(TitleScene)
 	},
 }
 
