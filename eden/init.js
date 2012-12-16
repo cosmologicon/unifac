@@ -37,7 +37,7 @@ UFX.resource.onload = function () {
 //	UFX.scene.swap(IntroScene)
 	UFX.scene.swap(DialogueScene)
 	UFX.resource.mergesounds("jump")
-	UFX.resource.sounds.jump.volume = 0.3
+	UFX.resource.sounds.jump.volume = 0.15
 }
 
 UFX.mouse.init(canvas)
@@ -49,7 +49,7 @@ UFX.key.remaparrows(true)
 UFX.key.watchlist = "up down left right 1 2 3 4 5 6 7 space enter tab".split(" ")
 
 var res = {
-//	girl: "music/another-girl.ogg",
+	tofuslow: "music/black-tofu-slow.ogg",
 }
 //for (var fname in frameoffsets) {
 //	res[fname] = "img/" + fname + ".png"

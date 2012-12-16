@@ -106,6 +106,7 @@ var HopState = {
 				this.vx = settings.hopvx * (this.facingright ? 1 : -1)
 				this.vy = -settings.hopvy
 				this.platform = null
+				if (UFX.random() < 0.1) playsound("jump")
 			}
 		} else {
 			this.x += this.vx * dt
