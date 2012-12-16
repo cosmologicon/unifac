@@ -34,8 +34,8 @@ UFX.scene.playback.trimempty = true
 UFX.scene.push(LoadScene)
 UFX.resource.onloading = function (f) { LoadScene.f = f }
 UFX.resource.onload = function () {
-//	UFX.scene.swap(IntroScene)
-	UFX.scene.swap(DialogueScene)
+	UFX.scene.swap(IntroScene)
+//	UFX.scene.swap(DialogueScene)
 	UFX.resource.mergesounds("jump")
 	UFX.resource.sounds.jump.volume = 0.15
 }
@@ -62,7 +62,7 @@ soundnames.forEach(function (sname) {
 	res[sname] = "sfx/" + sname + ".ogg"
 })
 UFX.resource.load(res)
-UFX.resource.loadwebfonts("Viga", "Almendra SC", "Germania One", "Jolly Lodger")
+UFX.resource.loadwebfonts("Viga", "Almendra SC", "Germania One", "Jolly Lodger", "Eater", "New Rocker")
 
 // sound and music
 var soundcheck = document.getElementById("playsound"), musiccheck = document.getElementById("playmusic")

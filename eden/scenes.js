@@ -14,6 +14,8 @@ var IntroScene = {
 		this.j = 0
 		this.fadetimer = 0
 		playmusic("tofuslow")
+		if (gamestate.seen.intro) this.complete()
+		gamestate.seen.intro = true
 	},
 	thinkargs: function (dt) {
 		return [dt, UFX.mouse.state(), UFX.key.state()]
@@ -24,11 +26,11 @@ var IntroScene = {
 			this.j += 1
 			this.fadetimer = 0
 			if (this.j >= dialogue.intro.length) {
-				UFX.scene.swap(DialogueScene)
+				this.complete()
 			}
 		}
 		if (kdown.esc) {
-			UFX.scene.swap(DialogueScene)
+			this.complete()
 		}
 		this.fadetimer += dt
 	},
@@ -44,19 +46,49 @@ var IntroScene = {
 		UFX.draw("]")
 		UFX.draw("[ alpha", clip(1-2*this.fadetimer, 0, 1), "fs white f0 ]")
 	},
-	
+	complete: function () {
+		UFX.scene.swap(MenuScene)
+	},
 }
 
 var MenuScene = {
-	
+	start: function () {
+		this.fadetimer = 0
+		MenuHUD.init()
+		playmusic("tofuslow")
+	},
+	thinkargs: function (dt) {
+		return [dt, UFX.mouse.state(), UFX.key.state()]
+	},
+	think: function (dt, mstate, kstate) {
+		MenuHUD.think(dt, mstate.pos)
+		this.fadetimer += dt
+		if (mstate.left.down) {
+			if (MenuHUD.handleclick()) {
+				UFX.scene.swap(DialogueScene)
+			}
+		}
+	},
+	draw: function () {
+		UFX.draw("fs", UFX.draw.lingrad(0, 0, settings.sx, settings.sy, 0, "gray", 1, "black"), "f0")
+		UFX.draw("[ textalign center textbaseline middle t", settings.sx/2,
+			"100 font 68px~Eater fs red shadowxy 2 2 shadowcolor black ft0 The~Devil's~Handiwork ]")
+		UFX.draw("[ textalign center textbaseline middle t 740 180 font italic~22px~'Viga' fs lightgray shadowxy 1 1 shadowcolor black ft0 by~Christopher~Night ]")
+		UFX.draw("[ textalign center textbaseline middle t 740 205 font italic~22px~'Viga' fs lightgray shadowxy 1 1 shadowcolor black ft0 Universe~Factory~games ]")
+		MenuHUD.draw()
+		UFX.draw("[ alpha", clip(1-2*this.fadetimer, 0, 1), "fs white f0 ]")
+	},
 }
 
 var DialogueScene = {
 	start: function () {
 		this.j = 0
-		this.lines = dialogue[gamestate.stage]
+		this.lines = dialogue[gamestate.stage] || []
 		this.fadetimer = 0
 		playmusic("tofuslow")
+		if (gamestate.seen[gamestate.stage]) this.complete()
+		gamestate.seen[gamestate.stage] = true
+		if (!this.lines.length) this.complete()
 	},
 	thinkargs: function (dt) {
 		return [dt, UFX.mouse.state(), UFX.key.state()]
@@ -71,7 +103,7 @@ var DialogueScene = {
 			}
 		}
 		if (kdown.esc) {
-			UFX.scene.swap(DialogueScene)
+			this.complete()
 		}
 		this.fadetimer += dt
 	},
@@ -79,10 +111,12 @@ var DialogueScene = {
 		var t = this.lines[this.j]
 		if (!t) return
 		if (t.substr(0, 1) == "g") {
-			UFX.draw("fs white f0 textalign center textbaseline middle",
+			UFX.draw("fs", UFX.draw.radgrad(200, 200, 0, 200, 200, 400, 0, "yellow", 1, "white"),
+				"f0 textalign center textbaseline middle",
 				"fs black font 70px~'Germania~One' [ t", settings.sx / 2, 400)
 		} else if (t.substr(0, 1) == "d") {
-			UFX.draw("fs black f0 textalign center textbaseline middle",
+			UFX.draw("fs", UFX.draw.radgrad(760, 200, 0, 760, 200, 400, 0, "darkgreen", 1, "black"),
+				"f0 textalign center textbaseline middle",
 				"fs red font 70px~'Jolly~Lodger' [ t", settings.sx / 2, 400)
 		}
 
@@ -119,6 +153,7 @@ var ActionScene = {
 	think: function (dt, mstate, kstate) {
 		dt = dt || 0
 		
+		if (kstate.down.esc) this.incomplete()
 		var kpress = kstate.pressed
 		var dx = (kpress.right ? 1 : 0) - (kpress.left ? 1 : 0)
 		var dy = (kpress.down ? 1 : 0) - (kpress.up ? 1 : 0)
@@ -176,8 +211,17 @@ var ActionScene = {
 		HUD.drawcursor()
 	},
 	complete: function () {
-		UFX.scene.swap(TitleScene)
+		gamestate.completed[gamestate.stage] = true
+		var t = Math.floor(HUD.elapsed)
+		if (!gamestate.besttime[gamestate.stage] || gamestate.besttime[gamestate.stage] > t) {
+			gamestate.besttime[gamestate.stage] = Math.floor(HUD.elapsed)
+		}
+		gamestate.save()
+		UFX.scene.swap(MenuScene)
 		playsound("complete")
+	},
+	incomplete: function () {
+		UFX.scene.swap(MenuScene)
 	},
 }
 

@@ -11,6 +11,7 @@ var HUD = {
 			var sin = settings.sins[j]
 			this.buttons[sin] = [10, 100*j + 10, 80, 80]
 		}
+		this.elapsed = 0
 	},
 	think: function (dt, mpos) {
 		if (mpos) {
@@ -37,6 +38,7 @@ var HUD = {
 				break
 			}
 		}
+		this.elapsed += dt
 	},
 	handleclick: function () {
 		if (!this.target) return
@@ -56,7 +58,7 @@ var HUD = {
 		}
 	},
 	draw: function () {
-		UFX.draw("[ t 0 0 fs gray ss brown lw 4 font 30px~Viga textbaseline middle textalign center")
+		UFX.draw("[ t 0 0 fs gray ss brown lw 4 font 30px~'Jolly~Lodger' textbaseline middle textalign center")
 		for (var bname in this.buttons) {
 			var button = this.buttons[bname]
 			if (bname == this.selected) {
@@ -67,10 +69,15 @@ var HUD = {
 			UFX.draw("fr", button, "sr", button)
 			if (bname in gamestate.sincounts) {
 				n = gamestate.sincounts[bname]
-				UFX.draw("[ t", button[0], button[1], "fs black ft", bname, "40 30 ft", ""+n, "40 70 ]")
+				UFX.draw("[ t", button[0], button[1], "fs black ft", bname, "40 20 ft", ""+n, "40 60 ]")
 			}
 		}
 		UFX.draw("]")
+		var s0 = "time~elapsed:~" + Math.floor(this.elapsed)
+		var s1 = "creatures~remaining:~" + gamestate.nblobs()
+		UFX.draw("[ t", settings.sx - 10, settings.sy - 40, "textalign right textbaseline bottom",
+			"fs black shadowxy 1 1 shadowcolor white font 30px~'New~Rocker' ft0", s0,
+			"t 0 30 ft0", s1, "]")
 	},
 	drawcursor: function () {
 		UFX.draw("[ t", this.cursorpos, "ss orange lw 2")
@@ -94,30 +101,46 @@ var MenuHUD = {
 		canvas.style.cursor = "default"
 		
 		this.buttons = {
-			0: [50, 50, 100, 100],
+			0: [50, 220, 300, 60],
+			1: [50, 320, 300, 60],
+			2: [50, 420, 300, 60],
+			3: [50, 520, 300, 60],
 		}
 	},
 	think: function (dt, mpos) {
 		if (mpos) {
-			this.cursorpos = mpos
+			this.cursorpos = fpos(mpos)
 		}
 	},
 	handleclick: function () {
 		var mx = this.cursorpos[0], my = this.cursorpos[1]
 		for (var bname in this.buttons) {
+			var button = this.buttons[bname]
+			if (!gamestate.unlocked[bname]) continue
+			var dx = mx - button[0], dy = my - button[1]
+			if (0 <= dx && dx < button[2] && 0 <= dy && dy < button[3]) {
+				gamestate.stage = parseInt(bname)
+				playsound("click-0")
+				return true
+			}
 		}
-//			playsound("click-0")
+		return false
 	},
 	draw: function () {
-		UFX.draw("[ t 0 0 fs gray ss brown lw 4 font 30px~Viga textbaseline middle textalign center")
+		UFX.draw("[ t 0 0 font 30px~'Jolly~Lodger' textbaseline middle textalign center")
 		for (var bname in this.buttons) {
 			var button = this.buttons[bname]
-			if (bname == this.selected) {
-				UFX.draw("fs white ss lightbrown")
+			if (gamestate.unlocked[bname]) {
+				var s = "Stage~" + (+bname+1)
+				if (gamestate.besttime[bname])
+					s += "~(best~time:~" + gamestate.besttime[bname] + ")"
+				UFX.draw("lw 4 fs gray ss brown fr", button, "sr", button)
+				UFX.draw("[ t", button[0] + button[2]/2, button[1] + button[3]/2, "fs black ft0", s, "]")
 			} else {
-				UFX.draw("fs gray ss brown")
+				var s = "Locked"
+				UFX.draw("[ alpha 0.3 lw 4 fs gray ss brown fr", button, "sr", button)
+				UFX.draw("[ t", button[0] + button[2]/2, button[1] + button[3]/2, "fs black ft0", s, "] ]")
 			}
-			UFX.draw("fr", button, "sr", button)
 		}
 		UFX.draw("]")
 	},

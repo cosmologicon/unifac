@@ -3,6 +3,31 @@ var leveldata = {
 		blobs = [
 			new Blob(100, -200, true),
 			new Blob(-50, 100, false),
+		]
+		platforms = [
+			new MultiPlatform(-220,160, -100,220, 100,220, 220,160),
+		]
+		this.gems = [
+		]
+		this.turners = [
+			new Turner(-200, 180, true, platforms[0]),
+			new Turner(200, 180, false, platforms[0]),
+		]
+		this.sincounts = {
+			defy: 10,
+			want: 0,
+			rage: 0,
+			gorge: 0,
+			pride: 0,
+			laze: 0,
+		}
+		this.xmin = -400 ; this.xmax = 400
+		this.ymin = -100 ; this.ymax = 400
+	},
+	3: function () {
+		blobs = [
+			new Blob(100, -200, true),
+			new Blob(-50, 100, false),
 			new Blob(80, 300, true),
 			new Blob(-100, 400, false),
 			new Blob(0, 700, true),
