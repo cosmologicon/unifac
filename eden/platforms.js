@@ -117,7 +117,14 @@ MultiPlatform.prototype = {
 		return this.nearest(x, y).A
 	},
 	constrain: function (x, y) {
-		return this.nearest(x, y).constrain(x, y)
+		var p = this.nearest(x, y).constrain(x, y)
+		if (!this.isabove(p[0], p[1])) {
+			p = this.nearest(p[0], p[1]).constrain(p[0], p[1])
+			if (!this.isabove(p[0], p[1])) {
+				console.log(x, y, p)
+			}
+		}
+		return p
 	},
 	bouncevector: function (x, y, vx, vy) {
 		return this.nearest(x, y).bouncevector(x, y, vx, vy)

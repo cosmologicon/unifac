@@ -28,8 +28,10 @@ var FacesDirection = {
 
 var KeepsLastPosition = {
 	think: function (dt) {
-		this.oldx = this.x
-		this.oldy = this.y
+		if (dt) {
+			this.oldx = this.x
+			this.oldy = this.y
+		}
 	},
 }
 
