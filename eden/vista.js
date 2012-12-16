@@ -19,6 +19,11 @@ var vista = {
 			this.backdrop.makeimg(2)
 			this.backdrop.makeimg(4)
 		}
+		this.clouds = document.createElement("canvas")
+		this.clouds.width = settings.sx ; this.clouds.height = settings.sy
+		UFX.draw(this.clouds.getContext("2d"), 
+			"fs blue f0 [ z 4 3 drawimage0", UFX.texture.clouds({ shadex: 0, shadey: 1}),
+			"alpha 0.5 fs white f0 ]")
 	},
 	scootch: function (dx, dy) {
 		var f = 700 / Math.sqrt(this.scale)
@@ -60,6 +65,9 @@ var vista = {
 		var ymin = gamestate.ymin, ymax = gamestate.ymax - settings.sy / this.scale
 		this.x = xmin < xmax ? clip(this.x, xmin, xmax) : (xmin + xmax) / 2
 		this.y = ymin < ymax ? clip(this.y, ymin, ymax) : (ymin + ymax) / 2
+	},
+	drawclouds: function () {
+		UFX.draw("drawimage0", this.clouds)
 	},
 	draw: function () {
 		UFX.draw("z", this.scale, this.scale, "t", -this.x, -this.y)

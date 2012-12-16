@@ -208,7 +208,9 @@ var ActionScene = {
 //		console.log(b.x, b.y, b.vx, b.vy, platforms[3].isabove(b.x, b.y))
 	},
 	draw: function () {
-		UFX.draw("fs lightblue f0 font 18px~Viga fs white ft", UFX.ticker.getfpsstr(), "700 10 [")
+//		UFX.draw("fs lightblue f0 font 18px~Viga fs white ft", UFX.ticker.getfpsstr(), "700 10 [")
+		UFX.draw("[")
+		vista.drawclouds()
 		vista.draw()
 		function draw(obj) { context.save() ; obj.draw() ; context.restore() }
 		scenery.forEach(draw)
