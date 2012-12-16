@@ -65,6 +65,12 @@ var blobtracers = {
 		"[ t 10 -17 r -0.15 z 3 6 b o 0 0 1 ] fs white ss black f s",
 		"[ t 7 -5 r -0.15 z 8 3 b o 0 0 1 ] fs darkgreen ss black f s",
 	], [-20, -32, 40, 40]),
+	laze: UFX.Tracer([
+		"( m 0 5 c 12 5 18 5 18 0 c 18 -20 10 -30 0 -30 c -10 -30 -18 -20 -18 0 c -18 5 -12 5 0 5 )",
+		"fs orange ss rgb(100,50,0) lw 1.5 f s",
+		"b m -3 -15 l 5 -20 m 7 -21 l 15 -19 lw 1 ss black s",
+		"[ t 7 -5 r -0.15 z 8 3 b o 0 0 1 ] fs rgb(100,50,0) ss black f s",
+	], [-20, -32, 40, 40]),
 	rage: UFX.Tracer([
 		"( m 0 5 c 12 5 18 5 18 0 c 18 -20 10 -30 0 -30 c -10 -30 -18 -20 -18 0 c -18 5 -12 5 0 5 )",
 		"fs red ss darkred lw 1.5 f s",
@@ -121,8 +127,8 @@ var HopState = {
 	bounce: function (platform) {
 		var p = platform.constrain(this.x, this.y)
 		var v = platform.bouncevector(this.x, this.y, this.vx, this.vy)
-		console.log(this.vx, this.vy)
-		console.log(v[0], v[1])
+//		console.log(this.vx, this.vy)
+//		console.log(v[0], v[1])
 		this.vx = v[0]
 		this.vy = v[1]
 		this.facingright = this.vx > 0
@@ -137,6 +143,43 @@ DefyState.defiant = true
 DefyState.draw = function () {
 	blobtracers.defy.draw(vista.scale)
 }
+
+var LazeState = Object.create(HopState)
+LazeState.enter = function () {
+	this.lazetick = this.lazetick || 0
+}
+LazeState.exit = function () {
+	this.lazetick = 0
+}
+LazeState.think = function (dt) {
+	this.lazetick += dt
+	if (this.lazetick > settings.lazetime) {
+		this.nextstate = HopState
+		return
+	}
+	if (this.platform) {
+	} else {
+		this.x += this.vx * dt
+		this.y += this.vy * dt + 0.5 * settings.gravity * dt * dt
+		this.vy += settings.gravity * dt
+	}
+	for (var j = 0 ; j < blobs.length ; ++j) {
+		var b = blobs[j]
+		if (b === this || b.state.dead || b.state === LazeState || b.nextstate === LazeState) continue
+		var dx = b.x - this.x, dy = b.y - this.y
+		if (dx * dx + dy * dy < settings.lazerange * settings.lazerange) {
+			b.nextstate = LazeState
+			b.lazetick = this.lazetick
+		}
+	}
+//	console.log(this.x, this.y, this.oldx, this.oldy, this.vx, this.vy)
+}
+LazeState.draw = function () {
+	var s = 1 + 0.2 * Math.sin(2.5 * this.lazetick)
+	UFX.draw("z", s, 1/s)
+	blobtracers.laze.draw(vista.scale)
+}
+
 
 var WantState = {
 	greedy: true,
@@ -343,6 +386,7 @@ Blob.prototype = UFX.Thing()
 				rage: RageState,
 				gorge: GorgeState,
 				pride: PrideState,
+				laze: LazeState,
 			}[sin]
 			if (nextstate === this.state) return false
 			this.nextstate = nextstate

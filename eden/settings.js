@@ -3,7 +3,7 @@ var settings = {
 	vx0: 500, vy0: 270,
 	
 
-	sins: ["defy", "want", "rage", "gorge", "pride"],
+	sins: ["defy", "want", "rage", "gorge", "pride", "laze"],
 	
 	// Game mechanics
 	blobheight: 20,
@@ -21,6 +21,8 @@ var settings = {
 	pridetime: 8.0,
 	pridevx: 30,
 	pridevy: 110,
+	lazetime: 10.0,
+	lazerange: 25,
 
 	tradius: 30,  // cursor target radius
 	zfactor: 0.04,
