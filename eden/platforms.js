@@ -198,18 +198,6 @@ MultiPlatform.prototype = {
 				var color = "rgb(" + red + "," + green + ",0)"
 				this.drawspec.push(["b o", along(x, y), r, "fs", color, "f"])
 			}
-	/*
-			for (var j = 0 ; j < this.d ; ++j) {
-				var x = UFX.random(this.d), y = UFX.random(-5, 5), r = UFX.random(4, 8)
-				if (UFX.random() < 0.5) {
-					y = UFX.random(-5, 15)
-					if (UFX.random() < 0.2) {
-						y = UFX.random(-5, 22)
-					}
-				}
-				var color = "rgb(" + UFX.random.rand(10, 20) + "," + UFX.random.rand(140,240) + ",0)"
-				this.drawspec.push(["b o", x*this.ix - y * this.iy, x*this.iy + y*this.ix, r, "fs", color, "f"])
-			}*/
 		}
 		con = con || context
 		UFX.draw(con, this.drawspec)

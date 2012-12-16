@@ -126,6 +126,10 @@ var DialogueScene = {
 			UFX.draw("fs", UFX.draw.radgrad(760, 200, 0, 760, 200, 400, 0, "darkgreen", 1, "black"),
 				"f0 textalign center textbaseline middle",
 				"fs red font 70px~'Jolly~Lodger' [ t", settings.sx / 2, 400)
+		} else if (t.substr(0, 1) == "i") {
+			UFX.draw("fs", UFX.draw.lingrad(0, 0, settings.sx, settings.sy, 0, "rgb(0,0,60)", 1, "black"),
+				"f0 textalign center textbaseline middle",
+				"fs white font 70px~'Viga' [ t", settings.sx / 2, 240)
 		}
 
 		wordwrap(t.substr(2), 900).forEach(function (text) {
