@@ -208,4 +208,61 @@ var leveldata = {
 		this.xmin = -100 ; this.xmax = 2300
 		this.ymin = -100 ; this.ymax = 1100
 	},
+	// Nothing special, just one big level
+	6: function () {
+		blobs = [
+			new Blob(-350,-200, false),
+			new Blob(-300,-500, false),
+			new Blob(-250,-800, false),
+			new Blob(400,-200, false),
+			new Blob(500,-800, false),
+			new Blob(720,-300, false),
+			new Blob(-250,500, false),
+			new Blob(250,500, false),
+			new Blob(400,450, false),
+			new Blob(-800,500, false),
+			new Blob(850,500, false),
+			new Blob(950,450, false),
+			new Blob(-900,900, false),
+			new Blob(-800,900, false),
+			new Blob(900,1000, false),
+		]
+		platforms = [
+			new MultiPlatform(-750,100, -560,70, -470,110, -380,120, -270,110),
+			new MultiPlatform(190,10, 200,190, 280,250, 380,270, 550,220, 680,180, 800,200, 900,300),
+			new MultiPlatform(-510,390, -450,600, -260,690, -110,650, 10,630, 130,690, 310,690, 450,600, 500,400),
+			new MultiPlatform(-1000,300, -900,600, -750,750, -390,800, -250,1000),
+			new MultiPlatform(320,960, 690,810, 930,650, 1010,550, 1090,380),
+			new MultiPlatform(-1360,920, -1280,900, -1150,980, -1120,1100, -1000,1200, -890,1300, -720,1350, -570,1340, -300,1420,
+				80,1400, 280,1380, 650,1240, 810,1290, 990,1400, 1100,1400, 1200,1250, 1210,1000),
+		]
+		this.gems = [
+			new Gem(0,-20),
+			new Gem(0,980),
+		]
+		this.turners = [
+			new Turner(-700,100, true, platforms[0]),
+			new Turner(-350,150, false, platforms[0]),
+			new Turner(850,250, false, platforms[1]),
+			new Turner(-90,650, false, platforms[2]),
+			new Turner(50,650, true, platforms[2]),
+			new Turner(-500,850, false, platforms[3]),
+			new Turner(500,900, true, platforms[4]),
+			new Turner(-1250,900, true, platforms[5]),
+			new Turner(-500,1350, false, platforms[5]),
+			new Turner(-330,1400, true, platforms[5]),
+		]
+
+		this.sincounts = {
+			defy: 2,
+			want: 5,
+			rage: 3,
+			gorge: 2,
+			pride: 4,
+			laze: 3,
+		}
+		
+		this.xmin = -1600 ; this.xmax = 1500
+		this.ymin = -300 ; this.ymax = 1700
+	},
 }
