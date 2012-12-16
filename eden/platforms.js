@@ -26,7 +26,7 @@ var SingleDivider = {
 	bouncevector: function (x, y, vx, vy) {
 		var p = vx * this.ix + vy * this.iy
 		var px = p * this.ix, py = p * this.iy
-		return [2*px-vx, 2*py-vy]
+		return [px + 0.5 * (px - vx), py + 0.5 * (py - vy)]
 	},
 	catches: function (obj) {
 		if (!this.isabove(obj.oldx, obj.oldy)) return false
@@ -49,7 +49,13 @@ var DrawGrass = {
 			this.drawspec.push(["b o", x*this.ix - y * this.iy, x*this.iy + y*this.ix, r, "fs", color, "f"])
 		}
 		for (var j = 0 ; j < this.d ; ++j) {
-			var x = UFX.random(this.d), y = UFX.random(-5, 10), r = UFX.random(4, 8)
+			var x = UFX.random(this.d), y = UFX.random(-5, 5), r = UFX.random(4, 8)
+			if (UFX.random() < 0.5) {
+				y = UFX.random(-5, 15)
+				if (UFX.random() < 0.2) {
+					y = UFX.random(-5, 22)
+				}
+			}
 			var color = "rgb(" + UFX.random.rand(10, 20) + "," + UFX.random.rand(140,240) + ",0)"
 			this.drawspec.push(["b o", x*this.ix - y * this.iy, x*this.iy + y*this.ix, r, "fs", color, "f"])
 		}
@@ -117,8 +123,8 @@ MultiPlatform.prototype = {
 		return this.nearest(x, y).bouncevector(x, y, vx, vy)
 	},
 	catches: function (obj) {
+		if (!this.nearest(obj.oldx, obj.oldy).isabove(obj.oldx, obj.oldy)) return false
 		var plat = this.nearest(obj.x, obj.y)
-		if (!plat.isabove(obj.oldx, obj.oldy)) return false
 		if (plat.isabove(obj.x, obj.y)) return false
 		if (plat === this.first) {
 			var p = (obj.x - plat.x) * plat.ix + (obj.y - plat.y) * plat.iy

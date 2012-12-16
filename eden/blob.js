@@ -108,6 +108,7 @@ var HopState = {
 		}
 	},
 	draw: function () {
+		if (this.platform) UFX.draw("r", this.platform.getA(this.x, this.y) * (this.facingright ? 1 : -1))
 		blobtracers.normal.draw(vista.scale)
 	},
 	land: function (platform) {
