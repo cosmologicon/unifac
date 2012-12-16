@@ -58,6 +58,7 @@ var ActionScene = {
 		
 		function think(obj) { obj.think(dt) }
 		blobs.forEach(think)
+		scenery.forEach(think)
 //		platforms.forEach(think)
 
 		blobs.forEach(function (blob) {
