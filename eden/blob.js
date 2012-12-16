@@ -31,17 +31,24 @@ var HasStates = {
 var blobtracers = {
 	normal: UFX.Tracer([
 		"( m 0 5 c 12 5 18 5 18 0 c 18 -20 10 -30 0 -30 c -10 -30 -18 -20 -18 0 c -18 5 -12 5 0 5 )",
-		"fs blue ss darkblue lw 1.5 f s",
+		"fs", UFX.draw.radgrad(20, -20, 10, 20, -20, 44, 0, "blue", 1, "rgb(100,100,255)"),
+		"ss darkblue lw 1.5 f s",
 		"[ t 3 -15 r -0.15 z 3 6 b o 0 0 1 ] fs white ss black f s",
 		"[ t 10 -17 r -0.15 z 3 6 b o 0 0 1 ] fs white ss black f s",
 		"( m -2 -4 l 10 0 l 16 -8 ) fs darkblue ss black f s",
+	], [-20, -32, 40, 40]),
+	pride: UFX.Tracer([
+		"( b o 0 -12 17 )",
+		"fs white ss gray lw 1.5 f s",
+		"b o 0 -25 2 fs black f b o 5 -26 2 f",
+		"b m -5 -22 q 5 -20 13 -24 ss black lw 1 s",
 	], [-20, -32, 40, 40]),
 	gorge: UFX.Tracer([
 		"( m 0 5 c 12 5 18 5 18 0 c 18 -20 10 -30 0 -30 c -10 -30 -18 -20 -18 0 c -18 5 -12 5 0 5 )",
 		"fs purple ss darkpurple lw 1.5 f s",
 		"[ t 3 -20 r -0.15 z 1.5 3 b o 0 0 1 ] fs white ss black f s",
 		"[ t 10 -22 r -0.15 z 1.5 3 b o 0 0 1 ] fs white ss black f s",
-		"b m -2 3 q 3 -3 -2 -9 ss black s",
+		"b m -2 3 q 3 -3 -2 -9 m 16 0 q 11 -6 16 -12 m 1 -3 l 13 -6 lw 1 ss black s",
 	], [-20, -32, 40, 40]),
 	defy: UFX.Tracer([
 		"( m 0 5 c 12 5 18 5 18 0 c 18 -20 10 -30 0 -30 c -10 -30 -18 -20 -18 0 c -18 5 -12 5 0 5 )",
@@ -197,6 +204,30 @@ GorgeState.draw = function () {
 	blobtracers.gorge.draw(ax * vista.scale)
 }
 
+var PrideState = {
+	defy: true,
+	enter: function () {
+		this.pridetick = 0
+		this.vx = settings.pridevx * (this.facingright ? 1 : -1)
+		this.vy = 0
+	},
+	think: function (dt) {
+		this.pridetick += dt
+		if (this.pridetick > settings.pridetime) {
+			this.nextstate = HopState
+		}
+		this.x += this.vx * dt
+		this.y += this.vy * dt
+		var t = (this.pridetick - 2) * 2
+		this.vy = -settings.pridevy / (1 + t * t)
+	},
+	draw: function () {
+		var a = 1 + clip(this.pridetick, 0, 2) * 0.5
+		UFX.draw("z", a, a)
+		blobtracers.pride.draw(a * vista.scale)
+	},
+}
+
 
 var DeadState = {
 	dead: true,
@@ -275,6 +306,7 @@ Blob.prototype = UFX.Thing()
 				want: WantState,
 				rage: RageState,
 				gorge: GorgeState,
+				pride: PrideState,
 			}[sin]
 			if (nextstate === this.state) return false
 			this.nextstate = nextstate

@@ -50,6 +50,12 @@ var ActionScene = {
 		vista.think(dt)
 
 		HUD.think(dt, mstate.pos)
+		for (var j = 0 ; j < settings.sins.length ; ++j) {
+			if (kpress[j+1]) {
+				HUD.selected = settings.sins[j]
+			}
+		}
+		
 		function think(obj) { obj.think(dt) }
 		blobs.forEach(think)
 //		platforms.forEach(think)

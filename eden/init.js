@@ -43,7 +43,7 @@ UFX.mouse.capture.wheel = true
 
 UFX.key.init()
 UFX.key.remaparrows(true)
-UFX.key.watchlist = "up down left right".split(" ")
+UFX.key.watchlist = "up down left right 1 2 3 4 5 6 7".split(" ")
 
 UFX.resource.load({})
 UFX.resource.loadwebfonts("Viga")
