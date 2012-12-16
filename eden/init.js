@@ -29,7 +29,7 @@ setcanvassize()
 
 window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
                                window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
-UFX.ticker.registersync(UFX.scene.think, UFX.scene.draw)
+UFX.ticker.registersync(UFX.scene.think, UFX.scene.draw, 300, 10)
 UFX.scene.playback.trimempty = true
 UFX.scene.push(LoadScene)
 UFX.resource.onloading = function (f) { LoadScene.f = f }

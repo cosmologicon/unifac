@@ -28,6 +28,47 @@ var HasStates = {
 	},
 }
 
+var blobtracers = {
+	normal: UFX.Tracer([
+		"( m 0 5 c 12 5 18 5 18 0 c 18 -20 10 -30 0 -30 c -10 -30 -18 -20 -18 0 c -18 5 -12 5 0 5 )",
+		"fs blue ss darkblue lw 1.5 f s",
+		"[ t 3 -15 r -0.15 z 3 6 b o 0 0 1 ] fs white ss black f s",
+		"[ t 10 -17 r -0.15 z 3 6 b o 0 0 1 ] fs white ss black f s",
+		"( m -2 -4 l 10 0 l 16 -8 ) fs darkblue ss black f s",
+	], [-20, -32, 40, 40]),
+	gorge: UFX.Tracer([
+		"( m 0 5 c 12 5 18 5 18 0 c 18 -20 10 -30 0 -30 c -10 -30 -18 -20 -18 0 c -18 5 -12 5 0 5 )",
+		"fs purple ss darkpurple lw 1.5 f s",
+		"[ t 3 -20 r -0.15 z 1.5 3 b o 0 0 1 ] fs white ss black f s",
+		"[ t 10 -22 r -0.15 z 1.5 3 b o 0 0 1 ] fs white ss black f s",
+		"b m -2 3 q 3 -3 -2 -9 ss black s",
+	], [-20, -32, 40, 40]),
+	defy: UFX.Tracer([
+		"( m 0 5 c 12 5 18 5 18 0 c 18 -20 10 -30 0 -30 c -10 -30 -18 -20 -18 0 c -18 5 -12 5 0 5 )",
+		"fs yellow ss orange lw 1.5 f s",
+		"[ t 3 -15 r -0.15 z 3 6 b o 0 0 1 ] lw 1 fs white ss black f s",
+		"[ t 10 -17 r -0.15 z 3 6 b o 0 0 1 ] fs white ss black f s",
+		"( m -2 -4 l 10 0 l 16 -8 ) fs orange ss black f s",
+		"b m -5 -24 l 8 -20 l 17 -26 lw 2 ss black s",
+	], [-20, -32, 40, 40]),
+	want: UFX.Tracer([
+		"( m 0 5 c 12 5 18 5 18 0 c 18 -20 10 -30 0 -30 c -10 -30 -18 -20 -18 0 c -18 5 -12 5 0 5 )",
+		"fs green ss darkgreen lw 1.5 f s",
+		"[ t 3 -15 r -0.15 z 3 6 b o 0 0 1 ] lw 1 fs white ss black f s",
+		"[ t 10 -17 r -0.15 z 3 6 b o 0 0 1 ] fs white ss black f s",
+		"[ t 7 -5 r -0.15 z 8 3 b o 0 0 1 ] fs darkgreen ss black f s",
+	], [-20, -32, 40, 40]),
+	rage: UFX.Tracer([
+		"( m 0 5 c 12 5 18 5 18 0 c 18 -20 10 -30 0 -30 c -10 -30 -18 -20 -18 0 c -18 5 -12 5 0 5 )",
+		"fs red ss darkred lw 1.5 f s",
+		"[ t 3 -15 r -0.15 z 3 6 b o 0 0 1 ] fs white ss black f s",
+		"[ t 10 -17 r -0.15 z 3 6 b o 0 0 1 ] fs white ss black f s",
+		"b m -2 2 q 10 -10 16 -2 ss black s",
+		"b m -5 -24 l 8 -20 l 17 -26 lw 2 ss black s",
+	], [-20, -32, 40, 40]),
+}
+
+
 var ChillState = {
 	draw: function () {
 		UFX.draw("b o 0", -this.h, this.h + 2, "fs blue ss darkblue lw 2 f s")
@@ -53,8 +94,7 @@ var HopState = {
 		}
 	},
 	draw: function () {
-		UFX.draw("b o 0", -this.h, this.h + 2, "fs blue ss darkblue lw 2 f s")
-		UFX.draw("b o 0 0 2 fs orange f")
+		blobtracers.normal.draw(vista.scale)
 	},
 	land: function (platform) {
 		this.platform = platform
@@ -66,8 +106,6 @@ var HopState = {
 	bounce: function (platform) {
 		var p = platform.constrain(this.x, this.y)
 		var v = platform.bouncevector(this.vx, this.vy)
-		console.log(this.x, this.y, this.vx, this.vy)
-		console.log(p[0], p[1], v[0], v[1])
 		this.vx = v[0]
 		this.vy = v[1]
 		this.facingright = this.vx > 0
@@ -78,6 +116,10 @@ var HopState = {
 
 var DefyState = Object.create(HopState)
 DefyState.defiant = true
+
+DefyState.draw = function () {
+	blobtracers.defy.draw(vista.scale)
+}
 
 var WantState = {
 	greedy: true,
@@ -99,10 +141,10 @@ var WantState = {
 			this.vx *= settings.wantv / v
 			this.vy *= settings.wantv / v
 		}
+		this.facingright = this.vx > 0
 	},
 	draw: function () {
-		UFX.draw("b o 0", -this.h, this.h + 2, "fs blue ss darkblue lw 2 f s")
-		UFX.draw("b o 0 0 2 fs orange f")
+		blobtracers.want.draw(vista.scale)
 	},
 	land: function (platform) {
 	},
@@ -132,8 +174,66 @@ RageState.think = function (dt) {
 	}
 }
 RageState.draw = function () {
-	UFX.draw("b o 0", -this.h, this.h + 2, "fs red ss darkred lw 2 f s")
-	UFX.draw("b o 0 0 2 fs orange f")
+	blobtracers.rage.draw(vista.scale)
+}
+
+var GorgeState = Object.create(HopState)
+GorgeState.enter = function () {
+	this.hoptick = 0
+	this.gorgetick = 0
+}
+GorgeState.think = function (dt) {
+	this.gorgetick += dt
+	if (this.gorgetick > settings.gorgetime) {
+		this.nextstate = PopState
+	}
+}
+GorgeState.draw = function () {
+	var ax = 1 + 2 * this.gorgetick / settings.gorgetime
+	var ay = 1 + 0.5 * this.gorgetick / settings.gorgetime
+	var sx = 1 + 0.2 * Math.sin(10 * this.gorgetick)
+	var sy = 1 + 0.2 * Math.cos(10 * this.gorgetick)
+	UFX.draw("z", ax*sx, ay*sy)
+	blobtracers.gorge.draw(ax * vista.scale)
+}
+
+
+var DeadState = {
+	dead: true,
+}
+
+var PopState = {
+	dead: true,
+	enter: function () {
+		this.particles = []
+		for (var j = 0 ; j < 80 ; ++j) {
+			this.particles.push({
+				x: UFX.random(-20, 20),
+				y: UFX.random(-20, 20),
+				r: UFX.random(2, 4),
+				vx: UFX.random(-400, 400),
+				vy: UFX.random(-400, 0),
+				color: "purple",
+			})
+		}
+		this.poptick = 0
+	},
+	think: function (dt) {
+		this.poptick += dt
+		if (this.poptick > 1) return
+		this.particles.forEach(function (p) {
+			p.x += p.vx * dt
+			p.y += p.vy * dt
+			p.vy += 1000 * dt
+		})
+	},
+	draw: function () {
+		if (this.poptick > 1) return
+		UFX.draw("alpha", 1 - this.poptick)
+		this.particles.forEach(function (p) {
+			UFX.draw("b o", p.x, p.y, p.r, "fs", p.color, "f")
+		})
+	},
 }
 
 
@@ -144,6 +244,12 @@ var Squishes = {
 		}
 		var s = 1 + clip(this.vy / 600, -0.2, 0.2)
 		UFX.draw("z", 1/s, s)
+	},
+}
+
+var DieSoHigh = {
+	think: function (dt) {
+		if (this.y > gamestate.ymax + 200 && !this.state.dead) this.nextstate = DeadState
 	},
 }
 
@@ -161,11 +267,18 @@ Blob.prototype = UFX.Thing()
 	.addcomp(Squishes)
 	.addcomp(FacesDirection)
 	.addcomp(HasStates, ["think", "draw", "land", "bounce"])
+	.addcomp(DieSoHigh)
 	.addcomp({
 		applysin: function (sin) {
-			if (sin == "defy" && this.state !== DefyState) this.nextstate = DefyState
-			if (sin == "want" && this.state !== WantState) this.nextstate = WantState
-			if (sin == "rage" && this.state !== RageState) this.nextstate = RageState
+			var nextstate = {
+				defy: DefyState,
+				want: WantState,
+				rage: RageState,
+				gorge: GorgeState,
+			}[sin]
+			if (nextstate === this.state) return false
+			this.nextstate = nextstate
+			return true
 		},
 	})
 	.addcomp({ think: function (dt) { this.updatestate() } })
