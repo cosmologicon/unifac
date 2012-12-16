@@ -34,7 +34,8 @@ UFX.scene.playback.trimempty = true
 UFX.scene.push(LoadScene)
 UFX.resource.onloading = function (f) { LoadScene.f = f }
 UFX.resource.onload = function () {
-	UFX.scene.swap(IntroScene)
+//	UFX.scene.swap(IntroScene)
+	UFX.scene.swap(DialogueScene)
 }
 
 UFX.mouse.init(canvas)
@@ -45,7 +46,8 @@ UFX.key.init()
 UFX.key.remaparrows(true)
 UFX.key.watchlist = "up down left right 1 2 3 4 5 6 7 space enter tab".split(" ")
 
-UFX.resource.load({})
+UFX.resource.load({
+})
 UFX.resource.loadwebfonts("Viga", "Almendra SC", "Germania One", "Jolly Lodger")
 
 // sound and music

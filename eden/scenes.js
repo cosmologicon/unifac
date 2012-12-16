@@ -148,6 +148,9 @@ var ActionScene = {
 		if (mstate.left.down) HUD.handleclick()
 		this.endtime = gamestate.complete() ? this.endtime + dt : 0
 		if (this.endtime > 1) this.complete()
+		
+//		var b = blobs[6]
+//		console.log(b.x, b.y, b.vx, b.vy, platforms[3].isabove(b.x, b.y))
 	},
 	draw: function () {
 		UFX.draw("fs lightblue f0 font 18px~Viga fs white ft", UFX.ticker.getfpsstr(), "700 10 [")
