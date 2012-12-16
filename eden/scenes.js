@@ -92,7 +92,9 @@ var DialogueScene = {
 			this.complete()
 			return
 		}
-		gamestate.seen[gamestate.stage] = true
+		if (gamestate.stage != 666) {
+			gamestate.seen[gamestate.stage] = true
+		}
 		gamestate.save()
 		if (!this.lines.length) this.complete()
 	},
@@ -121,7 +123,7 @@ var DialogueScene = {
 		if (t.substr(0, 1) == "g") {
 			UFX.draw("fs", UFX.draw.radgrad(200, 200, 0, 200, 200, 400, 0, "yellow", 1, "white"),
 				"f0 textalign center textbaseline middle",
-				"fs black font 70px~'Germania~One' [ t", settings.sx / 2, 400)
+				"fs black font 70px~'Germania~One' [ t", settings.sx / 2, 360)
 		} else if (t.substr(0, 1) == "d") {
 			UFX.draw("fs", UFX.draw.radgrad(760, 200, 0, 760, 200, 400, 0, "darkgreen", 1, "black"),
 				"f0 textalign center textbaseline middle",
@@ -134,13 +136,17 @@ var DialogueScene = {
 
 		wordwrap(t.substr(2), 900).forEach(function (text) {
 			context.fillText(text, 0, 0)
-			context.translate(0, 80)
+			context.translate(0, 70)
 		})
 		UFX.draw("]")
 		UFX.draw("[ alpha", clip(1-2*this.fadetimer, 0, 1), "fs white f0 ]")
 	},
 	complete: function () {
 		this.completed = true
+		if (gamestate.stage == 666) {
+			UFX.scene.swap(MenuScene)
+			return
+		}
 		var s = "Loading~stage...."
 		UFX.draw("fs darkblue f0 font 80px~Viga fs white ss black textalign center textbaseline middle",
 			"[ t", settings.sx/2, settings.sy/2, "fst0", s, "]")
@@ -235,7 +241,12 @@ var ActionScene = {
 			gamestate.besttime[gamestate.stage] = Math.floor(HUD.elapsed)
 		}
 		gamestate.save()
-		UFX.scene.swap(MenuScene)
+		if (gamestate.stage == 6) {
+			gamestate.stage = 666
+			UFX.scene.swap(DialogueScene)
+		} else {
+			UFX.scene.swap(MenuScene)
+		}
 		playsound("complete")
 	},
 	incomplete: function () {

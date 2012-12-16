@@ -21,9 +21,11 @@ var vista = {
 		}
 		this.clouds = document.createElement("canvas")
 		this.clouds.width = settings.sx ; this.clouds.height = settings.sy
+		var skycolor =  { 1: "rgb(0,200,200)", 5: "rgb(0,0,60)" }[gamestate.stage] || "blue"
+		var mistcolor = { 2: "rgb(255,100,100)", 3: "black", 5: "black" }[gamestate.stage] || "white"
 		UFX.draw(this.clouds.getContext("2d"), 
-			"fs blue f0 [ z 4 3 drawimage0", UFX.texture.clouds({ shadex: 0, shadey: 1}),
-			"alpha 0.5 fs white f0 ]")
+			"fs", skycolor, "f0 [ z 4 3 drawimage0", UFX.texture.clouds({ shadex: 0, shadey: 1}),
+			"alpha 0.5 fs", mistcolor, "f0 ]")
 	},
 	scootch: function (dx, dy) {
 		var f = 700 / Math.sqrt(this.scale)
