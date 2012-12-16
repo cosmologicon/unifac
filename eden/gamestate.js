@@ -2,20 +2,28 @@ var gamestate = {
 	stage: 0,
 	loadstage: function () {
 		blobs = [
-			new Blob(600, -100),
-			new Blob(400, -400),
-			new Blob(500, 100),
+			new Blob(950, 0, false),
+			new Blob(1000, -100, true),
+			new Blob(1650, 0, true),
+			new Blob(1720, -300, false),
 		]
 		platforms = [
-			new SinglePlatform(300, 300, 700, 300),
-			new MultiPlatform(200, 200, 220, 500, 780, 500, 800, 200),
+//			new SinglePlatform(300, 300, 700, 300),
+//			new MultiPlatform(200, 200, 220, 500, 780, 500, 800, 200),
+			new MultiPlatform(1300, 100, 1680, 80, 1880, 120),
+			new MultiPlatform(720, 290, 920, 180, 1110, 200, 1270, 300, 1450, 330),
+			new MultiPlatform(1170, 590, 1700, 480, 1960, 350, 2100, 0),
+//			new MultiPlatform(),
 		]
 		this.gems = [
-			new Gem(500, 150),
+//			new Gem(500, 150),
 		]
 		this.turners = [
-			new Turner(350, 300, true, platforms[0]),
-			new Turner(650, 300, false, platforms[0]),
+			new Turner(1550, 50, true, platforms[0]),
+			new Turner(1850, 100, false, platforms[0]),
+			new Turner(750, 300, true, platforms[1]),
+			new Turner(1450, 350, false, platforms[1]),
+			new Turner(1350, 550, true, platforms[2]),
 		]
 		scenery = []
 		scenery.push.apply(scenery, this.gems)
@@ -29,8 +37,8 @@ var gamestate = {
 			pride: 10,
 		}
 		
-		this.xmin = 0 ; this.xmax = 1000
-		this.ymin = 0 ; this.ymax = 1000
+		this.xmin = -100 ; this.xmax = 2300
+		this.ymin = -100 ; this.ymax = 1100
 	},
 	nblobs: function () {
 		var n = 0

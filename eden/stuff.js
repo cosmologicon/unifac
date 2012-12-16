@@ -55,7 +55,7 @@ function Turner(x, y, right, platform) {
 	if (platform) {
 		var p = platform.constrain(this.x, this.y)
 		this.x = p[0] ; this.y = p[1]
-		this.A = platform.A
+		this.A = platform.getA(this.x, this.y)
 	}
 }
 Turner.prototype = UFX.Thing()
