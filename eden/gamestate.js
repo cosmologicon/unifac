@@ -39,6 +39,7 @@ var gamestate = {
 			rage: 10,
 			gorge: 10,
 			pride: 10,
+			laze: 10,
 		}
 		
 		this.xmin = -100 ; this.xmax = 2300
