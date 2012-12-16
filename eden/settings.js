@@ -13,6 +13,7 @@ var settings = {
 	hopdelay: 0.2,
 	wantv: 100,
 	wanta: 100,
+	ragerange: 40,
 	ragegravity: 10000,
 	ragehopvy: 1000,
 	ragetime: 3.0,

@@ -73,6 +73,13 @@ var blobtracers = {
 		"b m -2 2 q 10 -10 16 -2 ss black s",
 		"b m -5 -24 l 8 -20 l 17 -26 lw 2 ss black s",
 	], [-20, -32, 40, 40]),
+	stun: UFX.Tracer([
+		"( m 0 5 c 12 5 18 5 18 0 c 18 -20 10 -30 0 -30 c -10 -30 -18 -20 -18 0 c -18 5 -12 5 0 5 )",
+		"fs gray ss darkgray lw 1.5 f s",
+		"[ t 3 -15 r -0.15 z 3 6 b m 1 1 l -1 -1 m -1 1 l 1 -1 ] fs white ss black f s",
+		"[ t 10 -17 r -0.15 z 3 6 b m 1 1 l -1 -1 m -1 1 l 1 -1 ] fs white ss black f s",
+		"b m -2 2 q 10 -10 16 -2 ss black s",
+	], [-20, -32, 40, 40]),
 }
 
 
@@ -173,6 +180,15 @@ RageState.think = function (dt) {
 			this.vx = 0
 			this.vy = -settings.ragehopvy
 			this.platform = null
+			for (var j = 0 ; j < blobs.length ; ++j) {
+				var b = blobs[j]
+				if (b === this || b.state.dead) continue
+				var dx = b.x - this.x, dy = b.y - this.y
+				if (dx * dx + dy * dy < settings.ragerange * settings.ragerange) {
+					b.nextstate = StunState
+					b.stunner = this
+				}
+			}
 		}
 	} else {
 		this.x += this.vx * dt
@@ -264,6 +280,22 @@ var PopState = {
 		this.particles.forEach(function (p) {
 			UFX.draw("b o", p.x, p.y, p.r, "fs", p.color, "f")
 		})
+	},
+}
+
+var StunState = {
+	dead: true,
+	enter: function () {
+		this.vx = 300 * (this.stunner.x > this.x ? -1 : 1)
+		this.vy = -300
+	},
+	think: function (dt) {
+		this.x += this.vx * dt
+		this.y += this.vy * dt
+		this.vy += 1000 * dt
+	},
+	draw: function () {
+		blobtracers.stun.draw(vista.scale)
 	},
 }
 
