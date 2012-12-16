@@ -5,11 +5,13 @@ var HUD = {
 		this.selected = null
 		
 		this.buttons = {
-			reload: [10, settings.sy - 100, 80, 80],
+			"zoom~in": [settings.sx - 100, 20, 80, 60],
+			"zoom~out": [settings.sx - 100, 100, 80, 60],
+			"give~up": [settings.sx - 100, 180, 80, 60],
 		}
 		for (var j = 0 ; j < settings.sins.length ; ++j) {
 			var sin = settings.sins[j]
-			this.buttons[sin] = [10, 100*j + 10, 80, 80]
+			this.buttons[sin] = [10, 80*j + 10, 60, 60]
 		}
 		this.elapsed = 0
 	},
@@ -42,7 +44,12 @@ var HUD = {
 	},
 	handleclick: function () {
 		if (!this.target) return
-		if (this.target == "reload") {
+		if (this.target == "give~up") {
+			ActionScene.incomplete()
+		} else if (this.target == "zoom~in") {
+			vista.zoom(3, [settings.vx0, settings.vy0])
+		} else if (this.target == "zoom~out") {
+			vista.zoom(-3, [settings.vx0, settings.vy0])
 		} else if (this.target in this.buttons) {
 			this.selected = this.selected == this.target ? null : this.target
 			playsound("click-0")
@@ -69,7 +76,9 @@ var HUD = {
 			UFX.draw("fr", button, "sr", button)
 			if (bname in gamestate.sincounts) {
 				n = gamestate.sincounts[bname]
-				UFX.draw("[ t", button[0], button[1], "fs black ft", bname, "40 20 ft", ""+n, "40 60 ]")
+				UFX.draw("[ t", button[0], button[1], "fs black ft", bname, "30 14 ft", ""+n, "30 42 ]")
+			} else {
+				UFX.draw("[ t", button[0], button[1], "fs black ft", bname, "40 30 ]")
 			}
 		}
 		UFX.draw("]")
@@ -101,10 +110,13 @@ var MenuHUD = {
 		canvas.style.cursor = "default"
 		
 		this.buttons = {
-			0: [50, 220, 300, 60],
-			1: [50, 320, 300, 60],
-			2: [50, 420, 300, 60],
-			3: [50, 520, 300, 60],
+			0: [50, 200, 300, 60],
+			1: [50, 280, 300, 60],
+			2: [50, 360, 300, 60],
+			3: [50, 440, 300, 60],
+			4: [450, 280, 300, 60],
+			5: [450, 360, 300, 60],
+			6: [450, 440, 300, 60],
 		}
 	},
 	think: function (dt, mpos) {

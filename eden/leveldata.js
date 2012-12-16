@@ -1,30 +1,102 @@
 var leveldata = {
+	// showcase defy 
 	0: function () {
 		blobs = [
 			new Blob(100, -200, true),
 			new Blob(-50, 100, false),
+			new Blob(300, 200, true),
 		]
 		platforms = [
 			new MultiPlatform(-220,160, -100,220, 100,220, 220,160),
+			new MultiPlatform(0,380, 100,400, 350,370, 450,330, 480,200),
 		]
 		this.gems = [
 		]
 		this.turners = [
 			new Turner(-200, 180, true, platforms[0]),
 			new Turner(200, 180, false, platforms[0]),
+			new Turner(100, 400, true, platforms[1]),
 		]
 		this.sincounts = {
-			defy: 10,
+			defy: 3,
 			want: 0,
 			rage: 0,
 			gorge: 0,
 			pride: 0,
 			laze: 0,
 		}
-		this.xmin = -400 ; this.xmax = 400
-		this.ymin = -100 ; this.ymax = 400
+		this.xmin = -400 ; this.xmax = 600
+		this.ymin = -100 ; this.ymax = 600
 	},
-	3: function () {
+	// showcase sins of excess
+	1: function () {
+		blobs = [
+			new Blob(-300, -200, true),
+			new Blob(-200, -400, false),
+			new Blob(-100, -600, true),
+			new Blob(0, -800, false),
+			new Blob(100, -1000, true),
+			new Blob(200, -1200, false),
+			new Blob(0, -1400, true),
+			new Blob(-100, -1600, false),
+		]
+		platforms = [
+			new MultiPlatform(-450,390, -200,290, 10,200, 200,200, 310, 240),
+		]
+		this.gems = [
+			new Gem(-800,0),
+			new Gem(800,0),
+		]
+		this.turners = [
+			new Turner(-400, 400, true, platforms[0]),
+			new Turner(300, 200, false, platforms[0]),
+		]
+		this.sincounts = {
+			defy: 0,
+			want: 3,
+			rage: 0,
+			gorge: 3,
+			pride: 3,
+			laze: 0,
+		}
+		this.xmin = -1200 ; this.xmax = 1200
+		this.ymin = -200 ; this.ymax = 600
+	},
+	// showcase rage
+	2: function () {
+		blobs = [
+			new Blob(-400, -1000, true),
+			new Blob(-300, -100, false),
+			new Blob(120, -100, true),
+			new Blob(300, -1000, false),
+			new Blob(750, -1000, true),
+			new Blob(850, -100, false),
+		]
+		platforms = [
+			new MultiPlatform(-650,100, -640,300, -500,400, -300,480, -100,400, 100,270, 250,210, 410,300, 550,320,
+				750,310, 910,270, 1010,180, 1090,-20),
+		]
+		this.gems = [
+		]
+		this.turners = [
+			new Turner(-40, 350, false, platforms[0]),
+			new Turner(40, 300, true, platforms[0]),
+			new Turner(510, 350, false, platforms[0]),
+			new Turner(600, 350, true, platforms[0]),
+		]
+		this.sincounts = {
+			defy: 5,
+			want: 0,
+			rage: 5,
+			gorge: 1,
+			pride: 0,
+			laze: 5,
+		}
+		this.xmin = -900 ; this.xmax = 1300
+		this.ymin = -200 ; this.ymax = 700
+	},
+	// have to disable the defy sins to get them all together
+	4: function () {
 		blobs = [
 			new Blob(100, -200, true),
 			new Blob(-50, 100, false),
@@ -51,8 +123,8 @@ var leveldata = {
 			new Turner(500, 200, false, platforms[2]),
 			new Turner(-200, 500, true, platforms[3]),
 			new Turner(200, 500, false, platforms[3]),
-			new Turner(-500, 500, true, platforms[4]),
-			new Turner(500, 500, false, platforms[5]),
+			new Turner(-450, 500, true, platforms[4]),
+			new Turner(450, 500, false, platforms[5]),
 		]
 		this.sincounts = {
 			defy: 10,
@@ -65,7 +137,8 @@ var leveldata = {
 		this.xmin = -1100 ; this.xmax = 1100
 		this.ymin = -100 ; this.ymax = 1200
 	},
-	2: function () {
+	// Cross underneath with want and drop out the middle
+	3: function () {
 		blobs = [
 			new Blob(100, -200, false),
 			new Blob(0, -600, true),
@@ -94,7 +167,8 @@ var leveldata = {
 		this.xmin = -1200 ; this.xmax = 1200
 		this.ymin = -300 ; this.ymax = 700
 	},
-	1: function () {
+	// Multi-level rolling hills
+	5: function () {
 		blobs = [
 			new Blob(950, 0, false),
 			new Blob(1000, -100, true),

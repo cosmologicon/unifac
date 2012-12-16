@@ -3,8 +3,10 @@ var settings = {
 	vx0: 500, vy0: 270,
 	musicvolume: 0.3,
 	savegamename: "devilshandiworksave",
+	
+	allowzoom: true,
 
-	sins: ["defy", "want", "rage", "gorge", "pride", "laze"],
+	sins: ["defy", "want", "pride", "gorge", "rage", "laze"],
 	
 	// Game mechanics
 	blobheight: 20,
@@ -27,10 +29,9 @@ var settings = {
 
 	tradius: 30,  // cursor target radius
 	zfactor: 0.04,
-
-	
 }
 
+settings.allowzoom = window.location.href.indexOf("nozoom") == -1
 
 
 

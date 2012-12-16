@@ -59,9 +59,6 @@ var DrawGrass = {
 			var color = "rgb(" + UFX.random.rand(10, 20) + "," + UFX.random.rand(140,240) + ",0)"
 			this.drawspec.push(["b o", x*this.ix - y * this.iy, x*this.iy + y*this.ix, r, "fs", color, "f"])
 		}
-		this.tracer = UFX.Tracer(this.drawspec,
-			[Math.min(0, this.dx) - 200, Math.min(0, this.dy) - 200, Math.abs(this.dx) + 400, Math.abs(this.dy) + 400]
-		)
 	},
 	draw: function (con) {
 		con = con || context
