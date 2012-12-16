@@ -38,25 +38,29 @@ var SingleDivider = {
 
 var DrawGrass = {
 	maketracer: function () {
-		var s = []
+		this.drawspec = []
 		for (var j = 0 ; j < this.d ; ++j) {
 			var x = UFX.random(15, this.d - 15), y = UFX.random(), r = UFX.random(12, 20)
 			y = 10 + y * x * (1 - x/this.d)
 			var color = "rgb(" + UFX.random.rand(80,120) + "," + UFX.random.rand(40,60) + ",0)"
-			s.push(["b o", x*this.ix - y * this.iy, x*this.iy + y*this.ix, r, "fs", color, "f"])
+			this.drawspec.push(["b o", x*this.ix - y * this.iy, x*this.iy + y*this.ix, r, "fs", color, "f"])
 		}
 		for (var j = 0 ; j < this.d ; ++j) {
 			var x = UFX.random(this.d), y = UFX.random(-5, 10), r = UFX.random(4, 8)
 			var color = "rgb(" + UFX.random.rand(10, 20) + "," + UFX.random.rand(140,240) + ",0)"
-			s.push(["b o", x*this.ix - y * this.iy, x*this.iy + y*this.ix, r, "fs", color, "f"])
+			this.drawspec.push(["b o", x*this.ix - y * this.iy, x*this.iy + y*this.ix, r, "fs", color, "f"])
 		}
-		this.tracer = UFX.Tracer(s,
+		this.tracer = UFX.Tracer(this.drawspec,
 			[Math.min(0, this.dx) - 200, Math.min(0, this.dy) - 200, Math.abs(this.dx) + 400, Math.abs(this.dy) + 400]
 		)
 	},
-	draw: function () {
-		this.tracer.draw(vista.scale)
+	draw: function (con) {
+		con = con || context
+		UFX.draw(con, this.drawspec)
 	},
+//	draw: function () {
+//		this.tracer.draw(vista.scale)
+//	},
 }
 
 
@@ -123,9 +127,10 @@ MultiPlatform.prototype = {
 	canhold: function (x, y) {
 		return this.nearest(x, y).canhold()
 	},
-	draw: function () {
+	draw: function (con) {
+		con = con || context
 		this.platforms.forEach(function (platform) {
-			context.save() ; platform.draw() ; context.restore()
+			con.save() ; platform.draw(con) ; con.restore()
 		})
 	},
 }

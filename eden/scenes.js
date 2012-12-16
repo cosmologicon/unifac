@@ -88,7 +88,7 @@ var ActionScene = {
 		vista.draw()
 		function draw(obj) { context.save() ; obj.draw() ; context.restore() }
 		scenery.forEach(draw)
-		platforms.forEach(draw)
+//		platforms.forEach(draw)
 		blobs.forEach(draw)
 		UFX.draw("]")
 		HUD.draw()

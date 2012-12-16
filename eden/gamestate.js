@@ -8,7 +8,7 @@ var gamestate = {
 		]
 		platforms = [
 			new SinglePlatform(300, 300, 700, 300),
-//			new MultiPlatform(200, 200, 220, 500, 780, 500, 800, 200),
+			new MultiPlatform(200, 200, 220, 500, 780, 500, 800, 200),
 		]
 		this.gems = [
 			new Gem(500, 150),
