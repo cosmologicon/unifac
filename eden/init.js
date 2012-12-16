@@ -35,10 +35,16 @@ UFX.scene.push(LoadScene)
 UFX.resource.onloading = function (f) { LoadScene.f = f }
 UFX.resource.onload = function () {
 	UFX.scene.swap(IntroScene)
-//	UFX.scene.swap(DialogueScene)
 	UFX.resource.mergesounds("jump")
 	UFX.resource.sounds.fall = UFX.resource.Multisound(UFX.resource.sounds.fall, 5)
 	UFX.resource.sounds.zzzz = UFX.resource.Multisound(UFX.resource.sounds.zzzz, 3)
+	UFX.resource.sounds["click-0"] = UFX.resource.Multisound(UFX.resource.sounds["click-0"], 3)
+	UFX.resource.sounds.pound = UFX.resource.Multisound(UFX.resource.sounds.pound, 10)
+	UFX.resource.sounds.stun = UFX.resource.Multisound(UFX.resource.sounds.stun, 10)
+	UFX.resource.sounds.eat = UFX.resource.Multisound(UFX.resource.sounds.eat, 3)
+	UFX.resource.sounds.get = UFX.resource.Multisound(UFX.resource.sounds.get, 3)
+	UFX.resource.sounds.pop = UFX.resource.Multisound(UFX.resource.sounds.pop, 3)
+	UFX.resource.sounds.bolt = UFX.resource.Multisound(UFX.resource.sounds.bolt, 3)
 	UFX.resource.sounds.jump.volume = 0.15
 	UFX.resource.sounds.fall.volume = 0.4
 }
