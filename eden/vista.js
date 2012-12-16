@@ -13,10 +13,12 @@ var vista = {
 			[gamestate.xmin, gamestate.ymin, gamestate.xmax-gamestate.xmin, gamestate.ymax-gamestate.ymin]
 		)
 		this.backdrop.makeimg(1)
-		this.backdrop.makeimg(2)
-		this.backdrop.makeimg(4)
 		this.backdrop.makeimg(0.5)
-		this.backdrop.makeimg(0.25)
+//			this.backdrop.makeimg(0.25)
+		if (settings.allowzoom) {
+			this.backdrop.makeimg(2)
+			this.backdrop.makeimg(4)
+		}
 	},
 	scootch: function (dx, dy) {
 		var f = 700 / Math.sqrt(this.scale)
@@ -26,7 +28,7 @@ var vista = {
 	},
 	zoom: function (dz, mpos) {
 		var oldscale = this.scale
-		this.z = clip(this.z + dz, -20, 20)
+		this.z = clip(this.z + dz, -20, (settings.allowzoom ? 20 : 0))
 		this.scale = Math.exp(settings.zfactor * this.z)
 		this.x += mpos[0] * (1/oldscale - 1/this.scale)
 		this.y += mpos[1] * (1/oldscale - 1/this.scale)

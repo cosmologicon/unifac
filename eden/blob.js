@@ -164,18 +164,20 @@ LazeState.think = function (dt) {
 		this.y += this.vy * dt + 0.5 * settings.gravity * dt * dt
 		this.vy += settings.gravity * dt
 	}
-	for (var j = 0 ; j < blobs.length ; ++j) {
-		var b = blobs[j]
-		if (b === this || b.state.dead || b.state.immune || b.state === LazeState || b.nextstate === LazeState) continue
-		var dx = b.x - this.x, dy = b.y - this.y
-		if (dx * dx + dy * dy < settings.lazerange * settings.lazerange) {
-			b.nextstate = LazeState
-			b.lazetick = this.lazetick
+	if (this.lazetick < settings.lazetime - 1) {
+		for (var j = 0 ; j < blobs.length ; ++j) {
+			var b = blobs[j]
+			if (b === this || b.state.dead || b.state.immune || b.state === LazeState || b.nextstate === LazeState) continue
+			var dx = b.x - this.x, dy = b.y - this.y
+			if (dx * dx + dy * dy < settings.lazerange * settings.lazerange) {
+				b.nextstate = LazeState
+				b.lazetick = this.lazetick
+			}
 		}
 	}
-//	console.log(this.x, this.y, this.oldx, this.oldy, this.vx, this.vy)
 }
 LazeState.draw = function () {
+	if (this.platform) UFX.draw("r", this.platform.getA(this.x, this.y) * (this.facingright ? 1 : -1))
 	var s = 1 + 0.2 * Math.sin(2.5 * this.lazetick)
 	UFX.draw("z", s, 1/s)
 	blobtracers.laze.draw(vista.scale)
@@ -260,8 +262,15 @@ GorgeState.think = function (dt) {
 	if (this.gorgetick > settings.gorgetime) {
 		this.nextstate = PopState
 	}
+	if (this.platform) {
+	} else {
+		this.x += this.vx * dt
+		this.y += this.vy * dt + 0.5 * settings.gravity * dt * dt
+		this.vy += settings.gravity * dt
+	}
 }
 GorgeState.draw = function () {
+	if (this.platform) UFX.draw("r", this.platform.getA(this.x, this.y) * (this.facingright ? 1 : -1))
 	var ax = 1 + 2 * this.gorgetick / settings.gorgetime
 	var ay = 1 + 0.5 * this.gorgetick / settings.gorgetime
 	var sx = 1 + 0.2 * Math.sin(10 * this.gorgetick)

@@ -16,6 +16,7 @@ var IntroScene = {
 		playmusic("tofuslow")
 		if (gamestate.seen.intro) this.complete()
 		gamestate.seen.intro = true
+		gamestate.save()
 	},
 	thinkargs: function (dt) {
 		return [dt, UFX.mouse.state(), UFX.key.state()]
@@ -82,18 +83,24 @@ var MenuScene = {
 
 var DialogueScene = {
 	start: function () {
+		this.completed = false
 		this.j = 0
 		this.lines = dialogue[gamestate.stage] || []
 		this.fadetimer = 0
 		playmusic("tofuslow")
-		if (gamestate.seen[gamestate.stage]) this.complete()
+		if (gamestate.seen[gamestate.stage]) {
+			this.complete()
+			return
+		}
 		gamestate.seen[gamestate.stage] = true
+		gamestate.save()
 		if (!this.lines.length) this.complete()
 	},
 	thinkargs: function (dt) {
 		return [dt, UFX.mouse.state(), UFX.key.state()]
 	},
 	think: function (dt, mstate, kstate) {
+		if (this.completed) return
 		var kdown = kstate.down
 		if (kdown.space || kstate.enter || kstate.tab || mstate.left.down) {
 			this.j += 1
@@ -108,6 +115,7 @@ var DialogueScene = {
 		this.fadetimer += dt
 	},
 	draw: function () {
+		if (this.completed) return
 		var t = this.lines[this.j]
 		if (!t) return
 		if (t.substr(0, 1) == "g") {
@@ -128,10 +136,10 @@ var DialogueScene = {
 		UFX.draw("[ alpha", clip(1-2*this.fadetimer, 0, 1), "fs white f0 ]")
 	},
 	complete: function () {
+		this.completed = true
 		var s = "Loading~stage...."
 		UFX.draw("fs darkblue f0 font 80px~Viga fs white ss black textalign center textbaseline middle",
 			"[ t", settings.sx/2, settings.sy/2, "fst0", s, "]")
-
 		setTimeout(function () {
 			UFX.scene.swap(ActionScene)
 			gamestate.loadstage()
@@ -212,6 +220,9 @@ var ActionScene = {
 	},
 	complete: function () {
 		gamestate.completed[gamestate.stage] = true
+		if (gamestate.stage < 6) {
+			gamestate.unlocked[gamestate.stage + 1] = true
+		}
 		var t = Math.floor(HUD.elapsed)
 		if (!gamestate.besttime[gamestate.stage] || gamestate.besttime[gamestate.stage] > t) {
 			gamestate.besttime[gamestate.stage] = Math.floor(HUD.elapsed)

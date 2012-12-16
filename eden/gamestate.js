@@ -56,6 +56,9 @@ var gamestate = {
 		delete localStorage[settings.savegamename]
 		window.location.reload()
 	},
+	unlockall: function () {
+		for (var j = 0 ; j < 7 ; ++j) this.unlocked[j] = true
+	},
 }
 gamestate.load()
 gamestate.save()
