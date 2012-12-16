@@ -1,9 +1,22 @@
 var vista = {
-	init: function () {
+	init: function () {  // must be called after gamestate.loadstage
 		this.x = 0
 		this.y = 0
 		this.z = 0
 		this.scale = 1.0
+		this.backdrop = UFX.Tracer(
+			function (con) {
+				platforms.forEach(function (platform) {
+					con.save() ; platform.draw(con) ; con.restore()
+				})
+			},
+			[gamestate.xmin, gamestate.ymin, gamestate.xmax-gamestate.xmin, gamestate.ymax-gamestate.ymin]
+		)
+		this.backdrop.makeimg(1)
+		this.backdrop.makeimg(2)
+		this.backdrop.makeimg(4)
+		this.backdrop.makeimg(0.5)
+		this.backdrop.makeimg(0.25)
 	},
 	scootch: function (dx, dy) {
 		var f = 700 / Math.sqrt(this.scale)
@@ -48,6 +61,7 @@ var vista = {
 	},
 	draw: function () {
 		UFX.draw("z", this.scale, this.scale, "t", -this.x, -this.y)
+		this.backdrop.draw(this.scale)
 		
 	},
 }

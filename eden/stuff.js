@@ -3,8 +3,8 @@
 
 
 var WorldBound = {
-	draw: function () {
-		UFX.draw("t", this.x, this.y)
+	draw: function (con) {
+		UFX.draw(con || context, "t", this.x, this.y)
 	},
 }
 
