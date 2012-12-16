@@ -225,6 +225,7 @@ RageState.think = function (dt) {
 		} else {
 			this.vx = 0
 			this.vy = -settings.ragehopvy
+			playsound("pound")
 			this.platform = null
 			for (var j = 0 ; j < blobs.length ; ++j) {
 				var b = blobs[j]
@@ -232,6 +233,7 @@ RageState.think = function (dt) {
 				var dx = b.x - this.x, dy = b.y - this.y
 				if (dx * dx + dy * dy < settings.ragerange * settings.ragerange) {
 					b.nextstate = StunState
+					playsound("stun")
 					b.stunner = this
 				}
 			}
@@ -272,6 +274,7 @@ var PrideState = {
 		this.pridetick = 0
 		this.vx = settings.pridevx * (this.facingright ? 1 : -1)
 		this.vy = 0
+		playsound("grow")
 	},
 	think: function (dt) {
 		this.pridetick += dt
@@ -358,7 +361,10 @@ var Squishes = {
 
 var DieSoHigh = {
 	think: function (dt) {
-		if (this.y > gamestate.ymax + 200 && !this.state.dead) this.nextstate = DeadState
+		if (this.y > gamestate.ymax + 200 && !this.state.dead) {
+			this.nextstate = DeadState
+			playsound("fall")
+		}
 	},
 }
 
@@ -390,6 +396,7 @@ Blob.prototype = UFX.Thing()
 			}[sin]
 			if (nextstate === this.state) return false
 			this.nextstate = nextstate
+			if (sin == "laze") playsound("zzzz")
 			return true
 		},
 	})

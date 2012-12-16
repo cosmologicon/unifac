@@ -43,6 +43,10 @@ var IntroScene = {
 	
 }
 
+var MenuScene = {
+	
+}
+
 var DialogueScene = {
 	start: function () {
 		this.j = 0
@@ -165,6 +169,7 @@ var ActionScene = {
 	},
 	complete: function () {
 		UFX.scene.swap(TitleScene)
+		playsound("complete")
 	},
 }
 
