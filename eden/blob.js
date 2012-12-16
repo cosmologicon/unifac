@@ -119,7 +119,9 @@ var HopState = {
 	},
 	bounce: function (platform) {
 		var p = platform.constrain(this.x, this.y)
-		var v = platform.bouncevector(this.vx, this.vy)
+		var v = platform.bouncevector(this.x, this.y, this.vx, this.vy)
+		console.log(this.vx, this.vy)
+		console.log(v[0], v[1])
 		this.vx = v[0]
 		this.vy = v[1]
 		this.facingright = this.vx > 0
@@ -316,9 +318,10 @@ var DieSoHigh = {
 	},
 }
 
-function Blob(x, y) {
+function Blob(x, y, right) {
 	this.x = x
 	this.y = y
+	this.facingright = right
 	this.vx = 0
 	this.vy = 0
 	this.h = settings.blobheight

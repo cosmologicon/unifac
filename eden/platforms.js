@@ -9,6 +9,9 @@ var SingleDivider = {
 		var dx = x - this.x, dy = y - this.y
 		return dy * this.dx < this.dy * dx
 	},
+	getA: function () {
+		return this.A
+	},
 	constrain: function (x, y) {
 		var p = (x - this.x) * this.ix + (y - this.y) * this.iy
 		return [this.x + p * this.ix + 1 * this.iy, this.y + p * this.iy - 1 * this.ix]
@@ -20,10 +23,10 @@ var SingleDivider = {
 		var y0 = p < 0 ? 0 : p > this.d ? this.dy : p * this.iy
 		return (x0 - dx) * (x0 - dx) + (y0 - dy) * (y0 - dy)
 	},
-	bouncevector: function (x, y) {
-		var p = x * this.ix + y * this.iy
+	bouncevector: function (x, y, vx, vy) {
+		var p = vx * this.ix + vy * this.iy
 		var px = p * this.ix, py = p * this.iy
-		return [2*px-x, 2*py-y]
+		return [2*px-vx, 2*py-vy]
 	},
 	catches: function (obj) {
 		if (!this.isabove(obj.oldx, obj.oldy)) return false
@@ -104,11 +107,14 @@ MultiPlatform.prototype = {
 	isabove: function (x, y) {
 		return this.nearest(x, y).isabove(x, y)
 	},
+	getA: function (x, y) {
+		return this.nearest(x, y).A
+	},
 	constrain: function (x, y) {
 		return this.nearest(x, y).constrain(x, y)
 	},
-	bouncevector: function (x, y) {
-		return this.nearest(x, y).bouncevector(x, y)
+	bouncevector: function (x, y, vx, vy) {
+		return this.nearest(x, y).bouncevector(x, y, vx, vy)
 	},
 	catches: function (obj) {
 		var plat = this.nearest(obj.x, obj.y)
