@@ -37,7 +37,10 @@ UFX.resource.onload = function () {
 	UFX.scene.swap(IntroScene)
 //	UFX.scene.swap(DialogueScene)
 	UFX.resource.mergesounds("jump")
+	UFX.resource.sounds.fall = UFX.resource.Multisound(UFX.resource.sounds.fall, 5)
+	UFX.resource.sounds.zzzz = UFX.resource.Multisound(UFX.resource.sounds.zzzz, 3)
 	UFX.resource.sounds.jump.volume = 0.15
+	UFX.resource.sounds.fall.volume = 0.4
 }
 
 UFX.mouse.init(canvas)
@@ -50,13 +53,13 @@ UFX.key.watchlist = "up down left right 1 2 3 4 5 6 7 space enter tab esc".split
 
 var res = {
 	tofuslow: "music/black-tofu-slow.ogg",
+	ninja: "music/ninja-ages.ogg",
 }
 //for (var fname in frameoffsets) {
 //	res[fname] = "img/" + fname + ".png"
 //}
 var soundnames = (
-	"jump-0 jump-1 jump-2 jump-3 " +
-	"click-0 complete fall grow pound stun zzzz"
+	"jump-0 jump-1 jump-2 jump-3 click-0 complete fall grow pound stun zzzz bolt eat get pop"
 ).split(" ")
 soundnames.forEach(function (sname) {
 	res[sname] = "sfx/" + sname + ".ogg"

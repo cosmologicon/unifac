@@ -156,6 +156,7 @@ var DialogueScene = {
 var ActionScene = {
 	start: function () {
 		this.endtime = 0
+		playmusic("ninja")
 	},
 	thinkargs: function (dt) {
 		var mstate = UFX.mouse.state()
