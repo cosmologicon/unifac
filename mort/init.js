@@ -31,11 +31,11 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequest
                                window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
 UFX.scene.init()
 UFX.scene.playback.trimempty = true
-UFX.scene.push(LoadScene)
-UFX.resource.onloading = function (f) { LoadScene.onloading(f) }
+UFX.scene.push("load")
+UFX.resource.onloading = function (f) { UFX.scenes.load.onloading(f) }
 UFX.resource.onload = function () {
 	UFX.scene.pop()
-	UFX.scene.push(TitleScene)
+	UFX.scene.push("title")
 //	UFX.scene.push(EndScene)
 	UFX.resource.mergesounds("jump", "pickup", "ejump", "whiff", "ewhiff")
 	UFX.resource.sounds.jump.volume = 0.3
@@ -118,4 +118,5 @@ function cheat() {
     }
     record.bank = 20000
 }
+
 
