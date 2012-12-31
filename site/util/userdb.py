@@ -1,14 +1,20 @@
 # Access to the user database: session validation etc.
 # I don't store any user credentials here.
 
-import os, hashlib, sqlite3, uuid, Cookie, random, string, time
+import os, hashlib, sqlite3, Cookie, random, string, time
 
 sessionlife = 7776000  # 90 days
 salt = "rmvtjdzzkbxkcava"
 def gethash(s):
 	return hashlib.sha224(salt + s).hexdigest()
+def makeuser(db = None):
+	while True:
+		user = "".join(random.choice(string.lowercase) for _ in range(6))
+		if not db or not db.querysingle("SELECT user FROM creds WHERE user = ?", (user,)):
+			return user
 def makesession():
 	return "".join(random.choice(string.lowercase) for _ in range(16))
+cookie = { k: v.value for k, v in Cookie.SimpleCookie(os.environ.get("HTTP_COOKIE", "")).items() }
 
 # Object to access the database with
 class DB(object):
@@ -36,9 +42,7 @@ def getuser(userid, mode="persona"):
 	with DB() as db:
 		user = db.querysingle("SELECT user FROM creds WHERE who = ? AND mode = ?", (who, mode))
 		if not user:
-			user = str(uuid.uuid4())
-			while db.querysingle("SELECT user FROM creds WHERE user = ?", (user,)):
-				user = str(uuid.uuid4())
+			user = makeuser(db)
 			db.query("INSERT INTO creds (user, who, mode) VALUES (?, ?, ?)", (user, who, mode))
 	return user
 
@@ -56,12 +60,18 @@ def removesessions(user):
 		db.query("DELETE FROM sessions WHERE user = ?", (user,))
 
 def verifysession(user, session = None, agent = None):
-	session = session or Cookie.SimpleCookie(os.environ["HTTP_COOKIE"])["session"].value
+	session = session or cookie["session"]
 	agent = gethash("agent" + (agent or os.environ.get("HTTP_USER_AGENT") or ""))
 	with DB() as db:
 		t0 = db.querysingle("SELECT created FROM sessions WHERE user = ? AND session = ? AND agent = ?",
 			(user, session, agent))
 	return bool(t0) and time.time() < float(t0) + sessionlife
+
+# returns the user if logged in or None otherwise
+def currentuser():
+	if "user" not in cookie: return None
+	user = cookie["user"]
+	return user if verifysession(user) else None
 
 if __name__ == "__main__":
 	with DB() as db:
