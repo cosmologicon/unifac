@@ -2,7 +2,7 @@
 // <script src="https://login.persona.org/include.js"></script>
 // <script src="http://universefactory.net/auth/auth.js"></script>
 
-// Also create a container with id="loginbox" if you want buttons.
+// Also create a container with id="signinbox" if you want buttons.
 
 // Let's keep everything in a nice namespace, shall we?
 var AUTH = {}
@@ -16,36 +16,36 @@ document.cookie.split(";").forEach(function (kv) {
 //alert(AUTH.cookies.personauser)
 
 // Sign in / out buttons etc.
-AUTH.loginbox = document.getElementById('loginbox')
-AUTH.loginpersona = document.getElementById('loginpersona')
-AUTH.logout = document.getElementById('logout')
-if (AUTH.loginbox) {
+AUTH.signinbox = document.getElementById('signinbox')
+AUTH.signinpersona = document.getElementById('signinpersona')
+AUTH.signout = document.getElementById('signout')
+if (AUTH.signinbox) {
 	if (AUTH.cookies.user) {
 		if (AUTH.cookies.personauser) {
-			message = "Signed in as " + AUTH.cookies.personauser
+			message = "Signed in as " + AUTH.cookies.personauser + " : "
 		} else {
-			message = "Signed in"
+			message = "Signed in : "
 		}
 		AUTH.mess = document.createElement("p")
-		AUTH.mess.href = "#"
 		AUTH.mess.appendChild(document.createTextNode(message))
-	    AUTH.loginbox.appendChild(AUTH.mess)
+	    AUTH.signinbox.appendChild(AUTH.mess)
 
-		AUTH.logout = document.createElement("a")
-		AUTH.logout.href = "#"
-		AUTH.logout.appendChild(document.createTextNode("Sign out"))
-	    AUTH.loginbox.appendChild(AUTH.logout)
+		AUTH.signout = document.createElement("a")
+		AUTH.signout.href = "#"
+		AUTH.signout.appendChild(document.createTextNode("Sign out"))
+	    AUTH.signinbox.appendChild(AUTH.signout)
 	} else {
-		if (!AUTH.loginpersona) {
-			AUTH.loginpersona = document.createElement("img")
-			AUTH.loginpersona.src = "https://developer.mozilla.org/files/3961/persona_sign_in_black.png"
-		    AUTH.loginbox.appendChild(AUTH.loginpersona)
+		if (!AUTH.signinpersona) {
+			AUTH.signinbox.className += " signintooltip"
+			AUTH.signinpersona = document.createElement("img")
+			AUTH.signinpersona.src = "https://developer.mozilla.org/files/3961/persona_sign_in_black.png"
+		    AUTH.signinbox.appendChild(AUTH.signinpersona)
 		}
 	}
 }
 
-if (AUTH.loginpersona) {
-	AUTH.loginpersona.onclick = function() {
+if (AUTH.signinpersona) {
+	AUTH.signinpersona.onclick = function() {
 		navigator.id.request({
 			siteName: "Universe Factory Games",
 //			siteLogo: ...,   TODO: make a site logo 100x100px
@@ -54,8 +54,8 @@ if (AUTH.loginpersona) {
 	}
 }
 
-if (AUTH.logout) {
-	AUTH.logout.onclick = function() {
+if (AUTH.signout) {
+	AUTH.signout.onclick = function() {
 		navigator.id.logout()
 		return false
 	}
@@ -68,6 +68,7 @@ AUTH.postreload = function (url, qstring) {
 	req.send(qstring)
 	req.onreadystatechange = (function (r) {
 		return function () {
+//			console.log([r.readyState, r.status, r.response])
 			if (r.readyState == 4 && r.status == 200) window.location.reload(true)
 		}
 	})(req)
@@ -78,13 +79,13 @@ navigator.id.watch({
 	onlogin: function (assertion) {
 		AUTH.postreload(
 			"http://universefactory.net/auth/",
-			"assertion=" + encodeURIComponent(assertion) + "&act=loginpersona"
+			"assertion=" + encodeURIComponent(assertion) + "&act=signinpersona"
 		)
 	},
 	onlogout: function () {
 		AUTH.postreload(
 			"http://universefactory.net/auth/",
-			"act=logout"
+			"act=signout"
 		)
 	},
 })

@@ -2,9 +2,9 @@
 
 # Authorization script!
 # Must specify one of the following acts:
-#   login: doesn't do anything, just takes you to the login screen
-#   loginpersona: Log in using Mozilla Persona
-#   logout
+#   signin: doesn't do anything, just takes you to the signin screen
+#   signinpersona: Sign in using Mozilla Persona
+#   signout
 
 # TODO: verify SSL certificates
 # https://developer.mozilla.org/en-US/docs/Persona/Security_Considerations#Verify_SSL_certificates
@@ -15,14 +15,14 @@ import userdb
 cgitb.enable(display = 0, logdir = "/tmp")
 form = cgi.FieldStorage()
 form = { field: form.getfirst(field) for field in form }
-act = form["act"] if "act" in form else "login"
+act = form["act"] if "act" in form else "signin"
 
-if act == "login":
+if act == "signin":
 	print("Content-type: text/html\n\n")
-	print("TODO: add login screenio")
+	print("TODO: add signin screenio")
 	print(form)
 	exit()
-elif act == "loginpersona":
+elif act == "signinpersona":
 	url = "https://verifier.login.persona.org/verify"
 	data = urllib.urlencode({
 		"assertion": form["assertion"],
@@ -40,12 +40,15 @@ elif act == "loginpersona":
 		print("Set-Cookie: personauser=%s; path=/;" % urllib.quote(personauser.encode("utf-8")))
 		print("Set-Cookie: user=%s; path=/;" % user)
 		print("Set-Cookie: session=%s; path=/;" % session)
+		print("Content-type: text/html\n\n")
+		print("response: %s" % response)
+		exit()
 	else:
 		print("Content-type: text/html\n\n")
 		print("response: %s" % response)
 		exit()
 
-elif act == "logout":
+elif act == "signout":
 	user = userdb.currentuser()
 	if user:
 		userdb.removesessions(user)

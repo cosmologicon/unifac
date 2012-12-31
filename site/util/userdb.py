@@ -67,7 +67,7 @@ def verifysession(user, session = None, agent = None):
 			(user, session, agent))
 	return bool(t0) and time.time() < float(t0) + sessionlife
 
-# returns the user if logged in or None otherwise
+# returns the user if signed in or None otherwise
 def currentuser():
 	if "user" not in cookie: return None
 	user = cookie["user"]
