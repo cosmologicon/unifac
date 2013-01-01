@@ -18,8 +18,8 @@ form = { field: form.getfirst(field) for field in form }
 act = form["act"] if "act" in form else "signin"
 
 if act == "signin":
-	print("Content-type: text/html\n\n")
-	print("TODO: add signin screenio")
+	print('Content-Type: text/plain; charset="UTF-8"\n')
+	print("TODO: add generic html signin screenio")
 	print(form)
 	exit()
 elif act == "signinpersona":
@@ -36,17 +36,14 @@ elif act == "signinpersona":
 		user = userdb.getuser(personauser, "persona")
 		session = userdb.createsession(user)
 
-		# TODO: add timeouts
+		# TODO: add expirations
 		print("Set-Cookie: personauser=%s; path=/;" % urllib.quote(personauser.encode("utf-8")))
 		print("Set-Cookie: user=%s; path=/;" % user)
 		print("Set-Cookie: session=%s; path=/;" % session)
-		print("Content-type: text/html\n\n")
-		print("response: %s" % response)
-		exit()
-	else:
-		print("Content-type: text/html\n\n")
-		print("response: %s" % response)
-		exit()
+
+	print("Content-type: application/json\n")
+	print("response: %s" % json.dumps(response))
+	exit()
 
 elif act == "signout":
 	user = userdb.currentuser()
@@ -56,6 +53,6 @@ elif act == "signout":
 	print("Set-Cookie: user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;")
 	print("Set-Cookie: session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;")
 
-print("Content-type: text/html\n\n")
+print('Content-Type: text/plain; charset="UTF-8"\n')
 
 
