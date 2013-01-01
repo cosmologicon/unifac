@@ -30,15 +30,21 @@ setcanvassize()
 window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
                                window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
 UFX.scene.init()
-UFX.scene.playback.trimempty = true
 UFX.scene.push("load")
 UFX.resource.onloading = function (f) { UFX.scenes.load.onloading(f) }
 UFX.resource.onload = function () {
-	UFX.scene.pop()
-	UFX.scene.push("title")
-//	UFX.scene.push(EndScene)
+	UFX.scene.ipop()
 	UFX.resource.mergesounds("jump", "pickup", "ejump", "whiff", "ewhiff")
 	UFX.resource.sounds.jump.volume = 0.3
+	if (settings.review) {
+		reviewer.init(settings.gamename, settings.version)
+	} else {
+		if (record.recordgame) {
+			startrecording()
+		}
+		UFX.scene.push("title")
+	}
+//	UFX.scene.push(EndScene)*/
 }
 
 UFX.key.init()

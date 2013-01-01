@@ -1,7 +1,10 @@
 var settings = {
-	gamename: "Mortimer the Lepidopterist",
+	gamename: "mortimer",
 	version: "pyweek-0",
 	savegamename: "mortimersave",
+	sessionname: UFX.random.word(),
+	
+	review: window.location.href.indexOf("review") > -1,
 
 	sx: 800,
 	sy: 400,
