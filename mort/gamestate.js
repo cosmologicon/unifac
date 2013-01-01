@@ -12,6 +12,7 @@ var record = {
 	hiscore: {},
 	seentips: {},
 	seenscenes: {},
+	playername: UFX.random.word(),
 }
 var record0 = JSON.stringify(record)
 
@@ -227,39 +228,34 @@ var gamestate = {
 }
 
 gamestate.load()
-if (!("recordgame" in record)) {
-	var s = "This game is under development. The developer of this game (Christopher Night) would " +
-		"like to upload a recording of your gameplay, in order to make improvements to the game. " +
-		"No personal information will be uploaded, and the recording will not be accessible to " +
-		"anybody but the developer. If you don't want to participate, pick Cancel (you can still " +
-		"play the game)."
-	record.recordgame = window.confirm(s)
-}
 gamestate.save()
 
-var ssn = settings.gamename + "session"
-settings.sessionnumber = localStorage[ssn] = parseInt(localStorage[ssn] || "0") + 1
-
-var initstate = null, statepushes = 0
-function pushrecording(where) {
-	if (!record.recordgame) return
-	var playback = UFX.scene.playback.record()
-	if (initstate) {
-		var data = JSON.stringify([where, initstate, playback])
-		var req = new XMLHttpRequest()
-		req.open("POST", "http://universefactory.net/tools/playback-receiver.py")
-		req.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-		console.log(settings.sessionnumber, statepushes)
-		req.send([
-			"gamename=" + encodeURIComponent(settings.gamename),
-			"gameversion=" + encodeURIComponent(settings.version),
-			"sessionnumber=" + encodeURIComponent(settings.sessionnumber),
-			"playbacknumber=" + encodeURIComponent(statepushes),
-			"data=" + encodeURIComponent(data),
-		].join("&"))
-//		console.log(statepushes, initstate, dt, playback.length, d.length)
+function confirmrecording() {
+	if (!("recordgame" in record)) {
+		var s = "This game is under development. The developer of this game (Christopher Night) would " +
+			"like to upload a recording of your gameplay, in order to make improvements to the game. " +
+			"No personal information will be uploaded, and the recording will not be accessible to " +
+			"anybody but the developer. If you don't want to participate, pick Cancel (you can still " +
+			"play the game)."
+		record.recordgame = window.confirm(s)
+		gamestate.save()
 	}
-	initstate = JSON.parse(JSON.stringify(gamestate.getstate()))
-	statepushes += 1
 }
+
+function startrecording() {
+	recorder = UFX.Recorder({
+		gamename: settings.gamename,
+		version: settings.version,
+		sessionname: settings.sessionname,
+		playername: record.playername,
+		getstate: function () {
+			return gamestate.getstate()
+		},
+		tethered: true,
+		tetherswap: true,
+		postscript: "http://universefactory.net/tools/playback/post/",
+	})
+}
+
+
 

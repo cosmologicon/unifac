@@ -32,7 +32,9 @@ var keystatus = {
 }
 
 UFX.scenes.load = {
+	clipplayback: true,
 	start: function () {
+		confirmrecording()
 		this.f = 0
 		keystatus.init()
 	},
@@ -48,6 +50,7 @@ UFX.scenes.load = {
 }
 
 UFX.scenes.title = {
+	clipplayback: true,
 	thinkargs: function (dt) {
 		var kstate = UFX.key.state()
 		return [dt, kstate.down]
@@ -83,13 +86,13 @@ UFX.scenes.title = {
 }
 
 UFX.scenes.map = {
+	checkpoint: true,
 	start: function () {
 		if (settings.unlockall) record.unlocked = settings.nlevels
 		gamestate.level = clip(gamestate.level, 1, record.unlocked)
 		MapHUD.init()
 		this.udseq = []
 		playmusic("girl")
-		pushrecording("map")
 	},
 	thinkargs: function (dt) {
 		var kstate = UFX.key.state()
@@ -136,7 +139,6 @@ UFX.scenes.cutscene = {
 		this.drawtext(this.dq[0])
 		this.atick = 0  // time since automatically advancing
 		playmusic(settings.levelmusic[gamestate.level - 1])
-		pushrecording("cut")
 	},
 	thinkargs: function (dt) {
 		var kstate = UFX.key.state()
@@ -236,13 +238,13 @@ UFX.scenes.end.start = function () {
 	this.dq = getdialogue(7)
 	this.drawtext(this.dq[0])
 	playmusic(settings.levelmusic[5])
-	pushrecording("end")
 }
 UFX.scenes.end.complete = function () {
 	UFX.scene.swap("credits")
 }
 
 UFX.scenes.tip = {
+	checkpoint: true,
 	start: function () {
 		this.tip = gettip()
 		context.font = "58px 'Contrail One'"
@@ -294,7 +296,6 @@ UFX.scenes.action = {
 		ActionHUD.levelinit()
 		playmusic(settings.levelmusic[gamestate.level - 1])
 		UFX.key.clearcombos(true)
-		pushrecording("action")
 	},
 	thinkargs: function (dt) {
 		var kstate = UFX.key.state()
@@ -344,6 +345,7 @@ UFX.scenes.action = {
 }
 
 UFX.scenes.pause = {
+	clipplayback: true,
 	start: function () {
 		this.effect = new PauseEffect()
 		this.img0 = document.createElement("canvas")
@@ -386,10 +388,10 @@ UFX.scenes.pause = {
 }
 
 UFX.scenes.shop = {
+	checkpoint: true,
 	start: function () {
 		ShopHUD.init()
 		playmusic("girl")
-		pushrecording("shop")
 	},
 	thinkargs: function (dt) {
 		var kstate = UFX.key.state()
@@ -430,6 +432,7 @@ UFX.scenes.shop = {
 }
 
 UFX.scenes.credits = {
+	clipplayback: true,
 	start: function () {
 		playmusic("girl")
 		UFX.resource.sounds.girl.currentTime = 4
