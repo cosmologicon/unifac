@@ -128,7 +128,11 @@ UFX.scenes.map = {
 }
 
 UFX.scenes.cutscene = {
-	start: function () {
+	startargs: function () {
+		return [UFX.random.setseed()]
+	},
+	start: function (seed) {
+		UFX.random.setseed(seed)
 		if (record.seenscenes[gamestate.level]) {  // Have we already seen this cutscene?
 			if (gamestate.level <= settings.nlevels && !settings.alwaysshow) {
 				this.complete()
@@ -242,10 +246,15 @@ UFX.scenes.end.start = function () {
 UFX.scenes.end.complete = function () {
 	UFX.scene.swap("credits")
 }
+UFX.scenes.end.checkpoint = true
 
 UFX.scenes.tip = {
 	checkpoint: true,
-	start: function () {
+	startargs: function () {
+		return [UFX.random.setseed()]
+	},
+	start: function (seed) {
+		UFX.random.setseed(seed)
 		this.tip = gettip()
 		context.font = "58px 'Contrail One'"
 		var texts = wordwrap(this.tip, 600, context)
@@ -363,7 +372,7 @@ UFX.scenes.pause = {
 		keystatus.think(dt, kdown)
 		if (kdown.esc) UFX.scene.pop()
 		if (kdown.act) {
-			gamestate.proclaimcounts()
+			gamestate.proclaimcounts(true)
 			UFX.scene.pop()
 			UFX.scenes.action.complete()
 		}
@@ -433,6 +442,7 @@ UFX.scenes.shop = {
 
 UFX.scenes.credits = {
 	clipplayback: true,
+	checkpoint: true,
 	start: function () {
 		playmusic("girl")
 		UFX.resource.sounds.girl.currentTime = 4

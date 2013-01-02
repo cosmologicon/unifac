@@ -37,7 +37,9 @@ UFX.resource.onload = function () {
 	UFX.resource.mergesounds("jump", "pickup", "ejump", "whiff", "ewhiff")
 	UFX.resource.sounds.jump.volume = 0.3
 	if (settings.review) {
-		reviewer.init(settings.gamename, settings.version)
+		reviewer.init(settings.gamename, settings.version, {
+			setstate: function () { gamestate.setstate.apply(gamestate, arguments) },
+		})
 	} else {
 		if (record.recordgame) {
 			startrecording()

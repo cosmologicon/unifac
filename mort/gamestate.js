@@ -29,6 +29,11 @@ var gamestate = {
 	getstate: function () {
 		return [record, this.level]
 	},
+	
+	setstate: function (r, lev) {
+		record = r
+		this.level = lev
+	},
 
 	// Save game
 	save: function () {
@@ -40,9 +45,7 @@ var gamestate = {
 	load: function () {
 		var s = localStorage[settings.savegamename]
 		if (s) {
-			var obj = JSON.parse(s)
-			record = obj[0]
-			this.level = obj[1]
+			this.setstate.apply(this, JSON.parse(s))
 		}
 	},
 	
@@ -68,16 +71,18 @@ var gamestate = {
 				this.butterflies.push(new Butterfly(mechanics.butterfly[j]))
 			}
 		}
+		this.catchamount = 0
+		this.bonusamount = 0
 		this.endingproclaimed = false
 	},
 	// Called when you land to annonouce new records
 	// Also end-of-level logic
-	proclaimcounts: function () {
+	proclaimcounts: function (forcefinish) {
 		var r = []
 		if (this.newheightrecord) r.push("New height record!")
 		if (this.newcomborecord) r.push("New combo record!")
 		this.newcollections.forEach(function (c) { r.push("You caught a|" + c + "!") })
-		if (!this.endingproclaimed && this.time <= 0) {
+		if ((!this.endingproclaimed && this.time <= 0) || forcefinish) {
 		    this.endingproclaimed = true
 		    if (this.catchamount >= this.goal) {
 		        r.push("Stage|Complete!")
