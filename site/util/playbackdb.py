@@ -80,6 +80,14 @@ def gamenames(user = None, db = None):
 def gamevisible(gamename, user = None, db = None):
 	return gamename in gamenames(user, db)
 
+def creategame(gamename, user = None):
+	user = user or userdb.currentuser() or "_public"
+	with DB() as db:
+		gexists = db.query("SELECT gamename FROM owners WHERE gamename = ?", (gamename,))
+		if gexists:
+			return False
+		db.query("INSERT INTO owners (gamename, user) VALUES (?, ?)", (gamename, user))
+		return True
 
 # THESE NEXT FOUR FUNCTIONS ASSUME THAT gamevisible(gamename, user) IS TRUE!!!
 
