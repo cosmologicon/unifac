@@ -16,7 +16,7 @@ var settings = {
 		["Stage 3", "Bucolic Meadow of Doom"],
 		["Stage 4", "Some field you have to cross"],
 		["Stage 5", "Imperial palace of the Royal Society of Lepidopterists"],
-		["Final stage", "The Lost Buttefly Garden of Verdania"]
+		["Final stage", "The Lost Butterfly Garden of Verdania"]
 	],
 
 	levelmusic: "gnos one xylo gnos one xylo".split(" "),
