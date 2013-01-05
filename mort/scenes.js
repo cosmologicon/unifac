@@ -421,6 +421,7 @@ UFX.scenes.shop = {
 				} else {
 				    record.bank -= costs[n-1]
 					gamestate.bars[fname] = ++record.knownfeats[fname]
+					playsound("pickup")
 				}
 			}
 			gamestate.save()

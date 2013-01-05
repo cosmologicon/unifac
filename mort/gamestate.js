@@ -79,26 +79,28 @@ var gamestate = {
 	// Also end-of-level logic
 	proclaimcounts: function (forcefinish) {
 		var r = []
-		if (this.newheightrecord) r.push("New height record!")
-		if (this.newcomborecord) r.push("New combo record!")
-		this.newcollections.forEach(function (c) { r.push("You caught a|" + c + "!") })
+		if (this.newheightrecord) r.push(["New height record!", "new-height-record"])
+		if (this.newcomborecord) r.push(["New combo record!", "new-combo-record"])
+		this.newcollections.forEach(function (c) {
+			r.push(["You caught a|" + c + "!", "new-species"])
+		})
 		if ((!this.endingproclaimed && this.time <= 0) || forcefinish) {
 		    this.endingproclaimed = true
 		    if (this.catchamount >= this.goal) {
-		        r.push("Stage|Complete!")
+		        r.push(["Stage|Complete!", "stage-complete"])
 		        if (!settings.easy && this.catchamount > (record.hiscore[this.level] || 0)) {
 		            record.hiscore[this.level] = this.catchamount
-		            r.push("New high score!")
+		            r.push(["New high score!", "new-high-score"])
 	            }
 	            this.advance()
 		    } else {
-		        r.push("Stage|Incomplete")
+		        r.push(["Stage|Incomplete", "stage-incomplete"])
 		    }
 		    for (var f in mechanics.feat) {
 		        if (record.knownfeats[f]) continue
 		        if (record.ncollected < mechanics.feat[f].learnat) continue
 		        this.bars[f] = record.knownfeats[f] = 1
-		        r.push("New ability|unlocked: " + f)
+		        r.push(["New ability|unlocked: " + f, "new-ability"])
             }
 		}
 		if (r) ActionHUD.addproclamations(r)
@@ -177,7 +179,7 @@ var gamestate = {
 			record.ncollected += 1
 			if (grounded) {
 				// TODO: add an effect
-				ActionHUD.addproclamations(["You caught a|" + b.info.fname + "!"])
+				ActionHUD.addproclamations([["You caught a|" + b.info.fname + "!", "new-species"]])
 			} else {
 				this.newcollections.push(b.info.fname)
 			}
