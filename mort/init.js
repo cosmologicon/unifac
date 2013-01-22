@@ -30,15 +30,23 @@ setcanvassize()
 window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
                                window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
 UFX.scene.init()
-UFX.scene.playback.trimempty = true
 UFX.scene.push("load")
 UFX.resource.onloading = function (f) { UFX.scenes.load.onloading(f) }
 UFX.resource.onload = function () {
-	UFX.scene.pop()
-	UFX.scene.push("title")
-//	UFX.scene.push(EndScene)
+	UFX.scene.ipop()
 	UFX.resource.mergesounds("jump", "pickup", "ejump", "whiff", "ewhiff")
 	UFX.resource.sounds.jump.volume = 0.3
+	if (settings.review) {
+		reviewer.init(settings.gamename, settings.version, {
+			setstate: function () { gamestate.setstate.apply(gamestate, arguments) },
+		})
+	} else {
+		if (record.recordgame) {
+			startrecording()
+		}
+		UFX.scene.push("title")
+	}
+//	UFX.scene.push(EndScene)*/
 }
 
 UFX.key.init()
@@ -65,8 +73,16 @@ var soundnames = (
 	"pickup-0 pickup-1 pickup-2 pickup-3 pickup-4 pickup-5 " +
 	"pickup-6 pickup-7 pickup-8 pickup-9 pickup-10 pickup-11 pickup-12"
 ).split(" ")
+var voicenames = (
+	"stage-1 stage-2 stage-3 stage-4 stage-5 stage-6 ready set collect " +
+	"stage-complete stage-incomplete new-height-record new-combo-record " +
+	"new-ability new-species new-high-score"
+).split(" ")
 soundnames.forEach(function (sname) {
 	res[sname] = "sfx/" + sname + ".ogg"
+})
+voicenames.forEach(function (sname) {
+	res["vo-" + sname] = "voice/" + sname + ".ogg"
 })
 UFX.resource.load(res)
 if (window.location.toString().indexOf("nofonts") == -1) {
@@ -78,6 +94,9 @@ if (window.location.toString().indexOf("nofonts") == -1) {
 var soundcheck = document.getElementById("playsound"), musiccheck = document.getElementById("playmusic")
 function playsound(soundname) {
 	if (soundcheck.checked) UFX.resource.sounds[soundname].play()
+}
+function playvoice(soundname) {
+	playsound("vo-" + soundname)
 }
 
 var musicplaying = null, musicvolume = settings.musicvolume

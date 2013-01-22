@@ -252,6 +252,30 @@ var ZoomOnChange = {
 	},
 }
 
+var PlayVoice = {
+	init: function (vname) {
+		this.vname = vname
+		this.played = false
+	},
+	think: function (dt) {
+		if (this.played) return
+		this.played = true
+		if (this.vname) playvoice(this.vname)
+	},
+}
+
+var PlaySound = {
+	init: function (sname) {
+		this.sname = sname
+		this.played = false
+	},
+	think: function (dt) {
+		if (this.played) return
+		this.played = true
+		if (this.sname) playsound(this.sname)
+	},
+}
+
 
 
 function drawkey(keyname) {
@@ -390,6 +414,7 @@ var ActionHUD = {
 			StageName.settext(names[j])
 			this.effects.push(StageName)
 		}
+		playvoice("stage-" + gamestate.level)
 		for (var j = 0 ; j < 3 ; ++j) {
 			var Directive = UFX.Thing()
 				.addcomp(DelayEntry, 2 + 0.3 * j)
@@ -399,6 +424,7 @@ var ActionHUD = {
 				.addcomp(FadeOut, 0.2, 0.2)
 				.addcomp(FillStroke, "italic 240px 'Bangers'", rgrad, "black", 3)
 //				.addcomp(SingleCache, 700, 300, 30)
+				.addcomp(PlayVoice, ["ready", "set", "collect"][j])
 				.addcomp(NoCache)
 			Directive.settext(["READY", "SET", "COLLECT"][j])
 			this.effects.push(Directive)
@@ -428,11 +454,12 @@ var ActionHUD = {
 	addproclamations: function (r) {
 		var t = 0
 		for (var j = 0 ; j < r.length ; ++j) {
-			if (r[j].indexOf("Stage") > -1) {
-				this.effects.push(new StageProclamation(r[j], t))
+			var text = r[j][0], vname = r[j][1]
+			if (text.indexOf("Stage") > -1) {
+				this.effects.push(new StageProclamation(text, t, vname))
 				t += 1.5
 			} else {
-				this.effects.push(new Proclamation(r[j], t))
+				this.effects.push(new Proclamation(text, t, vname))
 				t += 1
 			}
 		}
@@ -610,6 +637,7 @@ CashEffect.prototype = UFX.Thing()
 	.addcomp(FadeOut, 0.5)
 	.addcomp(FillStroke, "bold 40px 'Norican'", "white", "black", 1)
 //	.addcomp(FullCache, 80, 60)
+	.addcomp(PlaySound, "pickup")
 	.addcomp(NoCache)
 
 function WorldCashEffect(amount, x, y) {
@@ -626,9 +654,10 @@ WorldCashEffect.prototype = UFX.Thing()
 //	.addcomp(FullCache, 80, 60)
 	.addcomp(NoCache)
 
-function Proclamation(text, delay) {
+function Proclamation(text, delay, vname) {
 	this.settext(text)
 	this.tenter = delay
+	this.vname = vname
 }
 Proclamation.prototype = UFX.Thing()
 	.addcomp(DelayEntry, 0)
@@ -638,11 +667,13 @@ Proclamation.prototype = UFX.Thing()
 	.addcomp(FadeOut, 0.2, 1.2)
 	.addcomp(FillStroke, "italic 80px 'Bangers'", UFX.draw.lingrad(0, -40, 0, 40, 0, "yellow", 1, "red"), "black", 2)
 //	.addcomp(FullCache, 700, 200)
+	.addcomp(PlayVoice)
 	.addcomp(NoCache)
 
-function StageProclamation(text, delay) {
+function StageProclamation(text, delay, vname) {
 	this.settext(text)
 	this.tenter = delay
+	this.vname = vname
 }
 StageProclamation.prototype = UFX.Thing()
 	.addcomp(DelayEntry, 0)
@@ -652,6 +683,7 @@ StageProclamation.prototype = UFX.Thing()
 	.addcomp(FadeOut, 0.2, 1.2)
 	.addcomp(FillStroke, "180px 'Ceviche One'", UFX.draw.lingrad(0, 0, 0, 60, 0, "green", 1, "blue"), "black", 2, 120)
 //	.addcomp(FullCache, 800, 360)
+	.addcomp(PlayVoice)
 	.addcomp(NoCache)
 
 

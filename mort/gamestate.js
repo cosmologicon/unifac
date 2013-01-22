@@ -12,6 +12,7 @@ var record = {
 	hiscore: {},
 	seentips: {},
 	seenscenes: {},
+	playername: UFX.random.word(),
 }
 var record0 = JSON.stringify(record)
 
@@ -28,6 +29,11 @@ var gamestate = {
 	getstate: function () {
 		return [record, this.level]
 	},
+	
+	setstate: function (r, lev) {
+		record = r
+		this.level = lev
+	},
 
 	// Save game
 	save: function () {
@@ -39,9 +45,7 @@ var gamestate = {
 	load: function () {
 		var s = localStorage[settings.savegamename]
 		if (s) {
-			var obj = JSON.parse(s)
-			record = obj[0]
-			this.level = obj[1]
+			this.setstate.apply(this, JSON.parse(s))
 		}
 	},
 	
@@ -67,32 +71,36 @@ var gamestate = {
 				this.butterflies.push(new Butterfly(mechanics.butterfly[j]))
 			}
 		}
+		this.catchamount = 0
+		this.bonusamount = 0
 		this.endingproclaimed = false
 	},
 	// Called when you land to annonouce new records
 	// Also end-of-level logic
-	proclaimcounts: function () {
+	proclaimcounts: function (forcefinish) {
 		var r = []
-		if (this.newheightrecord) r.push("New height record!")
-		if (this.newcomborecord) r.push("New combo record!")
-		this.newcollections.forEach(function (c) { r.push("You caught a|" + c + "!") })
-		if (!this.endingproclaimed && this.time <= 0) {
+		if (this.newheightrecord) r.push(["New height record!", "new-height-record"])
+		if (this.newcomborecord) r.push(["New combo record!", "new-combo-record"])
+		this.newcollections.forEach(function (c) {
+			r.push(["You caught a|" + c + "!", "new-species"])
+		})
+		if ((!this.endingproclaimed && this.time <= 0) || forcefinish) {
 		    this.endingproclaimed = true
 		    if (this.catchamount >= this.goal) {
-		        r.push("Stage|Complete!")
+		        r.push(["Stage|Complete!", "stage-complete"])
 		        if (!settings.easy && this.catchamount > (record.hiscore[this.level] || 0)) {
 		            record.hiscore[this.level] = this.catchamount
-		            r.push("New high score!")
+		            r.push(["New high score!", "new-high-score"])
 	            }
 	            this.advance()
 		    } else {
-		        r.push("Stage|Incomplete")
+		        r.push(["Stage|Incomplete", "stage-incomplete"])
 		    }
 		    for (var f in mechanics.feat) {
 		        if (record.knownfeats[f]) continue
 		        if (record.ncollected < mechanics.feat[f].learnat) continue
 		        this.bars[f] = record.knownfeats[f] = 1
-		        r.push("New ability|unlocked: " + f)
+		        r.push(["New ability|unlocked: " + f, "new-ability"])
             }
 		}
 		if (r) ActionHUD.addproclamations(r)
@@ -171,7 +179,7 @@ var gamestate = {
 			record.ncollected += 1
 			if (grounded) {
 				// TODO: add an effect
-				ActionHUD.addproclamations(["You caught a|" + b.info.fname + "!"])
+				ActionHUD.addproclamations([["You caught a|" + b.info.fname + "!", "new-species"]])
 			} else {
 				this.newcollections.push(b.info.fname)
 			}
@@ -227,39 +235,34 @@ var gamestate = {
 }
 
 gamestate.load()
-if (!("recordgame" in record)) {
-	var s = "This game is under development. The developer of this game (Christopher Night) would " +
-		"like to upload a recording of your gameplay, in order to make improvements to the game. " +
-		"No personal information will be uploaded, and the recording will not be accessible to " +
-		"anybody but the developer. If you don't want to participate, pick Cancel (you can still " +
-		"play the game)."
-	record.recordgame = window.confirm(s)
-}
 gamestate.save()
 
-var ssn = settings.gamename + "session"
-settings.sessionnumber = localStorage[ssn] = parseInt(localStorage[ssn] || "0") + 1
-
-var initstate = null, statepushes = 0
-function pushrecording(where) {
-	if (!record.recordgame) return
-	var playback = UFX.scene.playback.record()
-	if (initstate) {
-		var data = JSON.stringify([where, initstate, playback])
-		var req = new XMLHttpRequest()
-		req.open("POST", "http://universefactory.net/tools/playback-receiver.py")
-		req.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-		console.log(settings.sessionnumber, statepushes)
-		req.send([
-			"gamename=" + encodeURIComponent(settings.gamename),
-			"gameversion=" + encodeURIComponent(settings.version),
-			"sessionnumber=" + encodeURIComponent(settings.sessionnumber),
-			"playbacknumber=" + encodeURIComponent(statepushes),
-			"data=" + encodeURIComponent(data),
-		].join("&"))
-//		console.log(statepushes, initstate, dt, playback.length, d.length)
+function confirmrecording() {
+	if (!("recordgame" in record)) {
+		var s = "This game is under development. The developer of this game (Christopher Night) would " +
+			"like to upload a recording of your gameplay, in order to make improvements to the game. " +
+			"No personal information will be uploaded, and the recording will not be accessible to " +
+			"anybody but the developer. If you don't want to participate, pick Cancel (you can still " +
+			"play the game)."
+		record.recordgame = window.confirm(s)
+		gamestate.save()
 	}
-	initstate = JSON.parse(JSON.stringify(gamestate.getstate()))
-	statepushes += 1
 }
+
+function startrecording() {
+	recorder = UFX.Recorder({
+		gamename: settings.gamename,
+		version: settings.version,
+		sessionname: settings.sessionname,
+		playername: record.playername,
+		getstate: function () {
+			return gamestate.getstate()
+		},
+		tethered: true,
+		tetherswap: true,
+		postscript: "http://universefactory.net/tools/playback/post/",
+	})
+}
+
+
 
