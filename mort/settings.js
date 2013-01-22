@@ -1,7 +1,10 @@
 var settings = {
-	gamename: "Mortimer the Lepidopterist",
+	gamename: "mortimer",
 	version: "pyweek-0",
 	savegamename: "mortimersave",
+	sessionname: UFX.random.word(),
+	
+	review: window.location.href.indexOf("review") > -1,
 
 	sx: 800,
 	sy: 400,
@@ -13,7 +16,7 @@ var settings = {
 		["Stage 3", "Bucolic Meadow of Doom"],
 		["Stage 4", "Some field you have to cross"],
 		["Stage 5", "Imperial palace of the Royal Society of Lepidopterists"],
-		["Final stage", "The Lost Buttefly Garden of Verdania"]
+		["Final stage", "The Lost Butterfly Garden of Verdania"]
 	],
 
 	levelmusic: "gnos one xylo gnos one xylo".split(" "),
