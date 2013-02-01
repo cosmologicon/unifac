@@ -33,6 +33,17 @@ var vista = {
 		this.y += dy * f
 		this.target = null
 	},
+	drag: function (delta) {
+		this.x -= delta[0] / this.scale
+		this.y -= delta[1] / this.scale
+		this.target = null
+	},
+	canzoomin: function () {
+		return this.z < (settings.allowzoom ? 20 : 0)
+	},
+	canzoomout: function () {
+		return this.z > -20
+	},
 	zoom: function (dz, mpos) {
 		var oldscale = this.scale
 		this.z = clip(this.z + dz, -20, (settings.allowzoom ? 20 : 0))

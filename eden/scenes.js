@@ -9,6 +9,37 @@ var LoadScene = {
 	},
 }
 
+var BeginScene = {
+	start: function () {
+		UFX.touch.active = false
+		canvas.onmousedown = function () {
+			if (UFX.touch.active) return
+			UFX.mouse.init(canvas)
+			UFX.scene.swap(IntroScene)
+		}
+		canvas.ontouchstart = function () {
+			UFX.touch.active = true
+			UFX.touch.init(canvas)
+			UFX.mouse.active = false
+			UFX.maximize.fill(canvas)
+			UFX.scene.swap(IntroScene)
+			settings.allowzoom = false
+			settings.tradius = settings.touchtradius
+		}
+	},
+	draw: function () {
+		UFX.draw("fs", UFX.draw.lingrad(0, 0, settings.sx, settings.sy, 0, "gray", 1, "black"), "f0")
+		UFX.draw("[ textalign center textbaseline middle t", settings.sx/2,
+			"100 font 68px~Eater fs red sh black 2 2 0 ft0 The~Devil's~Handiwork ]")
+		UFX.draw("[ textalign center textbaseline middle t 740 180 font italic~22px~'Viga' fs lightgray sh black 1 1 0 ft0 by~Christopher~Night ]")
+		UFX.draw("[ textalign center textbaseline middle t 740 205 font italic~22px~'Viga' fs lightgray sh black 1 1 0 ft0 Universe~Factory~games ]")
+		var s = "Click~or~tap~to~begin"
+		UFX.draw("[ font 80px~Viga fs white sh black 3 3 0 textalign center textbaseline middle",
+			"[ t", settings.sx/2, settings.sy*0.7, "ft0", s, "] ]")
+	},
+}
+
+
 var IntroScene = {
 	start: function () {
 		this.j = 0
@@ -19,18 +50,23 @@ var IntroScene = {
 		gamestate.save()
 	},
 	thinkargs: function (dt) {
-		return [dt, UFX.mouse.state(), UFX.key.state()]
+		var mstate = UFX.mouse.active ? UFX.mouse.state() : null
+		var tstate = UFX.touch.active ? UFX.touch.state() : null
+		var kstate = UFX.key.active ? UFX.key.state() : null
+		return [dt, mstate, tstate, kstate]
 	},
-	think: function (dt, mstate, kstate) {
-		var kdown = kstate.down
-		if (kdown.space || kstate.enter || kstate.tab || mstate.left.down) {
+	think: function (dt, mstate, tstate, kstate) {
+		var next = ((kstate && (kstate.down.space || kstate.down.enter || kstate.downtab)) ||
+		            (mstate && mstate.left.down) ||
+		            (tstate && tstate.start.length))
+		if (next) {
 			this.j += 1
 			this.fadetimer = 0
 			if (this.j >= dialogue.intro.length) {
 				this.complete()
 			}
 		}
-		if (kdown.esc) {
+		if (kstate && kstate.down.esc) {
 			this.complete()
 		}
 		this.fadetimer += dt
@@ -59,13 +95,21 @@ var MenuScene = {
 		playmusic("tofuslow")
 	},
 	thinkargs: function (dt) {
-		return [dt, UFX.mouse.state(), UFX.key.state()]
+		var mstate = UFX.mouse.active ? UFX.mouse.state() : null
+		var tstate = UFX.touch.active ? UFX.touch.state() : null
+		var kstate = UFX.key.active ? UFX.key.state() : null
+		return [dt, mstate, tstate, kstate]
 	},
-	think: function (dt, mstate, kstate) {
-		MenuHUD.think(dt, mstate.pos)
+	think: function (dt, mstate, tstate, kstate) {
+		MenuHUD.think(dt, (mstate ? mstate.pos : null))
 		this.fadetimer += dt
-		if (mstate.left.down) {
+		if (mstate && mstate.left.down) {
 			if (MenuHUD.handleclick()) {
+				UFX.scene.swap(DialogueScene)
+			}
+		}
+		if (tstate && tstate.tap.length) {
+			if (MenuHUD.handleclick(tstate.tap[0].pos)) {
 				UFX.scene.swap(DialogueScene)
 			}
 		}
@@ -99,19 +143,30 @@ var DialogueScene = {
 		if (!this.lines.length) this.complete()
 	},
 	thinkargs: function (dt) {
-		return [dt, UFX.mouse.state(), UFX.key.state()]
+		var mstate = UFX.mouse.active ? UFX.mouse.state() : null
+		var tstate = UFX.touch.active ? UFX.touch.state() : null
+		var kstate = UFX.key.active ? UFX.key.state() : null
+		return [dt, mstate, tstate, kstate]
 	},
-	think: function (dt, mstate, kstate) {
+	think: function (dt, mstate, tstate, kstate) {
 		if (this.completed) return
-		var kdown = kstate.down
-		if (kdown.space || kstate.enter || kstate.tab || mstate.left.down) {
+		var next = ((kstate && (kstate.down.space || kstate.down.enter || kstate.down.tab)) ||
+		            (mstate && mstate.left.down) ||
+		            (tstate && tstate.start.length))
+		if (next) {
 			this.j += 1
+			// Don't show mouse-only tips for touch interface and vice versa
+			if (UFX.mouse.active) {
+				while (this.j < this.lines.length && this.lines[this.j][0] == "t") this.j += 1
+			} else {
+				while (this.j < this.lines.length && this.lines[this.j][0] == "i") this.j += 1
+			}			
 			this.fadetimer = 0
 			if (this.j == this.lines.length) {
 				this.complete()
 			}
 		}
-		if (kdown.esc) {
+		if (kstate && kstate.down.esc) {
 			this.complete()
 		}
 		this.fadetimer += dt
@@ -120,15 +175,15 @@ var DialogueScene = {
 		if (this.completed) return
 		var t = this.lines[this.j]
 		if (!t) return
-		if (t.substr(0, 1) == "g") {
+		if (t[0] == "g") {
 			UFX.draw("fs", UFX.draw.radgrad(200, 200, 0, 200, 200, 400, 0, "yellow", 1, "white"),
 				"f0 textalign center textbaseline middle",
 				"fs black font 70px~'Germania~One' [ t", settings.sx / 2, 360)
-		} else if (t.substr(0, 1) == "d") {
+		} else if (t[0] == "d") {
 			UFX.draw("fs", UFX.draw.radgrad(760, 200, 0, 760, 200, 400, 0, "darkgreen", 1, "black"),
 				"f0 textalign center textbaseline middle",
 				"fs red font 70px~'Jolly~Lodger' [ t", settings.sx / 2, 400)
-		} else if (t.substr(0, 1) == "i") {
+		} else if (t[0] == "i" || t[0] == "t") {
 			UFX.draw("fs", UFX.draw.lingrad(0, 0, settings.sx, settings.sy, 0, "rgb(0,0,60)", 1, "black"),
 				"f0 textalign center textbaseline middle",
 				"fs white font 70px~'Viga' [ t", settings.sx / 2, 240)
@@ -165,28 +220,43 @@ var ActionScene = {
 		playmusic("ninja")
 	},
 	thinkargs: function (dt) {
-		var mstate = UFX.mouse.state()
-		var kstate = UFX.key.state()
-		return [dt, mstate, kstate]
+		var mstate = UFX.mouse.active ? UFX.mouse.state() : null
+		var tstate = UFX.touch.active ? UFX.touch.state() : null
+		var kstate = UFX.key.active ? UFX.key.state() : null
+		return [dt, mstate, tstate, kstate]
 	},
-	think: function (dt, mstate, kstate) {
+	think: function (dt, mstate, tstate, kstate) {
 		dt = dt || 0
 		
-		if (kstate.down.esc) this.incomplete()
-		var kpress = kstate.pressed
-		var dx = (kpress.right ? 1 : 0) - (kpress.left ? 1 : 0)
-		var dy = (kpress.down ? 1 : 0) - (kpress.up ? 1 : 0)
-		if (dx || dy) vista.scootch(dx * dt, dy * dt)
-		if (mstate.wheeldy) vista.zoom(mstate.wheeldy, mstate.pos)
-		if (mstate.right.down) vista.pan(mstate.right.down)
-		vista.think(dt)
-
-		HUD.think(dt, mstate.pos)
-		for (var j = 0 ; j < settings.sins.length ; ++j) {
-			if (kpress[j+1]) {
-				HUD.selected = settings.sins[j]
+		if (kstate) {
+			if (kstate.down.esc) this.incomplete()
+			var kpress = kstate.pressed
+			var dx = (kpress.right ? 1 : 0) - (kpress.left ? 1 : 0)
+			var dy = (kpress.down ? 1 : 0) - (kpress.up ? 1 : 0)
+			if (dx || dy) vista.scootch(dx * dt, dy * dt)
+			for (var j = 0 ; j < settings.sins.length ; ++j) {
+				if (kpress[j+1]) {
+					HUD.selected = settings.sins[j]
+				}
 			}
 		}
+		if (mstate) {
+			if (mstate.wheeldy) vista.zoom(mstate.wheeldy, mstate.pos)
+			if (mstate.right.down) vista.pan(mstate.right.down)
+		}
+		if (tstate) {
+			if (tstate.ids.length == 1) {
+				vista.drag(tstate.deltas[tstate.ids[0]])
+			} else if (tstate.ids.length == 2) {
+				var t2state = UFX.touch.twotouchstate(tstate)
+				if (t2state) {
+					vista.zoom(Math.log(t2state.rratio) / settings.zfactor, t2state.center)
+				}
+			}
+		}
+		vista.think(dt)
+		HUD.think(dt, mstate ? mstate.pos : null)
+
 		
 		function think(obj) { obj.think(dt) }
 		blobs.forEach(think)
@@ -211,7 +281,10 @@ var ActionScene = {
 				}
 			})
 		})
-		if (mstate.left.down) HUD.handleclick()
+
+		if (mstate && mstate.left.down) HUD.handleclick()
+		if (tstate) tstate.tap.forEach(function (tap) { HUD.handleclick(tap.pos) })
+
 		this.endtime = gamestate.complete() ? this.endtime + dt : 0
 		if (this.endtime > 1) this.complete()
 		

@@ -18,46 +18,48 @@ var HUD = {
 	think: function (dt, mpos) {
 		if (mpos) {
 			this.cursorpos = fpos(mpos)
+			this.target = this.gettarget(this.cursorpos)
 		}
-		var mx = this.cursorpos[0], my = this.cursorpos[1]
-		var p = vista.wpos(this.cursorpos)
+		this.elapsed += dt
+	},
+	gettarget: function (pos) {
+		var mx = pos[0], my = pos[1]
+		var p = vista.wpos(pos)
 		var wx = p[0], wy = p[1]
-		this.target = null
+		for (var bname in this.buttons) {
+			var button = this.buttons[bname]
+			var dx = mx - button[0], dy = my - button[1]
+			if (0 <= dx && dx < button[2] && 0 <= dy && dy < button[3]) {
+				return bname
+			}
+		}
 		for (var j = 0 ; j < blobs.length ; ++j) {
 			var b = blobs[j]
 			if (b.state.dead) continue
 			var dx = b.x - wx, dy = b.y - b.h - wy
 			if (dx * dx + dy * dy < settings.tradius * settings.tradius) {
-				this.target = b
-				break
+				return b
 			}
 		}
-		for (var bname in this.buttons) {
-			var button = this.buttons[bname]
-			var dx = mx - button[0], dy = my - button[1]
-			if (0 <= dx && dx < button[2] && 0 <= dy && dy < button[3]) {
-				this.target = bname
-				break
-			}
-		}
-		this.elapsed += dt
+		return null
 	},
-	handleclick: function () {
-		if (!this.target) return
-		if (this.target == "give~up") {
+	handleclick: function (pos) {
+		var target = pos ? this.gettarget(fpos(pos)) : this.target
+		if (!target) return
+		if (target == "give~up") {
 			ActionScene.incomplete()
-		} else if (this.target == "zoom~in") {
+		} else if (target == "zoom~in") {
 			vista.zoom(3, [settings.vx0, settings.vy0])
-		} else if (this.target == "zoom~out") {
+		} else if (target == "zoom~out") {
 			vista.zoom(-3, [settings.vx0, settings.vy0])
-		} else if (this.target in this.buttons) {
-			this.selected = this.selected == this.target ? null : this.target
+		} else if (target in this.buttons) {
+			this.selected = this.selected == target ? null : target
 			playsound("click-0")
 		} else {
 			n = gamestate.sincounts[this.selected]
 			if (n < 1) {
 			} else {
-				if (this.target.applysin(this.selected)) {
+				if (target.applysin(this.selected)) {
 					gamestate.sincounts[this.selected] -= 1
 					playsound("click-0")
 				}
@@ -68,9 +70,12 @@ var HUD = {
 		UFX.draw("[ t 0 0 fs gray ss brown lw 6 font 30px~'Jolly~Lodger' textbaseline middle textalign center")
 		for (var bname in this.buttons) {
 			UFX.draw("[")
-
 			var button = this.buttons[bname]
 			if (bname in gamestate.sincounts && !gamestate.sincounts[bname]) {
+				UFX.draw("alpha 0.3 fs white ss gray")
+			} else if (bname == "zoom~in" && !vista.canzoomin()) {
+				UFX.draw("alpha 0.3 fs white ss gray")
+			} else if (bname == "zoom~out" && !vista.canzoomout()) {
 				UFX.draw("alpha 0.3 fs white ss gray")
 			} else if (bname == this.selected) {
 				UFX.draw("fs rgb(200,200,200) ss white")
@@ -129,7 +134,8 @@ var MenuHUD = {
 			this.cursorpos = fpos(mpos)
 		}
 	},
-	handleclick: function () {
+	handleclick: function (pos) {
+		if (pos) this.cursorpos = fpos(pos)
 		var mx = this.cursorpos[0], my = this.cursorpos[1]
 		for (var bname in this.buttons) {
 			var button = this.buttons[bname]
