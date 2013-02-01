@@ -1,40 +1,26 @@
+window.onerror = function (error, url, line) {
+    document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>"
+}
+
 var canvas = document.getElementById("canvas")
 canvas.width = settings.sx
 canvas.height = settings.sy
 var context = canvas.getContext("2d")
 UFX.draw.setcontext(context)
 
-function gofullscreen() {
-	if (canvas.webkitRequestFullScreen) {
-		canvas.webkitRequestFullScreen(true)
-	} else if (canvas.mozRequestFullScreen) {
-		canvas.mozRequestFullScreen()
-	} else if (canvas.requestFullScreen) {
-		canvas.requestFullScreen()
-	}
-}
-function setcanvassize() {
-	if ((document.webkitFullscreenElement || document.mozFullScreenElement) == canvas) {
-		canvas.style.border = "none"
-		canvas.style.width = document.width + "px"
-		canvas.style.height = (document.width * settings.sy / settings.sx) + "px"
-	} else {
-		canvas.style.border = "10px lightgrey outset"
-		canvas.style.width = ""
-		canvas.style.height = ""
-	}
-}
-window.onresize = setcanvassize
-setcanvassize()
-
 window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
                                window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
-UFX.ticker.registersync(UFX.scene.think, UFX.scene.draw, 300, 10)
-UFX.scene.playback.trimempty = true
+canvas.requestFullscreen = canvas.requestFullscreen || canvas.mozRequestFullScreen || canvas.webkitRequestFullScreen
+document.cancelFullscreen = document.cancelFullscreen || document.mozCancelFullScreen || document.webkitCancelFullScreen
+UFX.maximize.getfullscreenelement = function () {
+	return document.fullScreenElement || document.webkitCurrentFullScreenElement || document.mozFullScreenElement
+}
+
+UFX.scene.init()
 UFX.scene.push(LoadScene)
 UFX.resource.onloading = function (f) { LoadScene.f = f }
 UFX.resource.onload = function () {
-	UFX.scene.swap(IntroScene)
+	UFX.scene.swap(BeginScene)
 	UFX.resource.mergesounds("jump")
 	UFX.resource.sounds.fall = UFX.resource.Multisound(UFX.resource.sounds.fall, 5)
 	UFX.resource.sounds.zzzz = UFX.resource.Multisound(UFX.resource.sounds.zzzz, 3)
@@ -49,7 +35,6 @@ UFX.resource.onload = function () {
 	UFX.resource.sounds.fall.volume = 0.4
 }
 
-UFX.mouse.init(canvas)
 UFX.mouse.capture.right = true
 UFX.mouse.capture.wheel = true
 
@@ -108,5 +93,10 @@ function fpos(pos) {
 		pos[0] * settings.sx / parseInt(canvas.style.width),
 		pos[1] * settings.sy / parseInt(canvas.style.height),
 	]
+}
+
+// read error messages on mobile
+window.onerror = function (error, url, line) {
+    document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>"
 }
 

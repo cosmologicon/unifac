@@ -14,18 +14,21 @@ var dialogue = {
 		"g Well that's why you're here. Where shall We begin?",
 		"d Let's add some sin to the equation.",
 		"i Select a sin from the menu and click on a creature to apply it.",
+		"t Select a sin from the menu and tap on a creature to apply it.",
 	],
 	1: [
 		"g Well, you've officially invented disobedience, the first sin, and introduced the world to death.",
 		"d I told You this would be fun. What's next? Greed? Consumption? Ego?",
 		"d Nothing says good old-fashioned self-destruction like the sins of excess.",
 		"i Scroll using the arrow keys or WASD or right-click",
+		"t Scroll by dragging the screen",
 	],
 	2: [
 		"g I think I'm getting the hang of this. What about some Wrath?",
 		"d Not really my style, but I suppose no list of sins would be complete without it.",
 		"d You want Wrath? You've got it.",
 		"i You can zoom in and out with your mouse wheel.",
+		"t You can zoom by pinching.",
 	],
 	4: [
 		"g There was a time when if you wanted someone dead, you would just smite them.",

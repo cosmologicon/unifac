@@ -28,6 +28,7 @@ var settings = {
 	lazerange: 25,
 
 	tradius: 30,  // cursor target radius
+	touchtradius: 60,
 	zfactor: 0.04,
 }
 
