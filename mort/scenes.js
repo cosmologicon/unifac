@@ -68,12 +68,12 @@ UFX.scenes.title = {
 		UFX.draw("fs black f0 [ textbaseline bottom textalign center",
 			"fs", grad0, "ss white",
 			"t", settings.sx/2, settings.sy*0.3,
-				"[ shadowcolor yellow shadowxy 1 1 font bold~40px~'Marcellus~SC' ft0 Mortimer~the ]",
+				"[ sh yellow 1 1 0 font bold~40px~'Marcellus~SC' ft0 Mortimer~the ]",
 			"fs", grad1, "ss white",
 			"t 0 110",
-				"[ shadowcolor yellow shadowxy 2 2 font 120px~'Marcellus~SC' ft0 Lepidopterist ]",
+				"[ sh yellow 2 2 0 font 120px~'Marcellus~SC' ft0 Lepidopterist ]",
 			"fs", grad2, "t 0 10 font 22px~'Marko~One' lw 0.5 ft0 PyWeek~edition",
-			"[ t 250 40 fs grey font 26px~'Contrail~One' ft0 by~Christopher~Night",
+			"[ t 250 40 fs gray font 26px~'Contrail~One' ft0 by~Christopher~Night",
 			"t 0 30 ft0 Universe~Factory~games ]",
 			"t 0 140 fs", grad3, "font 40px~'Bangers' ft0 press~space~or~enter",
 		"]")
@@ -184,21 +184,25 @@ UFX.scenes.cutscene = {
 		var who = line[0], text = line[1]
 		var color0, color1 = "black"
 		if (who == "m") {
-			color0 = "rgb(0,0,128)"
+			color0 = "rgb(0,0,192)"
+			color1 = "rgb(64,64,255)"
 		} else if (who == "e") {
 			color0 = "rgb(128,128,0)"
+			color1 = "rgb(255,255,0)"
 		} else if (who == "s") {
 			color0 = "rgb(90,90,90)"
+			color1 = "rgb(180,180,180)"
 		} else if (who == "v") {
 			color0 = "rgb(0,128,0)"
+			color1 = "rgb(64,255,64)"
 		}
 		UFX.draw(this.context, "[ fs black f0 fs", UFX.draw.lingrad(0, 20, 0, -10, 0, color0, 1, color1),
-			"ss white lw 1 textalign center textbaseline middle t", settings.sx / 2, settings.sy * 0.5 + 84)
+			"sh white 1 1 0 textalign center textbaseline middle t", settings.sx / 2, settings.sy * 0.5 + 84)
 		this.context.font = "38px 'Marko One'"
 		var texts = wordwrap(text, 760, this.context)
 		texts.forEach(function (text, j) {
 			con.fillText(text, 0, 0)
-			con.strokeText(text, 0, 0)
+//			con.strokeText(text, 0, 0)
 			con.translate(0, 42)
 		})
 		UFX.draw(this.context, "]")
@@ -232,6 +236,7 @@ UFX.scenes.cutscene = {
 		if (!this.dq[0]) return
 		UFX.draw("drawimage0", this.backdrop)
 		drawframe("head" + this.dq[0][0])
+		UFX.draw("[ textalign right textbaseline top fs white font 26px~'Bangers' t", settings.sx - 10, "6 ft0 Esc:~skip ]")
 		showfps()
 		keystatus.draw()
 	},
@@ -258,11 +263,10 @@ UFX.scenes.tip = {
 		this.tip = gettip()
 		context.font = "58px 'Contrail One'"
 		var texts = wordwrap(this.tip, 600, context)
-		UFX.draw("fs black f0 fs", UFX.draw.lingrad(0, -32, 0, 32, 0, "black", 1, "rgb(0,100,0)"),
-			"ss white [ t", settings.sx * 0.5, 100)
+		UFX.draw("fs black f0 fs", UFX.draw.lingrad(0, -32, 0, 32, 0, "#080", 1, "#0F0"),
+			"[ sh white 1 1 0 t", settings.sx * 0.5, 100)
 		texts.forEach(function (text, j) {
 			context.fillText(text, 0, 0)
-			context.strokeText(text, 0, 0)
 			context.translate(0, 60)
 		})
 		UFX.draw("]")
@@ -383,10 +387,9 @@ UFX.scenes.pause = {
 		this.effect.draw()
 		UFX.draw("]")
 		UFX.draw("[ t", settings.sx / 2, settings.sy / 2 + 140, "textalign center textbaseline middle",
-			"fs", UFX.draw.lingrad(0, 30, 0, -30, 0, "black", 1, "darkgrey"), "ss white lw 1")
+			"fs", UFX.draw.lingrad(0, 30, 0, -30, 0, "darkgrey", 1, "grey"), "sh white 1.5 1.5 0")
 		context.font = "50px 'Contrail One'"
 		context.fillText("Esc: resume    Space: exit level", 0, 0)
-		context.strokeText("Esc: resume    Space: exit level", 0, 0)
 		UFX.draw("]")
 		showfps()
 		keystatus.draw()
@@ -476,9 +479,9 @@ UFX.scenes.credits = {
 			var grad2 = UFX.draw.lingrad(0, 0, 0, -20, 0, "red", 1, "rgb(255,100,100)")
 			UFX.draw(
 				"fs", grad0, "t", settings.sx/2, settings.sy*0.4,
-					"[ shadowcolor yellow shadowxy 1 1 font bold~40px~'Marcellus~SC' ft0 Mortimer~the ]",
+					"[ sh yellow 1 1 0 font bold~40px~'Marcellus~SC' ft0 Mortimer~the ]",
 				"fs", grad1, "t 0 110",
-					"[ shadowcolor yellow shadowxy 2 2 font 120px~'Marcellus~SC' ft0 Lepidopterist ]",
+					"[ sh yellow 2 2 0 font 120px~'Marcellus~SC' ft0 Lepidopterist ]",
 				"fs", grad2, "t 0 10 font 22px~'Marko~One' lw 0.5 ft0 PyWeek~version"
 			)
 			if (this.t >= 19) {
