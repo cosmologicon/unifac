@@ -290,15 +290,15 @@ function drawfeats(hidefeatnames) {
 	if (hidefeatnames) {
 		UFX.draw("t -82 0")
 	}
-	UFX.draw("textalign right textbaseline middle font bold~32px~'Marko~One' fs rgb(255,200,200) ss black")
+	UFX.draw("textalign right textbaseline middle font bold~32px~'Marko~One' fs #F84")
 	for (var j = 0 ; j < mechanics.featnames.length ; ++j) {
 		var fname = mechanics.featnames[j]
 		if (!record.knownfeats[fname]) continue
 		UFX.draw("[ t 0", 30*j+21)
 		if (!hidefeatnames) {
-			UFX.draw("[")
+			UFX.draw("[ sh #840 1 1 0")
 			if (fname == "bound") UFX.draw("xscale 0.75")
-			UFX.draw("fst0", fname, "]")
+			UFX.draw("ft0", fname, "]")
 		}
 		var keys = mechanics.feat[fname].keys.split(" ")
 		if (keys.length == 1) {
