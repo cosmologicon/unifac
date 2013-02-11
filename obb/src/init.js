@@ -15,8 +15,6 @@ UFX.maximize.onadjust = function (c, x, y) {
 	debugHUD.alert("Resized to " + x + "x" + y)
 }
 UFX.maximize.fill(canvas)
-UFX.draw("fs blue f0")
-
 UFX.scene.init()
 UFX.scene.push("play")
 
