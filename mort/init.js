@@ -91,12 +91,14 @@ if (window.location.toString().indexOf("nofonts") == -1) {
 }
 
 // sound and music
-var soundcheck = document.getElementById("playsound"), musiccheck = document.getElementById("playmusic")
+var soundcheck = document.getElementById("playsound")
+var voicecheck // = document.getElementById("playvoice")
+var musiccheck = document.getElementById("playmusic")
 function playsound(soundname) {
 	if (soundcheck.checked) UFX.resource.sounds[soundname].play()
 }
 function playvoice(soundname) {
-	playsound("vo-" + soundname)
+	if (!voicecheck || voicecheck.checked) playsound("vo-" + soundname)
 }
 
 var musicplaying = null, musicvolume = settings.musicvolume

@@ -62,10 +62,13 @@ var BoxConstrain = {
 	init: function (xborder, yborder) {
 		this.xborder = xborder || 0
 		this.yborder = yborder || 0
+		this.definemethod("constrain")
 	},
 	think: function (dt) {
+		var oldx = this.x, oldy = this.y
 		this.x = clip(this.x, this.xborder, vista.vx - this.xborder)
-		this.y = clip(this.y, this.yborder, vista.vy - this.yborder)
+		this.y = Math.max(this.y, this.yborder)
+		if (oldx != this.x || oldy != this.y) this.constrain()
 	},
 }
 
@@ -93,8 +96,14 @@ var Flutters = {
 			this.frame = this.info.name
 		}
 		this.x += this.vx * dt
-		this.y = clip(this.y + this.vy * dt, this.info.ymin, this.info.ymax)
+		this.y += this.vy * dt
+		var oldy = this.y
+		this.y = clip(this.y, this.info.ymin, this.info.ymax)
+		if (this.y != oldy) this.flutter()
 		this.facingright = this.vx < 0 // TODO: flip all the butterfly images so they're facing right
+	},
+	constrain: function () {
+		this.flutter()
 	},
 }
 
