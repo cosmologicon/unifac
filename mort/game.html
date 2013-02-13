@@ -16,7 +16,7 @@
 <style type="text/css">
 p { margin: 0.3em }
 header * { margin: 0 }
-header { margin: 0.8em }
+header { margin: 0.4em 0 0 }
 h1, h2 { font-weight: normal }
 body { background: #222 ; color: white ; text-align: center ; font-size: 150% }
 a { color: #AAF ; text-decoration: none }
@@ -27,13 +27,15 @@ input { cursor: pointer }
 ul { margin: 0 ; padding: 0 }
 .controls li { display: inline-block ; margin-left: 0.7em ; margin-right: 0.7em }
 li.cheat { display: none }
+#recnote { font-size: 68% ; text-align: right ; margin: 0 auto ; max-width: 800px }
 </style>
 
 <header>
 <h1>Mortimer the Lepidopterist</h1>
 <p>please use Chrome if possible
 </header>
-<canvas id=canvas></canvas>
+<p id="recnote">This game is being recorded. <a href="#" onclick="confirmrecording();return false">(more info)</a>
+<p><canvas id=canvas></canvas>
 <ul class="controls">
 <li><label><input id=playsound name=playsound type=checkbox checked>Sound effects</label>
 <!-- <li><label><input id=playmusic name=playvoice type=checkbox checked>Voice effects</label> -->

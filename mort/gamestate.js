@@ -13,6 +13,7 @@ var record = {
 	seentips: {},
 	seenscenes: {},
 	playername: UFX.random.word(),
+	recordgame: true,
 }
 var record0 = JSON.stringify(record)
 
@@ -239,16 +240,22 @@ gamestate.load()
 gamestate.save()
 
 function confirmrecording() {
-	if (!("recordgame" in record)) {
-		var s = "This game is under development. The developer of this game (Christopher Night) would " +
-			"like to upload a recording of your gameplay, in order to make improvements to the game. " +
-			"No personal information will be uploaded, and the recording will not be accessible to " +
-			"anybody but the developer. If you don't want to participate, pick Cancel (you can still " +
-			"play the game)."
-		record.recordgame = window.confirm(s)
-		gamestate.save()
+	var s = "This game is under development. The developer of this game (Christopher Night) would " +
+		"like to upload a recording of your gameplay, in order to make improvements to the game. " +
+		"No personal information will be uploaded, and the recording will not be accessible to " +
+		"anybody but the developer. If you don't want to participate, pick Cancel (you can still " +
+		"play the game)."
+	record.recordgame = window.confirm(s)
+	gamestate.save()
+	hiderecnote()
+}
+function hiderecnote() {
+	if (!record.recordgame) {
+		document.getElementById("recnote").style.visibility = "hidden"
 	}
 }
+hiderecnote()
+
 
 function startrecording() {
 	recorder = UFX.Recorder({

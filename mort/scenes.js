@@ -34,7 +34,6 @@ var keystatus = {
 UFX.scenes.load = {
 	clipplayback: true,
 	start: function () {
-		confirmrecording()
 		this.f = 0
 		keystatus.init()
 	},
