@@ -115,17 +115,15 @@ function getdialogue(level) {
 // cat ../../lepidopterist/data/tips.txt | sed 's ^ \t[ ;s- -, -;s- Tip: -, "-;s $ "], '
 
 var tips = [
-	[1, 1, "Control using the arrow keys and space bar"],
-	[1, 2, "Keys used to perform actions are shown in the corner. Up, left, right and space bar."],
-	[1, 2, "The bars in the corner tell you how many times you can perform an action."],
-	[1, 2, "If you have enough bars, you can double jump. Just jump when you're already in the air."],
-	[1, 8, "Your game is automatically saved whenever you finish a level."],
+	[1, 1, "Control using the arrow keys and space bar. Double jump by pressing up when you're already in the air."],
+	[1, 4, "Time your jumps correctly to maximise your height. Aim for one action per second."],
+	[1, 4, "The bars in the corner tell you how many times you can perform an action."],
 	[1, 8, "The more different species you collect, the more actions you learn."],
+	[2, 4, "Some actions require you to press two keys at the same time."],
+	[2, 8, "Actions won't work if you hit too many keys at once. Take it easy. Try to perform one action per second."],
 	[2, 8, "Sometimes it's a good idea to revisit stages, to get more money or catch species you missed."],
 	[2, 8, "If you stay in the air long enough, your bars will refill. They also refill when you touch the ground."],
 	[2, 8, "Bars on the right refill more quickly than bars on the left. Keep the levels high to maximise efficiency."],
-	[2, 8, "Actions won't work if you hit too many keys at once. Take it easy. Try to perform one action per second."],
-	[2, 4, "Some actions require you to press two keys at the same time."],
 	[2, 4, "To perform a combo, perform more than one action in a row without touching the ground."],
 	[3, 4, "You get bonuses for setting combo and height records. They don't add to your level score, but you can spend them to upgrade abilities."],
 	[3, 8, "Any action involving the space bar will catch butterflies."],

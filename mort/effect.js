@@ -518,7 +518,7 @@ var ShopHUD = {
 		this.effects.forEach(function (e) { e.think(dt) })
 	},
 	draw: function () {
-		var grad = UFX.draw.lingrad(0, 0, settings.sx, settings.sy, 0, "royalblue", 1, "fuchsia")
+		var grad = UFX.draw.lingrad(0, 0, settings.sx, settings.sy, 0, "#008", 1, "#808")
 		UFX.draw("[ fs", grad, "f0")
 		function draw(e) { context.save() ; e.draw() ; context.restore() }
 		this.effects.forEach(draw)

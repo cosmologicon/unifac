@@ -65,9 +65,10 @@ var gamestate = {
 		this.goal = mechanics.levelinfo[this.level].goal
 		this.time = mechanics.levelinfo[this.level].t
 		this.butterflies = []
-		this.btime = mechanics.levelinfo[this.level].btime
-		for (var j = 0 ; j < this.btime.length ; ++j) {
-			for (var k = 0 ; k < this.btime[j] ; ++k) {
+		this.brate = mechanics.levelinfo[this.level].brate
+		for (var j = 0 ; j < this.brate.length ; ++j) {
+			if (!this.brate[j]) continue
+			for (var k = 0 ; k < this.brate[j] ; ++k) {
 				this.butterflies.push(new Butterfly(mechanics.butterfly[j]))
 			}
 		}
@@ -209,8 +210,8 @@ var gamestate = {
 		    this.bars[f] += 1
 		    this.feattick[f] = mechanics.growtime(this.bars[f], record.knownfeats[f])
 	    }
-		for (var j = 0 ; j < this.btime.length ; ++j) {
-			if (this.btime[j] && UFX.random(this.btime[j]) < dt) {
+		for (var j = 0 ; j < this.brate.length ; ++j) {
+			if (this.brate[j] && UFX.random(60) < dt * this.brate[j]) {
 				this.butterflies.push(new Butterfly(mechanics.butterfly[j]))
 			}
 		}

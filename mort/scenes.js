@@ -482,7 +482,7 @@ UFX.scenes.credits = {
 					"[ sh yellow 1 1 0 font bold~40px~'Marcellus~SC' ft0 Mortimer~the ]",
 				"fs", grad1, "t 0 110",
 					"[ sh yellow 2 2 0 font 120px~'Marcellus~SC' ft0 Lepidopterist ]",
-				"fs", grad2, "t 0 10 font 22px~'Marko~One' lw 0.5 ft0 PyWeek~version"
+				"fs", grad2, "t 0 10 font 22px~'Marko~One' ft0 PyWeek~version"
 			)
 			if (this.t >= 19) {
 				var t = 0
@@ -495,8 +495,9 @@ UFX.scenes.credits = {
 		} else if (this.t < 11) {
 			var grad0 = UFX.draw.lingrad(0, 0, 0, -48, 0, "lightgray", 1, "gray")
 			UFX.draw(
-				"fs", grad0, "font 48px~'Contrail~One' t", settings.sx/2, settings.sy*0.5, "fst0 by~Christopher~Night",
-				"t 0 64 fst0 Universe~Factory~games"
+				"fs", grad0, "sh white 1 1 0 font 48px~'Contrail~One'",
+				"t", settings.sx/2, settings.sy*0.5, "ft0 by~Christopher~Night",
+				"t 0 64 ft0 Universe~Factory~games"
 			)
 		} else {
 			var s
@@ -511,13 +512,12 @@ UFX.scenes.credits = {
 			}
 			var grad0 = UFX.draw.lingrad(0, 0, 0, -48, 0, "lightblue", 1, "blue")
 			UFX.draw(
-				"fs", grad0, "font 48px~'Contrail~One'",
-				"t", settings.sx/2, settings.sy*0.38, "fst0 Music~credits",
+				"fs", grad0, "sh white 1 1 0 font 48px~'Contrail~One'",
+				"t", settings.sx/2, settings.sy*0.38, "ft0 Music~credits",
 				"t 0 90"
 			)
 			wordwrap(s, 550).forEach(function (text) {
 				context.fillText(text, 0, 0)
-				context.strokeText(text, 0, 0)
 				context.translate(0, 48)
 			})
 		}
