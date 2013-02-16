@@ -52,7 +52,7 @@ UFX.resource.onload = function () {
 UFX.key.init()
 UFX.key.remaparrows(true)
 UFX.key.remap({ space: "act", enter: "act", Q: "esc" })
-UFX.key.watchlist = "left right up down act tab esc".split(" ")
+UFX.key.watchlist = "left right up down act tab esc backspace F12".split(" ")
 UFX.key.qdown = true
 UFX.key.qcombo = true
 

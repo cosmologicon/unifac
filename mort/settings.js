@@ -1,7 +1,7 @@
 var settings = {
 	gamename: "mortimer",
-	version: "pyweek-1",
-	savegamename: "mortimerpw1save",
+	version: "pyweek-2",
+	savegamename: "mortimerpw2save",
 	sessionname: UFX.random.word(),
 	
 	review: window.location.href.indexOf("review") > -1,

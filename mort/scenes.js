@@ -8,6 +8,8 @@ function showfps() {
     UFX.draw("]")
 }
 
+function screenshot() { window.open(canvas.toDataURL()) }
+
 var keystatus = {
 	init: function () {
 		var klist = this.klist = {}
@@ -58,6 +60,7 @@ UFX.scenes.title = {
 		dt = dt || 0 ; kdown = kdown || {}
 		keystatus.think(dt, kdown)
 		if (kdown.act) this.complete()
+		if (kdown.F12) screenshot()
 	},
 	draw: function () {
 		var grad0 = UFX.draw.lingrad(0, 0, 0, -30, 0, "red", 1, "rgb(255,100,100)")
@@ -88,6 +91,7 @@ UFX.scenes.map = {
 	checkpoint: true,
 	start: function () {
 		if (settings.unlockall) record.unlocked = settings.nlevels
+		if (recorder) recorder.log(record.knownfeats, record.bank, record.heightrecord, record.comborecord, record.ncollected)
 		gamestate.level = clip(gamestate.level, 1, record.unlocked)
 		MapHUD.init()
 		this.udseq = []
@@ -118,6 +122,7 @@ UFX.scenes.map = {
 
 		if (kdown.act) UFX.scene.swap("cutscene")
 		MapHUD.think(dt)
+		if (kdown.F12) screenshot()
 	},
 	draw: function () {
 		MapHUD.draw()
@@ -164,6 +169,7 @@ UFX.scenes.cutscene = {
 		if (kdown.esc) {
 			this.complete()
 		}
+		if (kdown.F12) screenshot()
 		if (this.dq[0]) {
 			var who = this.dq[0][0]
 			for (var j = 0 ; j < 400 ; ++j) {
@@ -287,6 +293,7 @@ UFX.scenes.tip = {
 		if (kdown.act || kdown.esc || kdown.tab || this.dtick > this.dtime) {
 			UFX.scene.swap("action")
 		}
+		if (kdown.F12) screenshot()
 		if (!this.vistadrawn) {
 			vista.levelinit()
 			this.vistadrawn = true
@@ -322,7 +329,7 @@ UFX.scenes.action = {
 	
 		if (kdown.esc) { UFX.scene.push("pause") ; return }
 		if (kdown.tab) settings.hidefeatnames = !settings.hidefeatnames
-		if (kdown.F12) window.open(canvas.toDataURL())
+		if (kdown.F12) screenshot()
 		// TODO: F for fullscreen?
 	
 		You.move(kdown, kpressed, kcombo)
@@ -381,6 +388,7 @@ UFX.scenes.pause = {
 			UFX.scene.pop()
 			UFX.scenes.action.complete()
 		}
+		if (kdown.F12) screenshot()
 		this.effect.think(dt)
 	},
 	draw: function () {
@@ -423,7 +431,7 @@ UFX.scenes.shop = {
 			ShopHUD.index == ShopHUD.imax ? 0 :
 			ShopHUD.index == 0 ? 0 :
 			ShopHUD.index + 1
-		if (kdown.act || kdown.tab) {
+		if (kdown.act || kdown.right) {
 		    if (ShopHUD.index == 0) {
 		        this.complete()
 	        } else if (ShopHUD.index < 0) {
@@ -432,9 +440,20 @@ UFX.scenes.shop = {
 				var n = record.knownfeats[fname], costs = mechanics.feat[fname].ucost
 				if (n > costs.length || record.bank < costs[n-1]) {
 				} else {
-				    record.bank -= costs[n-1]
 					gamestate.bars[fname] = ++record.knownfeats[fname]
-					playsound("pickup")
+					ShopHUD.purchase(costs[n-1])
+				}
+			}
+			gamestate.save()
+		}
+		if (kdown.backspace || kdown.left) {
+		    if (ShopHUD.index > 0) {
+				var fname = mechanics.featnames[ShopHUD.index-1]
+				var n = record.knownfeats[fname], costs = mechanics.feat[fname].ucost
+				if (n < 2) {
+				} else {
+					gamestate.bars[fname] = --record.knownfeats[fname]
+					ShopHUD.purchase(-costs[n-2])
 				}
 			}
 			gamestate.save()
@@ -442,6 +461,7 @@ UFX.scenes.shop = {
 		if (kdown.esc) {
 			this.complete()
 		}
+		if (kdown.F12) screenshot()
 		ShopHUD.think(dt)
 	},
 	complete: function () {
