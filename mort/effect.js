@@ -286,17 +286,18 @@ function drawkey(keyname) {
 	if (keyname != "act") UFX.draw("fs lightblue ss black lw 1 ( m 0 -11 l -8 0 l -2 -2 l -4 10 l 4 10 l 2 -2 l 8 0 ) f s")
 	UFX.draw("]")
 }
-function drawfeats(hidefeatnames) {
+function drawfeats(hidefeatnames, selected) {
 	if (hidefeatnames) {
 		UFX.draw("t -82 0")
 	}
-	UFX.draw("textalign right textbaseline middle font bold~32px~'Marko~One' fs #F84")
+	UFX.draw("textalign right textbaseline middle font bold~32px~'Marko~One'")
 	for (var j = 0 ; j < mechanics.featnames.length ; ++j) {
 		var fname = mechanics.featnames[j]
 		if (!record.knownfeats[fname]) continue
 		UFX.draw("[ t 0", 30*j+21)
 		if (!hidefeatnames) {
-			UFX.draw("[ sh #840 1 1 0")
+			var color = !selected || fname == selected ? "#F84" : "#A62"
+			UFX.draw("[ fs", color, "sh #642 1 1 0")
 			if (fname == "bound") UFX.draw("xscale 0.75")
 			UFX.draw("ft0", fname, "]")
 		}
@@ -490,7 +491,7 @@ var WorldEffects = {
 
 var ShopHUD = {
 	init: function () {
-		this.index = 1
+		this.index = -1
 		this.imax = mechanics.featnames.filter(function(fname) { return record.knownfeats[fname] }).length
 		this.effects = [
 			// "Upgrade abilities"
@@ -523,7 +524,8 @@ var ShopHUD = {
 		function draw(e) { context.save() ; e.draw() ; context.restore() }
 		this.effects.forEach(draw)
 		UFX.draw("t 410 20 z 1.4 1.4")
-		drawfeats()
+		var selected = this.index > 0 ? mechanics.featnames[this.index-1] : "none"
+		drawfeats(false, selected)
 		UFX.draw("textalign center textbaseline top fs white ss black")
 		context.font = "bold 32px 'Rosarivo'"
 		mechanics.featnames.forEach(function (fname, j) {
@@ -543,7 +545,7 @@ var ShopHUD = {
 		context.strokeText(s, 0, 0)
 		UFX.draw("]")
 		var tz = this.index ? 22 + 30 * (this.index - 1) : 240
-		UFX.draw("[ t -86", tz, "b o 0 0 5 fs white ss black f s ]")
+		UFX.draw("[ t -86", tz, "b o 0 0 10 fs yellow ss black f s ]")
 		UFX.draw("]")
 	},
 }

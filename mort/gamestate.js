@@ -87,6 +87,9 @@ var gamestate = {
 			r.push(["You caught a|" + c + "!", "new-species"])
 		})
 		if ((!this.endingproclaimed && this.time <= 0) || forcefinish) {
+			if (recorder) {
+				recorder.log("stage " + this.level, this.catchamount + "/" + this.goal, this.bonusamount)
+			}
 		    this.endingproclaimed = true
 		    if (this.catchamount >= this.goal) {
 		        r.push(["Stage|Complete!", "stage-complete"])
@@ -247,6 +250,7 @@ function confirmrecording() {
 		"play the game)."
 	record.recordgame = window.confirm(s)
 	gamestate.save()
+	if (!record.recordgame && recorder) recorder.stop()
 	hiderecnote()
 }
 function hiderecnote() {
@@ -256,7 +260,7 @@ function hiderecnote() {
 }
 hiderecnote()
 
-
+var recorder = null
 function startrecording() {
 	recorder = UFX.Recorder({
 		gamename: settings.gamename,
