@@ -71,19 +71,22 @@ var NoCache = {
 
 
 var FillStroke = {
-	init: function (font, fstyle, sstyle, lwidth, tsize) {
+	init: function (font, fstyle, sstyle, lwidth, tsize, shadow) {
 		this.font = font
 		this.fstyle = fstyle
 		this.sstyle = sstyle
 		this.lwidth = lwidth
 		this.tsize = tsize
+		this.shadow = shadow
 	},
 	draw0: function (con) {
 		con = con || context
+		con.save()
 		con.font = this.font
 		if (this.fstyle) con.fillStyle = this.fstyle
 		if (this.sstyle) con.strokeStyle = this.sstyle
 		if (this.lwidth) con.lineWidth = this.lwidth
+		if (this.shadow) UFX.draw("sh", this.shadow)
 		if (this.text.indexOf("|") > -1) {
 			var lines = this.text.split("|")
 			// Get the text size for multiple lines
@@ -103,6 +106,7 @@ var FillStroke = {
 			if (this.fstyle) con.fillText(this.text, 0, 0)
 			if (this.sstyle) con.strokeText(this.text, 0, 0)
 		}
+		con.restore()
 	},
 }
 
@@ -129,6 +133,7 @@ var AnchorTopRight = Anchor("top", "right")
 var AnchorBottomLeft = Anchor("bottom", "left")
 var AnchorBottomRight = Anchor("bottom", "right")
 var AnchorCenter = Anchor("middle", "center")
+var AnchorCenterLeft = Anchor("middle", "left")
 var AnchorBottomCenter = Anchor("bottom", "center")
 
 var DelayEntry = {
@@ -491,32 +496,51 @@ var WorldEffects = {
 
 var ShopHUD = {
 	init: function () {
-		this.index = -1
+		this.index = 1
 		this.imax = mechanics.featnames.filter(function(fname) { return record.knownfeats[fname] }).length
 		this.effects = [
 			// "Upgrade abilities"
 			UFX.Thing()
 				.addcomp(AnchorTopLeft, 10, 10)
-				.addcomp(FillStroke, "44px 'Condiment'", "white", "black", 1)
+				.addcomp(FillStroke, "64px 'Condiment'", "white", null, null, null, "black 1 1 0")
+				.definemethod("think")
+				.addcomp(NoCache),
+			// Controls
+			UFX.Thing()
+				.addcomp(AnchorCenter, 120, 230)
+				.addcomp(FillStroke, "32px 'Bangers'", "gray", null, null, 40, "black 1 1 0")
 				.definemethod("think")
 				.addcomp(NoCache),
 			// Bank
 			UFX.Thing()
-				.addcomp(AnchorTopLeft, 20, 100)
-				.addcomp(FillStroke, "bold 50px 'Rosarivo'", "white", "black", 1)
+				.addcomp(AnchorCenter, 120, 350)
+				.addcomp(FillStroke, "bold 50px 'Rosarivo'", "white", null, null, null, "black 1 1 0")
 				.addcomp({
 					think: function (dt) {
 						this.settext("Bank: \u00A3" + record.bank)
 					},
 				})
 				.addcomp(NoCache),
+			// Continue
+			UFX.Thing()
+				.addcomp(AnchorCenterLeft, 310, 350)
+				.addcomp(FillStroke, "44px 'Kaushan Script'", "white", null, null, null, "black 1 1 0")
+				.definemethod("think")
+				.addcomp(NoCache),
 		]
-		this.effects[0].settext("Upgrade abilities...")
-		this.effects[1].settext("Bank:")
+		this.effects[0].settext("Upgrade|   abilities....")
+		this.effects[1].settext("Up/down: choose|Right: buy|Left: sell")
+		this.effects[2].settext("Bank:")
+		this.effects[3].settext("Continue....")
 		gamestate.resetcounts()
 	},
 	think: function (dt) {
 		this.effects.forEach(function (e) { e.think(dt) })
+		this.effects = this.effects.filter(function (e) { return !e.dead })
+	},
+	purchase: function (amount) {
+	    record.bank -= amount
+		this.effects.push(new PurchaseEffect(amount, 120, 330))
 	},
 	draw: function () {
 		var grad = UFX.draw.lingrad(0, 0, settings.sx, settings.sy, 0, "#008", 1, "#808")
@@ -526,7 +550,7 @@ var ShopHUD = {
 		UFX.draw("t 410 20 z 1.4 1.4")
 		var selected = this.index > 0 ? mechanics.featnames[this.index-1] : "none"
 		drawfeats(false, selected)
-		UFX.draw("textalign center textbaseline top fs white ss black")
+		UFX.draw("[ textalign center textbaseline top fs white sh black 1 1 0")
 		context.font = "bold 32px 'Rosarivo'"
 		mechanics.featnames.forEach(function (fname, j) {
 			var n = record.knownfeats[fname], costs = mechanics.feat[fname].ucost
@@ -534,15 +558,8 @@ var ShopHUD = {
 			var s = n > costs.length ? "max" : "\u00A3" + costs[n-1]
 			UFX.draw("[ t 220", 0+30*j)
 			context.fillText(s, 0, 0)
-			context.strokeText(s, 0, 0)
 			UFX.draw("]")
 		})
-		var s = "Continue"
-		context.font = "32px Kaushan Script"
-		context.lineWidth = 0.8
-		UFX.draw("[ t -20 210")
-		context.fillText(s, 0, 0)
-		context.strokeText(s, 0, 0)
 		UFX.draw("]")
 		var tz = this.index ? 22 + 30 * (this.index - 1) : 240
 		UFX.draw("[ t -86", tz, "b o 0 0 10 fs yellow ss black f s ]")
@@ -577,20 +594,18 @@ var MapHUD = {
 		UFX.draw("]")
 		// Stage name and title
 		var stext = settings.levelnames[gamestate.level-1]
-		UFX.draw("[ textbaseline top textalign center fs white ss black t", settings.sx/2, 4)
+		UFX.draw("[ textbaseline top textalign center fs white sh black 1 1 0 t", settings.sx/2, 4)
 		context.font = "22px 'Fugaz One'"
 		context.fillText(stext[0], 0, 0)
-		context.strokeText(stext[0], 0, 0)
-		UFX.draw("t 0 24")
+		UFX.draw("t 0 24 sh black 1.5 1.5 0")
 		context.font = "36px 'Fugaz One'"
 		wordwrap(stext[1], 600).forEach(function (text) {
 			context.fillText(text, 0, 0)
-			context.strokeText(text, 0, 0)
 			UFX.draw("t 0 38")
 		})
 		// High score
 		context.font = "20px 'Marko One'"
-		UFX.draw("lw 0.5 t 0 8")
+		UFX.draw("shxy 0.5 0.5 t 0 8")
 		var score = record.hiscore[gamestate.level]
 		if (score) {
 			var s = "High score: \u00A3" + score
@@ -598,7 +613,7 @@ var MapHUD = {
 		}
 		UFX.draw("]")
 		// Records
-		UFX.draw("[ textalign right textbaseline bottom t", settings.sx, settings.sy, "t -12 -10 fs white ss black lw 1")
+		UFX.draw("[ textalign right textbaseline bottom t", settings.sx, settings.sy, "t -12 -10 fs white sh black 1 1 0")
 		context.font = "bold 32px 'Contrail One'"
 		var texts = [
 			"Species collected: " + record.ncollected,
@@ -607,7 +622,6 @@ var MapHUD = {
 		]
 		texts.forEach(function (text) {
 			context.fillText(text, 0, 0)
-			context.strokeText(text, 0, 0)
 			UFX.draw("t 0 -34")
 		})
 		UFX.draw("]")
@@ -616,8 +630,9 @@ var MapHUD = {
 	addeasymode: function() {
 		var emode = UFX.Thing()
 			.addcomp(AnchorCenter, settings.sx * 0.5, settings.sy * 0.5)
-			.addcomp(FillStroke, "90px 'Bangers'", "yellow", "black", 2)
+			.addcomp(FillStroke, "90px 'Bangers'", UFX.draw.lingrad(0, 30, 0, -30, 0, "orange", 1, "yellow"), "black", 2)
 			.addcomp(FlyAcross, -100, -3000, 0.6)
+			.addcomp(PlaySound, "pickup")
 //			.addcomp(SingleCache, 600, 100, 30)
 			.addcomp(NoCache)
 		emode.settext("Easy mode unlocked")
@@ -641,6 +656,21 @@ CashEffect.prototype = UFX.Thing()
 //	.addcomp(FullCache, 80, 60)
 	.addcomp(PlaySound, "pickup")
 	.addcomp(NoCache)
+
+function PurchaseEffect(amount, x, y) {
+	this.settext(amount > 0 ? "-\u00A3" + amount : "+\u00A3" + -amount)
+	this.x = x
+	this.y = y
+}
+PurchaseEffect.prototype = UFX.Thing()
+	.addcomp(AnchorCenter)
+	.addcomp(Float, -200)
+	.addcomp(Decelerate, 4)
+	.addcomp(FadeOut, 1.0)
+	.addcomp(FillStroke, "bold 48px 'Norican'", "white", "black", 1)
+	.addcomp(PlaySound, "pickup")
+	.addcomp(NoCache)
+
 
 function WorldCashEffect(amount, x, y) {
 	this.settext("\u00A3" + amount)
