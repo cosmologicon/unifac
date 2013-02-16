@@ -235,7 +235,8 @@ UFX.scenes.cutscene = {
 		if (!this.dq[0]) return
 		UFX.draw("drawimage0", this.backdrop)
 		drawframe("head" + this.dq[0][0])
-		UFX.draw("[ textalign right textbaseline top fs white font 26px~'Bangers' t", settings.sx - 10, "6 ft0 Esc:~skip ]")
+		UFX.draw("[ textalign right textbaseline top fs white font 26px~'Bangers' t", settings.sx - 10, "6",
+			"ft0 Space:~next~~~~~Esc:~skip ]")
 		showfps()
 		keystatus.draw()
 	},
@@ -254,6 +255,7 @@ UFX.scenes.end.checkpoint = true
 
 UFX.scenes.tip = {
 	checkpoint: true,
+	getchaptername: function () { return "Stage " + gamestate.level },
 	startargs: function () {
 		return [UFX.random.setseed()]
 	},
@@ -411,11 +413,20 @@ UFX.scenes.shop = {
 	think: function (dt, kdown) {
 		dt = dt || 0 ; kdown = kdown || {}
 		keystatus.think(dt, kdown)
-		if (kdown.up) ShopHUD.index = ShopHUD.index ? ShopHUD.index - 1 : ShopHUD.imax
-		if (kdown.down) ShopHUD.index = ShopHUD.index < ShopHUD.imax ? ShopHUD.index + 1 : 0
+		if (kdown.up) ShopHUD.index =
+			ShopHUD.index == -1 ? 1 :
+			ShopHUD.index == 1 ? 1 :
+			ShopHUD.index == 0 ? ShopHUD.imax :
+			ShopHUD.index - 1
+		if (kdown.down) ShopHUD.index =
+			ShopHUD.index == -1 ? 1 :
+			ShopHUD.index == ShopHUD.imax ? 0 :
+			ShopHUD.index == 0 ? 0 :
+			ShopHUD.index + 1
 		if (kdown.act || kdown.tab) {
 		    if (ShopHUD.index == 0) {
 		        this.complete()
+	        } else if (ShopHUD.index < 0) {
 		    } else {
 				var fname = mechanics.featnames[ShopHUD.index-1]
 				var n = record.knownfeats[fname], costs = mechanics.feat[fname].ucost
