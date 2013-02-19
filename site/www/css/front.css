@@ -1,28 +1,9 @@
-body {
-	font-family: 'Oswald', sans-serif;
-	font-size: 140%;
-}
-h1, h2 {
-	font-family: 'Russo One', serif;
-	margin-top: 0;
-	margin-bottom: 0;
-	font-weight: normal;
-}
-h1 {
-	font-size: 300%;
-}
-h2 {
-	font-size: 120%;
-}
-header {
-	margin-bottom: 1em;
-	text-shadow: 0.05em 0.05em 0.1em black;
-}
 section {
 	background: rgba(255,255,255,0.08);
 	color: inherit;
 	border: thin rgba(255,255,255,0.3) outset;
 	width: 80%;
+	max-width: 50em;
 	margin: 0 auto 1em;
 	cursor: pointer;
 	padding: 2% 0;
@@ -43,7 +24,7 @@ section header {
 section header * {
 	margin: 0;
 }
-section header a {
+section header a, section header a:hover {
 	text-decoration: none;
 	color: inherit;
 }
@@ -53,6 +34,9 @@ section article {
 	max-width: 50%;
 	margin: 0 5% 0 0;
 	text-align: justify;
+}
+section article p {
+	margin: 0.4em 0;
 }
 section img {
 	display: inline-block;
