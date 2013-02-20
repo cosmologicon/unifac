@@ -20,4 +20,10 @@ var mechanics = {
     amax: 160,     // max aperture size
 }
 
+if (window.location.href.indexOf("DEBUG") > -1) {
+    settings.showpoints = true
+}
+if (window.location.href.indexOf("RECORD") > -1) {
+    settings.savewalkthrough = true
+}
 

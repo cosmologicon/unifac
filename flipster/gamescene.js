@@ -1,4 +1,4 @@
-var GameScene = Object.create(UFX.scene.Scene)
+var GameScene = UFX.scenes.game = {}
 
 var levelnumber = 0
 
@@ -14,18 +14,17 @@ GameScene.start = function () {
     this.titlex = 1000
     this.fadealpha = 1
     this.winmode = levelnumber === levels.length - 1
-    this.walkmode = false
     this.tpool = 0
     this.skipclicks = 2
     this.csize = 1
     this.nexttick = 3
     
+    this.playback = null
     if (settings.savewalkthrough) {
         if (this.winmode) {
-            window.location = "data:text/plain," + JSON.stringify(walkthrough)
+            window.location = "data:text/plain,var walkthrough = " + JSON.stringify(walkthrough)
         } else {
-            UFX.scene.record = []
-            UFX.scene.recording = true
+            this.recorder = UFX.Recorder()
         }
     }
 }
@@ -114,12 +113,12 @@ GameScene.thinkargs = function (dt) {
 }
 GameScene.think = function (dt, mpos, clicked, kdown) {
     if (!dt) return
-    if (this.walkmode) {
+    if (this.playback) {
         var args = this.thinkargs(0)
         if (args[2] || (args[3] && args[3].F3)) {
+            this.playback.stop()
+            this.playback = null
             this.start()
-            UFX.scene.replaying = false
-            UFX.scene.jrecord = 0
             return
         }
     }
@@ -134,11 +133,8 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
     } else if (kdown && kdown.F3) {
         if (walkthrough[levelnumber]) {
             this.start()
-            UFX.scene.record = walkthrough[levelnumber]
-            UFX.scene.replaying = true
-            UFX.scene.recording = false
-            UFX.scene.jrecord = 0
-            this.walkmode = true
+            this.playback = UFX.Playback(walkthrough[levelnumber])
+            this.playback.playraw()
             return
         }
     }
@@ -209,13 +205,16 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
                 if (ball.y > settings.sy - 10 && ball.y < settings.sy &&
                     Math.abs(this.level.endx - ball.x) < this.level.goalwidth / 2) {
                     playsound("success")
-                    if (settings.savewalkthrough) {
-                        walkthrough[levelnumber] = UFX.scene.record
+                    if (this.recorder) {
+                        walkthrough[levelnumber] = this.recorder.stop()
+                        console.log(JSON.stringify(walkthrough[levelnumber]).length)
                     }
-                    levelnumber += 1
-                    if (levelnumber >= levels.length) {
-                        alert("you beat the game!")
-                        levelnumber = 0
+                    if (!this.playback) {
+                        levelnumber += 1
+                        if (levelnumber >= levels.length) {
+                            alert("you beat the game!")
+                            levelnumber = 0
+                        }
                     }
                     this.start()
                     return
@@ -235,6 +234,10 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
         this.balls = this.balls.filter(function (ball) { return ball.alive })
         if (this.balls.length == 0) {
             playsound("fail")
+            if (this.recorder) {
+            	this.recorder.stop()
+            	delete this.recorder
+        	}
             this.start()
             return
         }
@@ -254,7 +257,7 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
     } else {
         var pointtime = false, vaper = false
     }
-    canvas.style.cursor = vaper && this.mode === "prepare" && !this.walkmode ? "none" : "default"
+    canvas.style.cursor = vaper && this.mode === "prepare" && !this.playback ? "none" : "default"
 
     if ((this.winmode || this.mode === "prepare") && vaper) {
         UFX.draw("[ b o", mpos, this.csize, "clip")
@@ -319,7 +322,7 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
         if (clicked) {
             this.preptime = 0
         }
-        if (!this.walkmode) {
+        if (!this.playback) {
             var text = "click to begin", x = settings.sx / 2, y = settings.sy / 2
             drawwords(text, x, y, settings.font1, "white", "black")
         }
@@ -349,7 +352,7 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
                 "]")
         })
     }
-    if (!this.winmode && !this.walkmode && this.mode === "act") {
+    if (!this.winmode && !this.playback && this.mode === "act") {
         // Draw click to restart dialogue
         var text = this.skipclicks == 2 ? "click twice to restart" : "click to restart"
         var x = settings.sx / 2, y = 40
@@ -370,7 +373,7 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
     }
         
     // dream sequence
-    if (this.walkmode) {
+    if (this.playback) {
         if (!this.walkgrad) {
             this.walkgrad = UFX.draw.radgrad(settings.sx/2, settings.sy/2, 0,
                 settings.sx/2, settings.sy/2, Math.sqrt(settings.sx*settings.sx + settings.sy*settings.sy)/2,
@@ -385,8 +388,10 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
         var text = "Level " + (levelnumber + 1), x = settings.sx / 2 + this.titlex, y = settings.sy / 2
         context.font = settings.titlefont
         if (this.winmode) text = "You win!"
-        if (this.walkmode) text = "Walkthrough"
-        if (this.walkmode) context.font = settings.walkfont
+        if (this.playback) {
+            text = "Walkthrough"
+            context.font = settings.walkfont
+        }
         if (levelnumber == 0) {
             UFX.draw("b textalign center textbaseline middle fs orange ss yellow lw 3")
             context.fillText(text, x, y)
