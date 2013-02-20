@@ -2,16 +2,15 @@
 <html>
 <head>
 <title>Totally Flips</title>
-<link href='http://fonts.googleapis.com/css?family=Slackey|Kameron|Boogaloo' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Boogaloo' rel='stylesheet' type='text/css'>
 <style>
 body {
     background: black; color: white;
     font-family: 'Boogaloo';
-    font-size: 130%;
+    font-size: 140%;
 }
 h1 {
     font-size: 160%;
-    text-align: center;
     margin: 0.5em auto 0;
 }
 h2 {
@@ -25,7 +24,6 @@ h2 {
 p {
     margin: 1em auto 1em;
 }
-
 #canvasbox {
     position: relative;
 }
@@ -35,6 +33,7 @@ p {
 <script src="../UFX/src/ticker.js"></script>
 <script src="../UFX/src/resource.js"></script>
 <script src="../UFX/src/scene.js"></script>
+<script src="../UFX/src/playback.js"></script>
 <script src="../UFX/src/mouse.js"></script>
 <script src="../UFX/src/key.js"></script>
 <script src="../UFX/src/Thing.js"></script>
@@ -55,14 +54,12 @@ p {
 <tr><td style="padding-right: 20px ; width: 20em">
 <h1>Totally Flips</h1>
 <h2>by Christopher Night</h2>
-<h2>Universe Factory games</h2>
+<h2>Universe Factory Games</h2>
 <h2>music by Mary Bichner</h2>
 
-<p>please use Chrome if you can - Firefox is slower
-
+<p>Chrome preferred
 <p>Created in 48 hours for the Bacon Game Jam, August 2012
-<p>Use your Matter-Reversing Gun to guide the ball to the goal.
-<p>Click to flip objects or pieces of objects horizontally.
+<p>Use your Matter-Reversing Gun to guide the ball to the goal. Click to flip objects or pieces of objects horizontally.
 
 <p><input id=playmusic name=playmusic type=checkbox checked onclick="setmusic()"> Play music</input>
 <p><input id=playsound name=playsound type=checkbox checked> Play sound</input>
@@ -113,7 +110,7 @@ UFX.resource.onload = function () {
 }
 UFX.resource.load({music: "music.ogg", success: "success.ogg", fail: "fail.ogg",
                     tick: "tick.ogg", click: "click.ogg"})
-
+UFX.resource.loadwebfonts("Slackey", "Kameron")
 
 //UFX.scene.recording = true
 //UFX.scene.replaying = true

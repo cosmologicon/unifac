@@ -9,7 +9,6 @@ function drawwords (text, x, y, font, color0, color1, lw) {
         var m = con.measureText(text)
         c.width = m.width
         c.height = 300
-        console.log([text, c.width, c.height, x, y])
         con.font = font
         UFX.draw(con, "b textalign left textbaseline middle fs", color0, "ss", color1, "lw", lw)
         con.fillText(text, 0, 150)
