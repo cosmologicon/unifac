@@ -10,6 +10,8 @@ section {
 	min-height: 4em;
 	background-image: -webkit-linear-gradient(top,rgba(255,255,255,0.14),rgba(255,255,255,0.04));
 	background-image:         linear-gradient(top,rgba(255,255,255,0.14),rgba(255,255,255,0.04));
+	box-shadow: 10px 10px 20px rgba(0,0,0,0.7);
+	position: relative;
 }
 section:hover {
 	background-image: -webkit-linear-gradient(top,rgba(255,200,200,0.21),rgba(255,200,200,0.08));
@@ -45,4 +47,15 @@ section img {
 	margin-left: 0.5em;
 	max-width: 40%;
 	margin: 0;
+}
+aside.note {
+	font-size: 70%;
+	border: 2px #008 outset;
+	border-radius: 4px;
+	background: #006;
+	color: #77F;
+	position: absolute;
+	right: -1.5%;
+	padding: 0.1em 0.7em;
+	text-shadow: -1.5px -1.5px 1px black; 
 }
