@@ -109,7 +109,9 @@ GameScene.thinkargs = function (dt) {
         if (event.type === "up") clicked = true
     })
     var mpos = UFX.mouse.pos && [UFX.mouse.pos[0], UFX.mouse.pos[1]]
-    return [dt, mpos, clicked, UFX.key.state().down]
+    var kdown = UFX.key.state().down
+    if (!settings.DEBUG) kdown = false
+    return [dt, mpos, clicked, kdown]
 }
 GameScene.think = function (dt, mpos, clicked, kdown) {
     if (!dt) return
@@ -207,7 +209,6 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
                     playsound("success")
                     if (this.recorder) {
                         walkthrough[levelnumber] = this.recorder.stop()
-                        console.log(JSON.stringify(walkthrough[levelnumber]).length)
                     }
                     if (!this.playback) {
                         levelnumber += 1
@@ -250,12 +251,16 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
 
     if (mpos) {
         // pointing to the timer?
-        var dx = settings.sx - 40 - mpos[0], dy = 40 - mpos[1]
-        var pointtime = dx * dx + dy * dy < 40 * 40
+        var x = mpos[0], y = mpos[1]
+        function pcheck (x0, y0, value) { return (x0-x)*(x0-x) + (y0-y)*(y0-y) < 40*40 && value }
+        var pointat = pcheck(settings.sx - 40, 40, "time")
+                   || pcheck(40, 40, "next")
+                   || pcheck(40, 110, "previous")
+                   || pcheck(40, 180, "walkthrough")
         // visible aperture?
-        var vaper = !pointtime && mpos[0] >= 0 && mpos[0] < settings.sx && mpos[1] >= 0 && mpos[1] < settings.sy
+        var vaper = !pointat && x >= 0 && x < settings.sx && y >= 0 && y < settings.sy
     } else {
-        var pointtime = false, vaper = false
+        var pointtime = null, vaper = false
     }
     canvas.style.cursor = vaper && this.mode === "prepare" && !this.playback ? "none" : "default"
 
@@ -314,16 +319,39 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
         UFX.draw("m -20 0 l 20 0 m -10 3 l -20 0 l -10 -3 m 10 3 l 20 0 l 10 -3")
         
         UFX.draw("ss rgb(255,255,128) lw 2 s ]")
-    } else if (this.winmode && pointtime) {
+    } else if (this.winmode && pointat == "time") {
         if (clicked) {
             this.setblocks()
         }
-    } else if (this.mode === "prepare" && pointtime) {
-        if (clicked) {
-            this.preptime = 0
+    } else if (this.mode == "prepare") {
+        if (pointat == "time") {
+            var text = "click to begin"
+            if (clicked) this.preptime = 0
+        } else if (pointat == "next") {
+            var text = "jump to next level"
+            if (clicked) {
+                levelnumber = Math.min(levelnumber + 1, levels.length - 1)
+                this.start()
+                return
+            }
+        } else if (pointat == "previous") {
+            var text = "jump to previous level"
+            if (clicked) {
+                levelnumber = Math.max(0, levelnumber - 1)
+                this.start()
+                return
+            }
+        } else if (pointat == "walkthrough") {
+            var text = "view solution"
+            if (clicked && walkthrough[levelnumber]) {
+                this.start()
+                this.playback = UFX.Playback(walkthrough[levelnumber], { sync: true })
+                this.playback.playraw()
+                return
+            }
         }
-        if (!this.playback) {
-            var text = "click to begin", x = settings.sx / 2, y = settings.sy / 2
+        if (!this.playback && text) {
+            var x = settings.sx / 2, y = settings.sy / 2
             drawwords(text, x, y, settings.font1, "white", "black")
         }
     }
@@ -370,6 +398,11 @@ GameScene.think = function (dt, mpos, clicked, kdown) {
         UFX.draw("b textalign center textbaseline middle fs white ss black lw 1")
         context.fillText(text, x, y)
         context.strokeText(text, x, y)
+        // Draw controls
+        context.font = settings.buttonfont
+        UFX.draw("fs #844 ss gray [ t 40 40 b o 0 0 30 f s fs white ss black fst0 \u21B7 ]")
+        UFX.draw("fs #484 ss gray [ t 40 110 b o 0 0 30 f s fs white ss black fst0 \u21B6 ]")
+        UFX.draw("fs #448 ss gray [ t 40 180 b o 0 0 30 f s fs white ss black fst0 ? ]")
     }
         
     // dream sequence

@@ -62,12 +62,7 @@ p {
 <p>Use your Matter-Reversing Gun to guide the ball to the goal. Click to flip objects or pieces of objects horizontally.
 
 <p><input id=playmusic name=playmusic type=checkbox checked onclick="setmusic()"> Play music</input>
-<p><input id=playsound name=playsound type=checkbox checked> Play sound</input>
-
-<p>To cheat:
-<br>F1: previous level
-<br>F2: next level
-<br>F3: walkthrough of current level
+<input id=playsound name=playsound type=checkbox checked> Play sound</input>
 
 <td>
 <canvas id=canvas style="border: medium gray outset"></canvas>
@@ -108,8 +103,8 @@ UFX.resource.onload = function () {
     UFX.scene.init()
     UFX.scene.push(GameScene)
 }
-UFX.resource.load({music: "music.ogg", success: "success.ogg", fail: "fail.ogg",
-                    tick: "tick.ogg", click: "click.ogg"})
+UFX.resource.load({music: "sfx/music.ogg", success: "sfx/success.ogg", fail: "sfx/fail.ogg",
+                    tick: "sfx/tick.ogg", click: "sfx/click.ogg"})
 UFX.resource.loadwebfonts("Slackey", "Kameron")
 
 //UFX.scene.recording = true

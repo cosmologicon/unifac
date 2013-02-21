@@ -9,6 +9,7 @@ var settings = {
     timefont: "48px 'Kameron'",
     titlefont: "160px Slackey",
     walkfont: "80px Slackey",
+    buttonfont: "48px Slackey",
 }
 
 var mechanics = {
