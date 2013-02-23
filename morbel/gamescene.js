@@ -1,6 +1,4 @@
-var GameScene = Object.create(UFX.scene.Scene)
-
-var morbels
+var GameScene = {}, morbels
 
 GameScene.start = function () {
 
@@ -118,7 +116,7 @@ GameScene.draw = function () {
 
 
 // Cutscene that appears after stage 6
-var CutScene = Object.create(UFX.scene.Scene)
+var CutScene = {}
 CutScene.start = function () {
     this.script = [
         "Huh. That should have worked. Why isn't the terraforming starting?",
@@ -197,7 +195,7 @@ CutScene.draw = function () {
 
 
 // Game over scene that appears after stage 7
-var EndScene = Object.create(UFX.scene.Scene)
+var EndScene = {}
 EndScene.start = function () {
     this.shown = false
     this.t = 0
@@ -244,7 +242,7 @@ EndScene.draw = function () {
 }
 
 
-var IntroScene = Object.create(UFX.scene.Scene)
+var IntroScene = {}
 IntroScene.start = function () {
 }
 IntroScene.think = function (dt) {
