@@ -6,7 +6,7 @@ section {
 	max-width: 50em;
 	margin: 0 auto 1em;
 	cursor: pointer;
-	padding: 2% 0;
+	padding: 0.7em 0;
 	min-height: 4em;
 	background-image: -webkit-linear-gradient(top,rgba(255,255,255,0.14),rgba(255,255,255,0.04));
 	background-image:         linear-gradient(top,rgba(255,255,255,0.14),rgba(255,255,255,0.04));
@@ -37,7 +37,7 @@ section article {
 	margin: 0 5% 0 0;
 	text-align: justify;
 }
-section article p {
+section article > p {
 	margin: 0.4em 0;
 }
 section img {
@@ -57,5 +57,16 @@ aside.note {
 	position: absolute;
 	right: -1.5%;
 	padding: 0.1em 0.7em;
-	text-shadow: -1.5px -1.5px 1px black; 
+	text-shadow: -1.5px -1.5px 1px black;
+	box-shadow: 0 0 10px rgba(255,255,255,0.5);
 }
+aside.note:nth-of-type(1) {
+	top: 0.5em;
+}
+aside.note:nth-of-type(2) {
+	top: 3.2em;
+}
+#shownonmobile {
+	display: none;
+}
+
