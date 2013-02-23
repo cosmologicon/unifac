@@ -164,8 +164,7 @@ var dialogue = {
         context.save()
         UFX.draw("fs white ss black lw 1 alpha", this.alpha, "textalign center textbaseline middle")
         if (this.jline == 0) {
-            context.clearRect(0, 0, settings.sx, settings.sy)
-            context.translate(settings.sx / 2, settings.sy / 2)
+        	UFX.draw("[ fs black f0 ] t", settings.sx / 2, settings.sy / 2)
             context.font = settings.fonts.stagetitle0
             context.fillText("CASTAWAY'S LOG", 0, -70)
             context.font = settings.fonts.stagetitle1
