@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <title>Twondy and Zoop</title>
-<!-- link href='http://fonts.googleapis.com/css?family=Viga' rel='stylesheet' type='text/css' -->
+<link href='http://fonts.googleapis.com/css?family=Viga' rel='stylesheet' type='text/css'>
 <style>
 body {
     background: black; color: white;
@@ -147,6 +147,7 @@ function getpos(X, y) {
     var r = y + gamestate.worldr
     return [r * Math.sin(X), r * Math.cos(X)]
 }
+function clip(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
 
 var canvas = document.getElementById("canvas")
 canvas.width = settings.sx ; canvas.height = settings.sy
