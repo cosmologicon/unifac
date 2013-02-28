@@ -298,19 +298,27 @@ var wpaths = [
   UFX.Tracer("lw 0.8 ss black ( m -2 0 l 2 0 l 2 20 l -2 20 ) fs gray f s ( m -5 18 l 0 33 l 5 18 ) fs rgba(180,180,180,1) f s", [-6, 0, 12, 35]),
   UFX.Tracer("lw 0.8 ss black ( m -4 0 l -4 23 l 0 21 l -3 30 l 7 14 l 0 17 l 4 0 ) fs gray f s", [-5, 0, 14, 32]),
 ]
+//wpaths = [wpaths[0]]
+
 function Whisker(A, path) {
     this.A0 = A
     this.dA = 0
     this.sx = -Math.sin(this.A0)
     this.sy = Math.cos(this.A0)
     this.path = path || UFX.random.choice(wpaths)
+    this.theta = UFX.random(100)
+    this.phi = UFX.random(2, 4)
 }
 Whisker.prototype = {
     think: function (dt, vx, vy) {
-        this.dA += 0.05 * dt * (vx * this.sy - vy * this.sx)
-        this.dA *= 1 - dt
+        this.dA += 0.02 * dt * (vx * this.sy - vy * this.sx)
+        this.dA *= 1 - 2 * dt
         this.dA = Math.min(Math.max(this.dA, -1), 1)
-        console.log(vx, vy, this.sx, this.sy, vx * this.sy - vy * this.sx, this.dA)
+        this.dA = clip(this.dA, -0.5, 0.5)
+//        console.log(vx, vy, this.sx, this.sy, vx * this.sy - vy * this.sx, this.dA)
+        this.dA = 0
+        this.theta += this.phi * dt
+        this.dA = 0.3 * Math.sin(this.theta)
     },
     draw: function (vx, vy) {
         UFX.draw("[ r", this.A0 + this.dA)
@@ -321,15 +329,16 @@ Whisker.prototype = {
 var HasWhiskers = {
     init: function (nwhiskers) {
         this.nwhiskers = nwhiskers || 4
-        this.nwhiskers = 40
+        this.nwhiskers = 4
     },
     think: function (dt) {
         if (!this.whiskers) {
             var w = this.whiskers = []
             UFX.random.spread1d(this.nwhiskers, 1).forEach(function (p) {
-//                w.push(new Whisker((p * 0.8 + 0.6) * tau))
-                w.push(new Whisker(p * tau))
+                w.push(new Whisker((p * 0.8 + 0.6) * tau))
+//                w.push(new Whisker(p * tau))
             })
+//            for (var j = 0 ; j < this.nwhiskers ; ++j) w.push(new Whisker(j * tau / this.nwhiskers))
         }
         var vx = this.vx, vy = this.vy
         if (this.state.springhmax) {
@@ -351,13 +360,39 @@ var HasWhiskers = {
     },
 }
 var DrawWhiskerPieces = {
+    think: function (dt) {
+        if (!this.phis) {
+            this.phis = []
+            for (var j = 0 ; j < this.whiskers.length ; ++j) {
+//                this.phis.push(UFX.random(10, 20) * UFX.random.choice([-1,1]))
+                this.phis.push(UFX.random(2, 4) * UFX.random.choice([-1,1]))
+            }
+            this.phi0 = UFX.random(3, 6) * UFX.random.choice([-1, 1])
+        }
+        if (!this.tspin) this.tspin = 0
+        this.tspin += dt
+        for (var j = 0 ; j < this.whiskers.length ; ++j) {
+            this.whiskers[j].dA += this.phis[j] * dt
+        }
+        this.A0 = this.phi0 * this.tspin
+    },
     draw: function () {
-        for (var j = 0 ; j < this.whiskers.length ; ++j) this.whiskers[j].draw(0, 0)
+        var t = this.tspin, d = t * 50, h = 200 * t - 400 * t * t
+        UFX.draw("t 0", h)
+        for (var j = 0 ; j < this.whiskers.length ; ++j) {
+            var A = this.whiskers[j].A0
+            UFX.draw("[ t", -Math.sin(A) * d, Math.cos(A) * d)
+            this.whiskers[j].draw(0, 0)
+            UFX.draw("]")
+        }
+        UFX.draw("r", this.A0)
+        this.bodypath.draw(0, 0)
     },
 }
 
 function WhiskerBloom(obj) {
     this.whiskers = obj.whiskers
+    this.bodypath = obj.aphidpath
     this.X = obj.X
     this.y = obj.y
     this.alive = true
@@ -406,7 +441,7 @@ function Aphid(portal) {
 Aphid.prototype = UFX.Thing()
                     .addcomp(ClipsToCamera, 50)
                     .addcomp(WorldBound)
-//                    .addcomp(HasHangingDrill)
+                    .addcomp(HasHangingDrill)
                     .addcomp(HasStates, ["think", "draw"])
                     .addcomp(HasWhiskers, 14)
                     .addcomp(DrawAphid)

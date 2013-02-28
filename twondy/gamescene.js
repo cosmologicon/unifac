@@ -1,5 +1,5 @@
 
-var GameScene = Object.create(UFX.scene.Scene)
+var GameScene = {}
 
 
 GameScene.start = function () {
@@ -211,6 +211,7 @@ GameScene.think = function (dt, mkeys, nkeys) {
 
 
 GameScene.drawstars = function () {
+    if (!settings.detail.stars) return
     // Draw stars
     var t = Date.now() * 0.001
     context.save()
@@ -392,7 +393,7 @@ GameOverScene.drawstatus = function () {
     context.restore()
 }
 
-PauseScene = Object.create(UFX.scene.Scene)
+PauseScene = {}
 
 PauseScene.think = function (dt) {
     UFX.key.events().forEach(function (event) {
