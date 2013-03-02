@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<title>Twondy and Zoop: Bezier path test</title>
+<link href='http://fonts.googleapis.com/css?family=Viga' rel='stylesheet' type='text/css'>
+<base href=".."></base>
+<style>
+body {
+    background: black; color: white;
+    font-family: 'Viga';
+    font-size: 110%;
+}
+h1 {
+    font-size: 160%;
+    text-align: center;
+    margin: 0.5em auto 0;
+}
+h2 {
+    margin: 0 auto 1em;
+    font-size: 120%;
+}
+* {
+    margin: auto;
+    text-align: center;
+}
+
+input {
+    background: inherit; color: inherit; border: none;
+    font-family: inherit; font-size: inherit;
+    width: 20em;
+}
+td {
+    text-align: right
+}
+#canvasbox {
+    position: relative;
+}
+</style>
+
+<!-- UFX libraries -->
+<script src="../UFX/src/ticker.js"></script>
+<script src="../UFX/src/resource.js"></script>
+<script src="../UFX/src/scene.js"></script>
+<script src="../UFX/src/mouse.js"></script>
+<script src="../UFX/src/key.js"></script>
+<script src="../UFX/src/Thing.js"></script>
+<script src="../UFX/src/draw.js"></script>
+<script src="../UFX/src/random.js"></script>
+<script src="../UFX/src/noise.js"></script>
+<script src="../UFX/src/tracer.js"></script>
+
+<!-- game code -->
+<script src="util.js"></script>
+<script src="gamestate.js"></script>
+<script src="settings.js"></script>
+<script src="camera.js"></script>
+
+<!-- Scenes -->
+<script src="gamescene.js"></script>
+<script src="cutscene.js"></script>
+
+<!-- game objects -->
+<script src="stuff.js"></script>
+<script src="twondy.js"></script>
+<script src="you.js"></script>
+<script src="effects.js"></script>
+
+
+<h1>Twondy and Zoop</h1>
+<h2>Bezier path test</h2>
+
+<canvas id=canvas style="border: medium gray outset"></canvas>
+
+<script>
+var canvas = document.getElementById("canvas")
+canvas.width = settings.sx ; canvas.height = settings.sy
+var context = canvas.getContext("2d")
+
+window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
+                               window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
+UFX.draw.setcontext(context)
+
+Twondy.init()
+gamestate.setworldsize(400)
+camera.zoom = 1.2
+
+var bpaths = [
+	anchoredbezier(0, 0, 50, 50, 1, 0, 0, 0, 100, 100),
+	anchoredbezier(-0.4, 10, 0, 100, -0.4, 10, 100, 0, 200, 200),
+	anchoredbezier(0.2, 60, -200, 200, 0.4, 60, -200, -200, 500, 200),
+	anchoredbezier(0.2, 60, -150, 150, 0.4, 60, -150, -150, 500, 200),
+	anchoredbezier(0.2, 60, -100, 100, 0.4, 60, -100, -100, 250, 200),
+	anchoredbezier(0.2, 60, -100, -100, 0.4, 60, -100, 100, 250, 200),
+	anchoredbezier(0.2, 60, -150, -150, 0.4, 60, -150, 150, 500, 500),
+]
+
+var bt = 0
+function think(dt) {
+	bt += dt
+}
+function draw() {
+	UFX.draw("fs black f0")
+	context.save()
+	camera.orient()
+	Twondy.draw()
+	UFX.draw("ss red lw 1 b")
+	for (var j = 0 ; j < bpaths.length ; ++j) {
+		var bpath = bpaths[j]
+		var p = bpath.pos(0)
+		UFX.draw("m", getpos(p[0], p[1]))
+		for (var k = 0 ; k <= 50 ; ++k) {
+			var p = bpath.pos(k * bpath.t0 / 50)
+			UFX.draw("l", getpos(p[0], p[1]))
+		}
+	}
+	UFX.draw("s")
+	for (var j = 0 ; j < bpaths.length ; ++j) {
+		var bpath = bpaths[j]
+		var p = bpath.pos(bt % bpath.t0)
+		UFX.draw("[ t", getpos(p[0], p[1]), "b o 0 0 2 fs white f ]")
+	}
+	context.restore()
+}
+UFX.ticker.register(think, draw)
+
+</script>
+
+
