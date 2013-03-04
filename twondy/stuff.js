@@ -72,11 +72,18 @@ var HasStates = {
         this.nextstate = null
         this.think(0)
     },
+    // this.nextstate can either be a state object or an Array of [stateobj, arg1, arg2], where
+    //   the args will be passed to stateobj.enter.
     updatestate: function () {
         if (this.nextstate) {
             this.state.exit.call(this)
-            this.state = this.nextstate
-            this.state.enter.call(this)
+            if (this.nextstate instanceof Array) {
+                this.state = this.nextstate[0]
+                this.state.enter.apply(this, this.nextstate.slice(1))
+            } else {
+                this.state = this.nextstate
+                this.state.enter.call(this)
+            }
             this.nextstate = null
             this.think(0)
         }

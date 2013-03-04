@@ -2,10 +2,14 @@
 var Clonkable = {
     init: function (width, height) {
         this.clonkwidth = width || 10
-        this.clonkheight = height || this.width
+        this.clonkheight = height || this.clonkwidth
     },
     draw: function () {
-//        context.strokeRect(-this.width, 0, 2*this.width, this.height)
+        if (settings.DEBUG) {
+            UFX.draw("[ fs rgba(255,128,0,0.2) ss rgba(255,128,0,0.4) fsr",
+                -this.clonkwidth, 0, 2*this.clonkwidth, this.clonkheight, "]"
+            )
+        }
     },
     clonk: function (you, dhp) {
         if (this.hp <= this.dhp) {
@@ -84,10 +88,12 @@ var PortalState = {
             this.vx = 0
             this.vy = 0
         }
+        this.ax = 0
+        this.ay = 0
         this.X = this.portal.X + Math.sin(this.portal.A) * this.portalp / this.portal.xfactor
         this.y = this.portal.y - Math.cos(this.portal.A) * this.portalp
-        if (this.portalp > 40) {
-            this.nextstate = MatchSpeedState
+        if (this.portalp > 0) {
+            this.squad.onexitportal(this)
         }
     },
     draw: function () {
@@ -125,6 +131,33 @@ var MatchSpeedState = {
         this.vy *= f
         this.x += this.vx * dt / this.xfactor
         this.y += this.vy * dt
+    },
+    draw: function () {
+    },
+}
+
+// Maintain a specified orbit
+var StationKeepingState = {
+    enter: function (y, vx) {
+        this.stationy = y
+        this.stationvx = vx
+        this.stationt = 0
+        this.stationphi = UFX.random(4, 7)
+    },
+    exit: function () {
+    },
+    think: function (dt) {
+        this.ax = -2 * (this.vx - this.stationvx)
+        this.ay = -2 * this.vy + -2 * (this.y - this.stationy)
+        
+        this.stationt += dt
+        this.ay += 100 * Math.sin(this.stationphi * this.stationt) // Forced harmonic motion
+        
+        // TODO: make this a component
+        this.X += (this.vx + 0.5 * this.ax * dt) * dt / this.xfactor
+        this.y += (this.vy + 0.5 * this.ay * dt) * dt
+        this.vx += this.ax * dt
+        this.vy += this.ay * dt
     },
     draw: function () {
     },
@@ -194,8 +227,8 @@ var FlightState = UFX.Thing({
     draw: function () {
     },
 })
-//.addcomp(Rocks, 3)
-//.addcomp(SpringStepper, 8, 0.2)
+.addcomp(Rocks, 3)
+.addcomp(SpringStepper, 8, 0.2)
 
 
 // Drill into the surface
@@ -426,7 +459,7 @@ var DrawAphid = {
     },
 }
 
-
+/*
 function Aphid(portal) {
     this.v = 60
     this.X = 0
@@ -451,5 +484,33 @@ Aphid.prototype = UFX.Thing()
                     .addcomp(KillsEffects)
 //                    .addcomp(CarriesReward, 10)
 //                    .addcomp(Shatters)
+*/
+
+function Aphid(squad) {
+    this.squad = squad
+    this.portal = this.squad.portal
+    this.setstate(PortalState)
+    this.alive = true
+    this.think(0)
+}
+Aphid.prototype = UFX.Thing()
+    .addcomp(Clonkable)
+    .addcomp(ClipsToCamera, 50)
+    .addcomp(WorldBound)
+    .addcomp(HasStates, ["think", "draw"])
+    .addcomp(DrawCircle, "white")
+    .addcomp(HasHealth, 1)
+    .addcomp({
+        init: function () {
+            this.vmax = 100
+            this.amax = 400
+        }
+    })
+
+
+
+
+
+
 
 
