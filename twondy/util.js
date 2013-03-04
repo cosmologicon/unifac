@@ -48,14 +48,16 @@ BezierPath.prototype = {
 	// returns: [x, y, vx, vy, ax, ay]
 	pva: function (t) {
 		if (t == undefined) t = this.t
-		var h = t / this.t0, g = 1 - h
+		var h = t / this.t0, g = 1-h, k = 2-3*h, b = 1-3*h, t0 = this.t0
+		var x0 = this.x0, x1 = this.x1, x2 = this.x2, x3 = this.x3
+		var y0 = this.y0, y1 = this.y1, y2 = this.y2, y3 = this.y3
 		return [
-			this.x0*g*g*g + this.x1*3*g*g*h + this.x2*3*g*h*h + this.x3*h*h*h,
-			this.y0*g*g*g + this.y1*3*g*g*h + this.y2*3*g*h*h + this.y3*h*h*h,
-			(this.x0*-g*g + this.x1*g*(1-3*h) + this.x2*h*(2-3*h) + this.x3*h*h) * 3 / this.t0,
-			(this.y0*-g*g + this.y1*g*(1-3*h) + this.y2*h*(2-3*h) + this.y3*h*h) * 3 / this.t0,
-			(this.x0*g + this.x1*(3*h-2) + this.x2*(1-3*h) + this.x3*h) * 6 / (this.t0 * this.t0),
-			(this.y0*g + this.y1*(3*h-2) + this.y2*(1-3*h) + this.y3*h) * 6 / (this.t0 * this.t0),
+			x0*g*g*g + x1*3*g*g*h + x2*3*g*h*h + x3*h*h*h,
+			y0*g*g*g + y1*3*g*g*h + y2*3*g*h*h + y3*h*h*h,
+			(x0*-g*g + x1*g*b + x2*h*k + x3*h*h) * 3 / t0,
+			(y0*-g*g + y1*g*b + y2*h*k + y3*h*h) * 3 / t0,
+			(x0*g - x1*k + x2*b + x3*h) * 6 / (t0 * t0),
+			(y0*g - y1*k + y2*b + y3*h) * 6 / (t0 * t0),
 		]
 	},
 }

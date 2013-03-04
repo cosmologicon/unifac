@@ -17,6 +17,7 @@ GameScene.start = function () {
 
 
     // Yes these are supposed to be globals
+    squads = []
     hitters = []  // objects that the player can run into
     ehitters = []  // objects that the enemies can run into
 //    effects = [Indicator]  // text and graphical effects
@@ -86,12 +87,14 @@ GameScene.think = function (dt, mkeys, nkeys) {
     }
 
     if (UFX.random() * 3 < dt && monsters.length < 1) {
-        var p = new Portal(UFX.random(tau), UFX.random(100, 200))
+//        var p = new Portal(UFX.random(tau), UFX.random(100, 200))
 //        var p = new Portal(0, 120)
-        beffects.push(p)
+//        beffects.push(p)
 //        monsters.push(new Aphid(p))
-        monsters.push(new Aphid(p))
 //        monsters.push(new Aphid())
+//        squads.push(new StationSquad(10, 20, 50))
+        squads.push(new StationSquad(12, 60, -50))
+//        squads.push(new StationSquad(14, 100, 50))
     }
 
 /*
@@ -145,6 +148,7 @@ GameScene.think = function (dt, mkeys, nkeys) {
         effects.forEach(function (effect) { effect.think(dt) })
         beffects.forEach(function (effect) { effect.think(dt) })
         structures.forEach(function (structure) { structure.think(dt) })
+        squads.forEach(function (obj) { obj.think(dt) })
         monsters.forEach(function (monster) { monster.think(dt) })
         HUDeffects.forEach(function (effect) { effect.think(dt) })
         you.think(dt)

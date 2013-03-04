@@ -13,6 +13,7 @@ var settings = {
     },
     cheat: false,
 
+	DEBUG: window.location.href.indexOf("DEBUG") > -1,
 }
 
 var mechanics = {
