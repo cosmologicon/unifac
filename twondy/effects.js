@@ -309,7 +309,6 @@ CheatModeEffect.prototype = UFX.Thing()
        .addcomp(StrokedText, "cheat mode enabled", "yellow", "orange")
 
 
-// TODO: organize all these components better
 var CarriesEntities = {
     addentity: function (e) {
         this.entities.push(e)
@@ -319,7 +318,26 @@ var CarriesEntities = {
     },
     think: function (dt) {
         this.entities = this.entities.filter(function (e) { return e.alive })
-        if (dt && !this.entities.length) this.disappearing = true
+        if (dt && !this.entities.length) {
+            this.onempty()
+        }
+    },
+    // TODO: organize all these components better
+    onempty: function () {
+        this.disappearing = true
+    },
+}
+
+var QueuesEntities = {
+    init: function (t0, dt) {
+        this.queuet0 = t0
+        this.queuedt = dt
+    },
+    // Next available spot in the queue
+    nexttime: function () {
+        if (!this.entities.length) return this.queuet0
+        var maxt = Math.max.apply(Math, this.entities.map(function (e) { return e.autowaittime }))
+        return maxt + this.queuedt
     },
 }
 
@@ -328,7 +346,7 @@ var GrowsInShrinksOut = {
         this.zfactor = 0
         this.disappearing = false
         this.vz = 2
-        this.open = false
+        this.appeared = false
     },
     think: function (dt) {
         if (this.disappearing) {
@@ -337,23 +355,32 @@ var GrowsInShrinksOut = {
         } else {
             this.zfactor = Math.min(1, this.zfactor + this.vz * dt)
         }
-        this.open = this.zfactor == 1
+        this.appeared = this.zfactor == 1
     },
     draw: function () {
         UFX.draw("z", this.zfactor, this.zfactor)
     },
 }
 
+// A tilt that's significant enough that it may be needed by other objects
+//   eg. the direction a Portal is facing
 var HasTilt = {
+    init: function (A) {
+        this.settilt(A || 0)
+    },
+    settilt: function (A) {
+        this.tiltA = A
+        this.tiltS = Math.sin(A)
+        this.tiltC = Math.cos(A)
+    },
     draw: function () {
-        UFX.draw("r", this.A)
+        UFX.draw("r", this.tiltA)
     },
 }
 
 var DrawReticule = {
     init: function (sx, sy) {
-        this.sizex = sx || 10
-        this.sizey = sy || 10
+        this.reticulesize = [sx || 10, sy || 10]
         this.rtheta = 0
         this.romega = 2
     },
@@ -361,28 +388,32 @@ var DrawReticule = {
         this.rtheta += this.romega * dt
     },
     draw: function () {
-        UFX.draw("[ [ z", this.sizex, this.sizey, "b o 0 0 1 ]",
+        UFX.draw("[ [ z", this.reticulesize, "b o 0 0 1 ]",
                  "fs rgb(0,0,0) f lw 0.8 ss blue s clip",
-                 "[ z", this.sizex, this.sizey, "b o 0 0.5 1 o 0 1 1 o 0 1.5 1 ] lw 0.3 s ]",
-                 "[ z", this.sizex, this.sizey, "r", this.rtheta,
+                 "[ z", this.reticulesize, "b o 0 0.5 1 o 0 1 1 o 0 1.5 1 ] lw 0.3 s ]",
+                 "[ z", this.reticulesize, "r", this.rtheta,
                  "b m 0 1.2 l 0 2 m 0 -1.2 l 0 -2 m 1.2 0 l 2 0 m -1.2 0 l -2 0",
                  "m 1.2 0 a 0 0 1.2 0 1.57 m 1.4 0 a 0 0 1.4 0 1.57",
                  "m -1.2 0 a 0 0 1.2 3.14 4.71 m -1.4 0 a 0 0 1.4 3.14 4.71 ]",
                  "lw 0.8 ss blue s"
         )
     },
+    // Set clipping region for objects within the reticule
+    // Carves out a large half-plane, except for the circle of the reticule itself
     setclip: function () {
         UFX.draw("[")
         WorldBound.draw.apply(this)
         HasTilt.draw.apply(this)
-        UFX.draw("z", this.sizex, this.sizey, "( m 100 0 l 1 0 a 0 0 1 0 3.1416 l -100 0 l -100 -100 l 100 -100 ) ] clip")
+        UFX.draw("z", this.reticulesize,
+            "( m 100 0 l 1 0 a 0 0 1 0 3.1416 l -100 0 l -100 -100 l 100 -100 ) ] clip"
+        )
     },
 }
 
-function Portal(x, y) {
-    this.x = x
+function Portal(X, y) {
+    this.X = X
     this.y = y
-    this.A = UFX.random(-0.5, 0.5)
+    this.settilt(UFX.random(-0.5, 0.5))
     this.entities = []
     this.alive = true
     this.think(0)
@@ -390,6 +421,7 @@ function Portal(x, y) {
 Portal.prototype = UFX.Thing()
                     .addcomp(WorldBound)
                     .addcomp(CarriesEntities)
+                    .addcomp(QueuesEntities, 0.5, 1)
                     .addcomp(GrowsInShrinksOut)
                     .addcomp(HasTilt)
                     .addcomp(DrawReticule, 30, 9)

@@ -25,17 +25,20 @@ function StationSquad(n, y, vx) {
 	this.n = n
 	this.y = y
 	this.vx = vx
-	this.portal = new Portal(this.vx, this.y + 150)
+	this.portal = new Portal(UFX.random(tau), this.y + 50)
+	this.portal.settilt((this.vx > 0 ? 1 : -1) * 1.1)
 	beffects.push(this.portal)
 	this.members = []
 	for (var j = 0 ; j < this.n ; ++j) {
 		var member = new Aphid(this)
-		member.portalp = -200 - j * 600
+		member.squad = this
+		member.joinportal(this.portal)
 		this.members.push(member)
 		monsters.push(member)
 	}
 	this.t = 0
 	this.nfree = 0
+	this.spreadspeed = 20
 }
 StationSquad.prototype = {
 	think: function (dt) {
@@ -45,7 +48,7 @@ StationSquad.prototype = {
 				var X = this.members[j].X
 				for (var k = j+1 ; k < this.n ; ++k) {
 					var dX = getdX(X, this.members[k].X)
-					var dvx = dt * 50 * (dX > 0 ? 1 : -1) / (1 + dX * dX)
+					var dvx = dt * this.spreadspeed * (dX > 0 ? 1 : -1) / (1 + dX * dX)
 					this.members[j].vx -= dvx
 					this.members[k].vx += dvx
 				}
@@ -53,7 +56,7 @@ StationSquad.prototype = {
 		}
 	},
 	onexitportal: function (obj) {
-		obj.nextstate = [StationKeepingState, this.y, this.vx]
+		obj.nextstate = [StationKeepingState, { targety: this.y, targetvx: this.vx }]
 		this.nfree += 1
 	},
 }
