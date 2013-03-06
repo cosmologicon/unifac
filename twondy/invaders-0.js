@@ -1,3 +1,5 @@
+// This module was getting to be pretty bloated. I'm rewriting it as invaders.js
+//   keeping only the parts I need, hopefully will be able to delete this file soon
 
 var Clonkable = {
     init: function (width, height) {
@@ -25,16 +27,6 @@ var KillsEffects = {
     die: function () {
         if (this.drill) this.drill.alive = false
     }
-}
-
-var DrawCircle = {
-    init: function (color, size) {
-        this.color = color || "gray"
-        this.size = size || 6
-    },
-    draw: function () {
-        UFX.draw("b o 0 0", this.size, "alpha 0.2 fs", this.color, "f alpha 1 ss", this.color, "s")
-    },
 }
 
 var Rocks = {
