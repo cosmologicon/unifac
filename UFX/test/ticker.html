@@ -1,142 +1,213 @@
 <!DOCTYPE html>
-<html>
-<head>
 <title>UFX.ticker test</title>
 <link href='http://fonts.googleapis.com/css?family=Viga' rel='stylesheet' type='text/css'>
 <style>
 body {
-    background: black; color: white;
-    font-family: 'Viga';
-    font-size: 110%;
+	background: black; color: white;
+	font-family: 'Viga';
+	font-size: 110%;
 }
 h1 {
-    font-size: 160%;
-    text-align: center;
-    margin-left: auto;
-    margin-right: auto;
+	font-size: 160%;
+	text-align: center;
+	margin-left: auto;
+	margin-right: auto;
 }
 input {
-    background: inherit; color: inherit; border: none;
-    font-family: inherit; font-size: inherit;
-    width: 20em;
+	background: inherit; color: inherit; border: none;
+	font-family: inherit; font-size: inherit;
 }
-table {
-    margin: auto;
+input[type="text"] {
+	width: 15em;
 }
-td {
-    text-align: right
+button {
+	font-family: inherit; font-size: inherit;
 }
 </style>
 
 <script src="../src/ticker.js"></script>
-<body>
 <h1>UFX.ticker test</h1>
+<table><tr>
+<td>
 <canvas id=canvas style="border: thin blue solid"></canvas>
+<td>
+<p>
+<button onclick="runfixed()">Fixed</button>
+<button onclick="runfixedrbound()">Fixed render bound</button>
+<button onclick="runfixedubound()">Fixed update bound</button>
+<p>
+<button onclick="runsemifixed()">Semi-fixed</button>
+<button onclick="runsemifixedtween()">Semi-fixed + tweening</button>
 
-<table>
-<tr><td><input type=text id=fps readonly></input>
-<td><input type=text id=ups readonly></input>
-<tr><td><button type=button onclick="mballs(1./1.5)">Less dots please</button>
-<td><input type=text id=nballs readonly style="width:3em"></input>
-<td><button type=button onclick="mballs(1.5)">More dots please</button>
+<p><label><input type=checkbox id=sync onclick="UFX.ticker.sync=this.checked" checked>
+Sync to animation frame</label>
+<p><label><input type=checkbox id=tween>
+Inter-frame tweening</label>
+
+<p>think delay:
+<input type=radio name=tdelay value=0 checked>0ms</input>
+<input type=radio name=tdelay value=20>20ms</input>
+<input type=radio name=tdelay value=50>50ms</input>
+<input type=radio name=tdelay value=100>100ms</input>
+<input type=radio name=tdelay value=200>200ms</input>
+<label><input type=checkbox id=trandom>Randomize</label>
+
+<p>draw delay:
+<input type=radio name=ddelay value=0 checked>0ms</input>
+<input type=radio name=ddelay value=20>20ms</input>
+<input type=radio name=ddelay value=50>50ms</input>
+<input type=radio name=ddelay value=100>100ms</input>
+<input type=radio name=ddelay value=200>200ms</input>
+<label><input type=checkbox id=drandom>Randomize</label>
+
+<p>Fadeout time:
+<input type=radio name=ftime value=0>0ms</input>
+<input type=radio name=ftime value=100 checked>100ms</input>
+<input type=radio name=ftime value=200>200ms</input>
+<input type=radio name=ftime value=500>500ms</input>
+<input type=radio name=ftime value=1000>1000ms</input>
+
+
+<p><input type=text id=ups readonly></input>
+<p><input type=text id=fps readonly></input>
+<p><input type=text id=ttrack readonly></input>
+<p><input type=text id=rates readonly></input>
 </table>
-
-<input type=checkbox onclick="UFX.ticker.animsync = this.checked">
-Sync to animation frames</input>
-<input type=checkbox onclick="interact = this.checked">
-O(n<sup>2</sup>) interactions (slow thinking)</input>
-
 
 <script>
 var canvas = document.getElementById("canvas")
 canvas.width = 400
-canvas.height = 300
+canvas.height = 400
 var context = canvas.getContext("2d")
 
-var interact = false
+function delay(t) {
+	if (!t) return
+	var tend = Date.now() + t
+	while (Date.now() < tend);
+}
+function getradiovalue(name) {
+	var elems = document.getElementsByName(name)
+	for (var j = 0 ; j < elems.length ; ++j) {
+		if (elems[j].checked) return elems[j].value
+	}
+}
 
-var balls = []
-function setballs(n) {
-    balls.n = n
-    while (balls.length < n) {
-        var color = "rgb(" + Math.floor(Math.random() * 100 + 155) + "," +
-                             Math.floor(Math.random() * 100 + 155) + "," +
-                             Math.floor(Math.random() * 100 + 155) + ")"
-        var ball = {
-            x: Math.random() * 400,
-            y: Math.random() * 300,
-            vx: Math.random() * 200 - 100,
-            vy: Math.random() * 200 - 100,
-            r: Math.random() * 5 + 2,
-            color: color,
-        }
-        balls.push(ball)
-    }
-    document.getElementById("nballs").value = n
+
+function RateTimer(ename, suffix) {
+	this.elem = document.getElementById(ename)
+	this.suffix = suffix || ""
+	this.last = Date.now()
+	this.len = 0
 }
-function mballs(fac) {
-    setballs(Math.max(Math.round(fac * balls.n), 1))
+RateTimer.prototype = {
+	update: function () {
+		var now = Date.now(), dt = (now - this.last) * 0.001
+		this.last = now
+		this.len = 0.96 * this.len + 0.04 * dt
+		this.elem.value = (1 / this.len).toPrecision(3) + this.suffix
+	},
 }
-setballs(10)
+
+var n = 0, t = 0, start = Date.now()
+var theta = 0, theta0 = 0, phi = 3
+var ttimer = new RateTimer("ups", "ups")
+var dtimer = new RateTimer("fps", "fps")
+var dttrack = 0, dt0track = 0, lastthink = Date.now()
 
 function think(dt) {
-    for (var j = 0 ; j < balls.n ; ++j) {
-        var ball = balls[j]
-        ball.ax = 0
-        ball.ay = 0
-    }
-    if (interact) {
-        for (var j = 0 ; j < balls.n ; ++j) {
-            var ball0 = balls[j]
-            for (var i = 0 ; i < j ; ++i) {
-                var ball1 = balls[i]
-                var dx = ball0.x - ball1.x, dy = ball0.y - ball1.y
-                var d = Math.sqrt(dx * dx + dy * dy)
-                var a = Math.min(10000.0 / (d * d), 100.0)
-                var ax = a * dx / d
-                var ay = a * dy / d
-                ball0.ax += ax
-                ball0.ay += ay
-                ball1.ax -= ax
-                ball1.ay -= ay
-            }
-        }
-    }
-    for (var j = 0 ; j < balls.n ; ++j) {
-        var ball = balls[j]
-        ball.x += ball.vx * dt + 0.5 * ball.ax * dt * dt
-        ball.y += ball.vy * dt + 0.5 * ball.ay * dt * dt
-        ball.vx += ball.ax * dt
-        ball.vy += ball.ay * dt
-        if (ball.x < 0) ball.vx = Math.abs(ball.vx)
-        if (ball.x > 400) ball.vx = -Math.abs(ball.vx)
-        if (ball.y < 0) ball.vy = Math.abs(ball.vy)
-        if (ball.y > 300) ball.vy = -Math.abs(ball.vy)
-    }
-    document.getElementById("ups").value = UFX.ticker.getupsstr()
+	ttimer.update()
+	n += 1
+	t += dt
+	theta0 = theta
+	theta += phi * dt
+	var d = +getradiovalue("tdelay")
+	if (document.getElementById("trandom").checked)
+		d *= 2 * Math.random()
+	delay(d)
+	var now = Date.now(), dt0 = (now - lastthink) * 0.001
+	lastthink = now
+	dttrack = 0.96 * dttrack + 0.04 * dt
+	dt0track = 0.96 * dt0track + 0.04 * dt0
+	document.getElementById("ttrack").value = "tfactor: " + (dttrack / dt0track).toPrecision(3)
+	document.getElementById("rates").value = UFX.ticker.getrates()
+}
+var lastfade = Date.now()
+function draw(f) {
+	dtimer.update()
+	var tween = document.getElementById("tween").checked
+	var a = tween ? f * theta + (1-f) * theta0 : theta
+	var bx = 200 + 160 * Math.sin(a), by = 200 + 160 * Math.cos(a)
+	
+	var ftime = +getradiovalue("ftime")
+	var dt = Date.now() - lastfade
+	lastfade = Date.now()
+	var alpha = ftime ? 1 - Math.exp(-dt/ftime) : 1
+	context.fillStyle = "rgba(0,0,0," + alpha + ")"
+	context.fillRect(0, 0, 400, 400)
+	context.beginPath()
+	context.moveTo(200, 200)
+	context.lineTo(bx, by)
+	context.strokeStyle = "white"
+	context.lineWidth = 2
+	context.stroke()
+	context.beginPath()
+	context.moveTo(bx, by)
+	context.arc(bx, by, 30, 0, 6.3)
+	context.fillStyle = "orange"
+	context.fill()
+	var d = +getradiovalue("ddelay")
+	if (document.getElementById("drandom").checked)
+		d *= 2 * Math.random()
+	delay(d)
 }
 
-function draw() {
-    context.fillStyle = "black"
-    context.fillRect(0, 0, 400, 300)
-    for (var j = 0 ; j < balls.n ; ++j) {
-        var ball = balls[j]
-        context.fillStyle = ball.color
-        context.beginPath()
-        context.arc(ball.x, ball.y, ball.r, 0, 2 * Math.PI, true); 
-        context.closePath()
-        context.fill()
-    }
-    document.getElementById("fps").value = UFX.ticker.getfpsstr()
+
+window.requestAnimationFrame = window.requestAnimationFrame
+	|| window.mozRequestAnimationFrame
+	|| window.webkitRequestAnimationFrame
+	|| window.msRequestAnimationFrame
+window.cancelAnimationFrame = window.cancelAnimationFrame
+	|| window.mozCancelAnimationFrame
+	|| window.webkitCancelAnimationFrame
+	|| window.msCancelAnimationFrame
+
+UFX.ticker.sync = true
+
+function run(opts) {
+	UFX.ticker.init(think, draw, opts)
+}
+function runfixed() {
+	run({
+	})
+}
+function runfixedrbound() {
+	run({
+		minupf: 1,
+		maxupf: 3,
+		ups: 60,
+	})
+}
+function runfixedubound() {
+	run({
+		minupf: 0,
+		ups: 20,
+	})
+}
+function runsemifixed() {
+	run({
+		minups: 20,
+		maxups: 100,
+	})
+}
+function runsemifixedtween() {
+	run({
+		minupf: 0,
+		maxupf: 1,
+		minups: 20,
+		maxups: 100,
+	})
 }
 
-// polyfill, boo!
-window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
-                               window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
-
-// UFX.ticker.animsync = true
-UFX.ticker.registersync(think, draw, 300, 10)
 
 </script>
-
 

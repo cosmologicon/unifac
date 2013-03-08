@@ -42,7 +42,7 @@ canvas.width = 400
 canvas.height = 300
 var context = canvas.getContext("2d")
 
-var BallScene = Object.create(UFX.scene.Scene)
+var BallScene = {}
 BallScene.start = function () {
     this.balls = []
     for (var j = 0 ; j < 20 ; ++j) {
@@ -88,7 +88,6 @@ BallScene.draw = function () {
 window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
                                window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
 
-UFX.ticker.animsync = true
 UFX.scene.push(BallScene)
 UFX.scene.init()
 //setTimeout(UFX.pause, 1000)

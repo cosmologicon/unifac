@@ -1,193 +1,174 @@
-// UFX.ticker module - frame handling
-// Register two callbacks, think() and draw(), and determine how they'll be called.
-
-// think(dt) can take a single argument dt, which is the game time (in seconds) since the previous
-//   call. This may be smaller than the actual (wall) time since the previous call, if the game is
-//   lagging.
-// If you're using a fixed update rate, feel free to ignore this value.
-
-// draw(f) can take a single argument f, which is the current tweening factor. This value is
-//   within the interval (0,1], where 0 represents the previous update and 1 represents the
-//   current update. If tweening is not enabled, this value will always be 1.
-// If you're not accounting for tweening, feel free to ignore this value.
-
-// NOTE: tweening mode is not currently implemented, so there's no point calling draw more than
-//   once between successive think calls
-
-
-// How to divide the labor between think and draw?
-
-// Generally think should do the minimum amount necessary to keep the "simulation" running,
-//   and draw should handle all non-essential functions. If you skip one or more draw calls, the
-//   game should continue on in a consistent state. The idea is that if the game starts to lag,
-//   draw calls can be skipped to keep the updates per second up.
-
-// If performance is not a concern for you, you can feel free to not define draw, and handle both
-//   simulation updates and drawing to the screen in the think function.
-
+// UFX.ticker module
+// Handle game loop
 
 if (typeof UFX == "undefined") UFX = {}
-UFX.ticker = {}
 
-// Every time the think function is called, 
+UFX.ticker = {
+	// Default options
+	defaultopts: {
+		sync: "auto",  // Whether to use window.requestAnimationFrame
+		cthis: null,   // The "this" object for the callbacks
+		delay: 0,      // Minimum time between ticks (milliseconds)
+		minupf: 1,     // If set, minimum number of updates per frame
+		maxupf: 1,     // If set, maximum number of updates per frame
+		ups: null,     // Number of updates per second (defaults to upf * fps)
+		minups: null,  // If set, minimum number of updates per second
+		maxups: null,  // If set, maximum number of updates per second
+		fps: 30,       // Minimum frame (render, draw) rate
+	},
 
-// There are a lot of options involved, and you can set them manually if you like, but it's
-//   recommended that you use one of a few patterns (below). A little simpler that way.
+	// Main entry point. Pass a think callback, (optionally) a draw callback,
+ 	//   and (optionally) a options initialization object		
+	init: function (tcallback, dcallback, opts) {
+		this.setcallbacks(tcallback, dcallback)
+		this.setoptions(opts)
+		this.resume()
+	},
+	setcallbacks: function (tcallback, dcallback) {
+		this._tcallback = tcallback
+		this._dcallback = dcallback
+	},
+	setoptions: function (opts, keepopts) {
+		if (!keepopts) {
+			for (var oname in this.defaultopts) {
+				this[oname] = this.defaultopts[oname]
+			}
+		}
+		if (!opts) return
+		for (var oname in this.defaultopts) {
+			if (oname in opts) {
+				this[oname] = opts[oname]
+			}
+		}
+		
+		// TODO: put in some assert statements
+		
+		// if ups is not specified, minupf must equal maxupf
+		
+	},
+	resume: function () {
+		this.stop()
+		this._running = true
+		this._tick()
+	},
+	stop: function () {
+		if (this._shandle) window.cancelAnimationFrame(this._shandle)
+		if (this._thandle) clearTimeout(this._thandle)
+		this._shandle = this._thandle = null
+		this._running = false
+		this.resetcounters()
+	},
+	// Reset the FPS counters etc.
+	resetcounters: function () {
+		this._accumulator = 0  // accumulated wall time for update
+		this._dtu = 0  // average wall dt between updates (ms)
+		this._dtg = 0  // average game dt between updates (ms)
+		this._dtf = 0  // average wall dt between frames (ms)
+		this._lastthink = Date.now()
+		this._lastdraw = Date.now()
+		this.wfactor = 1
+	},
+	// A handy-formatted string of the current info from this module
+	getrates: function () {
+		return [
+			this.wfps.toPrecision(3) + "fps",
+			this.wups.toPrecision(3) + "ups",
+			this.wfactor.toPrecision(3) + "x",
+		].join(" ")
+	},
 
-// ups (updates per second) is the number of times think should be called per second
-// fps (frames per second) is the number of times draw should be called per second
-// The HTML5 spec prevents setTimeout from executing recursively with a timeout of less than 4ms,
-//   which makes the theoretical maximum rate 250ups/fps.
+	// Where the magic happens.
+	// Calls the thick callback 0 or more times, and the draw callback 0 or 1 time.
+	_tick: function () {
+		if (!this._running) return
+		var now = Date.now()
+		var dt0 = this._lasttick ? (now - this._lasttick) * 0.001 : 0
+		this._lasttick = now
+		this._accumulator += dt0
+		
+		var fps = this.fps
+		var minupf = this.minupf
+		var maxupf = this.maxupf
+		var minups = this.minups || this.ups || fps
+		var maxups = this.maxups || this.ups || minups
+		
+		var dodraw, nthink, dt, dtmin
 
-// Game will not provide more than this ups, even if possible
-UFX.ticker.maxups = 30
-// minups - If unable to provide this many ups, the game will lag
-UFX.ticker.minups = 30
-// Note: for a fixed timestep, set maxups and minups to the same value
+		if (minupf == 0) {
+			dodraw = true
+		} else {
+			dodraw = this._accumulator >= minupf / maxups
+		}
 
-// Number of updates per frame
-UFX.ticker.upf = 1
+		if (!dodraw) {
+			nthink = 0
+			dtmin = minupf / maxups
+		} else if (minupf >= maxupf) {
+			nthink = minupf
+			// Need to redo this formula. It always maxes out semi-fixed timesteps
+			dtmin = dt = Math.min(this._accumulator, minupf / minups)
+//			console.log(dt, dt0)
+		} else {
+			// Choose the number of updates and length of each update so as to
+			//   maximize the amount of accumulated time consumed, and then to
+			//   minimize the number of updates, subject to the constraints
+			var n = Math.floor(this._accumulator * minups)
+			if ((n + 1) / maxups <= this._accumulator) n += 1
+			nthink = Math.max(Math.min(n, maxupf), minupf)
+			dt = Math.min(nthink / minups, this._accumulator)
+			dtmin = Math.max(minupf, 1) / maxups
+//			console.log(minups, maxups, this._accumulator, n, nthink, dt, dt0)
+		}
+		
 
-// Minimum delay in ms between successive update runs.
-UFX.ticker.delay = 0
+		// Invoke the think callback
+		if (nthink) {
+			this._accumulator -= dt
+			dt /= nthink
+			for (var jthink = 0 ; jthink < nthink ; ++jthink) {
+				this._tcallback.call(this.cthis, dt, jthink, nthink)
+				now = Date.now()
+				this._dtu = 0.95 * this._dtu + 0.05 * (now - this._lastthink)
+				this._dtg = 0.95 * this._dtg + 0.05 * (dt * 1000)
+				this._lastthink = now
+			}
+		}
 
-// Use requestAnimationFrame rather than setTimeout
-// This is used to throttle the framerate to the screen update frequency
-// (probably?) only makes sense if you're getting more than 60ups
-UFX.ticker.animsync = false
+		// Invoke the draw callback
+		if (dodraw && this._dcallback) {
+			var f = this._accumulator * minups
+			this._dcallback.call(this.cthis, f)
+			now = Date.now()
+			this._dtf = 0.95 * this._dtf + 0.05 * (now - this._lastdraw)
+			this._lastdraw = now
+		}
 
+		// Accumulators should never be allowed to stay over 1 update
+		this._accumulator = Math.max(Math.min(this._accumulator, dtmin), 0)
+		// TODO: reconsider the margin for accumulator amounts close to 0
 
+		// Update frame rate counters
+		this.wups = 1000 / this._dtu
+		this.wfps = this._dcallback ? 1000 / this._dtf : this.wups
+		this.wfactor = this._dtg / this._dtu
 
+		// In case someone called UFX.ticker.stop during the loop
+		if (!this._running) return
 
-
-// The most basic registration function
-UFX.ticker.register = function (tcallback, dcallback, opts) {
-    UFX.ticker._tcallback = tcallback
-    UFX.ticker._dcallback = dcallback
-    UFX.ticker.setoptions(opts)
-    UFX.ticker.resume()
+		// Queue up the next tick
+		var tosync = this.sync == "auto" ? window.requestAnimationFrame : this.sync
+		this._shandle = this._thandle = null
+		var callback = (function (obj) { return function () { obj._tick() } })(this)
+		if (tosync) {
+		    this._shandle = window.requestAnimationFrame(callback)
+		} else {
+			// The next time at which a frame would actually execute
+			var nexttick = this._lasttick + (dtmin - this._accumulator)
+			var delay = Math.max(Date.now() - nexttick, this.delay)
+			delay = 0
+		    this._thandle = window.setTimeout(callback, delay)
+		}
+	},
 }
-
-// For use when you want think and draw synched
-UFX.ticker.registersync = function (tcallback, dcallback, maxups, minups) {
-    var opts = { upf: 1, animsync: true }
-    if (maxups) {
-        opts.maxups = maxups
-        opts.minups = minups || maxups
-    }
-    UFX.ticker.register(tcallback, dcallback, opts)
-}
-
-
-// Update all options
-UFX.ticker.setoptions = function (opts) {
-    if (!opts) return
-    var copykeys = ["maxups", "minups", "maxupf", "animsync", "delay"]
-
-    for (var j = 0 ; j < copykeys.length ; ++j) {
-        var key = copykeys[j]
-        if (typeof opts[key] !== "undefined") UFX.ticker[key] = opts[key]
-    }
-}
-
-// Stop and resume. Safe to call multiple times.
-// Will automatically resume if register is called.
-UFX.ticker.stop = function () {
-    if (UFX.ticker._rafhandle) {
-        window.cancelRequestAnimationFrame(UFX.ticker._rafhandle)
-        UFX.ticker._rafhandle = null
-    }
-    if (UFX.ticker._sthandle) {
-        clearTimeout(UFX.ticker._sthandle)
-        UFX.ticker._sthandle = null
-    }
-    delete UFX.ticker._avgdtu, UFX.ticker._avgdtf
-    delete UFX.ticker._lastthink, UFX.ticker._lastdraw
-}
-UFX.ticker.resume = function () {
-    UFX.ticker.stop()
-    UFX.ticker._think()
-}
-
-
-// Returns a string with a manageable number of digits
-UFX.ticker.getfpsstr = function () {
-    return UFX.ticker._3digits(UFX.ticker.fps) + "fps"
-}
-UFX.ticker.getupsstr = function () {
-    return UFX.ticker._3digits(UFX.ticker.ups) + "ups"
-}
-UFX.ticker._3digits = function (f) {
-    if (!f) return "???"
-    var ndig = f >= 100 ? 0 : f >= 10 ? 1 : f >= 1 ? 2 : 3
-    return f.toFixed(ndig)
-}
-
-
-
-// Called repeatedly, and calls either the _tcallback, or _dcallback, or both,
-//   depending on the current options.
-// Also updates the FPS and UPS counters.
-UFX.ticker._think = function () {
-
-    // Determine which of the callbacks will be called this round
-    var now = (new Date()).getTime()
-    var dothink = true, dodraw = true
-    // Simple case - call think and draw every time
-    if (UFX.ticker.upf == 1) {
-    } else {
-        // TODO: handle this!
-    }
-
-    // Call the callbacks if necessary
-    if (dothink && UFX.ticker._tcallback) {
-        var truedt = UFX.ticker._lastthink ? (now - UFX.ticker._lastthink) * 0.001 : 0
-        UFX.ticker._lastthink = now
-        var dt = truedt
-        if (UFX.ticker.minups) {
-            dt = Math.min(1. / UFX.ticker.minups, dt)
-        }
-        UFX.ticker._tcallback(dt)
-        
-        // FPS smoothing algorithm
-        // http://stackoverflow.com/questions/87304/calculating-frames-per-second-in-a-game
-        if (typeof UFX.ticker._avgdtu != "number") {
-            UFX.ticker._avgdtu = truedt
-        } else {
-            UFX.ticker._avgdtu = 0.95 * UFX.ticker._avgdtu + 0.05 * truedt
-        }
-        UFX.ticker.ups = 1. / UFX.ticker._avgdtu
-    }
-    if (dodraw && UFX.ticker._dcallback) {
-        var dt = UFX.ticker._lastdraw ? (now - UFX.ticker._lastdraw) * 0.001 : 0
-        UFX.ticker._lastdraw = now
-        UFX.ticker._dcallback(1.0)
-        
-        if (typeof UFX.ticker._avgdtf != "number") {
-            UFX.ticker._avgdtf = dt
-        } else {
-            UFX.ticker._avgdtf = 0.95 * UFX.ticker._avgdtf + 0.05 * dt
-        }
-        UFX.ticker.fps = 1. / UFX.ticker._avgdtf
-    }
-    
-    // No draw function registered, use ups as fps
-    if (!UFX.ticker._dcallback) {
-        UFX.ticker._avgdtf = UFX.ticker._avgdtu
-        UFX.ticker.fps = UFX.ticker.ups
-    }
-
-    // Set up the next round
-    UFX.ticker._rafhandle = UFX.ticker._sthandle = null
-    if (UFX.ticker.animsync) {
-        UFX.ticker._rafhandle = window.requestAnimationFrame(UFX.ticker._think)
-    } else {
-        var dtnext = UFX.ticker.maxups ? Math.floor(1000.0 / UFX.ticker.maxups) : 0
-        dtnext -= (new Date()).getTime() - now
-        var delay = Math.max(dtnext, UFX.ticker.delay)
-        UFX.ticker._sthandle = window.setTimeout(UFX.ticker._think, delay)
-    }
-}
-
 
 

@@ -11,15 +11,10 @@ UFX.SceneStack = function () {
 	this.frozen = false
 }
 UFX.SceneStack.prototype = {
-	init: function (maxups, minups) {
-		maxups = maxups || 300
-		minups = minups || 10
-		var scenestack = this
-		UFX.ticker.registersync(
-			function () { return scenestack.think.apply(scenestack, arguments) },
-			function () { return scenestack.draw.apply(scenestack, arguments) },
-			maxups, minups
-		)
+	init: function (opts, keepopts) {
+		opts = Object.create(opts || null)
+		opts.cthis = this
+		UFX.ticker.init(this.think, this.draw, opts, keepopts)
 	},
 	top: function () {
 		var n = this._stack.length
