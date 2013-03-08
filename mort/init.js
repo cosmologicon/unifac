@@ -27,9 +27,7 @@ function setcanvassize() {
 window.onresize = setcanvassize
 setcanvassize()
 
-window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
-                               window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
-UFX.scene.init()
+UFX.scene.init({ minups: 10, maxups: 200 })
 UFX.scene.push("load")
 UFX.resource.onloading = function (f) { UFX.scenes.load.onloading(f) }
 UFX.resource.onload = function () {
