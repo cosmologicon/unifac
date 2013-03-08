@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<title>The Devil's Handiwork</title>
+<!-- UFX libraries -->		
+<script src="../UFX/src/ticker.js"></script>		
+<script src="../UFX/src/resource.js"></script>		
+<script src="../UFX/src/scene.js"></script>		
+<script src="../UFX/src/random.js"></script>		
+<script src="../UFX/src/noise.js"></script>		
+<script src="../UFX/src/texture.js"></script>		
+<script src="../UFX/src/tracer.js"></script>		
+<script src="../UFX/src/Thing.js"></script>		
+<script src="../UFX/src/draw.js"></script>		
+<script src="../UFX/src/key.js"></script>		
+<script src="../UFX/src/mouse.js"></script>
+<script src="../UFX/src/touch.js"></script>
+<script src="../UFX/src/maximize.js"></script>
+<script src="UFX.js"></script>
+<style type="text/css">
+p { margin: 0.3em }
+header * { margin: 0 }
+header { margin: 0.8em }
+h1, h2 { font-weight: normal }
+body { background: #222 ; color: white ; text-align: center ; font-size: 150% }
+a { color: #AAF ; text-decoration: none }
+* { font-family: 'New Rocker' ; text-shadow: 0.1em 0.1em black }
+button, label { font-size: 100% ; border: medium white outset ; background: rgba(255,255,255,0.1) ; color: inherit ; cursor: pointer }
+label { padding-right: 0.3em }
+input { cursor: pointer }
+ul { margin: 0 }
+.controls li { display: inline-block ; margin-left: 1em ; margin-right: 1em }
+li.cheat { display: none }
+</style>
+
+<header>
+<h1>The Devil's Handiwork</h1>
+<p>please use Chrome if possible
+</header>
+<canvas id=canvas></canvas>
+<ul class="controls">
+<li><label><input id=playsound name=playsound type=checkbox checked>Sound effects</label>
+<li><label><input id=playmusic name=playmusic type=checkbox checked>Music</label>
+<li><button type=button onclick="UFX.maximize.full(canvas)">Full Screen</button>
+<li><button type=button onclick="UFX.maximize.fill(canvas)">Fill Window</button>
+<li class="cheat"><button type=button onclick="cheat()">Cheat</button>
+<li><button type=button onclick="gamestate.reset()">Reset Save Game</button>
+</ul>
+
+<h2>How to play</h2>
+
+<p>Use the mouse to select sins and apply them.
+<p>Can also select sins using the number keys.
+<p>Scroll using arrow keys, WASD, or right-click.
+<p>Zoom using your mouse wheel.
+<!-- game code -->		
+<script src="settings.js"></script>
+<script src="gamestate.js"></script>		
+<script src="leveldata.js"></script>		
+<script src="vista.js"></script>		
+<script src="stuff.js"></script>		
+<script src="blob.js"></script>		
+<script src="scenes.js"></script>		
+<script src="dialogue.js"></script>		
+<script src="platforms.js"></script>		
+<script src="HUD.js"></script>		
+<script src="init.js"></script>
+

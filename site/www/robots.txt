@@ -1,0 +1,10 @@
+User-Agent: *
+Disallow: /test/
+Disallow: /lep/v0
+Disallow: /lep/v1
+Disallow: /lep/v2
+Disallow: /lep/img
+Disallow: /lep/sfx
+Disallow: /lep/voice
+Disallow: /lep/music
+

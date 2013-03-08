@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<title>Rise of the Morbels</title>
+<link href='http://fonts.googleapis.com/css?family=Squada+One|Russo+One' rel='stylesheet' type='text/css'>
+<style>
+body {
+    background: black; color: white;
+    font-family: 'Russo One';
+    font-size: 130%;
+}
+h1 {
+    font-size: 180%;
+    text-align: center;
+    margin: 0.5em auto 0;
+}
+h2 {
+    margin: 0 auto 1em;
+    font-size: 150%;
+}
+canvas, table, body {
+    margin: auto;
+    text-align: center;
+}
+
+table {
+    margin-top: 1em;
+}
+td {
+    text-align: center;
+    vertical-align: top;
+}
+button, label {
+    font-size: 100%;
+    font-family: inherit;
+    border: medium purple outset;
+    background: rgba(255,0,255,0.1);
+    color: inherit;
+    cursor: pointer;
+    margin: 0;
+}
+input {
+    margin: 0;
+}
+label {
+    padding-left: 0.3em;
+    padding-right: 0.3em;
+}
+ul {
+    margin: 0;
+    padding: 0;
+}
+.options {
+    text-align: center
+}
+.options li {
+    margin: 0.7em;
+    list-style: none;
+}
+
+</style>
+
+<!-- UFX libraries -->
+<script src="UFX/ticker.js"></script>
+<script src="UFX/scene.js"></script>
+<script src="UFX/key.js"></script>
+<script src="UFX/Thing.js"></script>
+<script src="UFX/draw.js"></script>
+<script src="UFX/random.js"></script>
+<script src="UFX/noise.js"></script>
+<script src="UFX/resource.js"></script>
+
+<!-- game code -->
+<script src="settings.js"></script>
+<script src="camera.js"></script>
+<script src="gamestate.js"></script>
+<script src="dialogue.js"></script>
+<script src="terrain.js"></script>
+<script src="gamescene.js"></script>
+<script src="you.js"></script>
+<script src="morbels.js"></script>
+<script src="effects.js"></script>
+<script src="devices.js"></script>
+<script src="sound.js"></script>
+
+<body>
+<h1>Rise of the Morbels</h1>
+<h2>by Christopher Night</h2>
+
+<canvas id=canvas></canvas>
+
+<table>
+<tr>
+<td>
+<h2>Options</h2>
+<ul class=options>
+<li><label><input id=playvo name=playvo type=checkbox onclick="setvo()" checked>Play Voiceover</label>
+<li><label><input id=playmusic name=playmusic type=checkbox onclick="setmusic()" checked>Play music</label>
+<li><label><input id=playsound name=playsound type=checkbox checked>Play sound effects</label>
+<li><button type=button onclick="gofullscreen()">Full Screen</button>
+<li><label><input id=slowcaptions name=slowcaptions type=checkbox>Slow captions</label>
+</ul>
+
+<td style="padding-left: 2em">
+<h2>Controls</h2>
+<p>Arrow keys or WASD: move left and right
+<p>Space or enter: interact
+<p>Tab: Advance dialogue
+<p>F1: skip to next level
+</table>
+
+<script>
+var canvas = document.getElementById("canvas")
+canvas.width = settings.sx * settings.sz
+canvas.height = settings.sy * settings.sz
+var context = canvas.getContext("2d")
+//context.scale(settings.sz, settings.sz)
+
+function gofullscreen() {
+	if (canvas.webkitRequestFullScreen) {
+		canvas.webkitRequestFullScreen(true)
+	} else if (canvas.mozRequestFullScreen) {
+		canvas.mozRequestFullScreen()
+	} else if (canvas.requestFullScreen) {
+		canvas.requestFullScreen()
+	}
+}
+function setcanvassize() {
+	if ((document.webkitFullscreenElement || document.mozFullScreenElement) == canvas) {
+		canvas.style.border = "none"
+		canvas.style.width = document.width + "px"
+	} else {
+		canvas.style.border = "medium purple outset"
+		canvas.style.width = ""
+	}
+}
+window.onresize = setcanvassize
+setcanvassize()
+
+function loadscreen(f) {
+    context.fillStyle = "rgb(20,0,20)"
+    context.fillRect(0, 0, settings.sx, settings.sy)
+    context.fillStyle = "rgb(200,0,200)"
+    context.strokeStyle = "black"
+    context.font = settings.fonts.loading
+    context.textAlign = "center"
+    context.textBaseline = "middle"
+    var s = "Loading (" + Math.round(f * 100) + "%)"
+    context.fillText(s, settings.sx/2, settings.sy/2)
+    context.strokeText(s, settings.sx/2, settings.sy/2)
+}
+loadscreen(0)
+
+window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
+                               window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
+UFX.key.init()
+UFX.key.qup = false
+UFX.key.qdown = true
+UFX.key.remaparrows(true)
+UFX.key.remap({ space: "act", enter: "act" })
+UFX.key.watchlist = "left right act F1 F2 tab".split(" ")
+UFX.draw.setcontext(context)
+UFX.resource.onload = function () {
+    UFX.resource.sounds.music.loop = true
+    UFX.resource.sounds.music.play()
+    stopmusic()
+    UFX.resource.sounds.boing.volume = 0.3
+    UFX.resource.sounds.step.volume = 0.5
+    setvo()
+    setmusic()
+    UFX.scene.init()
+    UFX.scene.push(IntroScene)
+    
+}
+var res = {
+    youz5: "img/you-z5.png",
+    you: "img/you.png",
+    step: "sounds/step.ogg",
+    splatter: "sounds/splatter.ogg",
+    boing: "sounds/boing.ogg",
+    poweron: "sounds/poweron.ogg",
+    winning: "sounds/beammeup.ogg",
+    zot: "sounds/faze.ogg",
+    pshow: "sounds/explode.ogg",
+    hiss: "sounds/hiss.ogg",
+    hiccup: "sounds/hiccup.ogg",
+    bomb: "sounds/bomb.ogg",
+    whirl: "sounds/whirl.ogg",
+    yap: "sounds/yap.ogg",
+    pop: "sounds/pop.ogg",
+    
+    music: "sounds/music.ogg",
+}
+for (var j = 0 ; j < dialogue.script.length ; ++j) {
+    var lines = dialogue.script[j]
+    for (var k = 0 ; k < lines.length ; ++k) {
+        res["v" + j + k] = "sounds/v" + j + "-" + k + ".ogg"
+    }
+}
+UFX.resource.load(res)
+UFX.resource.onloading = loadscreen
+
+
+</script>
+
+

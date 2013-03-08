@@ -1,0 +1,72 @@
+section {
+	background: rgba(255,255,255,0.08);
+	color: inherit;
+	border: thin rgba(255,255,255,0.3) outset;
+	width: 80%;
+	max-width: 50em;
+	margin: 0 auto 1em;
+	cursor: pointer;
+	padding: 0.7em 0;
+	min-height: 4em;
+	background-image: -webkit-linear-gradient(top,rgba(255,255,255,0.14),rgba(255,255,255,0.04));
+	background-image:         linear-gradient(top,rgba(255,255,255,0.14),rgba(255,255,255,0.04));
+	box-shadow: 10px 10px 20px rgba(0,0,0,0.7);
+	position: relative;
+}
+section:hover {
+	background-image: -webkit-linear-gradient(top,rgba(255,200,200,0.21),rgba(255,200,200,0.08));
+	background-image:         linear-gradient(top,rgba(255,200,200,0.21),rgba(255,200,200,0.08));
+}
+section header {
+	font-size: 140%;
+	text-align: center;
+	font-family: 'Racing Sans One', serif;
+	margin: 0;
+}
+section header * {
+	margin: 0;
+}
+section header a, section header a:hover {
+	text-decoration: none;
+	color: inherit;
+}
+section article {
+	display: inline-block;
+	vertical-align: top;
+	max-width: 50%;
+	margin: 0 5% 0 0;
+	text-align: justify;
+}
+section article > p {
+	margin: 0.4em 0;
+}
+section img {
+	display: inline-block;
+	vertical-align: top;
+	border: thin gray outset;
+	margin-left: 0.5em;
+	max-width: 40%;
+	margin: 0;
+}
+aside.note {
+	font-size: 70%;
+	border: 2px #008 outset;
+	border-radius: 4px;
+	background: #006;
+	color: #77F;
+	position: absolute;
+	right: -1.5%;
+	padding: 0.1em 0.7em;
+	text-shadow: -1.5px -1.5px 1px black;
+	box-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+aside.note:nth-of-type(1) {
+	top: 0.5em;
+}
+aside.note:nth-of-type(2) {
+	top: 3.2em;
+}
+#shownonmobile {
+	display: none;
+}
+
