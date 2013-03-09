@@ -67,6 +67,7 @@ var PortalState = {
         this.portalp = -200
         this.portal.addentity(this)
         this.portalv = 400
+        console.log(this.portalp)
     },
     exit: function () {
         this.portal.removeentity(this)
@@ -82,6 +83,7 @@ var PortalState = {
         }
         this.ax = 0
         this.ay = 0
+        console.log(this.vx, this.vy, this.ax, this.ay)
         this.X = this.portal.X + Math.sin(this.portal.A) * this.portalp / this.portal.xfactor
         this.y = this.portal.y - Math.cos(this.portal.A) * this.portalp
         if (this.portalp > 0) {

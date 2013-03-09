@@ -1,6 +1,16 @@
 // A Squad is an object that coordinates the motion of a set of invaders.
 // TODO: these should definitely be UFX.Things
 
+// Typical behavior for an invader in a squad is:
+// Invaders are assigned to a squad and a portal when they're created
+// Their motion is controlled by the portal until they're through it.
+// At that point their motion is controlled by the squad.
+// The squad can "release" an invader at any time by giving it a rogue state.
+// Rogue refers to any invader that's been released from its squad. From that point on
+//   it operates without any orders from its former squad.
+// Once all invaders have been released, the squad can be eliminated.
+// The squad must take care that any invader may be killed at any point.
+
 var squads = []
 
 // A squad consisting of a single Aphid
@@ -26,7 +36,7 @@ function StationSquad(n, y, vx) {
 	this.y = y
 	this.vx = vx
 	this.portal = new Portal(UFX.random(tau), this.y + 50)
-	this.portal.settilt((this.vx > 0 ? 1 : -1) * 1.1)
+	this.portal.settilt((this.vx > 0 ? 1 : -1) * 0.7)
 	beffects.push(this.portal)
 	this.members = []
 	for (var j = 0 ; j < this.n ; ++j) {
@@ -39,10 +49,16 @@ function StationSquad(n, y, vx) {
 	this.t = 0
 	this.nfree = 0
 	this.spreadspeed = 20
+	this.alive = true
 }
 StationSquad.prototype = {
 	think: function (dt) {
+		if (!this.members.length) {
+			this.alive = false
+			return
+		}
 		this.t += dt
+		this.n = this.members.length
 		if (this.nfree == this.n) {
 			for (var j = 0 ; j < this.n ; ++j) {
 				var X = this.members[j].X
@@ -53,7 +69,17 @@ StationSquad.prototype = {
 					this.members[k].vx += dvx
 				}
 			}
+			// Randomly release one member a second or so
+			if (UFX.random() < dt) {
+				var member = UFX.random.choice(this.members)
+				this.release(member)
+				member.release()
+			}
 		}
+		this.members = this.members.filter(function (m) { return m.alive })
+	},
+	release: function (member) {
+		this.members = this.members.filter(function (m) { return m !== member })
 	},
 	onexitportal: function (obj) {
 		obj.nextstate = [StationKeepingState, { targety: this.y, targetvx: this.vx }]

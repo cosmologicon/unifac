@@ -4,7 +4,19 @@
 // I'M BASICALLY GETTING AS FAR AWAY FROM THE ORIGINAL SPACE INVADERS AS FUNCTIONALLY POSSIBLE.
 // PUN INTENDED.
 
+// YOU WANT TO KNOW WHAT this REFERS TO? WELL BEST OF LUCK FIGURING IT OUT, BUDDY! NOBODY HAS THE
+// THE SLIGHTEST CLUE WHAT this REFERS TO ANYWHERE IN THIS PROGRAM! THANKS A TON, call AND apply!
+// MWAHAHAHAHA!
+
+// Seriously thuogh, "this" always refers to an invader object here, but it's easier to just
+// trust me on that than to figure out how....
+
 // COMPONENTS OF INVADER STATES
+
+// Invader state components' enter functions should ideally take a single argument, an
+// initialization argument. This way different components can be put in the same state even if they
+// take completely different arguments.
+
 
 // Has a velocity and an acceleration, and updates position based on that
 var BasicMotion = {
@@ -19,8 +31,9 @@ var BasicMotion = {
 		this.y += (this.vy + 0.5 * this.ay * dt) * dt
 		this.vx += this.ax * dt
 		this.vy += this.ay * dt
-		this.ax = 0
-		this.ay = 0
+		// Last ax and ay are the acceleration for the purposes of animation
+		this.lastax = this.ax ; this.lastay = this.ay
+		this.ax = this.ay = 0
 	},
 }
 
@@ -59,9 +72,9 @@ var ClipsToPortal = {
 
 // Load up a later state after a specified time
 var AutoNextState = {
-	enter: function (nstate, t) {
-		this.autonextstate = nstate
-		this.autowaittime = t
+	enter: function (obj, nextstate) {
+		this.autonextstate = nextstate
+		this.autowaittime = obj.t
 	},
 	think: function (dt) {
 		if (this.autowaittime < 0) return
@@ -82,16 +95,40 @@ var BeInvisible = {
 	},
 }
 
+// Follow a Bezier path from current position/velocity to target position/velocity
+var TargetBezier = {
+	enter: function (opts, nstate) {
+		var vx = opts.targetvx || 0, vy = opts.targetvy || 0
+		console.log(opts, this, vx, vy)
+		this.path = objbezier(this, opts.targetX, opts.targety, vx, vy)
+		console.log(this.path)
+		this.targetnextstate = nstate
+	},
+	think: function (dt) {
+		this.path.t += dt
+		var pva = this.path.pva()
+		this.X = pva[0] ; this.y = pva[1]
+		var xfactor = this.y + gamestate.worldr
+		this.vx = pva[2] * xfactor ; this.vy = pva[3]
+		this.lastax = pva[4] * xfactor ; this.lastay = pva[5]
+		if (this.path.t > this.path.t0) {
+			this.nextstate = this.targetnextstate
+		}
+	},
+}
+
+
 // ACTUAL INVADER STATES
 
 // Remain invisible for a specified amount of time before transitioning to next state
 var HideState = UFX.Thing()
 	.addcomp(AutoNextState)
-	.addcomp(BeInvisible)		
+	.addcomp(BeInvisible)
 
 // Just keep doing what you're doing
 var DriftState = UFX.Thing()
 	.addcomp(BasicMotion)
+	.addcomp(AutoNextState)
 	.definemethod("draw")
 
 // Maintain a given altitude and x-velocity
@@ -128,5 +165,38 @@ var PortalState = UFX.Thing()
 		},
 	})
 	.addcomp(ClipsToPortal)
+
+var TargetOmega = UFX.Thing()
+	.addcomp(TargetBezier)
+	.definemethod("draw")
+
+var InhaleState = UFX.Thing()
+	.addcomp(AutoNextState)
+	.addcomp({
+		draw: function () {
+			UFX.draw("z 1 2")
+		}
+	})
+
+var SneezeState = UFX.Thing()
+	.addcomp(AutoNextState)
+	.addcomp({
+		draw: function () {
+			UFX.draw("z", UFX.random(0.5, 2), UFX.random(0.5, 2))
+		}
+	})
+
+var DroopState = UFX.Thing()
+	.addcomp({
+		enter: function () {
+			this.vy = 100
+		},
+		think: function (dt) {
+			this.ay = -300
+			if (this.y < -50) this.alive = false
+		}
+	})
+	.addcomp(BasicMotion)
+	.definemethod("draw")
 
 
