@@ -56,7 +56,7 @@ var HasStates = {
         var methods = {}
         methodnames.forEach(function (methodname) {
             methods[methodname] = function () {
-                return this.state[methodname].apply(this, arguments)
+                return this.state && this.state[methodname].apply(this, arguments)
             }
         })
         this.addcomp(methods)
@@ -64,21 +64,28 @@ var HasStates = {
     // Call this to set the state immediately.
     // For state changes that should be set at the end of the think cycle, assign to this.nextstate
     setstate: function (state) {
-        if (this.state) {
+        if (this.state && this.state.exit) {
             this.state.exit.call(this)
         }
-        this.state = state
-        this.state.enter.call(this)
-        this.nextstate = null
+        if (state instanceof Array) {
+            this.state = state[0]
+            if (this.state.enter) {
+                this.state.enter.apply(this, state.slice(1))
+            }
+        } else {
+            this.state = state
+            if (this.state && this.state.enter) {
+                this.state.enter.call(this)
+            }
+        }
         this.think(0)
     },
+    // this.nextstate can either be a state object or an Array of [stateobj, arg1, arg2], where
+    //   the args will be passed to stateobj.enter.
     updatestate: function () {
         if (this.nextstate) {
-            this.state.exit.call(this)
-            this.state = this.nextstate
-            this.state.enter.call(this)
+            this.setstate(this.nextstate)
             this.nextstate = null
-            this.think(0)
         }
     },
 }
@@ -95,10 +102,6 @@ var IsBall = {
         context.strokeStyle = this.ballcolor
         context.lineWidth = 1
         context.stroke()
-/*        context.beginPath()
-        context.arc(0, 0, 1, 0, tau)
-        context.fillStyle = "white"
-        context.fill()*/
     }
 }
 

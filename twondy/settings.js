@@ -9,8 +9,11 @@ var settings = {
     twondytsize: 100,  // resolution of texture for Twondy's surface
     detail: {
         bsupports: false,  // block supports are smooth curves rather than lines
+        stars: false, // show star background
     },
     cheat: false,
+
+	DEBUG: window.location.href.indexOf("DEBUG") > -1,
 }
 
 var mechanics = {
