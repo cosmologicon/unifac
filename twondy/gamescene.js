@@ -20,9 +20,8 @@ GameScene.start = function () {
     squads = []
     hitters = []  // objects that the player can run into
     ehitters = []  // objects that the enemies can run into
-//    effects = [Indicator]  // text and graphical effects
-    effects = []
     beffects = []  // effects that appear behind the characters
+    feffects = []
     monsters = []
     HUDeffects = []  // Effects that aren't world-bound
 
@@ -145,7 +144,7 @@ GameScene.think = function (dt, mkeys, nkeys) {
 
         hitters.forEach(function (obj) { obj.think(dt) })
         ehitters.forEach(function (obj) { obj.think(dt) })
-        effects.forEach(function (effect) { effect.think(dt) })
+        feffects.forEach(function (effect) { effect.think(dt) })
         beffects.forEach(function (effect) { effect.think(dt) })
         structures.forEach(function (structure) { structure.think(dt) })
         squads.forEach(function (obj) { obj.think(dt) })
@@ -170,7 +169,7 @@ GameScene.think = function (dt, mkeys, nkeys) {
 
         hitters = stillalive(hitters)
         ehitters = stillalive(ehitters)
-        effects = stillalive(effects)
+        feffects = stillalive(feffects)
         beffects = stillalive(beffects)
         monsters = stillalive(monsters)
         structures = stillalive(structures)
@@ -247,7 +246,7 @@ GameScene.drawobjs = function () {
     monsters.forEach(draw)
     ehitters.forEach(draw)
     draw(you)
-    effects.forEach(draw)
+    feffects.forEach(draw)
 }
 
 GameScene.drawstatus = function () {

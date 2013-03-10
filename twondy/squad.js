@@ -16,7 +16,6 @@ var squads = []
 // A squad consisting of a single Aphid
 function LonelySquad() {
 	this.portal = new Portal(UFX.random(tau), UFX.random(100, 200))
-	beffects.push(this.portal)
 	this.members = [new Aphid(this)]
 	monsters.push(this.members[0])
 	this.t = 0
