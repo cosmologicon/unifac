@@ -36,7 +36,7 @@ function StationSquad(n, y, vx) {
 	this.y = y
 	this.vx = vx
 	this.portal = new Portal(UFX.random(tau), this.y + 50)
-	this.portal.settilt((this.vx > 0 ? 1 : -1) * 0.7)
+	this.portal.settilt((this.vx > 0 ? 1 : -1) * 0.9)
 	beffects.push(this.portal)
 	this.members = []
 	for (var j = 0 ; j < this.n ; ++j) {
@@ -57,9 +57,10 @@ StationSquad.prototype = {
 			this.alive = false
 			return
 		}
-		this.t += dt
+		var allfree = allprop(this.members, "joinedsquad")
 		this.n = this.members.length
-		if (this.nfree == this.n) {
+		if (allfree) {
+			this.t += dt
 			for (var j = 0 ; j < this.n ; ++j) {
 				var X = this.members[j].X
 				for (var k = j+1 ; k < this.n ; ++k) {
@@ -69,20 +70,24 @@ StationSquad.prototype = {
 					this.members[k].vx += dvx
 				}
 			}
-			// Randomly release one member a second or so
-			if (UFX.random() < dt) {
+			if (this.t > 10) {
 				var member = UFX.random.choice(this.members)
 				this.release(member)
 				member.release()
+				this.t = 5
 			}
 		}
-		this.members = this.members.filter(function (m) { return m.alive })
+		this.members = fprop(this.members, "alive")
 	},
 	release: function (member) {
 		this.members = this.members.filter(function (m) { return m !== member })
 	},
 	onexitportal: function (obj) {
-		obj.nextstate = [StationKeepingState, { targety: this.y, targetvx: this.vx }]
+		obj.joinedsquad = true
+		obj.nextstate = [StationKeepingState, {
+			targety: this.y, approachyA: UFX.random(25,50), approachyphi: UFX.random(2, 4),
+			targetvx: this.vx,
+		}]
 		this.nfree += 1
 	},
 }

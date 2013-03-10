@@ -17,6 +17,12 @@ function getpos(X, y) {
 // Clip x to the range [a,b]
 function clip(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
 
+// Return the array a filtered by the truthiness of property p
+function fprop(a,p){return a.filter(function(x){return x[p]})}
+
+// Is the property p truthy for all element of array a?
+function allprop(a,p){return Math.min.apply(null,a.map(function(x){return x[p]}))}
+
 // A cubic Bezier path through the given control points as a function of t
 //   with t(h) = t0 h. That is, 0 <= t <= t0 and 0 <= h <= 1
 // Even though I'm using lowercase x's here, it could just as easily work with X's.

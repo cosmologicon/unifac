@@ -93,8 +93,8 @@ GameScene.think = function (dt, mkeys, nkeys) {
 //        monsters.push(new Aphid(p))
 //        monsters.push(new Aphid())
 //        squads.push(new StationSquad(10, 20, 50))
-        squads.push(new StationSquad(12, 60, 50))
-//        squads.push(new StationSquad(14, 100, 50))
+        squads.push(new StationSquad(12, 40, 50))
+        squads.push(new StationSquad(14, 70, -50))
     }
 
 /*
@@ -259,9 +259,9 @@ GameScene.drawstatus = function () {
         context.fillText(text, settings.sx - 30, y)
         y += 28
     }
+    if (settings.DEBUG) puttext(UFX.ticker.getrates())
     puttext("health: " + Math.floor(gamestate.hp) + "/100")
     puttext("bank: $" + gamestate.bank)
-    puttext(UFX.ticker.getfpsstr())
     if (gamestate.unlocked.shock) {
         var f = you.shockfrac()
         var x0 = settings.sx - 10, y0 = 90
@@ -290,6 +290,9 @@ GameScene.draw = function () {
     this.drawworld()
     this.drawobjs()
     context.restore()
+    if (settings.DEBUG) {
+	    UFX.draw("[ t", camera.worldtoscreen(you.X, you.y), "b o 0 0 4 fs red f ]")
+    }
 
     this.drawstatus()
 }

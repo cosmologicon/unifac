@@ -16,6 +16,15 @@ var ClipsToCamera = {
     },
 }
 
+var Lives = {
+    init: function () {
+        this.alive = true
+    },
+    die: function () {
+        this.alive = false
+    },
+}
+
 var WorldBound = {
     init: function (X, y) {
         this.X = X || 0

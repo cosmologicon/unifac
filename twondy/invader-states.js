@@ -8,8 +8,9 @@
 // THE SLIGHTEST CLUE WHAT this REFERS TO ANYWHERE IN THIS PROGRAM! THANKS A TON, call AND apply!
 // MWAHAHAHAHA!
 
-// Seriously thuogh, "this" always refers to an invader object here, but it's easier to just
-// trust me on that than to figure out how....
+// Seriously though, in this module, "this" refers to an invader object, except in "init" functions,
+//   where it refers to an invader state.
+
 
 // COMPONENTS OF INVADER STATES
 
@@ -37,15 +38,21 @@ var BasicMotion = {
 	},
 }
 
-// Takes an initialization object with targety
+// Approaches y + A sin(phi t) with rate beta, with a friction term given by alpha
 var ApproachAltitude = {
 	enter: function (obj) {
 		this.targety = obj.targety
 		this.approachyalpha = obj.approachyalpha || 2
 		this.approachybeta = obj.approachybeta || 2
+		this.approachyA = obj.approachyA || 0
+		this.approachyphi = obj.approachyphi || 1
+		this.approachyt = 0
 	},
 	think: function (dt) {
-        this.ay = -this.approachyalpha * this.vy + -this.approachybeta * (this.y - this.targety)
+		this.approachyt += dt
+		var y = this.targety
+		if (this.approachyA) y += this.approachyA * Math.sin(this.approachyphi * this.approachyt)
+        this.ay = -this.approachyalpha * this.vy + this.approachybeta * (y - this.y)
 	},
 }
 var ApproachVelocity = {
@@ -99,9 +106,7 @@ var BeInvisible = {
 var TargetBezier = {
 	enter: function (opts, nstate) {
 		var vx = opts.targetvx || 0, vy = opts.targetvy || 0
-		console.log(opts, this, vx, vy)
 		this.path = objbezier(this, opts.targetX, opts.targety, vx, vy)
-		console.log(this.path)
 		this.targetnextstate = nstate
 	},
 	think: function (dt) {
@@ -181,9 +186,12 @@ var InhaleState = UFX.Thing()
 var SneezeState = UFX.Thing()
 	.addcomp(AutoNextState)
 	.addcomp({
+		enter: function () {
+			this.addeffect(new Sneeze(this))
+		},
 		draw: function () {
 			UFX.draw("z", UFX.random(0.5, 2), UFX.random(0.5, 2))
-		}
+		},
 	})
 
 var DroopState = UFX.Thing()
@@ -193,7 +201,7 @@ var DroopState = UFX.Thing()
 		},
 		think: function (dt) {
 			this.ay = -300
-			if (this.y < -50) this.alive = false
+			if (this.y < -50) this.die()
 		}
 	})
 	.addcomp(BasicMotion)
