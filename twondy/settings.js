@@ -3,7 +3,7 @@
 var settings = {
     sx: 600,
     sy: 600,
-    tickmult: 5,  // number of times we call think(). I know I know, I should be fixing my timestep. It's LD, buddy!
+    tickmult: 1,  // number of times we call think(). I know I know, I should be fixing my timestep. It's LD, buddy!
     showcutscenes: false,
     
     twondytsize: 100,  // resolution of texture for Twondy's surface
