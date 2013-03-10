@@ -32,12 +32,9 @@ var CanNab = {
         var clonker = this
         var dhp = 1
         objs.forEach(function (obj) {
-            if (!obj.state.clonkable) return
-            if (clonker.vy > obj.vy) return
-            if (Math.abs(getdX(clonker.X, obj.X)) * clonker.xfactor > obj.clonkwidth) return
-            if (Math.abs(clonker.y - obj.y) > obj.clonkheight) return
-            obj.clonk(clonker, dhp)
-            clonker.vy = mechanics.clonkvy
+            if (obj.beclonked(clonker)) {
+                clonker.vy = mechanics.clonkvy
+            }
         })
     },
 }

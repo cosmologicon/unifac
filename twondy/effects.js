@@ -415,10 +415,10 @@ function Portal(X, y) {
     this.y = y
     this.settilt(UFX.random(-0.5, 0.5))
     this.entities = []
-    this.alive = true
     this.think(0)
 }
 Portal.prototype = UFX.Thing()
+                    .addcomp(Lives)
                     .addcomp(WorldBound)
                     .addcomp(CarriesEntities)
                     .addcomp(QueuesEntities, 0.5, 1)
@@ -427,5 +427,22 @@ Portal.prototype = UFX.Thing()
                     .addcomp(DrawReticule, 30, 9)
 
 
+function Sneeze(obj) {
+    this.obj = obj
+    this.think(0)
+}
+Sneeze.prototype = UFX.Thing()
+    .addcomp(Lives)
+    .addcomp(WorldBound)
+    .addcomp({
+        think: function (dt) {
+            this.X = this.obj.X
+            this.targety = -20
+        },
+        draw: function () {
+            UFX.draw("ss blue lw 3 b m 0", this.targety, "l 0", this.obj.y, "s")
+        },
+    })
+    
 
 
