@@ -4,7 +4,6 @@ var KeepsEffects = {
 	addeffect: function (effect) {
 		if (!this.effects) this.effects = []
 		this.effects.push(effect)
-		effects.push(effect)
 	},
 	die: function () {
 		if (!this.effects) return
@@ -45,7 +44,7 @@ var Clonkable = {
 		if (Math.abs(who.y - this.y) > this.clonkheight) return false
 		if (Math.abs(getdX(who.X, this.X)) * this.xfactor > this.clonkwidth) return false
 		// TODO: possibility of taking damage without dying
-		this.die()
+		this.die(true)
 		return true
 	},
 }
@@ -64,6 +63,67 @@ var Sneezes = {
 	},
 }
 
+var DrawBody = {
+	init: function (bodies) {
+		this.bodies = bodies
+	},
+	think: function (dt) {
+		if (!this.body) this.body = UFX.random.choice(this.bodies)
+	},
+	draw: function () {
+		this.body.draw(camera.zoom)
+	},
+}
+var aphidbodies = [
+	UFX.Tracer("fs gray ss black lw 2 fsr -10 -10 20 20 lw 0.5 b m 0 -10 l 0 10 m -10 0 l 10 0 s", [-12, -12, 24, 24])
+]
+
+
+var HasWhiskers = {
+	init: function () {
+		this.whiskerA = 0.25  // amplitude of whisker motion, can be changed by states
+		this.whiskerR = 1
+	},
+	think: function (dt) {
+		if (!this.whiskers) {
+			var w = this.whiskers = [], obj = this
+			UFX.random.spread1d(4, 1).forEach(function (p) {
+				w.push(new Whisker(obj, (p * 0.8 + 0.6) * tau))
+			})
+		}
+		dt *= this.whiskerR
+		this.whiskers.forEach(function (whisker) {
+			whisker.think(dt)
+		})
+	},
+	draw: function () {
+		this.whiskers.forEach(function (whisker) {
+			context.save() ; whisker.draw() ; context.restore()
+		})
+	},
+}
+function Whisker(obj, A, shape) {
+	this.obj = obj
+	this.A0 = A
+	this.dA = 0
+	this.shape = shape || UFX.random.choice(whiskershapes)
+	this.phi = UFX.random(2, 4)
+	this.t = 0
+}
+Whisker.prototype = {
+	think: function (dt) {
+		this.t += dt
+		this.dA = this.obj.whiskerA * Math.sin(this.t * this.phi)
+	},
+	draw: function () {
+		UFX.draw("r", this.A0 + this.dA)
+		this.shape.draw(camera.zoom)
+	},
+}
+var whiskershapes = [
+	UFX.Tracer("fs gray ss black lw 1 b fsr -2 0 4 26", [-4, -4, 8, 32]),
+]
+
 
 // The measliest of all invaders, the lowly aphid
 function Aphid() {
@@ -76,9 +136,15 @@ Aphid.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(PortalUser)
 	.addcomp(HasStates, ["draw", "think"])
-	.addcomp(IsBall, 6, "gray")
+	.addcomp(HasWhiskers)
+	.addcomp(DrawBody, aphidbodies)
 	.addcomp(Sneezes)
 	.addcomp(Clonkable, 10, 5)
+	.addcomp({
+		die: function (clonked) {
+			if (clonked) new AphidCorpse(this)
+		},
+	})
 	.setmethodmode("draw", "any")
 Aphid.prototype.vmax = 400
 Aphid.prototype.amax = 400

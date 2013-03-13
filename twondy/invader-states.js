@@ -65,6 +65,18 @@ var ApproachVelocity = {
 	}
 }
 
+var ScrunchInMotion = {
+	draw: function () {
+//		var adotv = clip((this.lastax * this.vx + this.lastay * this.vy) / 1000, -0.5, 0.5)
+		var x = this.vx, y = this.vy
+		if (!x && !y) return
+		var A = Math.atan2(y, x)
+		var s = 1 + clip(Math.sqrt(x * x + y * y) / 800, 0, 0.3)
+		UFX.draw("r", A, "z", s, 1/s, "r", -A)
+	},
+}
+
+
 // Set the clipping region. This is a bit tricky beacuse it gets invoked
 //   *after* the initial transformation in WorldBound.draw. This solution
 //   seemed a bit inelegant at first, but actually I don't thnik it's so bad.
@@ -74,6 +86,15 @@ var ClipsToPortal = {
 		context.save()
 		this.portal.setclip()
 		WorldBound.draw.apply(this)
+	},
+}
+
+var ClipsToGround = {
+	enter: function () {
+		this.groundy = groundy(this.y)
+	},
+	draw: function () {
+		UFX.draw("[ t 0", -this.y + this.groundy, "m -1000 0 l 1000 0 l 0 1000 ] clip")
 	},
 }
 
@@ -129,10 +150,12 @@ var TargetBezier = {
 var HideState = UFX.Thing()
 	.addcomp(AutoNextState)
 	.addcomp(BeInvisible)
+HideState.invulnerable = true
 
 // Just keep doing what you're doing
 var DriftState = UFX.Thing()
 	.addcomp(BasicMotion)
+	.addcomp(ScrunchInMotion)
 	.addcomp(AutoNextState)
 	.definemethod("draw")
 
@@ -141,6 +164,7 @@ var StationKeepingState = UFX.Thing()
 	.addcomp(ApproachAltitude)
 	.addcomp(ApproachVelocity)
 	.addcomp(BasicMotion)
+	.addcomp(ScrunchInMotion)
 	.definemethod("draw")
 
 // While coming out of the portal
@@ -149,7 +173,7 @@ var PortalState = UFX.Thing()
 	.addcomp({
 		enter: function () {
 			this.portalx = -100
-			this.portalv = 400
+			this.portalv = 240
 			this.X = this.portal.X
 			this.y = this.portal.y
 		},
@@ -170,16 +194,27 @@ var PortalState = UFX.Thing()
 		},
 	})
 	.addcomp(ClipsToPortal)
+	.addcomp(ScrunchInMotion)
 
 var TargetOmega = UFX.Thing()
+	.addcomp(ScrunchInMotion)
 	.addcomp(TargetBezier)
+	.addcomp({
+		enter: function () {
+			this.alerter = new Alerter(this)
+		},
+		think: function (dt) {
+			this.whiskerA = Math.max(0, this.whiskerA - 0.5 * dt)
+		}
+	})
 	.definemethod("draw")
 
 var InhaleState = UFX.Thing()
 	.addcomp(AutoNextState)
 	.addcomp({
 		draw: function () {
-			UFX.draw("z 1 2")
+			var s = clip(2 - this.autowaittime * this.autowaittime, 1, 2)
+			UFX.draw("t 0 -10 z", 1/s, s, "t 0 10")
 		}
 	})
 
@@ -187,10 +222,22 @@ var SneezeState = UFX.Thing()
 	.addcomp(AutoNextState)
 	.addcomp({
 		enter: function () {
-			this.addeffect(new Sneeze(this))
+			this.sneeze = new Sneeze(this)
+			this.whiskerA = 0.5
+			this.whiskerR = 6
+			this.shudders = 0
+			this.shudderA = 0
+		},
+		exit: function () {
+			this.sneeze.die()
+		},
+		think: function (dt) {
+			this.shudders = clip(this.shudders + dt * UFX.random(-30, 30), 0.4)
+			this.shudderA = clip(this.shudderA + dt * UFX.random(-20, 20), 0.3)
 		},
 		draw: function () {
-			UFX.draw("z", UFX.random(0.5, 2), UFX.random(0.5, 2))
+			var s = Math.exp(this.shudders)
+			UFX.draw("t 0 -10 r", this.shudderA, "z", 1/s, s, "t 0 10")
 		},
 	})
 
@@ -198,13 +245,16 @@ var DroopState = UFX.Thing()
 	.addcomp({
 		enter: function () {
 			this.vy = 100
+			this.alerter.freezepos()
+			this.alerter.die()
 		},
 		think: function (dt) {
 			this.ay = -300
 			if (this.y < -50) this.die()
-		}
+		},
 	})
 	.addcomp(BasicMotion)
-	.definemethod("draw")
+	.addcomp(ClipsToGround)
+	.addcomp(ScrunchInMotion)
 
 

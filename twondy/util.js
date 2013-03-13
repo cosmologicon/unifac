@@ -14,6 +14,13 @@ function getpos(X, y) {
     return [r * Math.sin(X), r * Math.cos(X)]
 }
 
+// For pseudo-3d positioning, this is the y-value of the "ground" beneath an invader at the
+//   given altitude
+function groundy(y) {
+	return -15 * 100 / (100 + Math.max(y, 0))
+}
+
+
 // Clip x to the range [a,b]
 function clip(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
 

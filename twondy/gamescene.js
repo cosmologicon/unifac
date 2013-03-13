@@ -92,8 +92,8 @@ GameScene.think = function (dt, mkeys, nkeys) {
 //        monsters.push(new Aphid(p))
 //        monsters.push(new Aphid())
 //        squads.push(new StationSquad(10, 20, 50))
-        squads.push(new StationSquad(12, 40, 50))
-        squads.push(new StationSquad(14, 70, -50))
+//        squads.push(new StationSquad(7, 40, 50))
+        squads.push(new StationSquad(12, 70, -50))
     }
 
 /*
@@ -138,43 +138,38 @@ GameScene.think = function (dt, mkeys, nkeys) {
     }
 */
 
-    var n = settings.tickmult
-    dt /= n
-    for (var jit = 0 ; jit < n ; ++jit) {
+    hitters.forEach(function (obj) { obj.think(dt) })
+    ehitters.forEach(function (obj) { obj.think(dt) })
+    feffects.forEach(function (effect) { effect.think(dt) })
+    beffects.forEach(function (effect) { effect.think(dt) })
+    structures.forEach(function (structure) { structure.think(dt) })
+    squads.forEach(function (obj) { obj.think(dt) })
+    monsters.forEach(function (monster) { monster.think(dt) })
+    HUDeffects.forEach(function (effect) { effect.think(dt) })
+    you.think(dt)
 
-        hitters.forEach(function (obj) { obj.think(dt) })
-        ehitters.forEach(function (obj) { obj.think(dt) })
-        feffects.forEach(function (effect) { effect.think(dt) })
-        beffects.forEach(function (effect) { effect.think(dt) })
-        structures.forEach(function (structure) { structure.think(dt) })
-        squads.forEach(function (obj) { obj.think(dt) })
-        monsters.forEach(function (monster) { monster.think(dt) })
-        HUDeffects.forEach(function (effect) { effect.think(dt) })
-        you.think(dt)
-
-        function stillalive(arr) {
-            return arr.filter(function (x) { return x.alive })
-        }
-
-        you.updatestate()
-        monsters.forEach(function (m) { m.updatestate() })
-
-        you.nab(hitters)
-        you.interact(structures)
-        you.clonk(monsters)
-
-        ehitters.forEach(function (ehitter) {
-            ehitter.hit(monsters)
-        })
-
-        hitters = stillalive(hitters)
-        ehitters = stillalive(ehitters)
-        feffects = stillalive(feffects)
-        beffects = stillalive(beffects)
-        monsters = stillalive(monsters)
-        structures = stillalive(structures)
-
+    function stillalive(arr) {
+        return arr.filter(function (x) { return x.alive })
     }
+
+    you.updatestate()
+    monsters.forEach(function (m) { m.updatestate() })
+
+    you.nab(hitters)
+    you.interact(structures)
+    you.clonk(monsters)
+
+    ehitters.forEach(function (ehitter) {
+        ehitter.hit(monsters)
+    })
+
+    hitters = stillalive(hitters)
+    ehitters = stillalive(ehitters)
+    feffects = stillalive(feffects)
+    beffects = stillalive(beffects)
+    monsters = stillalive(monsters)
+    structures = stillalive(structures)
+    HUDeffects = stillalive(HUDeffects)
 
     if (UFX.key.ispressed.shift) {
         camera.mode = "planet"
@@ -183,7 +178,7 @@ GameScene.think = function (dt, mkeys, nkeys) {
         camera.mode = "play"
         camera.settarget(you.lookingat())
     }
-    camera.think(dt * n)
+    camera.think(dt)
     
     updatebuttons()
     if (dt) {
