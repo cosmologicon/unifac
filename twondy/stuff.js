@@ -24,6 +24,36 @@ var Lives = {
         this.alive = false
     },
 }
+// For objects that have transitions in/out - don't want to disappear immediately
+var AppearsDisappears = {
+    init: function (tappear) {
+        this.alive = true
+        this.tappear = tappear || 0.5
+        this.appearing = true
+        this.disappering = false
+        this.fappear = 0
+    },
+    think: function (dt) {
+        if (this.appearing) {
+            this.fappear += dt / this.tappear
+            if (this.fappear >= 1) {
+                this.fappear = 1
+                this.appearing = false
+                if (this.onappear) this.onappear()
+            }
+        } else if (this.disappearing && this.alive) {
+            this.fappear -= dt / this.tappear
+            if (this.fappear <= 0) {
+                this.fappear = 0
+                this.alive = false
+            }
+        }
+    },
+    die: function () {
+        this.appearing = false
+        this.disappearing = true
+    },
+}
 
 var WorldBound = {
     init: function (X, y) {
@@ -243,6 +273,7 @@ var FadesAway = {
     init: function (tmax) {
         this.fadetmax = tmax || 1
         this.fadet = 0
+        this.alive = true
     },
     think: function (dt) {
         this.fadet += dt
@@ -253,6 +284,28 @@ var FadesAway = {
         context.globalAlpha *= a
     },
 }
+var FadesOnDeath = {
+    init: function (tmax) {
+        this.fadetmax = tmax || 1
+        this.fadet = 0
+        this.fading = false
+        this.alive = true
+    },
+    die: function () {
+        this.fading = true
+    },
+    think: function (dt) {
+        if (this.fading) {
+            this.fadet += dt
+            this.alive = this.alive && this.fadet < this.fadetmax
+        }
+    },
+    draw: function () {
+        var a = Math.max(0, Math.min(1, 1 - this.fadet / this.fadetmax))
+        context.globalAlpha *= a
+    },
+}
+
 
 
 var FadesUpward = {
