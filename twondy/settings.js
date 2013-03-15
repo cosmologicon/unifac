@@ -9,6 +9,7 @@ var settings = {
     detail: {
         bsupports: false,  // block supports are smooth curves rather than lines
         stars: false, // show star background
+        dynamicinvaders: false,  // invaders with moving parts
     },
     cheat: false,
 
@@ -54,7 +55,7 @@ var mechanics = {
     gravity: 400,  // non-resisted gravity
     rgravity: 400,  // resisted gravity
     
-    lookahead: 100,
+    lookahead: 0,
 
     buildcost: {
         tower: 50,

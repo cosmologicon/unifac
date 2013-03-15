@@ -37,11 +37,18 @@ var GrowsInShrinksOut = {
 		UFX.draw("z", this.fappear, this.fappear)
 	},
 }
-
 var WobblesIn = {
 	draw: function () {
-		if (this.zfactor < 1) {
-			UFX.draw("z", UFX.random(0.5, 1.5), UFX.random(0.5, 1.5))
+		if (this.fappear < 1) {
+			var s = 1 + 0.5 * Math.sin(30 * this.fappear)
+			UFX.draw("z", s, 1/s)
+		}
+	},
+}
+var FadesIn = {
+	draw: function () {
+		if (this.fappear < 1) {
+			context.globalAlpha *= clip(this.fappear, 0, 1)
 		}
 	},
 }
@@ -161,16 +168,20 @@ Alerter.prototype = UFX.Thing()
 			this.pos = [this.obj.X, this.obj.y]
 		},
 		draw: function () {
-			var d = 20
+			var d = 30
 			var p = this.pos
 				? camera.worldtoscreen(this.pos[0], this.pos[1])
 				: camera.worldtoscreen(this.obj.X, this.obj.y)
-			// TODO: return true if we're on screen
-			p = [clip(p[0], 20, settings.sx - 20), clip(p[1], 20, settings.sy - 20)]
-			UFX.draw("t", p)
+			var m = Math.min(
+				Math.min(p[0], settings.sx - p[0]),
+				Math.min(p[1], settings.sy - p[1])
+			)
+			if (m > d) return true
+			if (m > 0) context.globalAlpha *= 1 - m / d
+			UFX.draw("t", clip(p[0], d, settings.sx - d), clip(p[1], d, settings.sy - d))
 		},
 	})
-	.addcomp(GrowsInShrinksOut)
+	.addcomp(WobblesIn)
 	.addcomp({
 		draw: function () {
 			var z = Math.sqrt(camera.zoom)
@@ -217,7 +228,8 @@ function Bruise(obj, X, y) {
 Bruise.prototype = UFX.Thing()
 	.addcomp(BoundToObject)
 	.addcomp(WorldBound)
-	.addcomp(FadesOnDeath, 1.5)
+	.addcomp(AppearsDisappears, 0, 2)
+	.addcomp(FadesIn)
 	.addcomp({
 		draw: function () {
 			UFX.draw("z 15 3 b o 0 0 1 fs rgba(255,0,0,0.5) f")
@@ -285,10 +297,12 @@ function AphidCorpse(obj) {
 	this.phi0 = UFX.random(3, 6) * UFX.random.choice([-1, 1])
 	this.tspin = 0
 	this.think(0)
+	this.die()
 }
 AphidCorpse.prototype = UFX.Thing()
 	.addcomp(WorldBound)
-	.addcomp(FadesAway, 0.5)
+	.addcomp(AppearsDisappears, 0, 0.8)
+	.addcomp(FadesIn)
 	.addcomp({
 		think: function (dt) {
 			this.ay = -100
