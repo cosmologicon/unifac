@@ -26,23 +26,24 @@ var Lives = {
 }
 // For objects that have transitions in/out - don't want to disappear immediately
 var AppearsDisappears = {
-    init: function (tappear) {
+    init: function (tappear, tdisappear) {
         this.alive = true
-        this.tappear = tappear || 0.5
+        this.tappear = typeof tappear == "number" ? tappear : 0.5
+        this.tdisappear = typeof tdisappear == "number" ? tdisappear : tappear
         this.appearing = true
         this.disappering = false
         this.fappear = 0
     },
     think: function (dt) {
         if (this.appearing) {
-            this.fappear += dt / this.tappear
+            this.fappear = this.tappear ? this.fappear + dt / this.tappear : 1
             if (this.fappear >= 1) {
                 this.fappear = 1
                 this.appearing = false
                 if (this.onappear) this.onappear()
             }
         } else if (this.disappearing && this.alive) {
-            this.fappear -= dt / this.tappear
+            this.fappear = this.tdisappear ? this.fappear - dt / this.tdisappear : 0
             if (this.fappear <= 0) {
                 this.fappear = 0
                 this.alive = false
@@ -210,22 +211,6 @@ var Wobbles = {
     },
 }
 
-var FadesIn = {
-    init: function (fadetime) {
-        this.fadetime = fadetime || 1.0
-        this.fadetimer = 0.
-    },
-    think: function (dt) {
-        this.fadetimer += dt
-    },
-    draw: function () {
-        if (this.fadetimer < this.fadetime) {
-            context.globalAlpha *= this.fadetimer / this.fadetime
-        }
-    },
-}
-
-
 var Drifts = {
     init: function (vx, vy) {
         this.vx = vx || 0
@@ -269,44 +254,6 @@ var Crashes = {
         this.alive = this.alive && this.y > 0
     },
 }
-var FadesAway = {
-    init: function (tmax) {
-        this.fadetmax = tmax || 1
-        this.fadet = 0
-        this.alive = true
-    },
-    think: function (dt) {
-        this.fadet += dt
-        this.alive = this.alive && this.fadet < this.fadetmax
-    },
-    draw: function () {
-        var a = Math.max(0, Math.min(1, 1 - this.fadet / this.fadetmax))
-        context.globalAlpha *= a
-    },
-}
-var FadesOnDeath = {
-    init: function (tmax) {
-        this.fadetmax = tmax || 1
-        this.fadet = 0
-        this.fading = false
-        this.alive = true
-    },
-    die: function () {
-        this.fading = true
-    },
-    think: function (dt) {
-        if (this.fading) {
-            this.fadet += dt
-            this.alive = this.alive && this.fadet < this.fadetmax
-        }
-    },
-    draw: function () {
-        var a = Math.max(0, Math.min(1, 1 - this.fadet / this.fadetmax))
-        context.globalAlpha *= a
-    },
-}
-
-
 
 var FadesUpward = {
     init: function (ymax) {

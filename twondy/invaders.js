@@ -73,6 +73,9 @@ var DrawBody = {
 	draw: function () {
 		this.body.draw(camera.zoom)
 	},
+	trace: function (context) {
+		this.body.trace(context)
+	},
 }
 var aphidbodies = [
 	UFX.Tracer("fs gray ss black lw 2 fsr -10 -10 20 20 lw 0.5 b m 0 -10 l 0 10 m -10 0 l 10 0 s", [-12, -12, 24, 24])
@@ -101,6 +104,11 @@ var HasWhiskers = {
 			context.save() ; whisker.draw() ; context.restore()
 		})
 	},
+	trace: function (context) {
+		this.whiskers.forEach(function (whisker) {
+			context.save() ; whisker.trace(context) ; context.restore()
+		})
+	},
 }
 function Whisker(obj, A, shape) {
 	this.obj = obj
@@ -113,16 +121,39 @@ function Whisker(obj, A, shape) {
 Whisker.prototype = {
 	think: function (dt) {
 		this.t += dt
-		this.dA = this.obj.whiskerA * Math.sin(this.t * this.phi)
 	},
 	draw: function () {
+		this.dA = this.obj.whiskerA * Math.sin(this.t * this.phi)
 		UFX.draw("r", this.A0 + this.dA)
 		this.shape.draw(camera.zoom)
+	},
+	trace: function (context) {
+		UFX.draw(context, "r", this.A0)
+		this.shape.trace(context)
 	},
 }
 var whiskershapes = [
 	UFX.Tracer("fs gray ss black lw 1 b fsr -2 0 4 26", [-4, -4, 8, 32]),
 ]
+
+var LowResTracer = {
+	init: function (tracersize) {
+		this.tracersize = tracersize
+	},
+	draw: function () {
+		if (settings.detail.dynamicinvaders) return
+		if (!this.tracer) {
+			var obj = this, t = obj.tracersize
+			this.tracer = new UFX.Tracer(
+				function (context) { obj.trace(context) },
+				[-t, -t, 2*t, 2*t]
+			)
+		}
+		this.tracer.draw(camera.zoom)
+		return true
+	},
+}
+
 
 
 // The measliest of all invaders, the lowly aphid
@@ -136,6 +167,7 @@ Aphid.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(PortalUser)
 	.addcomp(HasStates, ["draw", "think"])
+	.addcomp(LowResTracer, 30)
 	.addcomp(HasWhiskers)
 	.addcomp(DrawBody, aphidbodies)
 	.addcomp(Sneezes)

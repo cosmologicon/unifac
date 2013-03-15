@@ -55,6 +55,21 @@ var ApproachAltitude = {
         this.ay = -this.approachyalpha * this.vy + this.approachybeta * (y - this.y)
 	},
 }
+var ApproachWaveAltitude = {
+	enter: function (obj) {
+		this.targety0 = obj.targety0
+		this.approachyalpha = obj.approachyalpha || 2
+		this.approachybeta = obj.approachybeta || 2
+		this.approachyA = obj.approachyA || 0
+		this.approachyn = obj.approachyn || 1
+	},
+	think: function (dt) {
+		this.approachyt += dt
+		var y = this.targety0
+		if (this.approachyA) y += this.approachyA * Math.sin(this.X * this.approachyn)
+        this.ay = -this.approachyalpha * this.vy + this.approachybeta * (y - this.y)
+	},
+}
 var ApproachVelocity = {
 	enter: function (obj) {
 		this.targetvx = obj.targetvx
@@ -64,6 +79,7 @@ var ApproachVelocity = {
 		this.ax = -this.approachxalpha * (this.vx - this.targetvx)
 	}
 }
+
 
 var ScrunchInMotion = {
 	draw: function () {
@@ -161,7 +177,8 @@ var DriftState = UFX.Thing()
 
 // Maintain a given altitude and x-velocity
 var StationKeepingState = UFX.Thing()
-	.addcomp(ApproachAltitude)
+//	.addcomp(ApproachAltitude)
+	.addcomp(ApproachWaveAltitude)
 	.addcomp(ApproachVelocity)
 	.addcomp(BasicMotion)
 	.addcomp(ScrunchInMotion)

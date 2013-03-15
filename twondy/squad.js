@@ -31,10 +31,10 @@ LonelySquad.prototype = {
 
 // A squad of station keeping aphids
 function StationSquad(n, y, vx) {
-	this.n = n
+	this.n = 20
 	this.y = y
 	this.vx = vx
-	this.portal = new Portal(UFX.random(tau), this.y + 50)
+	this.portal = new Portal(UFX.random(tau), this.y + 200)
 	this.portal.settilt((this.vx > 0 ? 1 : -1) * 0.9)
 	beffects.push(this.portal)
 	this.members = []
@@ -84,7 +84,8 @@ StationSquad.prototype = {
 	onexitportal: function (obj) {
 		obj.joinedsquad = true
 		obj.nextstate = [StationKeepingState, {
-			targety: this.y, approachyA: UFX.random(25,50), approachyphi: UFX.random(2, 4),
+//			targety: this.y, approachyA: UFX.random(25,50), approachyphi: UFX.random(2, 4),
+			targety0: 50, approachyA: 70, approachyn: 3/2,
 			targetvx: this.vx,
 		}]
 		this.nfree += 1
