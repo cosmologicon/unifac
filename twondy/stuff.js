@@ -83,10 +83,6 @@ var WorldBound = {
             context.translate(0, this.xfactor)
         }
     },
-    lookingat: function () {
-        var dX = (this.facingright ? 1 : -1) * Math.min(mechanics.lookahead / this.xfactor, 0.5)
-        return [this.X + dX, this.y * 0.6]
-    },
 }
 
 // States for a state machine
@@ -130,6 +126,24 @@ var HasStates = {
     },
 }
 
+// Has a velocity and an acceleration, and updates position based on that
+var BasicMotion = {
+	init: function () {
+		this.vx = this.vx || 0
+		this.vy = this.vy || 0
+		this.ax = this.ax || 0
+		this.ay = this.ay || 0
+	},
+	think: function (dt) {
+		this.X += (this.vx + 0.5 * this.ax * dt) * dt / this.xfactor
+		this.y += (this.vy + 0.5 * this.ay * dt) * dt
+		this.vx += this.ax * dt
+		this.vy += this.ay * dt
+		// Last ax and ay are the acceleration for the purposes of animation
+		this.lastax = this.ax ; this.lastay = this.ay
+		this.ax = this.ay = 0
+	},
+}
 
 var IsBall = {
     init: function (size, color) {

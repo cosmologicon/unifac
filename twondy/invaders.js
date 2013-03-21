@@ -17,9 +17,9 @@ var PortalUser = {
 		// (direction is dictated by the portal itself)
 		this.portalv = portalv
 	},
-	joinportal: function (portal, tdelay) {
+	joinportal: function (portal, tdelay, portalv) {
 		if (typeof tdelay != "number") tdelay = portal.nexttime()
-		this.setstate([HideState, {t: tdelay}, PortalState])
+		this.setstate([HideState, {t: tdelay}, [PortalState, {portalv: portalv}]])
 		this.portal = portal
 		portal.addentity(this)
 	},
@@ -171,7 +171,7 @@ Aphid.prototype = UFX.Thing()
 	.addcomp(HasWhiskers)
 	.addcomp(DrawBody, aphidbodies)
 	.addcomp(Sneezes)
-	.addcomp(Clonkable, 10, 5)
+	.addcomp(Clonkable, 20, 8)
 	.addcomp({
 		die: function (clonked) {
 			if (clonked) new AphidCorpse(this)

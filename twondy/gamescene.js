@@ -27,7 +27,7 @@ GameScene.start = function () {
 
 
     structures = [new BlockTower(tau/6), new BlockTower(tau/2), new BlockTower(5*tau/6)]
-    gamestate.setworldsize(450)
+    gamestate.setworldsize(300)
 
     you.y = 0
     you.X = 0
@@ -93,7 +93,8 @@ GameScene.think = function (dt, mkeys, nkeys) {
 //        monsters.push(new Aphid())
 //        squads.push(new StationSquad(10, 20, 50))
 //        squads.push(new StationSquad(7, 40, 50))
-        squads.push(new StationSquad(12, 70, -50))
+//        squads.push(new StationSquad(12, 70, -50))
+		squads.push(new ScorpionSquad())
     }
 
 /*
@@ -171,13 +172,6 @@ GameScene.think = function (dt, mkeys, nkeys) {
     structures = stillalive(structures)
     HUDeffects = stillalive(HUDeffects)
 
-    if (UFX.key.ispressed.shift) {
-        camera.mode = "planet"
-        camera.settarget([0, 0])
-    } else {
-        camera.mode = "play"
-        camera.settarget(you.lookingat())
-    }
     camera.think(dt)
     
     updatebuttons()
@@ -207,23 +201,39 @@ GameScene.think = function (dt, mkeys, nkeys) {
     }
 }
 
-
+var startracer
 GameScene.drawstars = function () {
     if (!settings.detail.stars) return
     // Draw stars
     var t = Date.now() * 0.001
-    context.save()
-    var s = Math.pow(camera.zoom, -0.85)
-    context.scale(s, s)
     // coords = [([2, 1][j % 2], j * math.pi / 5) for j in range(10)]
     // " ".join("l %.2f %.2f" % (r * math.cos(theta), r * math.sin(theta)) for r, theta in coords)
     var path = "( m 2.00 0.00 l 0.81 0.59 l 0.62 1.90 l -0.31 0.95 l -1.62 1.18 l -1.00 0.00 l -1.62 -1.18 l -0.31 -0.95 l 0.62 -1.90 l 0.81 -0.59 )"
-    context.strokeStyle = "#333"
-    for (var j = 0 ; j < this.stars.length ; ++j) {
-        UFX.draw("[ t", this.stars[j][0], this.stars[j][1], "z", this.starrs[j], this.starrs[j])
-        if (j % 2) UFX.draw("hflip")
-        UFX.draw("r", (0.2 + 0.001 * j) * t % tau)
-        UFX.draw(path, "fs", this.starcolors[j], "lw", 0.6/this.starrs[j], "f s ]")
+    context.save()
+    var s = Math.pow(camera.zoom, -0.85)
+    context.scale(s, s)
+    if (!settings.detail.dynamicstars) {
+        if (!startracer) {
+            var stars = this.stars, starcolors = this.starcolors, starrs = this.starrs
+            startracer = UFX.Tracer(function (context) {
+                var t = 1234.567
+                for (var j = 0 ; j < stars.length ; ++j) {
+                    UFX.draw(context, "[ t", stars[j][0], stars[j][1], "z", starrs[j], starrs[j])
+                    if (j % 2) UFX.draw(context, "hflip")
+                    UFX.draw(context, "r", (0.2 + 0.001 * j) * t % tau)
+                    UFX.draw(context, path, "fs", starcolors[j], "lw", 0.6/starrs[j], "f s ]")
+                }
+            }, [-800, -800, 1600, 1600])
+        }
+        startracer.draw(camera.zoom * s)
+    } else {
+        context.strokeStyle = "#333"
+        for (var j = 0 ; j < this.stars.length ; ++j) {
+            UFX.draw("[ t", this.stars[j][0], this.stars[j][1], "z", this.starrs[j], this.starrs[j])
+            if (j % 2) UFX.draw("hflip")
+            UFX.draw("r", (0.2 + 0.001 * j) * t % tau)
+            UFX.draw(path, "fs", this.starcolors[j], "lw", 0.6/this.starrs[j], "f s ]")
+        }
     }
     context.restore()
 }
@@ -285,7 +295,7 @@ GameScene.draw = function () {
     this.drawobjs()
     context.restore()
     if (settings.DEBUG) {
-	    UFX.draw("[ t", camera.worldtoscreen(you.X, you.y), "b o 0 0 4 fs red f ]")
+	    UFX.draw("[ t", worldtoscreen(you.X, you.y), "b o 0 0 4 fs red f ]")
     }
 
     this.drawstatus()
@@ -318,18 +328,15 @@ GrowScene.think = function (dt) {
     Twondy.think(dt)
     
     if (Twondy.wobblet) {
-        camera.mode = "planet"
-        camera.settarget([0, 0])
-        camera.think(dt)
+        camera.mode = CameraModes.planet
     } else {
         this.t += dt
         if (this.t > 1) {
             UFX.scene.pop()
         }
-        camera.mode = "play"
-        camera.settarget(you.lookingat())
-        camera.think(dt)
+        camera.mode = CameraModes.action
     }
+    camera.think(dt)
     disableall()
 }
 
@@ -346,6 +353,7 @@ GrowScene.drawstatus = function () {
     context.restore()
 }
 
+/*
 var GameOverScene = Object.create(GameScene)
 
 GameOverScene.start = function () {
@@ -393,6 +401,7 @@ GameOverScene.drawstatus = function () {
     GameScene.drawstatus.call(this)
     context.restore()
 }
+*/
 
 PauseScene = {}
 
