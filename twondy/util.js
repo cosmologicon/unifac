@@ -5,13 +5,15 @@ var tau = 6.283185307179586
 
 // Value closest to 0 that's equal to (X1 - X0) mod tau
 function getdX(X0, X1) {
-    return ((X1 - X0 + tau/2) % tau + tau) % tau - tau/2
+	return ((X1 - X0 + tau/2) % tau + tau) % tau - tau/2
 }
 
 // Canonical conversion between the sorta-polar coordinates I'm using and rectangular
+function getPos(X, Y) {
+	return [Y * Math.sin(X), Y * Math.cos(X)]
+}
 function getpos(X, y) {
-    var r = y + gamestate.worldr
-    return [r * Math.sin(X), r * Math.cos(X)]
+	return getPos(X, y + gamestate.worldr)
 }
 
 // For pseudo-3d positioning, this is the y-value of the "ground" beneath an invader at the

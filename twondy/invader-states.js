@@ -19,22 +19,17 @@
 // take completely different arguments.
 
 
-// Has a velocity and an acceleration, and updates position based on that
-var BasicMotion = {
-	init: function () {
-		this.vx = this.vx || 0
-		this.vy = this.vy || 0
-		this.ax = this.ax || 0
-		this.ay = this.ay || 0
+var BouncesOnGround = {
+	init: function (elas, y0) {
+		this.elasticity = elas || 1
+		this.groundy = y0 || 0
 	},
 	think: function (dt) {
-		this.X += (this.vx + 0.5 * this.ax * dt) * dt / this.xfactor
-		this.y += (this.vy + 0.5 * this.ay * dt) * dt
-		this.vx += this.ax * dt
-		this.vy += this.ay * dt
-		// Last ax and ay are the acceleration for the purposes of animation
-		this.lastax = this.ax ; this.lastay = this.ay
-		this.ax = this.ay = 0
+		if (this.y < this.state.groundy && this.vy < -1) {
+			this.y = this.state.groundy
+			this.vy *= -this.state.elasticity
+			this.vx *= 1 - 0.01 * (1 - this.state.elasticity)
+		}
 	},
 }
 
@@ -82,12 +77,15 @@ var ApproachVelocity = {
 
 
 var ScrunchInMotion = {
+	init: function (scrunchfactor) {
+		this.scrunchfactor = scrunchfactor || 800
+	},
 	draw: function () {
 //		var adotv = clip((this.lastax * this.vx + this.lastay * this.vy) / 1000, -0.5, 0.5)
-		var x = this.vx, y = this.vy
+		var x = this.vx, y = this.vy, f = this.scrunchfactor || this.state.scrunchfactor
 		if (!x && !y) return
 		var A = Math.atan2(y, x)
-		var s = 1 + clip(Math.sqrt(x * x + y * y) / 800, 0, 0.3)
+		var s = 1 + clip(Math.sqrt(x * x + y * y) / f, 0, 0.3)
 		UFX.draw("r", A, "z", s, 1/s, "r", -A)
 	},
 }
@@ -116,9 +114,13 @@ var ClipsToGround = {
 
 // Load up a later state after a specified time
 var AutoNextState = {
+	// can set default timeout in the state
+	init: function (t) {
+		this.autowaittime = t
+	},
 	enter: function (obj, nextstate) {
 		this.autonextstate = nextstate
-		this.autowaittime = obj.t
+		this.autowaittime = obj.t || this.state.autowaittime
 	},
 	think: function (dt) {
 		if (this.autowaittime < 0) return
@@ -159,6 +161,20 @@ var TargetBezier = {
 	},
 }
 
+// Effects-related components
+
+var AddAlerter = {
+	enter: function () {
+		this.alerter = new Alerter(this)
+	},
+}
+var KillAlerter = {
+	enter: function () {
+		this.alerter.freezepos()
+		this.alerter.die()
+	},
+}
+
 
 // ACTUAL INVADER STATES
 
@@ -188,9 +204,10 @@ var StationKeepingState = UFX.Thing()
 // Moves in a direction perpendicular to the plane of the portal, obvs
 var PortalState = UFX.Thing()
 	.addcomp({
-		enter: function () {
+		enter: function (opts) {
+			opts = opts || {}
 			this.portalx = -100
-			this.portalv = 240
+			this.portalv = opts.portalv || 240
 			this.X = this.portal.X
 			this.y = this.portal.y
 		},
@@ -216,10 +233,8 @@ var PortalState = UFX.Thing()
 var TargetOmega = UFX.Thing()
 	.addcomp(ScrunchInMotion)
 	.addcomp(TargetBezier)
+	.addcomp(AddAlerter)
 	.addcomp({
-		enter: function () {
-			this.alerter = new Alerter(this)
-		},
 		think: function (dt) {
 			this.whiskerA = Math.max(0, this.whiskerA - 0.5 * dt)
 		}
@@ -259,11 +274,10 @@ var SneezeState = UFX.Thing()
 	})
 
 var DroopState = UFX.Thing()
+	.addcomp(KillAlerter)
 	.addcomp({
 		enter: function () {
 			this.vy = 100
-			this.alerter.freezepos()
-			this.alerter.die()
 		},
 		think: function (dt) {
 			this.ay = -300

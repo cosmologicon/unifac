@@ -140,10 +140,11 @@ var QueuesEntities = {
 
 // EFFECT CONSTRUCTORS
 
-function Portal(X, y, A) {
+function Portal(X, y, A, size) {
 	this.X = X
 	this.y = y
 	this.settilt(typeof A == "number" ? A : UFX.random(-1, 1))
+	if (size) this.reticulesize = [size, size * 0.3]
 	this.think(0)
 	beffects.push(this)
 }
@@ -170,8 +171,8 @@ Alerter.prototype = UFX.Thing()
 		draw: function () {
 			var d = 30
 			var p = this.pos
-				? camera.worldtoscreen(this.pos[0], this.pos[1])
-				: camera.worldtoscreen(this.obj.X, this.obj.y)
+				? worldtoscreen(this.pos[0], this.pos[1])
+				: worldtoscreen(this.obj.X, this.obj.y)
 			var m = Math.min(
 				Math.min(p[0], settings.sx - p[0]),
 				Math.min(p[1], settings.sy - p[1])
