@@ -7,6 +7,9 @@ var tau = 6.283185307179586
 function getdX(X0, X1) {
 	return ((X1 - X0 + tau/2) % tau + tau) % tau - tau/2
 }
+// Zero-centered modulo
+function zmod(x,z){return((x+z/2)%z+z)%z-z/2}
+
 
 // Canonical conversion between the sorta-polar coordinates I'm using and rectangular
 function getPos(X, Y) {

@@ -8,7 +8,7 @@ var settings = {
     twondytsize: 100,  // resolution of texture for Twondy's surface
     detail: {
         bsupports: false,  // block supports are smooth curves rather than lines
-        stars: false, // show star background
+        stars: true, // show star background
         dynamicinvaders: false,  // invaders with moving parts
     },
     cheat: false,
