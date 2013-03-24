@@ -93,8 +93,8 @@ GameScene.think = function (dt, mkeys, nkeys) {
 //        monsters.push(new Aphid())
 //        squads.push(new StationSquad(10, 20, 50))
 //        squads.push(new StationSquad(7, 40, 50))
-//        squads.push(new StationSquad(12, 70, -50))
-		squads.push(new ScorpionSquad())
+        squads.push(new StationSquad(12, 70, -50))
+//		squads.push(new ScorpionSquad())
     }
 
 /*
