@@ -78,7 +78,7 @@ var DrawBody = {
 	},
 }
 var aphidbodies = [
-	UFX.Tracer("fs gray ss black lw 2 fsr -10 -10 20 20 lw 0.5 b m 0 -10 l 0 10 m -10 0 l 10 0 s", [-12, -12, 24, 24])
+	UFX.Tracer(AphidBodyPaths[0], [-14, -14, 28, 28])
 ]
 
 
