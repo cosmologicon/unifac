@@ -19,15 +19,6 @@ var CanNab = {
         }
     },
     clonk: function (objs) {
-/*        if (this.vy >= 0) return
-        for (var j = 0 ; j < objs.length ; ++j) {
-            var dx = Math.abs(getdX(this.X, objs[j].X)) * this.xfactor
-            if (dx > objs[j].width * objs[j].scale) continue
-            var dy = Math.abs(this.y - objs[j].y)
-            if (dy > objs[j].height * objs[j].scale) continue
-            objs[j].clonk(this, 1)
-            this.vy = mechanics.clonkvy
-        } */
         // TODO: this logic really doesn't belong here
         var clonker = this
         var dhp = 1
