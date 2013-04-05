@@ -45,34 +45,11 @@ GameScene.think = function (dt, mkeys, nkeys) {
 
     you.move(mkeys, nkeys, dt)
 
-    if (nkeys["1"]) gamestate.upgradestructure()
-    if (nkeys["2"]) upgrade("upgradejump")
-    if (nkeys["3"]) upgrade("upgradekick")
-    if (nkeys["4"]) upgrade("upgradeworld")
-    if (nkeys["5"]) build("buildtower")
-    if (nkeys["6"]) build("buildhospital")
-    if (nkeys["7"]) build("buildspring")
-    if (nkeys["8"]) build("buildbubbler")
-    if (nkeys["9"]) build("buildsilo")
-    if (nkeys["0"]) gamestate.removestructure()
-
     if (nkeys.esc) {
         UFX.scene.push(PauseScene)
     }
     
-    if (nkeys.F5) {
-        localStorage.twondyrecord = JSON.stringify(UFX.scene.record)
-        console.log(localStorage.twondyrecord.length)
-    }
-
     if (UFX.random() * 3 < dt && monsters.length < 1) {
-//        var p = new Portal(UFX.random(tau), UFX.random(100, 200))
-//        var p = new Portal(0, 120)
-//        beffects.push(p)
-//        monsters.push(new Aphid(p))
-//        monsters.push(new Aphid())
-//        squads.push(new StationSquad(10, 20, 50))
-//        squads.push(new StationSquad(7, 40, 50))
         squads.push(new StationSquad(12, 70, -50))
 //		squads.push(new ScorpionSquad())
     }
@@ -114,30 +91,26 @@ GameScene.think = function (dt, mkeys, nkeys) {
     camera.think(dt)
     
     updatebuttons()
-    if (dt) {
-        checklevel()
-    }
+}
+
+function objdraw(obj) {
+    context.save()
+    obj.draw()
+    context.restore()
 }
 
 GameScene.drawobjs = function () {
-    function draw(obj) {
-        context.save()
-        obj.draw()
-        context.restore()
-    }
-
-    structures.forEach(draw)
-    beffects.forEach(draw)
-    hitters.forEach(draw)
-    monsters.forEach(draw)
-    ehitters.forEach(draw)
-    draw(you)
-    feffects.forEach(draw)
+    structures.forEach(objdraw)
+    beffects.forEach(objdraw)
+    hitters.forEach(objdraw)
+    monsters.forEach(objdraw)
+    ehitters.forEach(objdraw)
+    objdraw(you)
+    feffects.forEach(objdraw)
 }
 
 GameScene.drawstatus = function () {
-    context.font = "26px Viga"
-    UFX.draw("textalign right textbaseline middle fillstyle #AAF ss black lw 1")
+    UFX.draw("font 26px~Viga textalign right textbaseline middle fillstyle #AAF ss black lw 1")
     var y = 18
     function puttext(text) {
         context.strokeText(text, settings.sx - 30, y)
@@ -157,12 +130,7 @@ GameScene.drawstatus = function () {
         UFX.draw("b o", settings.sx-16, 104+22*j, 9,
                  "fs", (j < you.jumps ? "rgba(0,0,0,0.4)" : "green"), "ss white lw 1 f s")
     }
-    HUDeffects.forEach(function (effect) { context.save() ; effect.draw() ; context.restore() })
-
-}
-
-GameScene.drawworld = function () {
-    Twondy.draw()
+    HUDeffects.forEach(objdraw)
 }
 
 GameScene.draw = function () {
@@ -172,66 +140,11 @@ GameScene.draw = function () {
     context.save()
     camera.orient()
     stars.draw()
-    this.drawworld()
+    Twondy.draw()
     this.drawobjs()
     context.restore()
-    if (settings.DEBUG) {
-	    UFX.draw("[ t", worldtoscreen(you.X, you.y), "b o 0 0 4 fs red f ]")
-    }
 
     this.drawstatus()
-}
-
-
-var GrowScene = Object.create(GameScene)
-
-GrowScene.start = function () {
-    this.t = 0
-    Twondy.beginwobble()
-}
-
-GrowScene.think = function (dt) {
-    var k = UFX.key.state().pressed
-    if (k.shift) dt *= 0.2
-/*
-    if (this.t > 3.5 && gamestate.worldsize !== this.newsize) {
-        gamestate.setworldsize(this.newsize)
-        GameScene.think(0)
-        camera.y = -gamestate.worldr
-    } else if (this.t > 4.5) {
-        var nh = mechanics.worldhs[this.newsize] || 0
-        var dh = nh - Twondy.h, mh = 0.3 * dt
-        if (dh) {
-            Twondy.settexture(Math.abs(dh) < mh ? nh : dh > 0 ? Twondy.h + mh : Twondy.h - mh)
-        }
-    }*/
-    
-    Twondy.think(dt)
-    
-    if (Twondy.wobblet) {
-        camera.mode = CameraModes.planet
-    } else {
-        this.t += dt
-        if (this.t > 1) {
-            UFX.scene.pop()
-        }
-        camera.mode = CameraModes.action
-    }
-    camera.think(dt)
-    disableall()
-}
-
-GrowScene.drawworld = function () {
-    context.save()
-    Twondy.draw()
-    context.restore()
-}
-
-GrowScene.drawstatus = function () {
-    context.save()
-    context.globalAlpha = 0.2
-    GameScene.drawstatus.call(this)
-    context.restore()
 }
 
 PauseScene = {}

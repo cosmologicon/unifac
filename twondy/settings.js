@@ -9,6 +9,7 @@ var settings = {
     detail: {
         bsupports: false,  // block supports are smooth curves rather than lines
         stars: true, // show star background
+        fstars: 0.4,  // relative number of stars
         dynamicinvaders: false,  // invaders with moving parts
     },
     cheat: false,

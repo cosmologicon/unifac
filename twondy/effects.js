@@ -289,7 +289,8 @@ function AphidCorpse(obj) {
 	this.obj = obj
 	this.X = this.obj.X
 	this.y = this.obj.y
-	this.vy = 30
+	this.vx = this.obj.vx * 0.7
+	this.vy = this.obj.vy * 0.7 + 40
 	beffects.push(this)
 	this.phis = []
 	while (this.phis.length < this.obj.whiskers.length) {

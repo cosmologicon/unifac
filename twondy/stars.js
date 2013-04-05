@@ -4,7 +4,7 @@ var stars = {
 	init: function () {
 		// Box size
 		this.b = 1400
-		this.n = Math.floor((this.b * this.b) / 13000) + 1
+		this.n = Math.floor(this.b * this.b * settings.detail.fstars / 10000) + 1
 		this.ps = UFX.random.spread(this.n, 1, this.b, this.b, -this.b/2, -this.b/2)
 		this.colors = []
 		this.rs = []
