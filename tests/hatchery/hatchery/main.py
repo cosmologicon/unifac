@@ -1,5 +1,5 @@
 import pygame
-import settings, vista, client
+import settings, vista, client, gamestate
 from pygame.locals import *
 
 if True:
@@ -8,30 +8,31 @@ if True:
 
 playing = True
 
-def think():
+def processupdates():
+	for update in client.getupdates():
+		utype = update[0]
+		if utype == "galaxy":
+			gamestate.galaxy.setstate(update[1])
+		if utype == "you":
+			gamestate.gamestate.addyou(gamestate.Stork(update[1]))
+
+def think(dt):
 	global playing
 	nmoves, lmoves = settings.parsemoves()
-	if "dx" in nmoves:
-		vista.camera.x0 += 50 * nmoves["dx"]
-	if "dy" in nmoves:
-		vista.camera.y0 += 50 * nmoves["dy"]
+	gamestate.gamestate.advance(dt, {"you": nmoves}, gamestate.galaxy)
 	if "quit" in nmoves:
 		playing = False
-#	print client.getupdates()
 
 
 def main():
-	client.start()
-#	try:
-	if True:
+	with client.run():
 		vista.init()
 		clock = pygame.time.Clock()
 		while playing:
-			clock.tick(10)
-			think()
+			processupdates()
+			clock.tick(30)
+			think(1./30)
 			vista.draw()
-#	except Exception as exc:
-		client.stop()
-#		raise exc
+	vista.makemap()
 	pygame.quit()
 

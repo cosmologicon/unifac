@@ -26,15 +26,15 @@ def getupdates():
 		ret.append(sdata.pop(0))
 	return ret
 
-
-def start():
-	global rthread, socket
-	socket = create_connection(settings.clientpath)
-	rthread = Rthread()
-	rthread.start()
-def stop():
-	rthread.stop()
-	rthread.join()
+class run(object):
+	def __enter__(self):
+		global rthread, socket
+		socket = create_connection(settings.clientpath)
+		rthread = Rthread()
+		rthread.start()
+	def __exit__(self, ttype, value, tback):
+		rthread.stop()
+		rthread.join()
 
 
 
