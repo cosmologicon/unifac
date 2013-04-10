@@ -50,6 +50,8 @@ def drawshadowtext(surf, text, size, (x,y), color0, color1, d=1):
 
 def brighten(color):
 	return tuple(min(max(int(c + 0.08 * (255 - c)), 0), 255) for c in color)
+def darken(color):
+	return tuple(min(max(int(c * 0.4), 0), 255) for c in color)
 
 arrow = None
 def draw():
@@ -61,12 +63,14 @@ def draw():
 		pygame.draw.polygon(arrow, (255,255,255,50), ps)
 		pygame.draw.aalines(arrow, (255,255,255,100), True, ps)
 
-	camera.orient(gamestate.gamestate.you)
+	camera.orient(gamestate.you)
 	screen.fill((0,0,0))
 	for world in gamestate.galaxy.worlds.values():
 		if not camera.circlevisible(world.p, world.r):
 			continue
 		color = settings.wcolors[world.colorcode]
+		if world.colorcode not in (0, None) and world.ndeliver == 0:
+			color = darken(color)
 		(x,y), r = world.p, world.r
 		for _ in range(8):
 			camera.drawcircle((x, y), r, color)
@@ -74,15 +78,17 @@ def draw():
 			r *= 0.8
 			x -= 0.12 * r
 			y += 0.12 * r
-		drawshadowtext(screen, world.name.title(), 48, camera.worldtoscreen(world.p), (255,255,255), (0,0,0), 2)
-	x, y = gamestate.gamestate.you.worldpos()
+		tcolor = (100, 100, 100) if world.colorcode is None else (255, 255, 255)
+		drawshadowtext(screen, world.name.title(), 48, camera.worldtoscreen(world.p), tcolor, (0,0,0), 2)
+	x, y = gamestate.you.worldpos()
 	d = math.sqrt(x ** 2 + y ** 2)
 	if d > 600:
 		p = camera.worldtoscreen((x - 60 * x / d, y - 60 * y / d))
 		img = pygame.transform.rotozoom(arrow, -57.3 * math.atan2(x, y), 1)
 		screen.blit(img, img.get_rect(center = p))
 	for stork in gamestate.gamestate.storks.values():
-		camera.drawcircle(stork.worldpos(), 12, (255,255,255))
+		color = (255, 255, 255) if stork is gamestate.you else (128, 128, 128)
+		camera.drawcircle(stork.worldpos(), 12, color)
 		camera.drawcircle(stork.worldpos(), 10, (0,0,0))
 	pygame.display.flip()
 
