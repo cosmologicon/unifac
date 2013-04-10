@@ -1,12 +1,13 @@
 import settings
-import math
+import math, random
 
 class World(object):
-	def __init__(self, name, p, r, colorcode):
+	def __init__(self, name, p, r, colorcode, ndeliver=0):
 		self.name = name
 		self.setp(p)
 		self.r = r
 		self.colorcode = colorcode
+		self.ndeliver = ndeliver
 	def setp(self, p):
 		self.p = p
 		self.sector = settings.getsector(p)
@@ -19,14 +20,19 @@ class Galaxy(object):
 	def __init__(self):
 		self.worlds = {}
 		self.sectors = {}
-	def getstate(self):
-		return [
-			(world.name, world.p, world.r, world.colorcode)
-			for world in self.worlds.values()
-		]
+		self.neighborhoods = {}
+	def getstate(self, knowledge = None):
+		ret = []
+		for name, world in self.worlds.items():
+			known = not knowledge or name in knowledge
+			color = world.colorcode if known else None
+			ndeliver = world.ndeliver if known else None
+			ret.append((name, world.p, world.r, color, ndeliver))
+		return ret
 	def setstate(self, state):
 		self.worlds = {}
 		self.sectors = {}
+		self.neighborhoods = {}
 		for worldinfo in state:
 			self.addworld(World(*worldinfo))
 	def addworld(self, world):
@@ -35,12 +41,20 @@ class Galaxy(object):
 			self.sectors[world.sector] = []
 		self.sectors[world.sector].append(world)
 	def worldsnear(self, sector):
+		if sector in self.neighborhoods:
+			return self.neighborhoods[sector]
 		ret = []
 		for s in settings.sectorsnear(sector):
 			if s not in self.sectors:
 				continue
 			ret.extend(self.sectors[s])
+		self.neighborhoods[sector] = ret
 		return ret
+	def nearestworld(self, (x, y)):
+		return min(
+			self.worldsnear(settings.getsector((x, y))),
+			key = lambda w: math.sqrt((w.p[0] - x) ** 2 + (w.p[1] - y) ** 2) - w.r
+		)
 	def checkland(self, p):
 		for world in self.worldsnear(settings.getsector(p)):
 			if world.checkland(p):
@@ -86,10 +100,14 @@ class Stork(object):
 		}
 	def think(self, dt, moves={}):
 		if self.parent:
-			self.v = settings.runv * (-moves["dx"] if "dx" in moves else 0), 0
+			r = galaxy.worlds[self.parent].r
+			self.v = [
+				settings.runv * (-moves["dx"] if "dx" in moves else 0),
+				0 if self.p[1] <= r else self.v[1] - settings.g * dt,
+			]
 			self.p = [
-				self.p[0] + dt * self.v[0] / galaxy.worlds[self.parent].r,
-				self.p[1],
+				self.p[0] + dt * self.v[0] / r,
+				max(self.p[1] + self.v[1] * dt, r),
 			]
 			if "jump" in moves:
 				self.launch()
@@ -103,6 +121,8 @@ class Stork(object):
 				self.v[0] - settings.g * dt * self.p[0] / d,
 				self.v[1] - settings.g * dt * self.p[1] / d,
 			]
+			if "jump" in moves:
+				self.land(galaxy.nearestworld(self.p).name, galaxy)
 	def worldpos(self):
 		if not self.parent:
 			return self.p
@@ -113,8 +133,8 @@ class Stork(object):
 		(x, y), (px, py) = self.worldpos(), galaxy.worlds[parent].p
 		self.parent = parent
 		dx, dy = x - px, y - py
-		self.p = math.atan2(dy, dx), galaxy.worlds[parent].r
-		self.v = 0, 0
+		self.p = math.atan2(dy, dx), max(math.sqrt(dx**2 + dy**2), galaxy.worlds[parent].r)
+		self.v = 0, -settings.launchv
 	def launch(self):
 		self.v = [
 			settings.launchv * math.cos(self.p[0]),
@@ -124,20 +144,31 @@ class Stork(object):
 		self.parent = None
 		self.think(0.01)
 
+def randomstork(galaxy):
+	stork = Stork({
+		"name": settings.randomname(),
+		"p": (random.uniform(-1,1), random.uniform(-1,1)),
+		"v": (0, 0),
+		"parent": None,
+		"held": None,
+	})
+	stork.land(galaxy.worlds["hatchery"])
+	return stork
+
+
 class Gamestate(object):
 	def __init__(self, state = None):
-		self.storks = {}
-		if state:
-			self.setstate(state)
+		self.setstate(state or {})
 	def setstate(self, state):
-		pass
+		self.storks = {}
+		for sname, s in state.items():
+			self.addstork(Stork(s))
 	def getstate(self):
-		return None
+		return dict((sname, s.getstate()) for sname, s in self.storks.items())
 	def advance(self, dt, moves, galaxy):
 		for sname, stork in sorted(self.storks.items()):
-			if sname not in moves:
-				continue
-			stork.think(dt, moves[sname])
+			m = moves[sname] if sname in moves else {}
+			stork.think(dt, m)
 			if not stork.parent:
 				self.checkland(stork, galaxy)
 	def checkland(self, stork, galaxy):
@@ -147,11 +178,10 @@ class Gamestate(object):
 	# Add or update
 	def addstork(self, stork):
 		self.storks[stork.name] = stork
-	def addyou(self, stork):
-		self.you = stork
-		self.addstork(stork)
+	def removestork(self, sname):
+		del self.storks[sname]
 
 galaxy = Galaxy()
 gamestate = Gamestate()
-
+you = None
 

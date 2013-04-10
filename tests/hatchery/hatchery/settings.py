@@ -1,8 +1,20 @@
+import data, json, os, sys
 import random, math
 
 domain = "ws://universefactory.net"
 port = 8416
 clientpath = "%s:%s" % (domain, port)
+
+savename = None
+logindatapath = data.filepath("login-%s.json" % savename if savename else "login.json")
+def getlogindata():
+	if not os.path.exists(logindatapath):
+		return None
+	return json.loads(open(logindatapath, "rb"))
+def savelogindata(username, password):
+	with open(logindatapath, "wb") as f:
+		f.write(json.dumps([username, password]))
+	
 
 size = sx, sy = 1200, 800
 gfps = 10   # logical framerate of the game
@@ -17,10 +29,16 @@ def getsector((x, y)):
 def sectorsnear((x, y)):
 	return [(x + dx, y + dy) for dx in (-1,0,1) for dy in (-1,0,1)]
 
+usednames = set()
 def randomname():
 	cons, vowels = "bcdfghklmnprstvxz", "aeiou"
-	pattern = random.choice("vcvcvc cvcvcvc cvcvc".split())
-	return "".join(random.choice(cons if c == "c" else vowels) for c in pattern)
+	while True:
+		pattern = random.choice("vcvcvc cvcvcvc cvcvc".split())
+		name = "".join(random.choice(cons if c == "c" else vowels) for c in pattern)
+		if name not in usednames:
+			break
+	usednames.add(name)
+	return name
 
 nworlds = 500  # number of non-hatchery worlds
 size0 = 240   # size of the main hatchery
@@ -37,7 +55,15 @@ def hatcherypos():   # locations of auxiliary hatcheries
 		yield (3000 * math.sin(theta), 3000 * math.cos(theta))
 		yield (-5000 * math.sin(theta), -5000 * math.cos(theta))
 
-wcolors = (200,200,200), (200,0,0), (0,255,0), (50,50,255), (200,100,0), (200,200,0)
+wcolors = {
+	None: (60, 60, 60),
+	0: (200,200,200),
+	1: (200,0,0),
+	2: (0,255,0),
+	3: (50,50,255),
+	4: (200,100,0),
+	5: (200,200,0),
+}
 ncolors = 5   # number of non-hatchery world colors
 def randomcolorcode():
 	return random.choice(list(range(1,ncolors+1)))

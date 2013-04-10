@@ -10,7 +10,8 @@ class Rthread(threading.Thread):
 	def __init__(self):
 		threading.Thread.__init__(self)
 		self._stop = threading.Event()
-	def run(self):
+	def run(self, logindata):
+		send(logindata)
 		while not self._stop.isSet():
 			response = json.loads(socket.recv())
 			sdata.append(response)
