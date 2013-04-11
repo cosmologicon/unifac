@@ -26,7 +26,7 @@ class camera:
 
 	@classmethod
 	def orient(cls, you):
-		cls.x0, cls.y0 = you.worldpos()
+		cls.x0, cls.y0 = you.worldpos
 
 def init():
 	global screen
@@ -54,8 +54,9 @@ def darken(color):
 	return tuple(min(max(int(c * 0.4), 0), 255) for c in color)
 
 arrow = None
-def draw():
+def draw(state):
 	global arrow
+	camera.orient(state.you)
 	if arrow is None:
 		arrow = pygame.Surface((50, 50)).convert_alpha()
 		arrow.fill((0,0,0,0))
@@ -63,7 +64,6 @@ def draw():
 		pygame.draw.polygon(arrow, (255,255,255,50), ps)
 		pygame.draw.aalines(arrow, (255,255,255,100), True, ps)
 
-	camera.orient(gamestate.you)
 	screen.fill((0,0,0))
 	for world in gamestate.galaxy.worlds.values():
 		if not camera.circlevisible(world.p, world.r):
@@ -80,16 +80,16 @@ def draw():
 			y += 0.12 * r
 		tcolor = (100, 100, 100) if world.colorcode is None else (255, 255, 255)
 		drawshadowtext(screen, world.name.title(), 48, camera.worldtoscreen(world.p), tcolor, (0,0,0), 2)
-	x, y = gamestate.you.worldpos()
+	x, y = state.you.worldpos
 	d = math.sqrt(x ** 2 + y ** 2)
 	if d > 600:
 		p = camera.worldtoscreen((x - 60 * x / d, y - 60 * y / d))
 		img = pygame.transform.rotozoom(arrow, -57.3 * math.atan2(x, y), 1)
 		screen.blit(img, img.get_rect(center = p))
-	for stork in gamestate.gamestate.storks.values():
-		color = (255, 255, 255) if stork is gamestate.you else (128, 128, 128)
-		camera.drawcircle(stork.worldpos(), 12, color)
-		camera.drawcircle(stork.worldpos(), 10, (0,0,0))
+	for stork in state.storks.values():
+		color = (255, 255, 255) if stork is state.you else (128, 128, 128)
+		camera.drawcircle(stork.worldpos, 12, color)
+		camera.drawcircle(stork.worldpos, 10, (0,0,0))
 	pygame.display.flip()
 
 def makemap():
