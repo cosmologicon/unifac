@@ -30,3 +30,6 @@ The library lib/websocket/websocket.py is used and distributed under the LGPL. P
 lib/websocket/LICENSE.txt for details. You can get it here:
 https://pypi.python.org/pypi/websocket-client/
 
+The Google web font Skranji is available through an Open Font License. Please see data/OFL.txt.
+
+

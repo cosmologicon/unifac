@@ -13,6 +13,8 @@ def processupdates():
 	global clientname, playing, started
 	for update in getupdates():
 		utype, args = update[0], update[1:]
+		if utype != "moves":
+			print utype, servernframe, localnframe, currentframe()
 		if utype == "logininfo":
 			settings.savelogindata(*args)
 			clientname = args[0]
@@ -25,11 +27,9 @@ def processupdates():
 				if worldstate["name"] == "hatchery":
 					print "knowledge:", worldstate
 			gamestate.galaxy.setstate(args[0])
-			lag(None, -2)
 		elif utype == "state":
 			setserverstate(*args)
 			started = True
-			lag(None, -2)
 		elif utype == "kpatch":
 			kpatch(*args)
 		elif utype == "spatch":
@@ -60,8 +60,17 @@ def think():
 		send("moves", localnframe, localmoves[localnframe])
 		if "quit" in lmoves:
 			playing = False
+		if "map" in lmoves:
+			settings.mapmode = not settings.mapmode
+			if settings.mapmode:
+				vista.makemap()
+		if "resync" in lmoves:
+			localnframe = servernframe
+			t0 = time.time() - 0.1 * localnframe
 		localnframe += 1
-		#lag(None, -0.003)
+		if settings.mapmode:
+			vista.mapx0 += lmoves["dx"] * 20 if "dx" in lmoves else 0
+			vista.mapy0 -= lmoves["dy"] * 20 if "dy" in lmoves else 0
 	state = gamestate.Gamestate()
 	state.setstate(serverstate.getstate())
 	frame0 = servernframe
@@ -72,11 +81,16 @@ def think():
 	state.you = state.storks[clientname]
 	return state
 
+estlag = 5000
 def jumpframe(nframe):
-	global localnframe, t0
+	global localnframe, t0, estlag
 	if nframe > localnframe:
-		localnframe = nframe
-		t0 = time.time() - 0.1 * nframe
+		print "sync jump", nframe, localnframe, currentframe()
+		localnframe = nframe + 2
+		t0 = time.time() - 0.1 * localnframe
+	dt = 100 * (currentframe() - nframe)
+	estlag = 0.95 * estlag + 0.05 * dt
+	
 
 def setserverstate(nframe, sstate):
 	global serverstate, servernframe
@@ -102,8 +116,7 @@ def kpatch(wstate):
 def lag(nframe, dt):
 	global t0
 	t0 -= dt
-	if dt > 0:
-		print "lag:", dt
+	print "lag:", dt
 
 class Rthread(threading.Thread):
 	def __init__(self):
@@ -112,7 +125,11 @@ class Rthread(threading.Thread):
 	def run(self):
 		while not self._stop.isSet():
 			message = socket.recv()
-			response = json.loads(message)
+			try:
+				response = json.loads(message)
+			except (TypeError, ValueError):
+				print "Failure to parse message: %s" % message
+				raise
 			sdata.append(response)
 	def stop(self):
 		self._stop.set()
