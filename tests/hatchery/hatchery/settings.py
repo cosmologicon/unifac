@@ -9,8 +9,8 @@ savename = None
 logindatapath = data.filepath("login-%s.json" % savename if savename else "login.json")
 def getlogindata():
 	if not os.path.exists(logindatapath):
-		return None
-	return json.loads(open(logindatapath, "rb"))
+		return None, None
+	return json.loads(open(logindatapath, "rb").read())
 def savelogindata(username, password):
 	with open(logindatapath, "wb") as f:
 		f.write(json.dumps([username, password]))
@@ -69,10 +69,17 @@ def randomcolorcode():
 	return random.choice(list(range(1,ncolors+1)))
 
 def collide(world1, world2):
-	(x1, y1), (x2, y2) = world1.p, world2.p
-	dx, dy = x1 - x2, y1 - y2
-	dr = world1.r + world2.r + 100
-	return dx ** 2 + dy ** 2 < dr ** 2
+	return (world1.x - world2.x) ** 2 + (world1.y - world2.y) ** 2 < (world1.r + world2.r + 100) ** 2
+
+
+def validatemoves(moves):
+	for k, v in moves.items():
+		if k in ("jump", "grab", "quit"):
+			assert v == 1
+		elif k in ("dx", "dy"):
+			assert v in (-1, 1)
+		else:
+			raise ValueError
 
 # Returns two sets of moves, one to be sent to the network, and one local
 def parsemoves():
@@ -86,11 +93,11 @@ def parsemoves():
 			if event.key in (K_DOWN,):
 				nmoves["grab"] = 1
 			if event.key in (K_ESCAPE,):
-				nmoves["quit"] = 1
+				lmoves["quit"] = 1
 			if event.key in (K_m,):
 				lmoves["map"] = 1
 		if event.type == QUIT:
-			nmoves["quit"] = 1
+			lmoves["quit"] = 1
 	k = pygame.key.get_pressed()
 	dx = (k[K_RIGHT] or k[K_d] or k[K_e]) - (k[K_LEFT] or k[K_a])
 	dy = (k[K_UP] or k[K_w] or k[K_COMMA]) - (k[K_DOWN] or k[K_s] or k[K_o])
