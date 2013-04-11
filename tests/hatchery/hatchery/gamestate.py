@@ -111,8 +111,8 @@ class Galaxy(object):
 			self.addworld(self.randomworld())
 
 class Stork(stateobj):
-	fields = "name parent p v held".split()
-	defaults = { "v": (0, 0), "held": None }
+	fields = "name parent p v held jumps ndeliver n1st clings".split()
+	defaults = { "v": (0, 0), "held": None, "jumps": 0, "ndeliver": 0, "n1st": 0, "clings": 0 }
 	@property
 	def sector(self):
 		return settings.getsector(self.p)
@@ -145,7 +145,11 @@ class Stork(stateobj):
 		if self.parent:
 			r = galaxy.worlds[self.parent].r
 			if moves is not None:
-				self.vx = settings.runv * (-moves["dx"] if "dx" in moves else 0)
+				if "dx" in moves:
+					self.vx += dt * settings.accel * -moves["dx"]
+					self.vx = min(max(self.vx, -settings.runv), settings.runv)
+				else:
+					self.vx = 0
 			self.vy -= settings.g * dt
 			self.x += dt * self.vx / r
 			self.y += self.vy * dt
@@ -159,8 +163,9 @@ class Stork(stateobj):
 			d = math.sqrt(self.x ** 2 + self.y ** 2)
 			self.vx -= settings.g * dt * self.p[0] / d
 			self.vy -=  settings.g * dt * self.p[1] / d
-			if moves and "jump" in moves:
+			if moves and "jump" in moves and self.clings:
 				self.land(galaxy.nearestworld(self.p).name)
+				self.clings -= 1
 	@property
 	def worldpos(self):
 		if not self.parent:
@@ -170,10 +175,31 @@ class Stork(stateobj):
 	def land(self, parent):
 		x, y = self.worldpos
 		px, py = galaxy.worlds[parent].p
-		self.parent = parent
 		dx, dy = x - px, y - py
+		while dx ** 2 + dy ** 2 < galaxy.worlds[parent].r ** 2 and self.vx ** 2 + self.vy ** 2 > 1:
+			x -= self.vx * 0.005
+			y -= self.vy * 0.005
+			dx, dy = x - px, y - py
+		self.parent = parent
 		self.p = math.atan2(dy, dx), max(math.sqrt(dx**2 + dy**2), galaxy.worlds[parent].r)
 		self.v = 0, -settings.launchv
+		if galaxy.worlds[parent].colorcode not in (0, None):
+			if self.held and self.held[0] == galaxy.worlds[parent].colorcode:
+				self.hatch()
+			if self.held and self.jumps > 0:
+				self.jumps -= 1
+				if not self.jumps:
+					self.held = None
+
+	def hatch(self):
+		self.held = self.held[1:]
+		if not self.held:
+			self.ndeliver += 1
+			if galaxy.worlds[self.parent].ndeliver == 0:
+				self.n1st += 1
+			galaxy.worlds[self.parent].ndeliver += 1
+			self.clings += 1
+			
 	def launch(self):
 		self.v = [
 			settings.launchv * math.cos(self.x),
@@ -221,19 +247,30 @@ class Gamestate(object):
 	# Returns new state, state patches, knowledge deltas
 	def advance(self, dt, moves, knowledge):
 		kpatch = {}
+		newstate = False
 		for sname, stork in sorted(self.storks.items()):
 			m = moves[sname] if sname in moves else {}
 			stork.think(dt, m)
 			if stork.parent:
-				if stork.parent.name not in knowledge[stork.name]:
+				w = galaxy.worlds[stork.parent]
+				if w.name not in knowledge[stork.name]:
 					knowledge[stork.name].add(w.name)
 					kpatch[stork.name] = w.getstate()
+				if "grab" in m and w.colorcode == 0:
+					stork.held = settings.randomegg(w)
+					stork.jumps = 6
+					newstate = True
 			else:
 				w = self.checkland(stork)
+				if w:
+					newstate = True
 				if w and w.name not in knowledge[stork.name]:
 					knowledge[stork.name].add(w.name)
 					kpatch[stork.name] = w.getstate()
-		spatch = dict((sname, self.getstate()) for sname in self.storks)
+		if newstate:
+			spatch = dict((sname, self.getstate()) for sname in self.storks)
+		else:
+			spatch = {}
 		return self.getstate(), spatch, kpatch
 
 	def checkland(self, stork):

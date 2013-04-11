@@ -11,7 +11,7 @@ def main():
 		vista.init()
 		clock = pygame.time.Clock()
 		while client.playing:
-			clock.tick(30)
+			clock.tick(60)
 			client.processupdates()
 			if not client.started:
 				continue

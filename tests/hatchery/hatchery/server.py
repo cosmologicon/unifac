@@ -43,7 +43,7 @@ class GameWebSocket(websocket.WebSocketHandler):
 			name = self.createaccount()
 		else:
 			if name not in passwords or passwords[name] != password:
-				self.abort("Invalid login for %s" % cname)
+				self.abort("Invalid login for %s" % name)
 				return
 		self.clientname = name
 		activeclients[name] = self
@@ -58,7 +58,9 @@ class GameWebSocket(websocket.WebSocketHandler):
 		if jframe <= nframe:
 			self.send("lag", nframe, (currentframe() - jframe) * 0.1)
 			return
-		if jframe > nframe + 30:
+#		if jframe > nframe + 4:
+#			self.send("lag", nframe, (currentframe() - jframe) * 0.1 + 0.4)
+		if jframe > nframe + 50:
 			self.abort("Serious async")
 		if jframe not in servermoves:
 			servermoves[jframe] = {}
