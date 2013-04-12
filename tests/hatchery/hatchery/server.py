@@ -12,6 +12,7 @@ serverstate = gamestate.Gamestate()
 gamestate.galaxy.create()
 storks = {}
 clientknowledge = {}
+synct0s = {}
 
 class GameWebSocket(websocket.WebSocketHandler):
 	def open(self):
@@ -27,6 +28,8 @@ class GameWebSocket(websocket.WebSocketHandler):
 				self.on_login(*args)
 			elif mtype == "moves":
 				self.on_moves(*args)
+			elif mtype == "ping":
+				self.on_ping(*args)
 			elif mtype == "quit":
 				self.on_quit(*args)
 			else:
@@ -48,6 +51,7 @@ class GameWebSocket(websocket.WebSocketHandler):
 		self.clientname = name
 		activeclients[name] = self
 		serverstate.addstork(storks[name])
+		self.send("t0", nframe, t0)
 		self.send("knowledge", gamestate.galaxy.getstate(clientknowledge[name]))
 		self.send("state", nframe, serverstate.getstate())
 
@@ -55,16 +59,16 @@ class GameWebSocket(websocket.WebSocketHandler):
 		jframe = int(jframe)
 		moves = dict(moves)
 		settings.validatemoves(moves)
-		if jframe <= nframe:
-			self.send("lag", nframe, (currentframe() - jframe) * 0.1)
-			return
-#		if jframe > nframe + 4:
-#			self.send("lag", nframe, (currentframe() - jframe) * 0.1 + 0.4)
 		if jframe > nframe + 50:
 			self.abort("Serious async")
 		if jframe not in servermoves:
 			servermoves[jframe] = {}
 		servermoves[jframe][self.clientname] = moves
+
+	def on_ping(self, clientnframe, clientt0, clienttframe):
+		dt = 0.1 * (clientnframe - currentframe())
+		self.send("pong", clientnframe, clienttframe, clientt0 + dt)
+		synct0s[(self.clientname, clientnframe)] = clienttframe
 
 	def on_quit(self):
 		self.close()
@@ -112,10 +116,14 @@ def think():
 	if currentframe() < nframe + 1:
 		return
 	# TODO: lock goes here
-	print "frame", nframe, len(activeclients)
+	#print "frame", nframe, len(activeclients)
 	if nframe not in servermoves:
 		servermoves[nframe] = {}
 	nstate, spatch, kpatch = serverstate.advance(0.1, servermoves[nframe], clientknowledge)
+	for (cname, jframe), clienttframe in list(synct0s.items()):
+		if jframe <= nframe:
+			send(cname, "lag", jframe, clienttframe)
+			del synct0s[(cname, jframe)]
 	sendall("moves", nframe, servermoves[nframe])
 	for cname, statepatch in spatch.items():
 		send(cname, "spatch", nframe, statepatch)
