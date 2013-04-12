@@ -1,8 +1,8 @@
 # Handle the connection to the server asynchronously
 
-from lib.websocket.websocket import create_connection
+from lib.websocket.websocket import create_connection, WebSocketConnectionClosedException
 import json, random, time, threading, collections
-import settings, gamestate, vista
+import settings, gamestate, vista, sound, pygame
 
 sdata = []
 clientname = None
@@ -70,21 +70,27 @@ def currentframe():
 	return (time.time() - t0) / 0.1
 lag = None
 
+lastlocalstate = None
 
 def think():
-	global localnframe, playing
+	global localnframe, playing, lastlocalstate
 	frame = currentframe()
 #	print "thinking", frame
 	while frame > localnframe + 1:
+		sound.enabled = True
 		if lag is None or localnframe % 30 == 0:
 			send("ping", localnframe, t0, time.time())
 		localmoves[localnframe], lmoves = settings.parsemoves()
 		send("moves", localnframe, localmoves[localnframe])
+		if "jump" in localmoves[localnframe] and lastlocalstate.you.parent:
+			sound.play("jump")
 		if "quit" in lmoves:
 			playing = False
 		if "map" in lmoves:
 			settings.mapmode = not settings.mapmode
 			if settings.mapmode:
+				vista.screen.fill((0,0,0))
+				pygame.display.flip()
 				vista.makemap()
 		localnframe += 1
 #		print "advancing frame", localnframe, frame
@@ -99,6 +105,7 @@ def think():
 		state.useradvance(0.1 * min(frame - frame0, 1), clientname, localmoves[frame0])
 		frame0 += 1
 	state.you = state.storks[clientname]
+	lastlocalstate = state
 	return state
 
 estlag = 5000
@@ -120,12 +127,30 @@ def setserverstate(nframe, sstate):
 	serverstate.setstate(sstate)
 
 def spatch(nframe, sstate):
+	ystate0 = serverstate.storks[clientname].getstate()
 	setserverstate(nframe+1, sstate)
+	ystate1 = serverstate.storks[clientname].getstate()
+	playsounds(ystate0, ystate1)
+
+def playsounds(ystate0, ystate1):
+	if ystate1["ndeliver"] > ystate0["ndeliver"]:
+		sound.play("yes")
+	elif ystate1["held"] and not ystate0["held"]:
+		sound.play("yes")
+	elif ystate0["held"] and not ystate1["held"]:
+		sound.play("no")
+	elif ystate0["held"] and ystate1["held"] and len(ystate1["held"]) < len(ystate0["held"]):
+		sound.play("yes")
+#	if ystate1["parent"] and not ystate0["parent"]:
+#		sound.play("land")
 
 def advanceserverstate(nframe, moves):
 	global servernframe
 	assert nframe == servernframe
+	ystate0 = serverstate.storks[clientname].getstate()
 	serverstate.localadvance(0.1, moves)
+	ystate1 = serverstate.storks[clientname].getstate()
+	playsounds(ystate0, ystate1)
 	servernframe += 1
 	jumpframe(servernframe)
 
@@ -139,7 +164,12 @@ class Rthread(threading.Thread):
 		self._stop = threading.Event()
 	def run(self):
 		while not self._stop.isSet():
-			message = socket.recv()
+			try:
+				message = socket.recv()
+			except WebSocketConnectionClosedException:
+				print "Connection closed by server."
+				self.stop()
+				continue
 			if not message:
 				continue
 			try:

@@ -1,18 +1,29 @@
 import tornado.ioloop
 import tornado.web
 from tornado import websocket
-import settings, gamestate
-import json, time, traceback
+import settings, gamestate, data
+import json, time, traceback, cPickle, os
 
 sockets = []
-passwords = {}
 activeclients = {}
 servermoves = {}
-serverstate = gamestate.Gamestate()
-gamestate.galaxy.create()
-storks = {}
-clientknowledge = {}
 synct0s = {}
+
+savename = "server.pickle"
+if os.path.exists(savename):
+	obj = cPickle.load(open(savename, "rb"))
+	nframe, passwords, storks, clientknowledge, serverstate, gamestate.galaxy = obj
+else:
+	clientknowledge = {}
+	storks = {}
+	passwords = {}
+	serverstate = gamestate.Gamestate()
+	gamestate.galaxy.create()
+	nframe = 0
+
+def save():
+	obj = nframe, passwords, storks, clientknowledge, serverstate, gamestate.galaxy
+	cPickle.dump(obj, open(savename, "wb"))
 
 class GameWebSocket(websocket.WebSocketHandler):
 	def open(self):
@@ -105,7 +116,6 @@ def sendall(*args):
 
 
 dt = 100
-nframe = 0
 t0 = time.time() - 0.1 * nframe
 def currentframe():
 	return (time.time() - t0) / 0.1
@@ -131,6 +141,8 @@ def think():
 		send(cname, "kpatch", knowpatch)
 	del servermoves[nframe]
 	nframe += 1
+	if nframe % 100 == 0:
+		save()
 
 
 

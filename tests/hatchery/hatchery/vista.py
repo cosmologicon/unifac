@@ -169,7 +169,10 @@ def makemap():
 		pygame.draw.circle(worldmap, color, (px, py), r)
 		tcolor = (100, 100, 100) if world.colorcode is None or (world.colorcode and not world.ndeliver) else (255, 255, 255)
 		drawshadowtext(worldmap, wname.title(), 12, (px, py), tcolor, (0,0,0))
-	
+	s = pygame.Surface((mapsx, mapsy)).convert_alpha()
+	s.fill((0,0,0))
+	s.blit(worldmap, (0, 0))
+	pygame.image.save(s, data.filepath("worldmap.png"))
 
 
 
