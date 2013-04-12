@@ -8,13 +8,17 @@ sdata = []
 clientname = None
 started = False  # Set to true after we receive initial game state
 playing = True
+ping = None
+lag = None
+servert0 = None
+
 
 def processupdates():
-	global clientname, playing, started
+	global clientname, playing, started, ping, lag, servert0, t0
 	for update in getupdates():
 		utype, args = update[0], update[1:]
-		if utype != "moves":
-			print utype, servernframe, localnframe, currentframe()
+#		if utype != "moves":
+#			print utype, servernframe, localnframe, currentframe()
 		if utype == "logininfo":
 			settings.savelogindata(*args)
 			clientname = args[0]
@@ -36,8 +40,21 @@ def processupdates():
 			spatch(*args)
 		elif utype == "moves":
 			advanceserverstate(*args)
+		elif utype == "t0":
+			servert0 = args[0]
+		elif utype == "pong":
+			jframe, framet0, newt0 = args
+			ping = int(1000 * (time.time() - framet0))
+			newt0 -= 0.1
+			if newt0 < t0:
+#				print "pong sync", jframe, serverjframe, dt, time.time() - framet0, t0 - newt0, t0, newt0
+				t0 = newt0
 		elif utype == "lag":
-			lag(*args)
+			jframe, framet0 = args
+			lag = int(1000 * (time.time() - framet0))
+#			print "lag", jframe, framet0, lag
+		elif utype == "sync":
+			sync(*args)
 		elif utype == "disconnect":
 			print "Disconnecting...", args[0]
 			playing = False
@@ -51,11 +68,16 @@ localnframe = 0
 t0 = time.time() - 0.1 * localnframe
 def currentframe():
 	return (time.time() - t0) / 0.1
+lag = None
+
 
 def think():
 	global localnframe, playing
 	frame = currentframe()
+#	print "thinking", frame
 	while frame > localnframe + 1:
+		if lag is None or localnframe % 30 == 0:
+			send("ping", localnframe, t0, time.time())
 		localmoves[localnframe], lmoves = settings.parsemoves()
 		send("moves", localnframe, localmoves[localnframe])
 		if "quit" in lmoves:
@@ -64,10 +86,8 @@ def think():
 			settings.mapmode = not settings.mapmode
 			if settings.mapmode:
 				vista.makemap()
-		if "resync" in lmoves:
-			localnframe = servernframe
-			t0 = time.time() - 0.1 * localnframe
 		localnframe += 1
+#		print "advancing frame", localnframe, frame
 		if settings.mapmode:
 			vista.mapx0 += lmoves["dx"] * 20 if "dx" in lmoves else 0
 			vista.mapy0 -= lmoves["dy"] * 20 if "dy" in lmoves else 0
@@ -113,11 +133,6 @@ def kpatch(wstate):
 	wname = wstate["name"]
 	gamestate.galaxy.worlds[wname].setstate(wstate)
 
-def lag(nframe, dt):
-	global t0
-	t0 -= dt
-	print "lag:", dt
-
 class Rthread(threading.Thread):
 	def __init__(self):
 		threading.Thread.__init__(self)
@@ -125,6 +140,8 @@ class Rthread(threading.Thread):
 	def run(self):
 		while not self._stop.isSet():
 			message = socket.recv()
+			if not message:
+				continue
 			try:
 				response = json.loads(message)
 			except (TypeError, ValueError):

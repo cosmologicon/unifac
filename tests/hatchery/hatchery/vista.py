@@ -131,8 +131,10 @@ def draw(state):
 			fs, (10, settings.sy - 6 - fs), (255, 0, 255), (0,0,0), 2, anchor="bottomleft")
 		drawshadowtext(screen, "Talon charges: %s" % state.you.clings,
 			fs, (10, settings.sy - 6), (255, 0, 255), (0,0,0), 2, anchor="bottomleft")
-		drawshadowtext(screen, "Lag: %sms" % int(client.estlag),
+		drawshadowtext(screen, "Ping: %sms" % client.ping,
 			fs, (settings.sx - 10, 6), (255, 0, 255), (0,0,0), 2, anchor="topright")
+		drawshadowtext(screen, "Lag: %sms" % client.lag,
+			fs, (settings.sx - 10, 6 + fs), (255, 0, 255), (0,0,0), 2, anchor="topright")
 		drawshadowtext(screen, "up or space: jump/use talons",
 			fs, (settings.sx - 10, settings.sy - 6 - 2 * fs), (255, 0, 255), (0,0,0), 2, anchor="bottomright")
 		drawshadowtext(screen, "down: get egg at hatchery",
