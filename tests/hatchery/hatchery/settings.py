@@ -16,7 +16,10 @@ def savelogindata(username, password):
 		f.write(json.dumps([username, password]))
 	
 
-size = sx, sy = 600, 400
+size = sx, sy = None, None
+for arg in sys.argv:
+	if arg.startswith("-r"):
+		size = sx, sy = map(int, arg[2:].split("x"))
 gfps = 10   # logical framerate of the game
 
 accel = 200
