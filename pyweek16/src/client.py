@@ -3,7 +3,7 @@
 
 import threading, json, logging
 from lib.websocket import websocket
-import settings, util, clientstate, userinput
+import settings, util, clientstate, userinput, vista
 
 log = logging.getLogger(__name__)
 
@@ -27,6 +27,10 @@ def think():
 		stop()
 	if "leftclick" in inp:
 		send("rotate", inp["leftclick"], 1)
+	if "drag" in inp:
+		vista.drag(*inp["drag"])
+	if "screenshot" in inp:
+		vista.screenshot()
 
 	# Process network updates
 	for message in getmessages():
@@ -77,8 +81,11 @@ class SocketThread(threading.Thread):
 			except websocket.WebSocketConnectionClosedException:
 				stop()
 				break
-			except Exception as e:
-				log.warning("exception %s %s" % (e, dir(e)))
+			except Exception as err:
+				if err.errno == 32:
+					log.debug("Broken pipe")
+				else:
+					log.warning("exception %s %s" % (e, dir(e)))
 				break
 			if message is None:
 				continue

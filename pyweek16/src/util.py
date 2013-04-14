@@ -1,4 +1,4 @@
-import uuid, os.path, random
+import uuid, os.path, random, datetime
 import settings, data
 
 def getlogin():
@@ -38,5 +38,7 @@ def randomcolors(w, h):
 		r = rotateright(w, h, r)
 	return r
 
+def screenshotname():
+	return data.filepath(datetime.datetime.now().strftime("screenshot-%Y%m%d%H%M%S.png"))
 
 

@@ -13,6 +13,7 @@ resetlogin = True
 
 
 screenx, screeny = 600, 400
+mindrag = 20
 
 colors = (255,0,0), (0,0,255)
 
