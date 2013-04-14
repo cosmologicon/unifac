@@ -7,6 +7,7 @@ screen = None
 
 def init():
 	global screen
+	pygame.font.init()
 	screen = pygame.display.set_mode((settings.screenx, settings.screeny))
 
 camerax0, cameray0 = 200, 200
@@ -52,7 +53,12 @@ def gettileimg(s, colors, device, fog, active):
 	for rect, colorcode in zip(rs, colors):
 		img.fill(settings.colors[colorcode], rect)
 	if device:
-		pygame.draw.circle(img, (255, 0, 255), (w/2, h/2), 10)
+		color = {
+			"eye": (255, 0, 255),
+			"base": (0, 0, 0),
+			"coin": (255, 255, 0),
+		}[device]
+		pygame.draw.circle(img, color, (w/2, h/2), 10)
 	if fog == settings.penumbra:
 		img.fill((0,0,0))
 	else:
@@ -84,6 +90,43 @@ class SpinTile(object):
 		img = pygame.transform.rotozoom(self.img0, -90 * A, 1)
 		rect = img.get_rect(center = worldtoscreen(self.p0))
 		screen.blit(img, rect)
+
+# Not changing the orientation or active state, just changing the device
+class FlipTile(object):
+	alive = True
+	T = 0.25
+	def __init__(self, oldstate, newdevice):
+		self.t = 0
+		self.state0 = oldstate
+		self.newdevice = newdevice
+		self.img0 = gettileimg(oldstate["s"], oldstate["colors"], oldstate["device"],
+			oldstate["fog"], oldstate["active"])
+		self.img1 = gettileimg(oldstate["s"], oldstate["colors"], newdevice,
+			oldstate["fog"], oldstate["active"])
+		self.p0 = oldstate["x"] + 0.5 * oldstate["s"], oldstate["y"] + 0.5 * oldstate["s"]
+		effects[(oldstate["x"], oldstate["y"])] = self
+	def think(self, dt):
+		self.t += dt
+		if self.t >= self.T:
+			self.alive = False
+	def draw(self):
+		w, h = self.img0.get_size()
+		w = int(w * math.cos(3.14 * min(self.t / self.T, 1)))
+		img = self.img0 if w > 0 else self.img1
+		img = pygame.transform.smoothscale(img, (abs(w), h))
+		rect = img.get_rect(center = worldtoscreen(self.p0))
+		screen.blit(img, rect)
+
+class CoinFlipTile(FlipTile):
+	def draw(self):
+		FlipTile.draw(self)
+		w = abs(int(20 * math.cos(3.14 * self.t / self.T)))
+		x0, y0 = worldtoscreen(self.p0)
+		a = self.t / self.T
+		y0 -= int(40 * a * (2 - a))
+		rect = pygame.Rect(0, 0, w, 20)
+		rect.center = x0, y0
+		pygame.draw.ellipse(screen, (255, 255, 0), rect)
 		
 
 def think(dt):
@@ -91,6 +134,21 @@ def think(dt):
 		effect.think(dt)
 		if not effect.alive:
 			del effects[p]
+
+fonts = {}
+textcache = {}
+def drawtext(text, size, color, p, anchor = "center"):
+	key = text, size, color
+	if key in textcache:
+		img = textcache[key]
+	else:
+		if size not in fonts:
+			fonts[size] = pygame.font.Font(None, size)
+		font = fonts[size]
+		img = textcache[key] = font.render(text, True, color)
+	rect = img.get_rect(**{anchor: p})
+	screen.blit(img, rect)
+
 
 def draw():
 	screen.fill((0,0,0))
@@ -106,6 +164,8 @@ def draw():
 		screen.blit(img, worldtoscreen((x, y)))
 	for effect in visibleeffects:
 		effect.draw()
+	drawtext("Coinz: %s" % clientstate.you.coins,
+		28, (255, 255, 255), (5, settings.screeny - 5), anchor="bottomleft")
 	pygame.display.flip()
 
 def screenshot():

@@ -41,6 +41,8 @@ def think(dt):
 		mtype, args = message[0], message[1:]
 		if mtype == "login":
 			login(*args)
+		elif mtype == "you":
+			clientstate.you.setstate(*args)
 		elif mtype == "completestate":
 			clientstate.gridstate.setstate(*args)
 			started = True
@@ -48,7 +50,7 @@ def think(dt):
 			clientstate.gridstate.applystate(*args)
 			started = True
 		elif mtype == "delta":
-			clientstate.gridstate.applydelta(*args)
+			clientstate.applydelta(*args)
 
 # Pending updates from the server
 messages = []
