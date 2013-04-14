@@ -198,6 +198,14 @@ class Grid(object):
 			p = x // settings.sectorsize, y // settings.sectorsize
 			self.sectors[p].markdelta(x, y)
 		return activated
+
+	# To use when a *player* deploys a device - does not change colors or tile sizes
+	def deploy(self, x, y, device):
+		tile = self.getbasetile(x, y)
+		if not tile or tile.s != settings.devicesize[device]:
+			raise ValueError("Cannot deploy to tile tile (%s,%s)" % (x, y))
+		self.setdevice(x, y, device)
+
 	def putdevice(self, x, y, device):
 		s = settings.devicesize[device]
 		self.settile({

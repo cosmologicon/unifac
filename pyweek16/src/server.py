@@ -22,11 +22,13 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 				return
 			if mtype == "rotate":
 				self.on_rotate(*args)
+			elif mtype == "deploy":
+				self.on_deploy(*args)
 			else:
 				raise ValueError("Unrecognized message type %s" % mtype)
 		except Exception:
 			self.error("invalid message: %s" % message)
-			raise
+			log.exception("Exception processing message: %s" % message)
 
 	def on_close(self):
 		if self.username:
@@ -34,13 +36,14 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		serverstate.removewatcher(self.username)
 		log.debug("WebSocket closed %s" % self.username)
 
-	def on_login(self, username):
+	def on_login(self, username, password):
 		if not username:
-			username = util.randomname()
+			username, password = util.randomname(), util.randomname()
 			serverstate.users[username] = player.Player({"username": username})
-			self.send("login", username)
-		elif username not in serverstate.users:
-			self.error("invalid login: %s" % username)
+			serverstate.passwords[username] = password
+			self.send("login", username, password)
+		elif username not in serverstate.passwords or serverstate.passwords[username] != password:
+			self.error("invalid login: %s %s" % (username, password))
 			self.close()
 			return
 		self.send("you", serverstate.users[username].getstate())
@@ -53,6 +56,11 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 	def on_rotate(self, p, dA):
 		act = serverstate.rotate(p, dA)
 		serverstate.handleactivation(act, self.username)
+		senddelta(serverstate.getdelta())
+		self.send("you", serverstate.users[self.username].getstate())
+
+	def on_deploy(self, p, device):
+		serverstate.deploy(self.username, p, device)
 		senddelta(serverstate.getdelta())
 		self.send("you", serverstate.users[self.username].getstate())
 
