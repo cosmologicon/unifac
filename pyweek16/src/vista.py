@@ -34,8 +34,8 @@ def visibletiles():
 			yield x, y
 
 tilecache = {}
-def gettile(tile):
-	key = tuple(tile.colors), tile.device, tile.fog, tile.active
+def gettileimg(tile):
+	key = tile.s, tuple(tile.colors), tile.device, tile.fog, tile.active
 	if key in tilecache:
 		return tilecache[key]
 	img = pygame.Surface((40, 40)).convert_alpha()
@@ -60,10 +60,10 @@ def gettile(tile):
 def draw():
 	screen.fill((0,0,0))
 	for x, y in visibletiles():
-		tile = clientstate.gridstate.gettile(x, y)
+		tile = clientstate.gridstate.getbasetile(x, y)
 		if not tile:
 			continue
-		img = gettile(tile)
+		img = gettileimg(tile)
 		screen.blit(img, worldtoscreen((x, y)))
 	pygame.display.flip()
 

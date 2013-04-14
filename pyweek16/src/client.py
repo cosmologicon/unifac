@@ -26,7 +26,8 @@ def think():
 	if "quit" in inp:
 		stop()
 	if "leftclick" in inp:
-		send("rotate", inp["leftclick"], 1)
+		if clientstate.gridstate.canrotate(*inp["leftclick"]):
+			send("rotate", inp["leftclick"], 1)
 	if "drag" in inp:
 		vista.drag(*inp["drag"])
 	if "screenshot" in inp:
@@ -41,6 +42,11 @@ def think():
 		elif mtype == "completestate":
 			clientstate.gridstate.setstate(*args)
 			started = True
+		elif mtype == "state":
+			clientstate.gridstate.applystate(*args)
+			started = True
+		elif mtype == "delta":
+			clientstate.gridstate.applydelta(*args)
 
 # Pending updates from the server
 messages = []
@@ -85,7 +91,7 @@ class SocketThread(threading.Thread):
 				if err.errno == 32:
 					log.debug("Broken pipe")
 				else:
-					log.warning("exception %s %s" % (e, dir(e)))
+					log.warning("exception %s %s" % (err, dir(err)))
 				break
 			if message is None:
 				continue

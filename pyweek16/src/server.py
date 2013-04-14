@@ -31,6 +31,7 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 	def on_close(self):
 		if self.username:
 			serverstate.activeusers.remove(self.username)
+		serverstate.removewatcher(self.username)
 		log.debug("WebSocket closed %s" % self.username)
 
 	def on_login(self, username):
@@ -45,12 +46,13 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		self.username = username
 		clienthandlers[username] = self
 		serverstate.activeusers.add(username)
-		self.send("completestate", serverstate.gridstate.getstate())
+		state = serverstate.setwatch(username, 0, 0)
+		self.send("state", state)
 
 	def on_rotate(self, p, dA):
 #		log.debug("rotating", p, dA)
 		serverstate.rotate(self.username, p, dA)
-		self.send("completestate", serverstate.gridstate.getstate())
+		senddelta(serverstate.getdelta())
 
 	def send(self, *args):
 		self.write_message(json.dumps(args))
@@ -68,6 +70,11 @@ def sendall(*args):
 	message = json.dumps(args)
 	for clienthandler in clienthandlers.values():
 		clienthandler.write_message(message)
+
+def senddelta(delta):
+	log.debug("sending yon delta %s", len(delta))
+	for client, gdelta in serverstate.breakdelta(delta).items():
+		send(client, "delta", gdelta)
 
 def closeall():
 	for client in clienthandlers.values():
