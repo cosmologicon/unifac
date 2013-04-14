@@ -38,19 +38,25 @@ def gettileimg(tile):
 	key = tile.s, tuple(tile.colors), tile.device, tile.fog, tile.active
 	if key in tilecache:
 		return tilecache[key]
-	img = pygame.Surface((40, 40)).convert_alpha()
+	s, w, h = tile.s, tile.s * 40, tile.s * 40
+	img = pygame.Surface((w, h)).convert_alpha()
 	img.fill((0,0,0,0))
 	bcolor = (200, 200, 200) if tile.active else (100, 100, 100)
-	img.fill(bcolor, (1,1,38,38))
-	rs = (10,1,20,5), (35,10,5,20), (10,35,20,5), (1,10,5,20)
+	img.fill(bcolor, (1,1, w-2,h-2))
+	rs = (
+		[(10+40*j, 1, 20, 5) for j in range(s)] +
+		[(w-6, 10+40*j, 5, 20) for j in range(s)] +
+		[(10+40*(s-j-1), h-6, 20, 5) for j in range(s)] +
+		[(1, 10+40*(s-j-1), 5, 20) for j in range(s)]
+	)
 	for rect, colorcode in zip(rs, tile.colors):
 		img.fill(settings.colors[colorcode], rect)
 	if tile.device:
-		pygame.draw.circle(img, (255, 0, 255), (20, 20), 10)
+		pygame.draw.circle(img, (255, 0, 255), (w/2, h/2), 10)
 	if tile.fog == settings.penumbra:
 		img.fill((0,0,0))
 	else:
-		mask = pygame.Surface((40, 40)).convert_alpha()
+		mask = pygame.Surface((w, h)).convert_alpha()
 		mask.fill((0,0,0,140))
 		for _ in range(tile.fog):
 			img.blit(mask, (0, 0))
@@ -60,7 +66,7 @@ def gettileimg(tile):
 def draw():
 	screen.fill((0,0,0))
 	for x, y in visibletiles():
-		tile = clientstate.gridstate.getbasetile(x, y)
+		tile = clientstate.gridstate.getrawtile(x, y)
 		if not tile:
 			continue
 		img = gettileimg(tile)

@@ -26,13 +26,20 @@ horizonbuffer = 40  # Number of tiles beyond the edges of the fog to build
 penumbra = 4   # Width of the fog fade line
 watchradius = 40
 
+devicesize = {
+	"eye": 2,
+	"base": 3,
+}
 horizon = {
 	"eye": 10,
 }
 eradius = {
 	"eye": horizon["eye"] + penumbra,
 }
-
+# devices that remain active when they've been activated once.
+permanent = set([
+	"eye",
+])
 
 
 if DEBUG:

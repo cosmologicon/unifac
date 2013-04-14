@@ -17,8 +17,8 @@ class serializable(object):
 		return dict((field, getattr(self, field)) for field in self.fields)
 
 class Tile(serializable):
-	fields = "x y s colors device fog active".split()
-	defaults = { "s": 1, "colors": (0,0,0,0), "device": None, "fog": 0, "active": False }
+	fields = "x y s colors device fog active parent".split()
+	defaults = { "s": 1, "colors": (0,0,0,0), "device": None, "fog": 0, "active": False, "parent": None }
 	@property
 	def p(self):
 		return self.x, self.y
@@ -26,6 +26,9 @@ class Tile(serializable):
 		assert offset < self.s
 		return self.colors[side * self.s + offset]
 	def updatestate(self, grid):  # Returns true if the state is changed
+		if self.device == "eye":
+			return False
+
 		nmatch = 0
 		for dx, dy, a, b in [(0,-1,0,2), (1,0,1,3), (0,1,2,0), (-1,0,3,1)]:
 			bcolor = grid.getcolor(self.x + dx, self.y + dy, b)
@@ -86,6 +89,11 @@ class Sector(object):
 	def applydelta(self, delta):
 		for tilestate in delta:
 			self.tiles[(tilestate["x"], tilestate["y"])].setstate(tilestate)
+
+	def settile(self, tilestate):
+		x, y = tilestate["x"], tilestate["y"]
+		self.tiles[(x, y)].setstate(tilestate)
+		self.markdelta(x, y)
 	def setdevice(self, x, y, device):
 		tile = self.tiles[(x, y)]
 		tile.device = device
@@ -96,6 +104,12 @@ class Sector(object):
 		if fog == tile.fog:
 			return
 		tile.fog = fog
+		self.markdelta(x, y)
+	def activate(self, x, y):
+		tile = self.tiles[(x, y)]
+		if tile.active:
+			return
+		tile.active = True
 		self.markdelta(x, y)
 
 def randomsector(sx, sy):
@@ -122,14 +136,31 @@ class Grid(object):
 		for tile in sector.tiles.values():
 			tile.updatestate(self)
 		# TODO: update adjacent tiles
+	def getrawtile(self, x, y):  # Return None if there's a pseudotile at that location
+		sx = x // settings.sectorsize
+		sy = y // settings.sectorsize
+		if (sx, sy) not in self.sectors:
+			return None
+		tile = self.sectors[(sx, sy)].gettile(x, y)
+		return None if tile.parent else tile
 	def getbasetile(self, x, y):  # Returns the true tile if there's a pseudotile at that location
 		sx = x // settings.sectorsize
 		sy = y // settings.sectorsize
-		return self.sectors[(sx, sy)].gettile(x, y) if (sx, sy) in self.sectors else None		
+		if (sx, sy) not in self.sectors:
+			return None
+		tile = self.sectors[(sx, sy)].gettile(x, y)
+		return self.getbasetile(*tile.parent) if tile.parent else tile
 	def getcolor(self, x, y, side):
 		tile = self.getbasetile(x, y)
-		# TODO: handle s > 1
-		return tile.color(side) if tile else None
+		if not tile:
+			return None
+		if tile.s == 1:
+			return tile.color(side)
+		# Maybe refactor this? Doesn't really seem worth it.
+		offset = (y - tile.y if side % 2 else x - tile.x)
+		if side > 2:
+			offset = tile.s - offset - 1
+		return tile.color(side, offset)
 	def getstate(self, sectors = None):
 		if sectors is None:
 			return [(x, y, sector.getstate()) for (x, y), sector in self.sectors.items()]
@@ -161,9 +192,30 @@ class Grid(object):
 		for x, y in tile.rotate(self, dA):
 			p = x // settings.sectorsize, y // settings.sectorsize
 			self.sectors[p].markdelta(x, y)
+	def putdevice(self, x, y, device):
+		s = settings.devicesize[device]
+		self.settile({
+			"x": x,
+			"y": y,
+			"s": s,
+			"colors": util.randomcolors(s),
+		})
+		self.setdevice(x, y, device)
+		for dx in range(s):
+			for dy in range(s):
+				if (dx, dy) == (0, 0):
+					continue
+				self.settile({"x": x+dx, "y": y+dy, "colors": None, "parent": (x, y)})
+	# This should be used by the server with care.
+	def settile(self, tilestate):
+		p = tilestate["x"] // settings.sectorsize, tilestate["y"] // settings.sectorsize
+		self.sectors[p].settile(tilestate)
 	def setdevice(self, x, y, device):
 		p = x // settings.sectorsize, y // settings.sectorsize
 		self.sectors[p].setdevice(x, y, device)
+	def activate(self, x, y):
+		p = x // settings.sectorsize, y // settings.sectorsize
+		self.sectors[p].activate(x, y)
 	def devices(self, sx, sy):  # All devices with an area of effect overlapping this sector
 		xmin = settings.sectorsize * sx
 		xmax = xmin + settings.sectorsize

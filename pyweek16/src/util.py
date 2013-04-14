@@ -30,9 +30,13 @@ def rotate(s, colors, dA):
 def randomcolors(s):
 	if s == 1:
 		rs = (0, 0, 0, 1), (0, 0, 1, 1), (0, 1, 0, 1), (0, 1, 1, 1)
-	r = random.choice(rs)
-	r = rotate(s, r, random.choice(range(4)))
-	return r
+		r = random.choice(rs)
+		r = rotate(s, r, random.choice(range(4)))
+		return r
+	while True:
+		r = tuple(random.choice([0, 1]) for _ in range(4*s))
+		if s <= sum(r) <= 3*s:
+			return r
 
 # What sectors must be prebuilt when this device is active?
 def horizonsectors(tile):
@@ -56,10 +60,10 @@ fogcache = {}
 def fillfogcache(r):
 	fogcache[r] = {}
 	R = r + settings.penumbra
-	for dx in range(-R, R+1):
-		for dy in range(-R, R+1):
-			d = int(math.sqrt(dx ** 2 + dy ** 2))
-			fogcache[r][(dx, dy)] = min(max(d - r, 0), settings.penumbra)
+	for dx in range(-2*R, 2*R+1):
+		for dy in range(-2*R, 2*R+1):
+			d = int(0.5 * math.sqrt(dx ** 2 + dy ** 2))
+			fogcache[r][(dx*0.5, dy*0.5)] = min(max(d - r, 0), settings.penumbra)
 def solvefog(gridstate, sx, sy):
 	sector = gridstate.sectors[(sx, sy)]
 	eyes = [(x, y, settings.horizon[tile.device])
