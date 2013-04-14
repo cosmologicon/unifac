@@ -5,5 +5,5 @@ class Sector(object):
 		self.setstate(state)
 	def setstate(self, state):
 		self.sx, self.sy, tiles = state
-
+	
 

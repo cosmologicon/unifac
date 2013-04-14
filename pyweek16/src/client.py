@@ -3,7 +3,7 @@
 
 import threading, json, logging
 from lib.websocket import websocket
-import settings
+import settings, util
 
 log = logging.getLogger(__name__)
 
@@ -13,6 +13,8 @@ socketthread = None
 
 # Set this to False so that main knows to terminate the connection
 playing = True
+
+username = None
 
 # Pending updates from the server
 updates = []
@@ -34,9 +36,18 @@ def addupdate(update):
 def send(*args):
 	message = json.dumps(args)
 	socket.send(message)
+def parsemessage(message):
+	return json.loads(message)
 def receive(message):
+	message = parsemessage(message)
 	log.debug("Message received: %s" % message)
-
+	mtype, args = message[0], message[1:]
+	if mtype == "login":
+		login(*args)
+def login(uname):
+	global username
+	username = uname
+	util.savelogin(uname)
 
 
 class SocketThread(threading.Thread):
@@ -45,30 +56,33 @@ class SocketThread(threading.Thread):
 		self.stopevent = threading.Event()
 	def run(self):
 		global playing
-		while playing:
+		while not self.stopevent.isSet():
 			try:
 				message = socket.recv()
 			except websocket.WebSocketConnectionClosedException:
 				playing = False
-				self.stop()
+				break
 			if message is None:
 				continue
 			receive(message)
+		self.stop()
 	def stop(self):
 		log.debug("Stopping socket thread")
 		self.stopevent.set()
+		socket.close()
 
 
 # Object to handle the connection cleanly
 class run(object):
-	def __init__(self, username, password):
-		self.username, self.password = username, password
+	def __init__(self, uname):
+		global username
+		username = uname
 	def __enter__(self):
 		global socket, socketthread
 		socket = websocket.create_connection(settings.url)
 		socketthread = SocketThread()
 		socketthread.start()
-		send("Hello")
+		send("login", username)
 	def __exit__(self, *args):
 		socketthread.stop()
 		socketthread.join()
