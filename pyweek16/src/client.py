@@ -3,7 +3,7 @@
 
 import threading, json, logging
 from lib.websocket import websocket
-import settings, util
+import settings, util, clientstate
 
 log = logging.getLogger(__name__)
 
@@ -13,6 +13,7 @@ socketthread = None
 
 # Set this to False so that main knows to terminate the connection
 playing = True
+started = False
 
 username = None
 
@@ -39,16 +40,19 @@ def send(*args):
 def parsemessage(message):
 	return json.loads(message)
 def receive(message):
+	global started
 	message = parsemessage(message)
 	log.debug("Message received: %s" % message)
 	mtype, args = message[0], message[1:]
 	if mtype == "login":
 		login(*args)
+	elif mtype == "completestate":
+		clientstate.gridstate.setstate(*args)
+		started = True
 def login(uname):
 	global username
 	username = uname
 	util.savelogin(uname)
-
 
 class SocketThread(threading.Thread):
 	def __init__(self):

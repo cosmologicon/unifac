@@ -9,6 +9,13 @@ url = "%s:%s" % (host, port)
 
 loginname = None
 loginfile = "login-%s.json" if loginname else "login.json"
+resetlogin = True
+
+
+screenx, screeny = 600, 400
+
+colors = (255,0,0), (0,0,255)
+
 
 
 # Game mechanics - don't mess with these unless you're running your own server!
