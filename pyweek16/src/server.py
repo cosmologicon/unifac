@@ -1,15 +1,14 @@
 import json, logging, tornado.ioloop, tornado.websocket, tornado.web
-import settings, util
+import settings, util, serverstate
 
 log = logging.getLogger(__name__)
 
 clienthandlers = {}
-users = set()
-activeusers = set()
 
 class GameHandler(tornado.websocket.WebSocketHandler):
 	def open(self):
 		log.debug("WebSocket opened")
+		self.username = None
 	
 	def on_message(self, message):
 		log.debug("Message received: %s" % message)
@@ -25,21 +24,23 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 			self.error("invalid message: %s" % message)
 
 	def on_close(self):
-		activeusers.remove(self.username)
-		log.debug("WebSocket closed")
+		if self.username:
+			serverstate.activeusers.remove(self.username)
+		log.debug("WebSocket closed %s" % self.username)
 
 	def on_login(self, username):
 		if not username:
 			username = util.randomname()
-			users.add(username)
+			serverstate.users.add(username)
 			self.send("login", username)
-		elif username not in users:
+		elif username not in serverstate.users:
 			self.error("invalid login: %s" % username)
 			self.close()
 			return
 		self.username = username
 		clienthandlers[username] = self
-		activeusers.add(username)
+		serverstate.activeusers.add(username)
+		self.send("completestate", serverstate.gridstate.getstate())
 
 	def send(self, *args):
 		self.write_message(json.dumps(args))
@@ -50,11 +51,18 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 def parsemessage(message):
 	return json.loads(message)
 
+def send(who, *args):
+	clienthandlers[who].write_message(json.dumps(args))
+
+def sendall(*args):
+	message = json.dumps(args)
+	for clienthandler in clienthandlers.values():
+		clienthandler.write_message(message)
 
 def closeall():
 	for client in clienthandlers.values():
-		client.close()
-
+		if client.ws_connection:
+			client.close()
 
 
 if __name__ == "__main__":

@@ -1,7 +1,8 @@
-import uuid, os.path
+import uuid, os.path, random
 import settings, data
 
 def getlogin():
+	if settings.resetlogin: return None
 	fname = data.filepath(settings.loginfile)
 	if os.path.exists(fname):
 		return open(fname).read()
@@ -16,5 +17,22 @@ def randomname():
 		r = str(uuid.uuid4())
 		if r not in usednames:
 			return r
+
+def rotateleft(w, h, colors):
+	if (w, h) == (1, 1):
+		return colors[1], colors[2], colors[3], colors[0]
+
+def rotateright(w, h, colors):
+	if (w, h) == (1, 1):
+		return colors[3], colors[0], colors[1], colors[2]
+
+def randomcolors(w, h):
+	if (w, h) == (1, 1):
+		rs = (0, 0, 0, 1), (0, 0, 1, 1), (0, 1, 0, 1), (0, 1, 1, 1)
+	r = random.choice(rs)
+	for _ in range(random.choice(range(4))):
+		r = rotateright(w, h, r)
+	return r
+
 
 
