@@ -3,7 +3,7 @@
 
 import threading, json, logging
 from lib.websocket import websocket
-import settings, util, clientstate
+import settings, util, clientstate, userinput
 
 log = logging.getLogger(__name__)
 
@@ -17,38 +17,49 @@ started = False
 
 username = None
 
+
+def think():
+	global started
+
+	# Process local updates
+	inp = userinput.get()
+	if "quit" in inp:
+		stop()
+	if "leftclick" in inp:
+		send("rotate", inp["leftclick"], 1)
+
+	# Process network updates
+	for message in getmessages():
+		message = parsemessage(message)
+		mtype, args = message[0], message[1:]
+		if mtype == "login":
+			login(*args)
+		elif mtype == "completestate":
+			clientstate.gridstate.setstate(*args)
+			started = True
+
 # Pending updates from the server
-updates = []
-ulock = threading.RLock()
+messages = []
+mlock = threading.RLock()
 
 # I think these should actually be atomic operations, but I'm not that familiar with threads
 #   so let's stay on the safe side.
-def getupdates():
-	while updates:
-		ulock.acquire()
-		ret = updates.pop(0)
-		ulock.release()
+def getmessages():
+	while messages:
+		mlock.acquire()
+		ret = messages.pop(0)
+		mlock.release()
 		yield ret
-def addupdate(update):
-	ulock.acquire()
-	updates.push(update)
-	ulock.release()
+def addmessage(message):
+	mlock.acquire()
+	messages.append(message)
+	mlock.release()
 
 def send(*args):
 	message = json.dumps(args)
 	socket.send(message)
 def parsemessage(message):
 	return json.loads(message)
-def receive(message):
-	global started
-	message = parsemessage(message)
-	log.debug("Message received: %s" % message)
-	mtype, args = message[0], message[1:]
-	if mtype == "login":
-		login(*args)
-	elif mtype == "completestate":
-		clientstate.gridstate.setstate(*args)
-		started = True
 def login(uname):
 	global username
 	username = uname
@@ -64,16 +75,25 @@ class SocketThread(threading.Thread):
 			try:
 				message = socket.recv()
 			except websocket.WebSocketConnectionClosedException:
-				playing = False
+				stop()
+				break
+			except Exception as e:
+				log.warning("exception %s %s" % (e, dir(e)))
 				break
 			if message is None:
 				continue
-			receive(message)
-		self.stop()
+			addmessage(message)
+		stop()
 	def stop(self):
 		log.debug("Stopping socket thread")
 		self.stopevent.set()
 		socket.close()
+
+def stop():
+	global playing
+	if socketthread:
+		socketthread.stop()
+	playing = False
 
 
 # Object to handle the connection cleanly

@@ -1,5 +1,7 @@
-import random
+import random, logging
 import settings, util
+
+log = logging.getLogger(__name__)
 
 
 class serializable(object):
@@ -19,6 +21,8 @@ class Tile(serializable):
 	@property
 	def p(self):
 		return self.x, self.y
+	def rotate(self, dA):
+		self.colors = util.rotate(self.w, self.h, self.colors, dA)
 
 class Sector(object):
 	def __init__(self, state):
@@ -50,12 +54,25 @@ class Grid(object):
 	def gettile(self, x, y):
 		sx, x = divmod(x, settings.sectorsize)
 		sy, y = divmod(y, settings.sectorsize)
-		return self.sectors[(sx, sy)].gettile(x, y)
+		return self.sectors[(sx, sy)].gettile(x, y) if (sx, sy) in self.sectors else None
+	def tilestate(self, x, y):
+		tile = self.gettile(x, y)
+		nmatch = 0
+		for dx, dy, a, b in [(0,-1,0,2), (1,0,1,3), (0,1,2,0), (-1,0,3,1)]:
+			btile = self.gettile(x + dx, y + dy)
+			if not btile:
+				return False
+			nmatch += tile.colors[a] == btile.colors[b]
+		return nmatch in (0, 4)
+		
 	def getstate(self):
 		return [(x, y, sector.getstate()) for (x, y), sector in self.sectors.items()]
 	def setstate(self, state):
 		self.sectors = {}
 		for x, y, sectorstate in state:
+			log.debug("setting sector state %s %s", x, y)
 			self.sectors[(x, y)] = Sector(sectorstate)
+		log.debug("sectors set: %s", self.sectors.keys())
+
 
 
