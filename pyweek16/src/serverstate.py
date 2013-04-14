@@ -8,16 +8,20 @@ glock = threading.RLock()
 
 glock.acquire()
 gridstate.fillsector(0, 0)
-gridstate.setdevice(2, 2, "eye")
-gridstate.getbasetile(2, 2).active = True
-gridstate.setdevice(20, 10, "eye")
-gridstate.getbasetile(20, 10).active = True
+gridstate.putdevice(2, 2, "eye")
+gridstate.activate(2, 2)
+gridstate.putdevice(20, 10, "eye")
+gridstate.activate(20, 10)
+gridstate.putdevice(10, 12, "base")
+gridstate.activate(10, 12)
 for sx, sy in util.horizonsectors(gridstate.getbasetile(2, 2)):
 	gridstate.fillsector(sx, sy)
 	util.solvefog(gridstate, sx, sy)
 glock.release()
 
-log.debug(gridstate.getbasetile(-2, -2))
+log.debug(gridstate.getbasetile(2, 2).getstate())
+log.debug(gridstate.getbasetile(2, 3).getstate())
+log.debug(gridstate.adevices(0, 0))
 
 
 users = set()
