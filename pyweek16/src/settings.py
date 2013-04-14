@@ -12,7 +12,7 @@ loginfile = "login-%s.json" if loginname else "login.json"
 resetlogin = True
 
 
-screenx, screeny = 1000, 800
+screenx, screeny = 480, 480
 mindrag = 20
 
 colors = (255,0,0), (0,0,255)

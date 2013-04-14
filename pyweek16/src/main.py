@@ -10,10 +10,11 @@ def main():
 		vista.init()
 		clock = pygame.time.Clock()
 		while client.playing:
-			clock.tick(60)
-			client.think()
+			dt = clock.tick(60) * 0.001
+			client.think(dt)
 			if not client.started:
 				continue
+			vista.think(dt)
 			vista.draw()
 		log.debug("Completing client.playing loop")
 	pygame.quit()
