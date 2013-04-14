@@ -12,7 +12,7 @@ loginfile = "login-%s.json" if loginname else "login.json"
 resetlogin = True
 
 
-screenx, screeny = 600, 400
+screenx, screeny = 1000, 800
 mindrag = 20
 
 colors = (255,0,0), (0,0,255)
@@ -24,6 +24,7 @@ colors = (255,0,0), (0,0,255)
 sectorsize = 40
 horizonbuffer = 40  # Number of tiles beyond the edges of the fog to build
 penumbra = 4   # Width of the fog fade line
+watchradius = 40
 
 horizon = {
 	"eye": 10,

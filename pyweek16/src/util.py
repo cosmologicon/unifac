@@ -20,24 +20,18 @@ def randomname():
 		if r not in usednames:
 			return r
 
-def rotateleft(w, h, colors):
-	if (w, h) == (1, 1):
-		return colors[1], colors[2], colors[3], colors[0]
+def cycle(array, n):
+	n %= len(array)
+	return tuple(array[n:] + array[:n])
 
-def rotateright(w, h, colors):
-	if (w, h) == (1, 1):
-		return colors[3], colors[0], colors[1], colors[2]
+def rotate(s, colors, dA):
+	return cycle(colors, 3 * s * dA)
 
-def rotate(w, h, colors, dA):
-	if dA == 1:
-		return rotateright(w, h, colors)
-
-def randomcolors(w, h):
-	if (w, h) == (1, 1):
+def randomcolors(s):
+	if s == 1:
 		rs = (0, 0, 0, 1), (0, 0, 1, 1), (0, 1, 0, 1), (0, 1, 1, 1)
 	r = random.choice(rs)
-	for _ in range(random.choice(range(4))):
-		r = rotateright(w, h, r)
+	r = rotate(s, r, random.choice(range(4)))
 	return r
 
 # What sectors must be prebuilt when this device is active?
@@ -48,6 +42,14 @@ def horizonsectors(tile):
 	sx0, sx1 = (tile.x - r) // settings.sectorsize, (tile.x + r) // settings.sectorsize
 	sy0, sy1 = (tile.y - r) // settings.sectorsize, (tile.y + r) // settings.sectorsize
 	return [(sx, sy) for sx in range(sx0, sx1+1) for sy in range(sy0, sy1+1)]
+
+# Tiles adjacent to the tile at (x,y)
+def neighbors(s, x, y):
+	for j in range(s):
+		yield x+j, y-1  # top side neighbor
+		yield x+s, y+j  # right side neighbor
+		yield x+j, y+s  # bottom side neighbor
+		yield x-1, y+j  # left side neighbor
 
 
 fogcache = {}
@@ -70,7 +72,7 @@ def solvefog(gridstate, sx, sy):
 		for ty in range(settings.sectorsize):
 			y = sy * settings.sectorsize + ty
 			fs = [fogcache[r].get((ex - x, ey - y), settings.penumbra) for ex, ey, r in eyes]
-			sector.tiles[(tx, ty)].fog = min(fs) if fs else settings.penumbra
+			sector.setfog(x, y, min(fs) if fs else settings.penumbra)
 
 
 def screenshotname():
