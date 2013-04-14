@@ -3,6 +3,17 @@ import settings, data
 
 log = logging.getLogger(__name__)
 
+class serializable(object):
+	fields = None
+	defaults = None
+	def __init__(self, state):
+		self.setstate(state)
+	def setstate(self, state):
+		for field in self.fields:
+			setattr(self, field, state[field] if field in state else self.defaults[field])
+	def getstate(self):
+		return dict((field, getattr(self, field)) for field in self.fields)
+
 def getlogin():
 	if settings.resetlogin: return None
 	fname = data.filepath(settings.loginfile)

@@ -1,5 +1,5 @@
 import json, logging, tornado.ioloop, tornado.websocket, tornado.web
-import settings, util, serverstate
+import settings, util, serverstate, player
 
 log = logging.getLogger(__name__)
 
@@ -37,12 +37,13 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 	def on_login(self, username):
 		if not username:
 			username = util.randomname()
-			serverstate.users.add(username)
+			serverstate.users[username] = player.Player({"username": username})
 			self.send("login", username)
 		elif username not in serverstate.users:
 			self.error("invalid login: %s" % username)
 			self.close()
 			return
+		self.send("you", serverstate.users[username].getstate())
 		self.username = username
 		clienthandlers[username] = self
 		serverstate.activeusers.add(username)
@@ -50,9 +51,10 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		self.send("state", state)
 
 	def on_rotate(self, p, dA):
-#		log.debug("rotating", p, dA)
-		serverstate.rotate(self.username, p, dA)
+		act = serverstate.rotate(p, dA)
+		serverstate.handleactivation(act, self.username)
 		senddelta(serverstate.getdelta())
+		self.send("you", serverstate.users[self.username].getstate())
 
 	def send(self, *args):
 		self.write_message(json.dumps(args))

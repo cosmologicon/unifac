@@ -4,19 +4,7 @@ import settings, util
 
 log = logging.getLogger(__name__)
 
-
-class serializable(object):
-	fields = None
-	defaults = None
-	def __init__(self, state):
-		self.setstate(state)
-	def setstate(self, state):
-		for field in self.fields:
-			setattr(self, field, state[field] if field in state else self.defaults[field])
-	def getstate(self):
-		return dict((field, getattr(self, field)) for field in self.fields)
-
-class Tile(serializable):
+class Tile(util.serializable):
 	fields = "x y s colors device fog active parent".split()
 	defaults = { "s": 1, "colors": (0,0,0,0), "device": None, "fog": 0, "active": False, "parent": None }
 	@property
@@ -40,14 +28,23 @@ class Tile(serializable):
 			self.active = active
 			return True
 		return False
-	def rotate(self, grid, dA):  # Returns list of tiles whose state is updated
+	# Returns two lists of tiles: tiles whose state is updated, and tiles whose activation state
+	#   has changed
+	def rotate(self, grid, dA):
 		self.colors = util.rotate(self.s, self.colors, dA)
-		yield self.p
+		ps, activated = [self.p], []
+		wasactive = self.active
 		self.updatestate(grid)
+		if wasactive != self.active:
+			activated.append(self.p)
 		for x, y in util.neighbors(self.s, self.x, self.y):
 			tile = grid.getbasetile(x, y)
+			wasactive = tile.active
 			if tile.updatestate(grid):
-				yield tile.p
+				ps.append(tile.p)
+				if wasactive != tile.active:
+					activated.append(tile.p)
+		return ps, activated
 
 class Sector(object):
 	def __init__(self, state):
@@ -88,7 +85,10 @@ class Sector(object):
 	# included in the patch
 	def applydelta(self, delta):
 		for tilestate in delta:
-			self.tiles[(tilestate["x"], tilestate["y"])].setstate(tilestate)
+			tile = self.tiles[(tilestate["x"], tilestate["y"])]
+			oldstate = tile.getstate()
+			tile.setstate(tilestate)
+			yield oldstate, tilestate
 
 	def settile(self, tilestate):
 		x, y = tilestate["x"], tilestate["y"]
@@ -118,11 +118,13 @@ def randomsector(sx, sy):
 	for x in range(a):
 		for y in range(a):
 			colors = util.randomcolors(1)
-			tilestates.append({
+			tilestate = {
 				"x": sx*a+x,
 				"y": sy*a+y,
 				"colors": colors,
-			})
+			}
+			if random.random() < 0.2: tilestate["device"] = "coin"
+			tilestates.append(tilestate)
 	return Sector((sx, sy, tilestates))
 
 class Grid(object):
@@ -181,17 +183,21 @@ class Grid(object):
 		return ret.items()  # can't JSON a dict with tuples for keys
 	def applydelta(self, delta):
 		for spos, sdelta in delta:
-			self.sectors[tuple(spos)].applydelta(sdelta)
+			for dstate in self.sectors[tuple(spos)].applydelta(sdelta):
+				yield dstate
 	def canrotate(self, x, y):
 		tile = self.getbasetile(x, y)
 		return tile and not tile.fog
+	# Returns a list of tiles whose activation state changed
 	def rotate(self, x, y, dA):
 		tile = self.getbasetile(x, y)
 		if not tile or tile.fog:
 			raise ValueError("Cannot rotate tile (%s,%s)" % (x, y))
-		for x, y in tile.rotate(self, dA):
+		ps, activated = tile.rotate(self, dA)
+		for x, y in ps:
 			p = x // settings.sectorsize, y // settings.sectorsize
 			self.sectors[p].markdelta(x, y)
+		return activated
 	def putdevice(self, x, y, device):
 		s = settings.devicesize[device]
 		self.settile({

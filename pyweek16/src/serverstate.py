@@ -1,5 +1,5 @@
 import logging, threading
-import grid, util, settings
+import grid, util, settings, player
 
 log = logging.getLogger(__name__)
 
@@ -24,21 +24,31 @@ log.debug(gridstate.getbasetile(2, 3).getstate())
 log.debug(gridstate.adevices(0, 0))
 
 
-users = set()
+users = {}
 activeusers = set()
 watchers = {}  # map from clients to the sectors they're watching
 rwatchers = {}  # map from sectors to the clients who are watching them
 
-def rotate(who, (x, y), dA):
+# Returns a list of tiles whose activation state changed
+def rotate((x, y), dA):
 	glock.acquire()
-	gridstate.rotate(x, y, dA)
+	ret = gridstate.rotate(x, y, dA)
 	glock.release()
+	return ret
 
 def getdelta():
 	glock.acquire()
 	ret = gridstate.getdelta()
 	glock.release()
 	return ret
+
+def handleactivation(tiles, who):
+	for x, y in tiles:
+		tile = gridstate.getbasetile(x, y)
+		if tile.active and tile.device == "coin":
+			users[who].coins += 1
+			gridstate.setdevice(x, y, None)
+
 
 # Returns a gamestate update to be sent to this client
 def setwatch(who, x, y):
