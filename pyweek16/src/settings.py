@@ -2,6 +2,11 @@ import logging
 
 DEBUG = True
 
+host = "ws://universefactory.net"
+port = 8516
+url = "%s:%s" % (host, port)
+
+
 
 if DEBUG:
 	logging.basicConfig(

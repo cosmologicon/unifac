@@ -1,9 +1,14 @@
 from lib.websocket import websocket
 import logging
-import settings
+import settings, client, util
 
 log = logging.getLogger(__name__)
 
 def main():
-	log.debug("test")
+	username, password = util.getlogin()
+	with client.run(username, password):
+		while client.playing:
+			client.getupdates()
+
+
 
