@@ -1,5 +1,7 @@
-import uuid, os.path, random, datetime
+import uuid, os.path, random, datetime, math, logging
 import settings, data
+
+log = logging.getLogger(__name__)
 
 def getlogin():
 	if settings.resetlogin: return None
@@ -37,6 +39,39 @@ def randomcolors(w, h):
 	for _ in range(random.choice(range(4))):
 		r = rotateright(w, h, r)
 	return r
+
+# What sectors must be prebuilt when this device is active?
+def horizonsectors(tile):
+	if tile.device not in settings.horizon:
+		return []
+	r = settings.horizon[tile.device] + settings.horizonbuffer
+	sx0, sx1 = (tile.x - r) // settings.sectorsize, (tile.x + r) // settings.sectorsize
+	sy0, sy1 = (tile.y - r) // settings.sectorsize, (tile.y + r) // settings.sectorsize
+	return [(sx, sy) for sx in range(sx0, sx1+1) for sy in range(sy0, sy1+1)]
+
+
+fogcache = {}
+def fillfogcache(r):
+	fogcache[r] = {}
+	R = r + settings.penumbra
+	for dx in range(-R, R+1):
+		for dy in range(-R, R+1):
+			d = int(math.sqrt(dx ** 2 + dy ** 2))
+			fogcache[r][(dx, dy)] = min(max(d - r, 0), settings.penumbra)
+def solvefog(gridstate, sx, sy):
+	sector = gridstate.sectors[(sx, sy)]
+	eyes = [(x, y, settings.horizon[tile.device])
+		for x, y, tile in gridstate.adevices(sx, sy) if tile.device in settings.horizon]
+	for ex, ey, r in eyes:
+		if r not in fogcache:
+			fillfogcache(r)
+	for tx in range(settings.sectorsize):
+		x = sx * settings.sectorsize + tx
+		for ty in range(settings.sectorsize):
+			y = sy * settings.sectorsize + ty
+			fs = [fogcache[r].get((ex - x, ey - y), settings.penumbra) for ex, ey, r in eyes]
+			sector.tiles[(tx, ty)].fog = min(fs) if fs else settings.penumbra
+
 
 def screenshotname():
 	return data.filepath(datetime.datetime.now().strftime("screenshot-%Y%m%d%H%M%S.png"))

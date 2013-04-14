@@ -22,7 +22,15 @@ colors = (255,0,0), (0,0,255)
 # Game mechanics - don't mess with these unless you're running your own server!
 # It WILL break your game!
 sectorsize = 40
+horizonbuffer = 40  # Number of tiles beyond the edges of the fog to build
+penumbra = 4   # Width of the fog fade line
 
+horizon = {
+	"eye": 10,
+}
+eradius = {
+	"eye": horizon["eye"] + penumbra,
+}
 
 
 
