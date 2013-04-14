@@ -25,6 +25,7 @@ log.debug(gridstate.adevices(0, 0))
 
 
 users = {}
+passwords = {}
 activeusers = set()
 watchers = {}  # map from clients to the sectors they're watching
 rwatchers = {}  # map from sectors to the clients who are watching them
@@ -35,6 +36,13 @@ def rotate((x, y), dA):
 	ret = gridstate.rotate(x, y, dA)
 	glock.release()
 	return ret
+def deploy(who, (x, y), device):
+	if device not in settings.devicecost or users[who].coins < settings.devicecost[device]:
+		raise ValueError("Not enough coins")
+	glock.acquire()
+	gridstate.deploy(x, y, device)
+	glock.release()
+	users[who].coins -= settings.devicecost[device]
 
 def getdelta():
 	glock.acquire()

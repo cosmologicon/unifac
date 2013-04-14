@@ -57,6 +57,7 @@ def gettileimg(s, colors, device, fog, active):
 			"eye": (255, 0, 255),
 			"base": (0, 0, 0),
 			"coin": (255, 255, 0),
+			"power": (0, 255, 255),
 		}[device]
 		pygame.draw.circle(img, color, (w/2, h/2), 10)
 	if fog == settings.penumbra:

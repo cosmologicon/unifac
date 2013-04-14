@@ -10,6 +10,8 @@ dragging = {}
 
 def get():
 	ret = {}
+	mpos = pygame.mouse.get_pos()
+	mtile = vista.screentotile(mpos)
 	for event in pygame.event.get():
 		if event.type == MOUSEBUTTONDOWN:
 			mdownpos[event.button] = event.pos
@@ -38,6 +40,8 @@ def get():
 				ret["quit"] = True
 			if event.key == K_F12:
 				ret["screenshot"] = True
+			if event.key == K_1:
+				ret["deploy"] = mtile, "power"
 		if event.type == QUIT:
 			ret["quit"] = True
 	return ret

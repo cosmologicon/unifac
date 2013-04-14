@@ -5,8 +5,8 @@ import settings, client, util, vista
 log = logging.getLogger(__name__)
 
 def main():
-	username = util.getlogin()
-	with client.run(username):
+	username, password = util.getlogin()
+	with client.run(username, password):
 		vista.init()
 		clock = pygame.time.Clock()
 		while client.playing:

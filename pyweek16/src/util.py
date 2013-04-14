@@ -15,14 +15,14 @@ class serializable(object):
 		return dict((field, getattr(self, field)) for field in self.fields)
 
 def getlogin():
-	if settings.resetlogin: return None
+	if settings.resetlogin: return None, None
 	fname = data.filepath(settings.loginfile)
 	if os.path.exists(fname):
-		return open(fname).read()
-	return None
-def savelogin(username):
+		return open(fname).read().split()
+	return None, None
+def savelogin(username, password):
 	fname = data.filepath(settings.loginfile)
-	open(fname, "w").write(username)
+	open(fname, "w").write("%s %s" % (username, password))
 
 usednames = set()
 def randomname():

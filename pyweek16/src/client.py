@@ -32,6 +32,9 @@ def think(dt):
 			vista.SpinTile(clientstate.gridstate.getbasetile(x, y), 3)
 	if "drag" in inp:
 		vista.drag(*inp["drag"])
+	if "deploy" in inp:
+		pos, device = inp["deploy"]
+		send("deploy", pos, device)
 	if "screenshot" in inp:
 		vista.screenshot()
 
@@ -51,6 +54,8 @@ def think(dt):
 			started = True
 		elif mtype == "delta":
 			clientstate.applydelta(*args)
+		elif mtype == "error":
+			log.warning("ERROR FROM SERVER: %s", args[0])
 
 # Pending updates from the server
 messages = []
@@ -74,10 +79,10 @@ def send(*args):
 	socket.send(message)
 def parsemessage(message):
 	return json.loads(message)
-def login(uname):
+def login(uname, password):
 	global username
 	username = uname
-	util.savelogin(uname)
+	util.savelogin(uname, password)
 
 class SocketThread(threading.Thread):
 	def __init__(self):
@@ -115,15 +120,16 @@ def stop():
 
 # Object to handle the connection cleanly
 class run(object):
-	def __init__(self, uname):
+	def __init__(self, uname, password):
 		global username
 		username = uname
+		self.password = password
 	def __enter__(self):
 		global socket, socketthread
 		socket = websocket.create_connection(settings.url)
 		socketthread = SocketThread()
 		socketthread.start()
-		send("login", username)
+		send("login", username, self.password)
 	def __exit__(self, *args):
 		socketthread.stop()
 		socketthread.join()
