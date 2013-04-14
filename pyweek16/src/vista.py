@@ -1,5 +1,5 @@
-import pygame
-import settings, clientstate, logging
+import pygame, math, logging
+import settings, clientstate, data, util
 
 log = logging.getLogger(__name__)
 
@@ -8,6 +8,24 @@ screen = None
 def init():
 	global screen
 	screen = pygame.display.set_mode((settings.screenx, settings.screeny))
+
+camerax0, cameray0 = 200, 200
+def worldtoscreen((x, y)):
+	return (
+		int(settings.screenx * 0.5 + 40 * x - camerax0),
+		int(settings.screeny * 0.5 + 40 * y - cameray0),
+	)
+def screentoworld((px, py)):
+	return (
+		(px + camerax0 - 0.5 * settings.screenx) / 40,
+		(py + cameray0 - 0.5 * settings.screeny) / 40,
+	)
+def screentotile(p):
+	return [int(math.floor(a)) for a in screentoworld(p)]
+def drag(dx, dy):
+	global camerax0, cameray0
+	camerax0 -= dx
+	cameray0 -= dy
 
 
 tilecache = {}
@@ -30,10 +48,9 @@ def draw():
 	for x in range(10):
 		for y in range(10):
 			img = gettile(clientstate.gridstate.gettile(x, y), clientstate.gridstate.tilestate(x, y))
-			screen.blit(img, (40*x, 40*y))
+			screen.blit(img, worldtoscreen((x, y)))
 	pygame.display.flip()
 
-def screentoworld((x, y)):
-	return int(x / 40), int(y / 40)
-
+def screenshot():
+	pygame.image.save(screen, util.screenshotname())
 
