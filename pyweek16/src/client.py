@@ -18,7 +18,7 @@ started = False
 username = None
 
 
-def think():
+def think(dt):
 	global started
 
 	# Process local updates
@@ -26,8 +26,10 @@ def think():
 	if "quit" in inp:
 		stop()
 	if "leftclick" in inp:
-		if clientstate.gridstate.canrotate(*inp["leftclick"]):
-			send("rotate", inp["leftclick"], 1)
+		x, y = inp["leftclick"]
+		if clientstate.gridstate.canrotate(x, y):
+			send("rotate", (x, y), 3)
+			vista.SpinTile(clientstate.gridstate.getbasetile(x, y), 3)
 	if "drag" in inp:
 		vista.drag(*inp["drag"])
 	if "screenshot" in inp:
