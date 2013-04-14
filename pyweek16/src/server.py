@@ -17,11 +17,16 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 			mtype, args = message[0], message[1:]
 			if mtype == "login":
 				self.on_login(*args)
+				return
+			elif not self.username:
+				return
+			if mtype == "rotate":
+				self.on_rotate(*args)
 			else:
 				raise ValueError("Unrecognized message type %s" % mtype)
-		except Exception as exc:
-			log.exception(exc)
+		except Exception:
 			self.error("invalid message: %s" % message)
+			raise
 
 	def on_close(self):
 		if self.username:
@@ -40,6 +45,11 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		self.username = username
 		clienthandlers[username] = self
 		serverstate.activeusers.add(username)
+		self.send("completestate", serverstate.gridstate.getstate())
+
+	def on_rotate(self, p, dA):
+#		log.debug("rotating", p, dA)
+		serverstate.rotate(self.username, p, dA)
 		self.send("completestate", serverstate.gridstate.getstate())
 
 	def send(self, *args):

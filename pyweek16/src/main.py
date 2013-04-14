@@ -11,10 +11,12 @@ def main():
 		clock = pygame.time.Clock()
 		while client.playing:
 			clock.tick(60)
-			client.getupdates()
+			client.think()
 			if not client.started:
 				continue
 			vista.draw()
+		log.debug("Completing client.playing loop")
 	pygame.quit()
+	log.debug("quitting")
 
 

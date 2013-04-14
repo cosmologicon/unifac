@@ -26,6 +26,10 @@ def rotateright(w, h, colors):
 	if (w, h) == (1, 1):
 		return colors[3], colors[0], colors[1], colors[2]
 
+def rotate(w, h, colors, dA):
+	if dA == 1:
+		return rotateright(w, h, colors)
+
 def randomcolors(w, h):
 	if (w, h) == (1, 1):
 		rs = (0, 0, 0, 1), (0, 0, 1, 1), (0, 1, 0, 1), (0, 1, 1, 1)
