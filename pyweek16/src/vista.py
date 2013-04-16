@@ -1,5 +1,5 @@
 import pygame, math, logging
-import settings, clientstate, data, util
+import settings, clientstate, data, util, menu, text
 
 log = logging.getLogger(__name__)
 
@@ -144,6 +144,7 @@ class StepEffect(Effect):
 		self.t = 0
 		self.x0, self.y0 = x0 + 0.5, y0 + 0.5
 		self.x1, self.y1 = x1 + 0.5, y1 + 0.5
+		self.p1 = x1, y1
 		effects.append(self)
 	def draw(self):
 		f = self.t / self.T
@@ -163,21 +164,6 @@ def think(dt):
 		effect.think(dt)
 	effects = [e for e in effects if e.alive]
 
-fonts = {}
-textcache = {}
-def drawtext(text, size, color, p, anchor = "center"):
-	key = text, size, color
-	if key in textcache:
-		img = textcache[key]
-	else:
-		if size not in fonts:
-			fonts[size] = pygame.font.Font(None, size)
-		font = fonts[size]
-		img = textcache[key] = font.render(text, True, color)
-	rect = img.get_rect(**{anchor: p})
-	screen.blit(img, rect)
-
-
 def draw():
 	screen.fill((0,0,0))
 	visibleeffects = []
@@ -193,15 +179,22 @@ def draw():
 	visibleeffects.extend(effects)
 	for effect in visibleeffects:
 		effect.draw()
+	nodraws = [e.p1 for e in effects if isinstance(e, StepEffect)]
 	for monster in clientstate.monsters.values():
+		if (monster.x, monster.y) in nodraws:
+			continue
 		import time
 		s = 1 + 0.3 * math.sin(7 * time.time())
 		rect = pygame.Rect(0, 0, int(20 * s), int(20 / s))
 		rect.center = worldtoscreen((monster.x + 0.5, monster.y + 0.5))
 		pygame.draw.ellipse(screen, (0,0,0), rect)
 
-	drawtext("Coinz: %s" % clientstate.you.coins,
-		28, (255, 255, 255), (5, settings.screeny - 5), anchor="bottomleft")
+	if menu.menu:
+		menu.menu.draw(screen)
+
+	text.drawtext(screen, "Coinz: %s" % clientstate.you.coins,
+		28, (255, 255, 255), (5, settings.screeny - 5),
+		anchor="bottomleft", ocolor=(0,0,0))
 	pygame.display.flip()
 
 def screenshot():

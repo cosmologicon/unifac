@@ -3,7 +3,7 @@
 
 import threading, json, logging
 from lib.websocket import websocket
-import settings, util, clientstate, userinput, vista
+import settings, util, clientstate, userinput, vista, menu
 
 log = logging.getLogger(__name__)
 
@@ -38,6 +38,11 @@ def think(dt):
 		send("deploy", pos, device)
 	if "screenshot" in inp:
 		vista.screenshot()
+	if "qrequest" in inp:
+		send("qrequest", inp["qrequest"])
+	if "qaccept" in inp:
+		pos, solo = inp["qaccept"]
+		send("qaccept", inp["qaccept"])
 
 	# Process network updates
 	for message in getmessages():
@@ -63,6 +68,9 @@ def think(dt):
 		elif mtype == "effects":
 			log.debug("effects %s", args[0])
 			clientstate.handleeffects(*args)
+		elif mtype == "qinfo":
+			log.debug("quest info %s", args[0])
+			menu.loadqinfo(*args)
 		elif mtype == "error":
 			log.warning("ERROR FROM SERVER: %s", args[0])
 

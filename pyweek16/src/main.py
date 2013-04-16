@@ -1,4 +1,3 @@
-from lib.websocket import websocket
 import logging, pygame
 import settings, client, util, vista
 

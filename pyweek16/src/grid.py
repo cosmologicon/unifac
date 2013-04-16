@@ -43,6 +43,9 @@ class Tile(util.serializable):
 			self.active = active
 			return True
 		return False
+	# Note: does not work if the neighbor has s > 1
+	def isneighbor(self, x, y):
+		return (x, y) in list(util.neighbors(self.s, self.x, self.y))
 	# Returns two lists of tiles: tiles whose state is updated, and tiles whose activation state
 	#   or colors has changed
 	def rotate(self, grid, dA):
