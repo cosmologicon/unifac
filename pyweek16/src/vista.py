@@ -71,9 +71,17 @@ def gettileimg(s, colors, device, fog, active):
 	tilecache[key] = img
 	return img
 
-effects = {}
-class SpinTile(object):
+tileeffects = {}
+effects = []
+class Effect(object):
 	alive = True
+	T = 0.25
+	def think(self, dt):
+		self.t += dt
+		if self.t >= self.T:
+			self.alive = False
+
+class SpinTile(Effect):
 	T = 0.25
 	def __init__(self, tile, dA):
 		self.dA = dA % 4
@@ -82,19 +90,14 @@ class SpinTile(object):
 		self.state = tile.getstate()
 		self.img0 = gettileimg(tile.s, tile.colors, None, tile.fog, False)
 		self.p0 = tile.x + 0.5 * tile.s, tile.y + 0.5 * tile.s
-		effects[(tile.x, tile.y)] = self
-	def think(self, dt):
-		self.t += dt
-		if self.t >= self.T:
-			self.alive = False
+		tileeffects[(tile.x, tile.y)] = self
 	def draw(self):
 		A = self.dA * min(self.t / self.T, 1)
 		img = pygame.transform.rotozoom(self.img0, -90 * A, 1)
 		rect = img.get_rect(center = worldtoscreen(self.p0))
 		screen.blit(img, rect)
 
-class FlipTile(object):
-	alive = True
+class FlipTile(Effect):
 	T = 0.25
 	def __init__(self, oldstate, newstate):
 		self.t = 0
@@ -104,11 +107,7 @@ class FlipTile(object):
 		self.img1 = gettileimg(newstate["s"], newstate["colors"], newstate["device"],
 			newstate["fog"], newstate["active"])
 		self.p0 = oldstate["x"] + 0.5 * oldstate["s"], oldstate["y"] + 0.5 * oldstate["s"]
-		effects[(oldstate["x"], oldstate["y"])] = self
-	def think(self, dt):
-		self.t += dt
-		if self.t >= self.T:
-			self.alive = False
+		tileeffects[(oldstate["x"], oldstate["y"])] = self
 	def draw(self):
 		w, h = self.img0.get_size()
 		w = int(w * math.cos(3.14 * min(self.t / self.T, 1)))
@@ -127,13 +126,42 @@ class CoinFlipTile(FlipTile):
 		rect = pygame.Rect(0, 0, w, 20)
 		rect.center = x0, y0
 		pygame.draw.ellipse(screen, (255, 255, 0), rect)
-		
+
+class SplatEffect(Effect):
+	T = 0.4
+	def __init__(self, x, y):
+		self.t = 0
+		self.p0 = x + 0.5, y + 0.5
+		effects.append(self)
+	def draw(self):
+		r = int(30 * self.t / self.T)
+		if r < 2: return
+		pygame.draw.circle(screen, (0,0,0), worldtoscreen(self.p0), r, 2)
+
+class StepEffect(Effect):
+	T = 0.25
+	def __init__(self, x0, y0, x1, y1):
+		self.t = 0
+		self.x0, self.y0 = x0 + 0.5, y0 + 0.5
+		self.x1, self.y1 = x1 + 0.5, y1 + 0.5
+		effects.append(self)
+	def draw(self):
+		f = self.t / self.T
+		g = 1 - f
+		p = worldtoscreen((self.x1 * f + self.x0 * g, self.y1 * f + self.y0 * g))
+		pygame.draw.circle(screen, (0,0,0), p, 10)
+
 
 def think(dt):
-	for p, effect in list(effects.items()):
+	global effects
+	for p, tileeffect in list(tileeffects.items()):
+		tileeffect.think(dt)
+		if not tileeffect.alive:
+			del tileeffects[p]
+
+	for effect in effects:
 		effect.think(dt)
-		if not effect.alive:
-			del effects[p]
+	effects = [e for e in effects if e.alive]
 
 fonts = {}
 textcache = {}
@@ -154,14 +182,15 @@ def draw():
 	screen.fill((0,0,0))
 	visibleeffects = []
 	for x, y in visibletiles():
-		if (x, y) in effects:
-			visibleeffects.append(effects[(x, y)])
+		if (x, y) in tileeffects:
+			visibleeffects.append(tileeffects[(x, y)])
 			continue
 		tile = clientstate.gridstate.getrawtile(x, y)
 		if not tile:
 			continue
 		img = gettileimg(tile.s, tile.colors, tile.device, tile.fog, tile.active)
 		screen.blit(img, worldtoscreen((x, y)))
+	visibleeffects.extend(effects)
 	for effect in visibleeffects:
 		effect.draw()
 	for monster in clientstate.monsters.values():

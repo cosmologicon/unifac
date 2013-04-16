@@ -48,6 +48,11 @@ permanent = set([
 	"eye",
 ])
 
+alwaysvulnerable = set([
+	"shield",
+])
+shieldregion = (-1,0), (0,-1), (1,0), (0,1)
+
 
 if DEBUG:
 	logging.basicConfig(

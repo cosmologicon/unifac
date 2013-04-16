@@ -1,5 +1,5 @@
 import json, logging, tornado.ioloop, tornado.websocket, tornado.web
-import settings, util, serverstate, player
+import settings, util, serverstate, player, update
 
 log = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		serverstate.activeusers.add(username)
 		state = serverstate.setwatch(username, 0, 0)
 		self.send("state", state)
-		self.send("monsters", [m.getstate() for m in serverstate.monsters])
+		self.send("monsters", [m.getstate() for m in serverstate.monsters.values()])
 
 	def on_rotate(self, p, dA):
 		act = serverstate.rotate(p, dA)
@@ -95,9 +95,12 @@ def closeall():
 			client.close()
 
 def think():
-	delta = serverstate.think(0.5)
-	if delta:
-		sendall("monsters", delta)
+	serverstate.resetupdate()
+	serverstate.think(0.5)
+	if update.monsterdelta:
+		sendall("monsters", update.monsterdelta)
+	if update.effects:
+		sendall("effects", update.effects)
 	senddelta(serverstate.getdelta())
 
 

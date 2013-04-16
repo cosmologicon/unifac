@@ -34,7 +34,8 @@ def get():
 				mdownpos[button] = event.pos
 		if event.type == MOUSEBUTTONUP:
 			if event.button in dragging and not dragging[event.button]:
-				ret["leftclick"] = vista.screentotile(event.pos)
+				x, y = vista.screentotile(event.pos)
+				ret["rotate"] = x, y, 4 - event.button
 		if event.type == KEYDOWN:
 			if event.key == K_ESCAPE:
 				ret["quit"] = True

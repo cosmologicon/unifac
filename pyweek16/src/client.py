@@ -25,12 +25,12 @@ def think(dt):
 	inp = userinput.get()
 	if "quit" in inp:
 		stop()
-	if "leftclick" in inp:
-		x, y = inp["leftclick"]
+	if "rotate" in inp:
+		x, y, dA = inp["rotate"]
 		if clientstate.gridstate.canrotate(x, y):
-			clientstate.gridstate.rotate(x, y, 3)
-			send("rotate", (x, y), 3)
-			vista.SpinTile(clientstate.gridstate.getbasetile(x, y), 3)
+			vista.SpinTile(clientstate.gridstate.getbasetile(x, y), dA)
+			clientstate.gridstate.rotate(x, y, dA)
+			send("rotate", (x, y), dA)
 	if "drag" in inp:
 		vista.drag(*inp["drag"])
 	if "deploy" in inp:
@@ -55,10 +55,14 @@ def think(dt):
 			clientstate.gridstate.applystate(*args)
 			started = True
 		elif mtype == "delta":
+			log.debug("delta %s", args[0])
 			clientstate.applydelta(*args)
 		elif mtype == "monsters":
 			log.debug("monsters %s", args[0])
 			clientstate.handlemonsters(*args)
+		elif mtype == "effects":
+			log.debug("effects %s", args[0])
+			clientstate.handleeffects(*args)
 		elif mtype == "error":
 			log.warning("ERROR FROM SERVER: %s", args[0])
 

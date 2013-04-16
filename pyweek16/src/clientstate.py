@@ -34,3 +34,11 @@ def handlemonsters(ms):
 		if not m.alive:
 			del monsters[mname]
 
+def handleeffects(effects):
+	for effect in effects:
+		etype, args = effect[0], effect[1:]
+		if etype == "splat":
+			vista.SplatEffect(*args)
+		if etype == "step":
+			vista.StepEffect(*args)
+

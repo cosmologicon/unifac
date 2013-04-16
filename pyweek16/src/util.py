@@ -55,7 +55,7 @@ def randomnewcolors(oldcolors):
 		r = randomcolors(s)
 		if sum(x == y for x,y in zip(oldcolors, r)) in (0,4*s):
 			continue
-		if newcolors in [rotate(s, oldcolors, n) for n in (1, 2, 3)]:
+		if r in [rotate(s, oldcolors, n) for n in (1, 2, 3)]:
 			continue
 		return r
 
