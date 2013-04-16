@@ -31,6 +31,7 @@ devicesize = {
 	"base": 3,
 	"coin": 1,
 	"power": 1,
+	"wall": 1,
 }
 horizon = {
 	"eye": 10,
@@ -40,6 +41,7 @@ eradius = {
 }
 devicecost = {
 	"power": 1,
+	"wall": 1,
 }
 # devices that remain active when they've been activated once.
 permanent = set([

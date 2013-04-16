@@ -58,6 +58,7 @@ def gettileimg(s, colors, device, fog, active):
 			"base": (0, 0, 0),
 			"coin": (255, 255, 0),
 			"power": (0, 255, 255),
+			"wall": (255, 100, 100),
 		}[device]
 		pygame.draw.circle(img, color, (w/2, h/2), 10)
 	if fog == settings.penumbra:
@@ -92,18 +93,16 @@ class SpinTile(object):
 		rect = img.get_rect(center = worldtoscreen(self.p0))
 		screen.blit(img, rect)
 
-# Not changing the orientation or active state, just changing the device
 class FlipTile(object):
 	alive = True
 	T = 0.25
-	def __init__(self, oldstate, newdevice):
+	def __init__(self, oldstate, newstate):
 		self.t = 0
 		self.state0 = oldstate
-		self.newdevice = newdevice
 		self.img0 = gettileimg(oldstate["s"], oldstate["colors"], oldstate["device"],
 			oldstate["fog"], oldstate["active"])
-		self.img1 = gettileimg(oldstate["s"], oldstate["colors"], newdevice,
-			oldstate["fog"], oldstate["active"])
+		self.img1 = gettileimg(newstate["s"], newstate["colors"], newstate["device"],
+			newstate["fog"], newstate["active"])
 		self.p0 = oldstate["x"] + 0.5 * oldstate["s"], oldstate["y"] + 0.5 * oldstate["s"]
 		effects[(oldstate["x"], oldstate["y"])] = self
 	def think(self, dt):
@@ -165,6 +164,13 @@ def draw():
 		screen.blit(img, worldtoscreen((x, y)))
 	for effect in visibleeffects:
 		effect.draw()
+	for monster in clientstate.monsters.values():
+		import time
+		s = 1 + 0.3 * math.sin(7 * time.time())
+		rect = pygame.Rect(0, 0, int(20 * s), int(20 / s))
+		rect.center = worldtoscreen((monster.x + 0.5, monster.y + 0.5))
+		pygame.draw.ellipse(screen, (0,0,0), rect)
+
 	drawtext("Coinz: %s" % clientstate.you.coins,
 		28, (255, 255, 255), (5, settings.screeny - 5), anchor="bottomleft")
 	pygame.display.flip()

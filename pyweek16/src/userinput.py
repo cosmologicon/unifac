@@ -42,6 +42,8 @@ def get():
 				ret["screenshot"] = True
 			if event.key == K_1:
 				ret["deploy"] = mtile, "power"
+			if event.key == K_2:
+				ret["deploy"] = mtile, "wall"
 		if event.type == QUIT:
 			ret["quit"] = True
 	return ret
