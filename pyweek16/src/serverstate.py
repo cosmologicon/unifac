@@ -13,8 +13,7 @@ gridstate.putdevice(2, 2, "eye")
 gridstate.activate(2, 2)
 gridstate.putdevice(20, 10, "eye")
 gridstate.activate(20, 10)
-gridstate.putdevice(10, 0, "base")
-gridstate.activate(10, 0)
+gridstate.putdevice(5, 0, "base")
 
 for sx, sy in util.horizonsectors(gridstate.getbasetile(2, 2)):
 	gridstate.fillsector(sx, sy)
@@ -30,7 +29,7 @@ update.monsters = monsters = {}
 quests = []
 
 #quests.append(
-#	quest.Quest(None, gridstate.getrawtile(10, 0))
+#	quest.Quest(None, gridstate.getrawtile(5, 0))
 #)
 
 def resetupdate():
@@ -94,6 +93,35 @@ def handleactivation(tiles, who):
 		if tile.active and tile.device == "coin":
 			users[who].coins += 1
 			gridstate.setdevice(x, y, None)
+
+def questinfo(who, (x, y)):
+	x, y = int(x), int(y)
+	for q in quests:
+		if q.who == who:
+			return False
+		if q.p0 == (x, y):
+			return False
+	tile = gridstate.getbasetile(x, y)
+	if not tile:
+		return False
+	if tile.device not in ("base",):
+		return False
+	# TODO: make sure you can only quest on tiles you haven't already beaten
+	qinfo = {
+		"xp": 2,
+		"coins": 3,
+		"range": 10,
+		"difficulty": 0,
+		"bonus": False,
+	}
+	return qinfo
+
+def initquest(who, p, solo):
+	tile = gridstate.getbasetile(*p)
+	q = quest.Quest(who, tile)
+	quests.append(q)
+	if solo:
+		locktiles(q.tiles())
 
 
 # Returns a gamestate update to be sent to this client

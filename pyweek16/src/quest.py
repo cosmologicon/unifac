@@ -12,10 +12,18 @@ class Quest(object):
 		self.state0 = tile.getstate()
 		self.p0 = tile.p
 		self.monsters = []
-		self.r = 9   # spawn radius
-		self.n = 20  # max simultaneous monsters
+		self.r = 7   # spawn radius
+		self.n = 7  # max simultaneous monsters
 		self.T = 60
 		self.progress = self.T * 0.1
+	# Tiles to lock down if this quest is in solo mode
+	def tiles(self):
+		R = self.r + 2
+		x0, y0 = self.p0
+		for dx in range(-R, R):
+			for dy in range(-R, R):
+				if dx ** 2 + dy ** 2 <= R ** 2:
+					yield x0 + dx, y0 + dy
 	def think(self, dt):
 		while len(self.monsters) < self.n:
 			self.spawn()

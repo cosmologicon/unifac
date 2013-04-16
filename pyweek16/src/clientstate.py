@@ -1,5 +1,5 @@
 import logging
-import grid, player, vista, monster
+import grid, player, vista, monster, menu
 
 log = logging.getLogger(__name__)
 
@@ -41,4 +41,6 @@ def handleeffects(effects):
 			vista.SplatEffect(*args)
 		if etype == "step":
 			vista.StepEffect(*args)
+
+
 

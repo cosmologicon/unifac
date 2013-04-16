@@ -24,6 +24,10 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 				self.on_rotate(*args)
 			elif mtype == "deploy":
 				self.on_deploy(*args)
+			elif mtype == "qrequest":
+				self.on_qrequest(*args)
+			elif mtype == "qaccept":
+				self.on_qaccept(*args)
 			else:
 				raise ValueError("Unrecognized message type %s" % mtype)
 		except Exception:
@@ -55,16 +59,33 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		self.send("state", state)
 		self.send("monsters", [m.getstate() for m in serverstate.monsters.values()])
 
-	def on_rotate(self, p, dA):
-		act = serverstate.rotate(p, dA)
+	def on_rotate(self, (x,y), dA):
+		x, y, dA = int(x), int(y), int(dA)
+		act = serverstate.rotate((x, y), dA)
 		serverstate.handleactivation(act, self.username)
 		senddelta(serverstate.getdelta())
 		self.send("you", serverstate.users[self.username].getstate())
 
-	def on_deploy(self, p, device):
-		serverstate.deploy(self.username, p, device)
+	def on_deploy(self, (x,y), device):
+		x, y, device = int(x), int(y), str(device)
+		serverstate.deploy(self.username, (x,y), device)
 		senddelta(serverstate.getdelta())
 		self.send("you", serverstate.users[self.username].getstate())
+
+	def on_qrequest(self, (x,y)):
+		p = int(x), int(y)
+		qinfo = serverstate.questinfo(self.username, p)
+		if not qinfo:
+			self.error("Invalid quest")
+		self.send("qinfo", qinfo)
+
+	def on_qaccept(self, (x,y), solo):
+		p = int(x), int(y)
+		solo = bool(solo)
+		qinfo = serverstate.canquest(self.username, p)
+		if not qinfo:
+			self.error("Invalid quest")
+		serverstate.initquest(self.username, p, solo)
 
 	def send(self, *args):
 		self.write_message(json.dumps(args))
