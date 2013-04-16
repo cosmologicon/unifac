@@ -1,9 +1,10 @@
 import logging, threading, random
-import grid, util, settings, player, monster
+import grid, util, settings, player, monster, update, quest
 
 log = logging.getLogger(__name__)
 
 gridstate = grid.Grid()
+update.grid = gridstate
 glock = threading.RLock()
 
 glock.acquire()
@@ -12,46 +13,60 @@ gridstate.putdevice(2, 2, "eye")
 gridstate.activate(2, 2)
 gridstate.putdevice(20, 10, "eye")
 gridstate.activate(20, 10)
-gridstate.putdevice(10, 12, "base")
-gridstate.activate(10, 12)
+gridstate.putdevice(10, 0, "base")
+gridstate.activate(10, 0)
+
 for sx, sy in util.horizonsectors(gridstate.getbasetile(2, 2)):
 	gridstate.fillsector(sx, sy)
 	util.solvefog(gridstate, sx, sy)
 glock.release()
-
-log.debug(gridstate.getbasetile(2, 2).getstate())
-log.debug(gridstate.getbasetile(2, 3).getstate())
-log.debug(gridstate.adevices(0, 0))
-
 
 users = {}
 passwords = {}
 activeusers = set()
 watchers = {}  # map from clients to the sectors they're watching
 rwatchers = {}  # map from sectors to the clients who are watching them
+update.monsters = monsters = {}
+quests = []
 
-monsters = []
+#quests.append(
+#	quest.Quest(None, gridstate.getrawtile(10, 0))
+#)
 
+def resetupdate():
+	update.effects = []
+	update.monsterdelta = []
+resetupdate()
 
 def addrandommonster():
-	monsters.append(monster.Monster({
+	x = random.randint(-10, 20)
+	y = random.randint(-10, 20)
+	if not gridstate.canmoveto(x, y) or (x,y) in monsters:
+		return
+	m = monster.Monster({
 		"name": util.randomname(),
-		"x": random.randint(-10, 20),
-		"y": random.randint(-10, 20),
-	}))
+		"x": x,
+		"y": y,
+	})
+	monsters[(x,y)] = m
+	update.monsterdelta.append(m.getstate())
 
-for _ in range(20):
-	addrandommonster()
+#for _ in range(20):
+#	addrandommonster()
 
 def think(dt):
-	global monsters
+	global quests
 	glock.acquire()
-	delta = [m.getstate() for m in monsters if m.think(dt, gridstate) or not m.alive]
+	for q in quests:
+		q.think(dt)
+	quests = [q for q in quests if q.alive]
+	for m in monsters.values():
+		m.think(dt)
 	glock.release()
-	monsters = [m for m in monsters if m.alive]
-	addrandommonster()
-	return delta
-
+	for mname, m in list(monsters.items()):
+		if not m.alive:
+			del monsters[mname]
+#	m = addrandommonster()
 
 # Returns a list of tiles whose activation state changed
 def rotate((x, y), dA):

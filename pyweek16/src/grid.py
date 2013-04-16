@@ -14,16 +14,31 @@ class Tile(util.serializable):
 		assert offset < self.s
 		return self.colors[side * self.s + offset]
 	def updatestate(self, grid):  # Returns true if the state is changed
-		if self.device == "eye":
-			return False
+#		if self.device == "eye":
+#			return False
 
 		nmatch = 0
-		for dx, dy, a, b in [(0,-1,0,2), (1,0,1,3), (0,1,2,0), (-1,0,3,1)]:
-			bcolor = grid.getcolor(self.x + dx, self.y + dy, b)
-			if bcolor is None:
-				return False
-			nmatch += self.color(a) == bcolor
-		active = nmatch in (0, 4 * self.s)
+		if self.s == 1:
+			for dx, dy, a, b in [(0,-1,0,2), (1,0,1,3), (0,1,2,0), (-1,0,3,1)]:
+				bcolor = grid.getcolor(self.x + dx, self.y + dy, b)
+				if bcolor is None:
+					return False
+				nmatch += self.color(a) == bcolor
+			active = nmatch in (0, 4)
+		else:
+			for j in range(self.s):
+				specs = [
+					(j, -1, 0, 2),
+					(self.s, j, 1, 3),
+					(self.s-j-1, self.s, 2, 0),
+					(-1, self.s-j-1, 3, 1),
+				]
+				for dx, dy, a, b in specs:
+					bcolor = grid.getcolor(self.x + dx, self.y + dy, b)
+					if bcolor is None:
+						return False
+					nmatch += self.color(a, j) == bcolor
+			active = nmatch in (0, 4 * self.s)
 		if active != self.active:
 			self.active = active
 			return True
@@ -159,7 +174,7 @@ class Grid(object):
 			return tile.color(side)
 		# Maybe refactor this? Doesn't really seem worth it.
 		offset = (y - tile.y if side % 2 else x - tile.x)
-		if side > 2:
+		if side > 1:
 			offset = tile.s - offset - 1
 		return tile.color(side, offset)
 	def getstate(self, sectors = None):
@@ -264,6 +279,27 @@ class Grid(object):
 	def adevices(self, sx, sy):
 		return [(x, y, d) for x, y, d in self.devices(sx, sy) if d.active]
 
+	# Spaces that monsters can move onto
+	def canmoveto(self, x, y):
+		tile0 = self.getbasetile(x, y)
+		if not tile0:
+			return False
+		if tile0.s != 1:
+			return False
+		return True
+		
+	# Spaces that don't flip when a monster splats on them
+	def shielded(self, x, y):
+		tile0 = self.getbasetile(x, y)
+		if tile0.device in settings.alwaysvulnerable:
+			return False
+		for dx, dy in settings.shieldregion:
+			tile = self.getrawtile(x + dx, y + dy)
+			if not tile:
+				continue
+			if tile.device == "shield" and tile.active:
+				return True
+		return False
 
 
 
