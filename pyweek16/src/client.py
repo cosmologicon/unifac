@@ -28,6 +28,7 @@ def think(dt):
 	if "leftclick" in inp:
 		x, y = inp["leftclick"]
 		if clientstate.gridstate.canrotate(x, y):
+			clientstate.gridstate.rotate(x, y, 3)
 			send("rotate", (x, y), 3)
 			vista.SpinTile(clientstate.gridstate.getbasetile(x, y), 3)
 	if "drag" in inp:
@@ -41,6 +42,7 @@ def think(dt):
 	# Process network updates
 	for message in getmessages():
 		message = parsemessage(message)
+		#log.debug("message: %s", message)
 		mtype, args = message[0], message[1:]
 		if mtype == "login":
 			login(*args)
@@ -54,6 +56,9 @@ def think(dt):
 			started = True
 		elif mtype == "delta":
 			clientstate.applydelta(*args)
+		elif mtype == "monsters":
+			log.debug("monsters %s", args[0])
+			clientstate.handlemonsters(*args)
 		elif mtype == "error":
 			log.warning("ERROR FROM SERVER: %s", args[0])
 

@@ -29,14 +29,13 @@ class Tile(util.serializable):
 			return True
 		return False
 	# Returns two lists of tiles: tiles whose state is updated, and tiles whose activation state
-	#   has changed
+	#   or colors has changed
 	def rotate(self, grid, dA):
-		self.colors = util.rotate(self.s, self.colors, dA)
+		return self.changecolors(grid, util.rotate(self.s, self.colors, dA))
+	def changecolors(self, grid, colors):
 		ps, activated = [self.p], []
-		wasactive = self.active
+		self.colors = colors
 		self.updatestate(grid)
-		if wasactive != self.active:
-			activated.append(self.p)
 		for x, y in util.neighbors(self.s, self.x, self.y):
 			tile = grid.getbasetile(x, y)
 			wasactive = tile.active
@@ -189,8 +188,10 @@ class Grid(object):
 		tile = self.getbasetile(x, y)
 		return tile and not tile.fog
 	# Returns a list of tiles whose activation state changed
+	# This is so we know who to blame for coin collection, etc.
 	def rotate(self, x, y, dA):
 		tile = self.getbasetile(x, y)
+		# TODO: is there any way a monster or computer might change a fog tile?
 		if not tile or tile.fog:
 			raise ValueError("Cannot rotate tile (%s,%s)" % (x, y))
 		ps, activated = tile.rotate(self, dA)
@@ -198,6 +199,16 @@ class Grid(object):
 			p = x // settings.sectorsize, y // settings.sectorsize
 			self.sectors[p].markdelta(x, y)
 		return activated
+	def changecolors(self, x, y, colors):
+		tile = self.getbasetile(x, y)
+		if not tile:
+			raise ValueError("Cannot change tile colors (%s,%s)" % (x, y))
+		ps, activated = tile.changecolors(self, colors)
+		for x, y in ps:
+			p = x // settings.sectorsize, y // settings.sectorsize
+			self.sectors[p].markdelta(x, y)
+		return activated
+
 
 	# To use when a *player* deploys a device - does not change colors or tile sizes
 	def deploy(self, x, y, device):

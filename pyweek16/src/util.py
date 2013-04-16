@@ -1,4 +1,4 @@
-import uuid, os.path, random, datetime, math, logging
+import os.path, random, datetime, math, logging, string
 import settings, data
 
 log = logging.getLogger(__name__)
@@ -25,9 +25,10 @@ def savelogin(username, password):
 	open(fname, "w").write("%s %s" % (username, password))
 
 usednames = set()
-def randomname():
+namechars = string.letters + string.digits
+def randomname(n = 5):
 	while True:
-		r = str(uuid.uuid4())
+		r = "".join(random.choice(namechars) for _ in range(n))
 		if r not in usednames:
 			return r
 
@@ -48,6 +49,16 @@ def randomcolors(s):
 		r = tuple(random.choice([0, 1]) for _ in range(4*s))
 		if s <= sum(r) <= 3*s:
 			return r
+def randomnewcolors(oldcolors):
+	s = len(oldcolors) // 4
+	while True:
+		r = randomcolors(s)
+		if sum(x == y for x,y in zip(oldcolors, r)) in (0,4*s):
+			continue
+		if newcolors in [rotate(s, oldcolors, n) for n in (1, 2, 3)]:
+			continue
+		return r
+
 
 # What sectors must be prebuilt when this device is active?
 def horizonsectors(tile):

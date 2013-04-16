@@ -1,5 +1,5 @@
-import logging, threading
-import grid, util, settings, player
+import logging, threading, random
+import grid, util, settings, player, monster
 
 log = logging.getLogger(__name__)
 
@@ -29,6 +29,29 @@ passwords = {}
 activeusers = set()
 watchers = {}  # map from clients to the sectors they're watching
 rwatchers = {}  # map from sectors to the clients who are watching them
+
+monsters = []
+
+
+def addrandommonster():
+	monsters.append(monster.Monster({
+		"name": util.randomname(),
+		"x": random.randint(-10, 20),
+		"y": random.randint(-10, 20),
+	}))
+
+for _ in range(20):
+	addrandommonster()
+
+def think(dt):
+	global monsters
+	glock.acquire()
+	delta = [m.getstate() for m in monsters if m.think(dt, gridstate) or not m.alive]
+	glock.release()
+	monsters = [m for m in monsters if m.alive]
+	addrandommonster()
+	return delta
+
 
 # Returns a list of tiles whose activation state changed
 def rotate((x, y), dA):

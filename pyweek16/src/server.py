@@ -33,12 +33,13 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 	def on_close(self):
 		if self.username:
 			serverstate.activeusers.remove(self.username)
+			del clienthandlers[self.username]
 		serverstate.removewatcher(self.username)
 		log.debug("WebSocket closed %s" % self.username)
 
 	def on_login(self, username, password):
 		if not username:
-			username, password = util.randomname(), util.randomname()
+			username, password = util.randomname(), util.randomname(12)
 			serverstate.users[username] = player.Player({"username": username})
 			serverstate.passwords[username] = password
 			self.send("login", username, password)
@@ -52,6 +53,7 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		serverstate.activeusers.add(username)
 		state = serverstate.setwatch(username, 0, 0)
 		self.send("state", state)
+		self.send("monsters", [m.getstate() for m in serverstate.monsters])
 
 	def on_rotate(self, p, dA):
 		act = serverstate.rotate(p, dA)
@@ -82,7 +84,8 @@ def sendall(*args):
 		clienthandler.write_message(message)
 
 def senddelta(delta):
-	log.debug("sending yon delta %s", len(delta))
+	if not delta:
+		return
 	for client, gdelta in serverstate.breakdelta(delta).items():
 		send(client, "delta", gdelta)
 
@@ -91,6 +94,12 @@ def closeall():
 		if client.ws_connection:
 			client.close()
 
+def think():
+	delta = serverstate.think(0.5)
+	if delta:
+		sendall("monsters", delta)
+	senddelta(serverstate.getdelta())
+
 
 if __name__ == "__main__":
 	application = tornado.web.Application([
@@ -98,6 +107,7 @@ if __name__ == "__main__":
 	])
 	application.listen(settings.port)
 	ioloop = tornado.ioloop.IOLoop.instance()
+	tornado.ioloop.PeriodicCallback(think, 500).start()
 	try:
 		ioloop.start()
 	except KeyboardInterrupt:
