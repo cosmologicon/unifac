@@ -1,4 +1,4 @@
-import json, logging, tornado.ioloop, tornado.websocket, tornado.web
+import json, logging, tornado.ioloop, tornado.websocket, tornado.web, math
 import settings, util, serverstate, player, update
 
 log = logging.getLogger(__name__)
@@ -11,7 +11,7 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		self.username = None
 	
 	def on_message(self, message):
-		log.debug("Message received: %s" % message)
+#		log.debug("Message received: %s" % message)
 		try:
 			message = parsemessage(message)
 			mtype, args = message[0], message[1:]
@@ -20,7 +20,9 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 				return
 			elif not self.username:
 				return
-			if mtype == "rotate":
+			if mtype == "watch":
+				self.on_watch(*args)
+			elif mtype == "rotate":
 				self.on_rotate(*args)
 			elif mtype == "deploy":
 				self.on_deploy(*args)
@@ -59,6 +61,17 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		self.send("state", state)
 		self.send("monsters", [m.getstate() for m in serverstate.monsters.values()])
 
+	def on_watch(self, x, y):
+		x, y = [int(math.floor(a)) for a in (x, y)]
+		serverstate.glock.acquire()
+		tile = serverstate.gridstate.getrawtile(x, y)
+		if not tile or tile.fog:
+			return
+		state = serverstate.setwatch(self.username, x, y)
+		serverstate.glock.release()
+		if state:
+			self.send("state", state)
+
 	def on_rotate(self, (x,y), dA):
 		x, y, dA = int(x), int(y), int(dA)
 		act = serverstate.rotate((x, y), dA)
@@ -82,10 +95,10 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 	def on_qaccept(self, (x,y), solo):
 		p = int(x), int(y)
 		solo = bool(solo)
-		qinfo = serverstate.canquest(self.username, p)
+		qinfo = serverstate.questinfo(self.username, p)
 		if not qinfo:
 			self.error("Invalid quest")
-		serverstate.initquest(self.username, p, solo)
+		serverstate.initquest(self.username, p, solo, qinfo)
 
 	def send(self, *args):
 		self.write_message(json.dumps(args))

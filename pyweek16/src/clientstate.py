@@ -7,6 +7,8 @@ gridstate = grid.Grid()
 you = player.Player({ "username": None })
 monsters = {}
 
+pwatch = 0, 0
+
 def makeeffect(oldstate, newstate):
 	diffs = dict((field, oldstate[field] != newstate[field]) for field in grid.Tile.fields)
 	diffs["colors"] = tuple(oldstate["colors"]) != tuple(newstate["colors"])

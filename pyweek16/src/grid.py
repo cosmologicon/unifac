@@ -6,7 +6,7 @@ log = logging.getLogger(__name__)
 
 class Tile(util.serializable):
 	fields = "x y s colors device fog active parent".split()
-	defaults = { "s": 1, "colors": (0,0,0,0), "device": None, "fog": 0, "active": False, "parent": None }
+	defaults = { "s": 1, "colors": (0,0,0,0), "device": None, "fog": settings.penumbra, "active": False, "parent": None }
 	@property
 	def p(self):
 		return self.x, self.y
@@ -24,7 +24,7 @@ class Tile(util.serializable):
 				if bcolor is None:
 					return False
 				nmatch += self.color(a) == bcolor
-			active = nmatch in (0, 4)
+			active = nmatch == 0
 		else:
 			for j in range(self.s):
 				specs = [
@@ -38,7 +38,7 @@ class Tile(util.serializable):
 					if bcolor is None:
 						return False
 					nmatch += self.color(a, j) == bcolor
-			active = nmatch in (0, 4 * self.s)
+			active = nmatch == 0
 		if active != self.active:
 			self.active = active
 			return True
@@ -110,6 +110,11 @@ class Sector(object):
 	def settile(self, tilestate):
 		x, y = tilestate["x"], tilestate["y"]
 		self.tiles[(x, y)].setstate(tilestate)
+		self.markdelta(x, y)
+	def setnode(self, x, y, s, device):
+		tile = self.tiles[(x, y)]
+		tile.device = device
+		self.devices[device].append(tile)
 		self.markdelta(x, y)
 	def setdevice(self, x, y, device):
 		tile = self.tiles[(x, y)]
@@ -235,8 +240,9 @@ class Grid(object):
 			raise ValueError("Cannot deploy to tile tile (%s,%s)" % (x, y))
 		self.setdevice(x, y, device)
 
-	def putdevice(self, x, y, device):
-		s = settings.devicesize[device]
+	def putdevice(self, x, y, device, s = None):
+		if not s:
+			s = settings.devicesize[device]
 		self.settile({
 			"x": x,
 			"y": y,
@@ -256,6 +262,9 @@ class Grid(object):
 	def setdevice(self, x, y, device):
 		p = x // settings.sectorsize, y // settings.sectorsize
 		self.sectors[p].setdevice(x, y, device)
+	def setfog(self, x, y, fog):
+		p = x // settings.sectorsize, y // settings.sectorsize
+		self.sectors[p].setfog(x, y, fog)
 	def activate(self, x, y):
 		p = x // settings.sectorsize, y // settings.sectorsize
 		self.sectors[p].activate(x, y)
@@ -275,7 +284,7 @@ class Grid(object):
 						continue
 					r = settings.eradius[dname]
 					for tile in tiles:
-						x, y = ax * settings.sectorsize + tile.x, ay * settings.sectorsize + tile.y
+						x, y = tile.x, tile.y
 						if x + r < xmin or x - r > xmax or y + r < ymin or y - r > ymax:
 							continue
 						yield x, y, tile

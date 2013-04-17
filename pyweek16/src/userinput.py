@@ -15,7 +15,7 @@ def get():
 	mpos = pygame.mouse.get_pos()
 	mtile = vista.screentotile(mpos)
 	for event in pygame.event.get():
-		if event.type == MOUSEBUTTONDOWN:
+		if event.type == MOUSEBUTTONDOWN and event.button in (1,2,3):
 			mdownpos[event.button] = event.pos
 			dragging[event.button] = False
 		if event.type == MOUSEMOTION and 1 in event.buttons:
@@ -38,6 +38,11 @@ def get():
 			if event.button in dragging and not dragging[event.button]:
 				x, y = vista.screentotile(event.pos)
 				ret["rotate"] = x, y, 4 - event.button
+			elif event.button in (4,5):
+				if "scroll" not in ret:
+					ret["scroll"] = 0
+					ret["scrollpos"] = mpos
+				ret["scroll"] += 1 if event.button == 4 else -1
 		if event.type == KEYDOWN:
 			if event.key == K_ESCAPE:
 				ret["quit"] = True
@@ -71,7 +76,6 @@ def menuget():
 		if event.type == MOUSEBUTTONUP:
 			if event.button in dragging and not dragging[event.button]:
 				ret["select"] = menu.menu.checkclick(event.pos)
-				log.debug("SELECTION %s", ret["select"])
 		if event.type == QUIT:
 			ret["quit"] = True
 	return ret
