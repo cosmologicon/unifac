@@ -31,7 +31,6 @@ class Quest(object):
 			self.progress += dt
 		else:
 			self.progress -= dt
-		log.debug("quest progress: %s", self.progress)
 		if self.progress <= 0:
 			self.alive = False
 		if self.progress >= self.T:

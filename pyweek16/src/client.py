@@ -17,7 +17,6 @@ started = False
 
 username = None
 
-
 def think(dt):
 	global started
 
@@ -32,7 +31,10 @@ def think(dt):
 			clientstate.gridstate.rotate(x, y, dA)
 			send("rotate", (x, y), dA)
 	if "drag" in inp:
-		vista.drag(*inp["drag"])
+		if vista.drag(*inp["drag"]):
+			send("watch", *vista.p0())
+	if "scroll" in inp:
+		vista.zoom(inp["scroll"], inp["scrollpos"])
 	if "deploy" in inp:
 		pos, device = inp["deploy"]
 		send("deploy", pos, device)
@@ -40,9 +42,12 @@ def think(dt):
 		vista.screenshot()
 	if "qrequest" in inp:
 		send("qrequest", inp["qrequest"])
-	if "qaccept" in inp:
-		pos, solo = inp["qaccept"]
-		send("qaccept", inp["qaccept"])
+	if "select" in inp:
+		if inp["select"] == "qaccept-solo":
+			send("qaccept", menu.menu.qinfo["p"], True)
+		if inp["select"] == "qaccept-group":
+			send("qaccept", menu.menu.qinfo["p"], False)
+		menu.menu = None
 
 	# Process network updates
 	for message in getmessages():

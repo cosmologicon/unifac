@@ -50,9 +50,10 @@ menu = None
 def loadqinfo(qinfo):
 	global menu
 	menu = Menu()
+	menu.qinfo = qinfo
 	menu.addinfotext("This quest is mad awesome yo. You should do it.", (200, 100))
-	menu.addoption("group", "Group", "Activate the node. Other players may join you.", (0,100,0))
-	menu.addoption("solo", "Solo", "Activate the node. Other players will be locked out.", (0,100,0))
+	menu.addoption("qaccept-group", "Group", "Activate the node. Other players may join you.", (0,100,0))
+	menu.addoption("qaccept-solo", "Solo", "Activate the node. Other players will be locked out.", (0,100,0))
 	menu.addoption("cancel", "Cancel", "Do not activate the node at this time.", (100,0,0))
 	
 

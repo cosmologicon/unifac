@@ -11,44 +11,72 @@ def init():
 	screen = pygame.display.set_mode((settings.screenx, settings.screeny))
 
 camerax0, cameray0 = 200, 200
+cameraz = 40
+
 def worldtoscreen((x, y)):
 	return (
-		int(settings.screenx * 0.5 + 40 * x - camerax0),
-		int(settings.screeny * 0.5 + 40 * y - cameray0),
+		int(settings.screenx * 0.5 + cameraz * x - camerax0),
+		int(settings.screeny * 0.5 + cameraz * y - cameray0),
 	)
 def screentoworld((px, py)):
 	return (
-		(px + camerax0 - 0.5 * settings.screenx) / 40,
-		(py + cameray0 - 0.5 * settings.screeny) / 40,
+		(px + camerax0 - 0.5 * settings.screenx) / cameraz,
+		(py + cameray0 - 0.5 * settings.screeny) / cameraz,
 	)
 def screentotile(p):
 	return [int(math.floor(a)) for a in screentoworld(p)]
+def p0():
+	return int(math.floor(camerax0 / cameraz)), int(math.floor(cameray0 / cameraz))
 def drag(dx, dy):
 	global camerax0, cameray0
-	camerax0 -= dx
-	cameray0 -= dy
+	x, y = camerax0 - dx, cameray0 - dy
+	ix, iy = [int(math.floor(a/cameraz)) for a in (x, y)]
+	tile = clientstate.gridstate.getbasetile(ix, iy)
+	if not tile or tile.fog:
+		return
+	camerax0, cameray0 = x, y
+	return True
+def zoom(dz, (x, y)):
+	global camerax0, cameray0, cameraz
+	z = cameraz + 2 * dz
+	if not 28 <= z <= 100:
+		return
+	# (x + x0 - sx/2) / z0 = (x + x1 - sx/2) / z1
+	# z1 x + z1 x0 - z1 sx/2 = z0 x + z0 x1 - z0 sx / 2
+	# z0 x1 = z1 x + z1 x0 - z1 sx/2 + z0 sx / 2 - z0 x
+	x = 1.0 / cameraz * ((z - cameraz) * (x - settings.screenx / 2) + z * camerax0)
+	y = 1.0 / cameraz * ((z - cameraz) * (y - settings.screeny / 2) + z * cameray0)
+	tile = clientstate.gridstate.getbasetile(int(x/cameraz), int(y/cameraz))
+	if not tile or tile.fog:
+		return
+	camerax0, cameray0 = x, y
+	cameraz = z
+	return True
+
 def visibletiles():
 	xmin, ymin = screentotile((0, 0))
 	xmax, ymax = screentotile((settings.screenx, settings.screeny))
-	for x in range(xmin, xmax+1):
-		for y in range(ymin, ymax+1):
+	for x in range(xmin-4, xmax+1):
+		for y in range(ymin-4, ymax+1):
 			yield x, y
 
+
 tilecache = {}
-def gettileimg(s, colors, device, fog, active):
-	key = s, tuple(colors), device, fog, active
+def gettileimg(s, colors, device, fog, active, z = None):
+	z = z or cameraz
+	key = s, tuple(colors), device, fog, active, z
 	if key in tilecache:
 		return tilecache[key]
-	s, w, h = s, s * 40, s * 40
+	s, w, h = s, s * z, s * z
 	img = pygame.Surface((w, h)).convert_alpha()
 	img.fill((0,0,0,0))
 	bcolor = (100, 140, 0) if active else (100, 100, 100)
 	img.fill(bcolor, (1,1, w-2,h-2))
 	rs = (
-		[(10+40*j, 1, 20, 5) for j in range(s)] +
-		[(w-6, 10+40*j, 5, 20) for j in range(s)] +
-		[(10+40*(s-j-1), h-6, 20, 5) for j in range(s)] +
-		[(1, 10+40*(s-j-1), 5, 20) for j in range(s)]
+		[(z//4+z*j, 1, z//2, 5) for j in range(s)] +
+		[(w-6, z//4+z*j, 5, z//2) for j in range(s)] +
+		[(z//4+z*(s-j-1), h-6, z//2, 5) for j in range(s)] +
+		[(1, z//4+z*(s-j-1), 5, z//2) for j in range(s)]
 	)
 	for rect, colorcode in zip(rs, colors):
 		img.fill(settings.colors[colorcode], rect)
@@ -60,7 +88,7 @@ def gettileimg(s, colors, device, fog, active):
 			"power": (0, 255, 255),
 			"wall": (255, 100, 100),
 		}[device]
-		pygame.draw.circle(img, color, (w/2, h/2), 10)
+		pygame.draw.circle(img, color, (w/2, h/2), z//4)
 	if fog == settings.penumbra:
 		img.fill((0,0,0))
 	else:
@@ -119,11 +147,11 @@ class FlipTile(Effect):
 class CoinFlipTile(FlipTile):
 	def draw(self):
 		FlipTile.draw(self)
-		w = abs(int(20 * math.cos(3.14 * self.t / self.T)))
+		w = abs(int(cameraz/2 * math.cos(3.14 * self.t / self.T)))
 		x0, y0 = worldtoscreen(self.p0)
 		a = self.t / self.T
-		y0 -= int(40 * a * (2 - a))
-		rect = pygame.Rect(0, 0, w, 20)
+		y0 -= int(cameraz * a * (2 - a))
+		rect = pygame.Rect(0, 0, w, cameraz//2)
 		rect.center = x0, y0
 		pygame.draw.ellipse(screen, (255, 255, 0), rect)
 
@@ -134,7 +162,7 @@ class SplatEffect(Effect):
 		self.p0 = x + 0.5, y + 0.5
 		effects.append(self)
 	def draw(self):
-		r = int(30 * self.t / self.T)
+		r = int(0.8 * cameraz * self.t / self.T)
 		if r < 2: return
 		pygame.draw.circle(screen, (0,0,0), worldtoscreen(self.p0), r, 2)
 
@@ -185,7 +213,7 @@ def draw():
 			continue
 		import time
 		s = 1 + 0.3 * math.sin(7 * time.time())
-		rect = pygame.Rect(0, 0, int(20 * s), int(20 / s))
+		rect = pygame.Rect(0, 0, int(0.5 * cameraz * s), int(0.5 * cameraz / s))
 		rect.center = worldtoscreen((monster.x + 0.5, monster.y + 0.5))
 		pygame.draw.ellipse(screen, (0,0,0), rect)
 

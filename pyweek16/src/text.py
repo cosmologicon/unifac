@@ -49,7 +49,7 @@ def getwraptext(text, size, color, width = 400, anchor = "center", fontname = No
 		while choppable(texts[-2]):
 			a = texts[-2].rindex(" ")
 			texts[-2:] = texts[-2][:a], texts[-2][a+1:] + (" " + texts[-1] if texts[-1] else "")
-	log.debug(texts)
+	#log.debug(texts)
 	imgs = [
 		gettext(t, size, color, fontname = fontname, ocolor = ocolor, d = d)
 		for t in texts
@@ -73,7 +73,8 @@ def drawtext(surf, text, size, color, p, anchor = "center", fontname = None, oco
 	if width is None:
 		img = gettext(text, size, color, fontname = fontname, ocolor = ocolor, d = d)
 	else:
-		img = getwraptext(text, size, color, width = width, anchor = anchor, fontname = fontname, ocolor = ocolor, d = d)
+		img = getwraptext(text, size, color, width = width, anchor = anchor, fontname = fontname,
+			ocolor = ocolor, d = d)
 	rect = img.get_rect(**{anchor: p})
 	surf.blit(img, rect)
 
