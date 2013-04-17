@@ -50,6 +50,7 @@ def resetupdate():
 	update.effects = []
 	update.monsterdelta = []
 resetupdate()
+print "md", update.monsterdelta
 
 def addrandommonster():
 	x = random.randint(-10, 20)
@@ -67,6 +68,7 @@ def addrandommonster():
 #for _ in range(20):
 #	addrandommonster()
 
+
 def think(dt):
 	global quests
 	glock.acquire()
@@ -76,10 +78,30 @@ def think(dt):
 	for m in monsters.values():
 		m.think(dt)
 	glock.release()
-	for mname, m in list(monsters.items()):
-		if not m.alive:
-			del monsters[mname]
-#	m = addrandommonster()
+	checked = set()
+	for q in quests:
+		for x, y, d in gridstate.aqdevices(q.tile.x, q.tile.y, q.r):
+			if (x,y) in checked:
+				continue
+			devicethink(dt, x, y, d)
+			checked.add((x, y))
+
+shots = {}
+def devicethink(dt, x, y, d):
+	if "laser" in d.device:
+		if (x, y) in shots and shots[(x, y)] > 0:  # weapon reload
+			shots[(x,y)] -= dt
+			return
+		for dx, dy in settings.regions[d.device]:
+			px, py = x + dx, y + dy
+			if (px, py) in monsters:
+				if monsters[(px, py)] < 0.5:
+					continue
+				monsters[(px, py)].hurt(1)
+				shots[(px, py)] = settings.devicereload[d.device]
+				update.effects.append(["laser", x, y, px, py])
+				break
+
 
 # Returns a list of tiles whose activation state changed
 def rotate((x, y), dA):

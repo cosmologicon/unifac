@@ -5,14 +5,21 @@ log = logging.getLogger(__name__)
 
 
 class Monster(util.serializable):
-	fields = "name x y target steptime alive t".split()
-	defaults = {"steptime": 3, "target": None, "alive": True, "t": 0}
+	fields = "name x y target steptime alive t hp".split()
+	defaults = {"steptime": 3, "target": None, "hp": 1, "alive": True, "t": 0}
+	def __init__(self, *args, **kw):
+		util.serializable.__init__(self, *args, **kw)
 	# Returns True if state changed
 	def think(self, dt):
 		self.t += dt
 		if self.t >= self.steptime:
 			self.t -= self.steptime
 			self.step()
+	def hurt(self, dhp):
+		self.hp -= dhp
+		update.effects.append(["splat", self.x, self.y])
+		if self.hp <= 0:
+			self.die()
 	def step(self):
 		if self.splathere():
 			self.splat()
@@ -23,10 +30,11 @@ class Monster(util.serializable):
 		if (x,y) in update.monsters:
 			return
 		update.effects.append(["step", self.x, self.y, x, y])
+		del update.monsters[(self.x, self.y)]
 		self.x, self.y = x, y
+		update.monsters[(self.x, self.y)] = self
 		update.monsterdelta.append(self.getstate())
 	def splat(self):
-		self.alive = False
 		update.effects.append(["splat", self.x, self.y])
 		if not update.grid.shielded(self.x, self.y):
 			tile = update.grid.getbasetile(self.x, self.y)
@@ -34,6 +42,10 @@ class Monster(util.serializable):
 			ncolors = util.randomnewcolors(tile.colors)
 			update.grid.changecolors(self.x, self.y, ncolors)
 			update.grid.setdevice(self.x, self.y, None)
+		self.die()
+	def die(self):
+		self.alive = False
+		del update.monsters[(self.x, self.y)]
 		update.monsterdelta.append(self.getstate())
 
 	# Definitely not sure of this logic yet...

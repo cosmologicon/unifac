@@ -87,6 +87,7 @@ def gettileimg(s, colors, device, fog, active, z = None):
 			"coin": (255, 255, 0),
 			"power": (0, 255, 255),
 			"wall": (255, 100, 100),
+			"4laser": (128, 128, 255),
 		}[device]
 		pygame.draw.circle(img, color, (w/2, h/2), z//4)
 	if fog == settings.penumbra:
@@ -104,6 +105,7 @@ effects = []
 class Effect(object):
 	alive = True
 	T = 0.25
+	t = 0
 	def think(self, dt):
 		self.t += dt
 		if self.t >= self.T:
@@ -114,7 +116,6 @@ class SpinTile(Effect):
 	def __init__(self, tile, dA):
 		self.dA = dA % 4
 		if self.dA > 2: self.dA -= 4
-		self.t = 0
 		self.state = tile.getstate()
 		self.img0 = gettileimg(tile.s, tile.colors, None, tile.fog, False)
 		self.p0 = tile.x + 0.5 * tile.s, tile.y + 0.5 * tile.s
@@ -128,7 +129,6 @@ class SpinTile(Effect):
 class FlipTile(Effect):
 	T = 0.25
 	def __init__(self, oldstate, newstate):
-		self.t = 0
 		self.state0 = oldstate
 		self.img0 = gettileimg(oldstate["s"], oldstate["colors"], oldstate["device"],
 			oldstate["fog"], oldstate["active"])
@@ -158,7 +158,6 @@ class CoinFlipTile(FlipTile):
 class SplatEffect(Effect):
 	T = 0.4
 	def __init__(self, x, y):
-		self.t = 0
 		self.p0 = x + 0.5, y + 0.5
 		effects.append(self)
 	def draw(self):
@@ -169,7 +168,6 @@ class SplatEffect(Effect):
 class StepEffect(Effect):
 	T = 0.25
 	def __init__(self, x0, y0, x1, y1):
-		self.t = 0
 		self.x0, self.y0 = x0 + 0.5, y0 + 0.5
 		self.x1, self.y1 = x1 + 0.5, y1 + 0.5
 		self.p1 = x1, y1
@@ -179,6 +177,18 @@ class StepEffect(Effect):
 		g = 1 - f
 		p = worldtoscreen((self.x1 * f + self.x0 * g, self.y1 * f + self.y0 * g))
 		pygame.draw.circle(screen, (0,0,0), p, 10)
+
+class LaserEffect(Effect):
+	T = 0.15
+	def __init__(self, x0, y0, x1, y1):
+		self.x0, self.y0 = x0 + 0.5, y0 + 0.5
+		self.x1, self.y1 = x1 + 0.5, y1 + 0.5
+		self.p1 = x1, y1
+		effects.append(self)
+	def draw(self):
+		p0 = worldtoscreen((self.x0, self.y0))
+		p1 = worldtoscreen((self.x1, self.y1))
+		pygame.draw.line(screen, (0,255,0), p0, p1, 2)
 
 
 def think(dt):
@@ -213,7 +223,8 @@ def draw():
 			continue
 		import time
 		s = 1 + 0.3 * math.sin(7 * time.time())
-		rect = pygame.Rect(0, 0, int(0.5 * cameraz * s), int(0.5 * cameraz / s))
+		a = [0.2, 0.3, 0.5, 0.7][monster.hp]
+		rect = pygame.Rect(0, 0, int(a * cameraz * s), int(a * cameraz / s))
 		rect.center = worldtoscreen((monster.x + 0.5, monster.y + 0.5))
 		pygame.draw.ellipse(screen, (0,0,0), rect)
 

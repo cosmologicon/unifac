@@ -33,16 +33,22 @@ devicesize = {
 	"coin": 1,
 	"power": 1,
 	"wall": 1,
+	"4laser": 1,
 }
 horizon = {
 	"eye": 10,
 }
 eradius = {
 	"eye": horizon["eye"] + penumbra,
+	"4laser": 3,
 }
 devicecost = {
 	"power": 1,
 	"wall": 1,
+	"4laser": 0,
+}
+devicereload = {
+	"4laser": 0.5
 }
 # devices that remain active when they've been activated once.
 permanent = set([
@@ -52,7 +58,10 @@ permanent = set([
 alwaysvulnerable = set([
 	"shield",
 ])
-shieldregion = (-1,0), (0,-1), (1,0), (0,1)
+regions = {
+	"shield": [(-1,0), (0,-1), (1,0), (0,1)],
+	"4laser": [(-1,0),(-2,0),(-3,0),(0,-1),(0,-2),(0,-3),(1,0),(2,0),(3,0),(0,1),(0,2),(0,3)],
+}
 
 
 if DEBUG:
