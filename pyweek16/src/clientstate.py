@@ -43,6 +43,8 @@ def handleeffects(effects):
 			vista.SplatEffect(*args)
 		if etype == "step":
 			vista.StepEffect(*args)
+		if etype == "laser":
+			vista.LaserEffect(*args)
 
 
 

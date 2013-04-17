@@ -290,6 +290,27 @@ class Grid(object):
 						yield x, y, tile
 	def adevices(self, sx, sy):
 		return [(x, y, d) for x, y, d in self.devices(sx, sy) if d.active]
+	def qdevices(self, x0, y0, r0):  # All devices with an area of effect overlapping this tile's quest radius
+		xmin, xmax = x0 - r0, x0 + r0
+		ymin, ymax = y0 - r0, y0 + r0
+		sx, sy = x0 // settings.sectorsize, y0 // settings.sectorsize
+		for dsx in (-1, 0, 1):
+			for dsy in (-1, 0, 1):
+				ax, ay = sx + dsx, sy + dsy
+				if (ax, ay) not in self.sectors:
+					continue
+				sector = self.sectors[(ax, ay)]
+				for dname, tiles in sector.devices.items():
+					if dname not in settings.eradius:
+						continue
+					r = settings.eradius[dname]
+					for tile in tiles:
+						x, y = tile.x, tile.y
+						if x + r < xmin or x - r > xmax or y + r < ymin or y - r > ymax:
+							continue
+						yield x, y, tile
+	def aqdevices(self, x0, y0, r0):
+		return [(x, y, d) for x, y, d in self.qdevices(x0, y0, r0) if d.active]
 
 	# Spaces that monsters can move onto
 	def canmoveto(self, x, y):
@@ -305,7 +326,7 @@ class Grid(object):
 		tile0 = self.getbasetile(x, y)
 		if tile0.device in settings.alwaysvulnerable:
 			return False
-		for dx, dy in settings.shieldregion:
+		for dx, dy in settings.regions["shield"]:
 			tile = self.getrawtile(x + dx, y + dy)
 			if not tile:
 				continue

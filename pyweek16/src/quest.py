@@ -49,4 +49,5 @@ class Quest(object):
 		m = monster.Monster({ "name": util.randomname(), "x": x, "y": y, "target": self.p0 })
 		self.monsters.append(m)
 		update.monsters[(x,y)] = m
+		update.monsterdelta.append(m.getstate())
 
