@@ -49,6 +49,13 @@ class Tile(util.serializable):
 	# Returns two lists of tiles: tiles whose state is updated, and tiles whose activation state
 	#   or colors has changed
 	def rotate(self, grid, dA):
+		if self.device:
+			if self.device[0] == "2":
+				dbase, ddir = self.device[:-1], int(self.device[-1])
+				self.device = "%s%s" % (dbase, (ddir + dA) % 2)
+			elif self.device[0] == "1":
+				dbase, ddir = self.device[:-1], int(self.device[-1])
+				self.device = "%s%s" % (dbase, (ddir + dA) % 4)
 		return self.changecolors(grid, util.rotate(self.s, self.colors, dA))
 	def changecolors(self, grid, colors):
 		ps, activated = [self.p], []
