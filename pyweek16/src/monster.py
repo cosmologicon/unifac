@@ -53,7 +53,7 @@ class Monster(util.serializable):
 		tile = update.grid.getrawtile(self.x, self.y)
 		if tile and tile.active:
 			return True
-		target = update.grid.getrawtile(*self.target)
+		target = update.grid.getbasetile(*self.target)
 		if target.isneighbor(self.x, self.y):
 			return True
 		return False

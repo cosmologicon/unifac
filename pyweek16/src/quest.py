@@ -6,24 +6,26 @@ log = logging.getLogger(__name__)
 class Quest(object):
 	alive = True
 	complete = False
-	def __init__(self, who, tile):
+	def __init__(self, who, tile, qinfo):
 		self.who = who
 		self.tile = tile
+		self.qinfo = qinfo
 		self.state0 = tile.getstate()
-		self.p0 = tile.p
+		self.x0 = tile.x + tile.s // 2
+		self.y0 = tile.y + tile.s // 2
+		self.p0 = self.x0, self.y0
 		self.monsters = []
 		self.r = 7   # spawn radius
 		self.n = 7  # max simultaneous monsters
-		self.T = 60
+		self.T = 10
 		self.progress = self.T * 0.1
 	# Tiles to lock down if this quest is in solo mode
 	def tiles(self):
 		R = self.r + 2
-		x0, y0 = self.p0
 		for dx in range(-R, R):
 			for dy in range(-R, R):
 				if dx ** 2 + dy ** 2 <= R ** 2:
-					yield x0 + dx, y0 + dy
+					yield self.x0 + dx, self.y0 + dy
 	def think(self, dt):
 		while len(self.monsters) < self.n:
 			self.spawn()

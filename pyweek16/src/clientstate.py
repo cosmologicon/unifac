@@ -55,3 +55,17 @@ def canunlock(dname):
 		return False
 	return True
 
+def canquest(x, y):
+	tile = gridstate.getbasetile(x, y)
+	if you.trained < 1:
+		return False
+	if tile.s == 1:
+		return False
+	if not tile.active:
+		return False
+	return True
+
+
+def qupdate(*args):
+	print "quest update", args
+

@@ -26,7 +26,9 @@ def think(dt):
 		stop()
 	if "rotate" in inp:
 		x, y, dA = inp["rotate"]
-		if clientstate.gridstate.canrotate(x, y):
+		if clientstate.canquest(x, y):
+			send("qrequest", inp["mtile"])
+		elif clientstate.gridstate.canrotate(x, y):
 			vista.SpinTile(clientstate.gridstate.getbasetile(x, y), dA)
 			clientstate.gridstate.rotate(x, y, dA)
 			send("rotate", (x, y), dA)
@@ -40,8 +42,6 @@ def think(dt):
 		send("deploy", pos, device)
 	if "screenshot" in inp:
 		vista.screenshot()
-	if "qrequest" in inp:
-		send("qrequest", inp["qrequest"])
 	if "select" in inp:
 		if inp["select"] == "qaccept-solo":
 			send("qaccept", menu.top().qinfo["p"], True)
@@ -57,6 +57,9 @@ def think(dt):
 		vista.handlehudclick(inp["hudclick"])
 		if clientstate.canunlock(inp["hudclick"]):
 			send("unlock", inp["hudclick"])
+	vista.hudpoint = inp["hudpoint"] if "hudpoint" in inp else None
+		
+
 
 	# Process network updates
 	for message in getmessages():
@@ -65,6 +68,8 @@ def think(dt):
 		mtype, args = message[0], message[1:]
 		if mtype == "login":
 			login(*args)
+		elif mtype == "message":
+			menu.loadmessage(*args)
 		elif mtype == "you":
 			clientstate.you.setstate(*args)
 		elif mtype == "completestate":
@@ -85,8 +90,11 @@ def think(dt):
 		elif mtype == "qinfo":
 			log.debug("quest info %s", args[0])
 			menu.loadqinfo(*args)
+		elif mtype == "qupdate":
+			clientstate.qupdate(*args)
 		elif mtype == "train":
 			menu.loadtraining(*args)
+			clientstate.you.trained = args[0]
 		elif mtype == "cutscene":
 			menu.loadcutscene(*args)
 		elif mtype == "error":

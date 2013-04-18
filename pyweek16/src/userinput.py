@@ -13,7 +13,9 @@ def get():
 		return menuget()
 	ret = {}
 	mpos = pygame.mouse.get_pos()
-	mtile = vista.screentotile(mpos)
+	if vista.onhud(mpos):
+		ret["hudpoint"] = vista.hudclick(mpos)
+	ret["mtile"] = mtile = vista.screentotile(mpos)
 	for event in pygame.event.get():
 		if event.type == MOUSEBUTTONDOWN and event.button in (1,2,3):
 			mdownpos[event.button] = event.pos
