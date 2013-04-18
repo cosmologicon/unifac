@@ -9,7 +9,7 @@ mdownpos = {}
 dragging = {}
 
 def get():
-	if menu.menu:
+	if menu.stack:
 		return menuget()
 	ret = {}
 	mpos = pygame.mouse.get_pos()
@@ -79,7 +79,7 @@ def menuget():
 					dragging[button] = True
 		if event.type == MOUSEBUTTONUP:
 			if event.button in dragging and not dragging[event.button]:
-				ret["select"] = menu.menu.checkclick(event.pos)
+				ret["select"] = menu.top().checkclick(event.pos)
 		if event.type == KEYDOWN:
 			if event.key == K_ESCAPE:
 				ret["select"] = "cancel"

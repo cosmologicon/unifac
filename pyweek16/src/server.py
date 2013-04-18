@@ -49,6 +49,7 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 			serverstate.users[username] = player.Player({"username": username})
 			serverstate.passwords[username] = password
 			self.send("login", username, password)
+			self.send("cutscene", 1)
 		elif username not in serverstate.passwords or serverstate.passwords[username] != password:
 			self.error("invalid login: %s %s" % (username, password))
 			self.close()
