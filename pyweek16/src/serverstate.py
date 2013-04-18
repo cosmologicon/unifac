@@ -57,12 +57,12 @@ def getbaseradius(dname):
 	return r
 
 # Uncover fog
-def sweepnode(x, y):
+def sweepnode(x, y, r = None):
 	glock.acquire()
 	tile = gridstate.getbasetile(x, y)
 	x += tile.s // 2
 	y += tile.s // 2
-	r = getbaseradius(tile.device)
+	r = getbaseradius(tile.device) if r is None else r
 	for sx, sy in util.horizonsectors(x, y, r + settings.horizonbuffer):
 		makesector(sx, sy)
 	util.removefog(gridstate, x, y, r)
@@ -82,6 +82,7 @@ for d, devices in gridstate.sectors[(0,0)].devices.items():
 def resetupdate():
 	update.effects = []
 	update.monsterdelta = []
+	update.quests = []
 resetupdate()
 
 def addrandommonster():
@@ -106,6 +107,11 @@ def think(dt):
 	glock.acquire()
 	for q in quests:
 		q.think(dt)
+		if not q.alive:
+			gridstate.unlocktiles(q.who, q.tiles())
+			update.quests.append(q)
+			if q.complete:
+				completequest(q)
 	quests = [q for q in quests if q.alive]
 	for m in monsters.values():
 		m.think(dt)
@@ -136,12 +142,19 @@ def devicethink(dt, x, y, d):
 
 
 # Returns a list of tiles whose activation state changed
+def canrotate(who, (x, y)):
+	t = gridstate.getbasetile(x, y)
+	if t.lock and t.lock != who:
+		return False
+	if t.fog:
+		return False
+	return True	
 def rotate((x, y), dA):
 	glock.acquire()
 	ret = gridstate.rotate(x, y, dA)
-	t = gridstate.getbasetile(x, y)
-	if t.s > 1:
-		sweepnode(t.x, t.y)
+#	t = gridstate.getbasetile(x, y)
+#	if t.s > 1:
+#		sweepnode(t.x, t.y)
 	glock.release()
 	return ret
 def deploy(who, (x, y), device):
@@ -187,14 +200,14 @@ def handleactivation(tiles, who):
 
 def questinfo(who, (x, y)):
 	x, y = int(x), int(y)
-	for q in quests:
-		if q.who == who:
-			return None
-		if q.p0 == (x, y):
-			return None
 	tile = gridstate.getbasetile(x, y)
 	if not tile:
 		return None
+	for q in quests:
+		if q.who == who:
+			return None
+		if q.tile is tile:
+			return None
 	if tile.device[0:2] not in ("b2", "b3", "b4"):
 		return None
 	# TODO: make sure you can only quest on tiles you haven't already beaten
@@ -216,15 +229,27 @@ def questinfo(who, (x, y)):
 		qinfo["xp"] *= 2
 	if t == "scan":
 		qinfo["range"] *= 2
+	if t == "record":
+		qinfo["xp"] = 0
+		qinfo["coins"] = 0
+		qinfo["range"] = 0
 	return qinfo
 
 def initquest(who, p, solo, qinfo):
 	tile = gridstate.getbasetile(*p)
-	q = quest.Quest(who, tile)
+	q = quest.Quest(who, tile, qinfo)
 	quests.append(q)
 	if solo:
-		locktiles(q.tiles())
+		gridstate.locktiles(who, q.tiles())
 
+
+def completequest(quest):
+	who = quest.who
+	users[who].xp += quest.qinfo["xp"]
+	users[who].coins += quest.qinfo["coins"]
+	tile = quest.tile
+	sweepnode(tile.x, tile.y, quest.qinfo["range"])
+	
 
 # Returns a gamestate update to be sent to this client
 def setwatch(who, x, y):

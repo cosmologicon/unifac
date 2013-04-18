@@ -55,8 +55,12 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 			self.error("invalid login: %s %s" % (username, password))
 			self.close()
 			return
-		self.send("you", serverstate.users[username].getstate())
+		self.you = serverstate.users[username]
+		self.send("you", self.you.getstate())
 		self.username = username
+		if self.you.trained == 0:
+			self.send("train", 0)
+			self.you.trained = 1
 		clienthandlers[username] = self
 		serverstate.activeusers.add(username)
 		state = serverstate.setwatch(username, 0, 0)
@@ -76,27 +80,33 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 
 	def on_rotate(self, (x,y), dA):
 		x, y, dA = int(x), int(y), int(dA)
+		if not serverstate.canrotate(self.username, (x, y)):
+			return
 		act = serverstate.rotate((x, y), dA)
 		serverstate.handleactivation(act, self.username)
 		senddelta(serverstate.getdelta())
-		self.send("you", serverstate.users[self.username].getstate())
+		self.send("you", self.you.getstate())
+		if self.you.trained == 1 and self.you.coins >= 5:
+			self.send("train", 1)
+			self.you.trained = 2
 
 	def on_deploy(self, (x,y), device):
 		x, y, device = int(x), int(y), str(device)
 		serverstate.deploy(self.username, (x,y), device)
 		senddelta(serverstate.getdelta())
-		self.send("you", serverstate.users[self.username].getstate())
+		self.send("you", self.you.getstate())
 
 	def on_unlock(self, dname):
 		dname = str(dname)
 		serverstate.unlock(self.username, dname)
-		self.send("you", serverstate.users[self.username].getstate())
+		self.send("you", self.you.getstate())
 
 	def on_qrequest(self, (x,y)):
 		p = int(x), int(y)
 		qinfo = serverstate.questinfo(self.username, p)
 		if not qinfo:
 			self.error("Invalid quest")
+			return
 		self.send("qinfo", qinfo)
 
 	def on_qaccept(self, (x,y), solo):
@@ -106,6 +116,16 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		if not qinfo:
 			self.error("Invalid quest")
 		serverstate.initquest(self.username, p, solo, qinfo)
+
+	def qupdate(self, q):
+		self.send("qupdate", q.progress, q.T)
+
+	def qfinish(self, q):
+		if q.complete:
+			self.send("message", "Node successfully unlocked")
+		else:
+			self.send("message", "Node unlocking unsuccessful")
+		self.send("you", self.you.getstate())
 
 	def send(self, *args):
 		self.write_message(json.dumps(args))
@@ -117,6 +137,8 @@ def parsemessage(message):
 	return json.loads(message)
 
 def send(who, *args):
+	if who not in clienthandlers:
+		return
 	clienthandlers[who].write_message(json.dumps(args))
 
 def sendall(*args):
@@ -142,6 +164,12 @@ def think():
 		sendall("monsters", update.monsterdelta)
 	if update.effects:
 		sendall("effects", update.effects)
+	for q in update.quests:
+		if q.who in clienthandlers:
+			clienthandlers[q.who].qfinish(q)
+	for q in serverstate.quests:
+		if q.who in clienthandlers:
+			clienthandlers[q.who].qupdate(q)
 	senddelta(serverstate.getdelta())
 
 

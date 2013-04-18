@@ -5,8 +5,8 @@ import settings, util
 log = logging.getLogger(__name__)
 
 class Tile(util.serializable):
-	fields = "x y s colors device fog active parent".split()
-	defaults = { "s": 1, "colors": (0,0,0,0), "device": None, "fog": settings.penumbra, "active": False, "parent": None }
+	fields = "x y s colors device fog active parent lock".split()
+	defaults = { "s": 1, "colors": (0,0,0,0), "device": None, "fog": settings.penumbra, "active": False, "parent": None, "lock": None }
 	@property
 	def p(self):
 		return self.x, self.y
@@ -340,6 +340,28 @@ class Grid(object):
 			if tile.device == "shield" and tile.active:
 				return True
 		return False
+
+	def locktiles(self, who, tiles):
+		for x, y in tiles:
+			tile = self.getbasetile(x, y)
+			if not tile:
+				continue
+			if tile.lock:
+				continue
+			tile.lock = who
+			p = tile.x // settings.sectorsize, tile.y // settings.sectorsize
+			self.sectors[p].markdelta(tile.x, tile.y)
+			
+	def unlocktiles(self, who, tiles):
+		for x, y in tiles:
+			tile = self.getbasetile(x, y)
+			if not tile:
+				continue
+			if tile.lock != who:
+				continue
+			tile.lock = None
+			p = tile.x // settings.sectorsize, tile.y // settings.sectorsize
+			self.sectors[p].markdelta(tile.x, tile.y)
 
 
 

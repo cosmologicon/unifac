@@ -29,12 +29,16 @@ def getpic(name):
 class Menu(object):
 	fonts = {}
 	textcache = {}
-	def __init__(self):
+	def __init__(self, clear = True, size = None, dx = 0, dy = 0):
 		self.sx, self.sy = settings.screenx, settings.screeny
 		self.surf = pygame.Surface((self.sx, self.sy)).convert_alpha()
-		self.surf.fill((0,0,0,200))
-		self.rect = pygame.Rect((0, 0, self.sx - 30, self.sy - 30))
-		self.rect.center = self.sx // 2, self.sy // 2
+		if clear:
+			self.surf.fill((0,0,0,200))
+		else:
+			self.surf.fill((0,0,0,0))
+		w, h = size or (824, 450)
+		self.rect = pygame.Rect((0, 0, w, h))
+		self.rect.center = self.sx // 2 + dx, self.sy // 2 + dy
 		drawoutsetbox(self.surf, self.rect.x, self.rect.y, self.rect.w, self.rect.h, 6)
 		self.buttons = {}
 		self.next = None
@@ -97,6 +101,10 @@ class Menu(object):
 		text.drawtext(self.surf, t, 32, (255, 128, 0), (self.rect.centerx, self.rect.y + 200),
 			ocolor = (0,0,0), anchor="midtop", width = self.rect.width - 360)
 
+	def addmessage(self, t):
+		text.drawtext(self.surf, t, 40, (200, 200, 200), self.rect.center,
+			ocolor = (0,0,0), width = 240)
+
 	def adddiagram(self, dname):
 		import vista
 		x0, y0 = self.rect.left + 240, self.rect.top + 280
@@ -108,6 +116,13 @@ class Menu(object):
 			self.surf.blit(vista.gettileimg(1, (1,0,0,1), None, 0, False, z = 80), (x0, y0+80))
 		elif dname == "resource":
 			self.surf.blit(vista.gettileimg(1, (1,1,0,0), "coin", 0, True, z = 80), (x0, y0))
+
+	def addicon(self, img):
+		rect = img.get_rect(topleft = (self.rect.x + 30, self.rect.y + 30))
+		self.surf.blit(img, rect)
+
+	def clickanywhere(self):
+		self.buttons["cancel"] = pygame.Rect((0, 0, self.sx, self.sy))
 
 
 stack = []
@@ -197,5 +212,24 @@ def loadqinfo(qinfo):
 	menu.addoption("qaccept-group", "Group", "Unlock the node. Other players may join you.", (0,100,0))
 	menu.addoption("qaccept-solo", "Solo", "Unlock the node. Other players will be locked out from this area.", (0,100,0))
 	menu.addoption("cancel", "Cancel", "Do not unlock the node at this time.", (100,0,0))
-	
+
+
+def loadmessage(message):
+	menu = Menu(size = (300, 100))
+	stack.append(menu)
+	menu.addmessage(message)
+	menu.clickanywhere()
+
+hudboxes = {}
+def gethudbox(dname, unlocked):
+	import vista
+	key = dname, unlocked
+	if key in hudboxes:
+		return hudboxes[key]
+	box = Menu(clear = False, size = (300, 400), dx = -100)
+	box.addicon(vista.gettileimg(1, (1,1,0,0), dname, 0, True, z = 80))
+	hudboxes[key] = box
+	return box
+
+
 

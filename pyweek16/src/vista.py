@@ -140,13 +140,16 @@ def deviceimg(device, z):
 	return imgcache[key]
 
 tilecache = {}
-def gettileimg(s, colors, device, fog, active, z = None):
+def gettileimg(s, colors, device, fog, active, locked = False, z = None):
 	z = z or cameraz
-	key = tuple(colors), device, fog, active, z
+	key = tuple(colors), device, fog, active, locked, z
 	if key in tilecache:
 		return tilecache[key]
 	if z == u:
-		if fog == 0:
+		if locked:
+			img = gettileimg(s, colors, device, max(fog, 2), active, False).copy()
+			# TODO: lock image
+		elif fog == 0:
 			if s == 1:
 				if device is None:
 					img = pygame.Surface((u, u)).convert_alpha()
@@ -158,7 +161,7 @@ def gettileimg(s, colors, device, fog, active, z = None):
 					for tname in tnames:
 						img.blit(getimg(tname), (0, 0))
 				else:
-					img = gettileimg(s, colors, None, fog, active, z = u).copy()
+					img = gettileimg(s, colors, None, fog, active, locked, z = u).copy()
 					if device in ("coin", "wall", "1laser0", "1laser1", "1laser2", "1laser3"):
 						img.blit(getimg(device), (0, 0))
 			else:
@@ -179,12 +182,12 @@ def gettileimg(s, colors, device, fog, active, z = None):
 			img = pygame.Surface((u, u)).convert_alpha()
 			img.fill((0,0,0,0))
 		else:
-			img = gettileimg(s, colors, device, 0, active, z).copy()
+			img = gettileimg(s, colors, device, 0, active, locked, z).copy()
 			f = getimg("fog")
 			for _ in range(fog):
 				img.blit(f, (0, 0))
 	else:
-		img0 = gettileimg(s, colors, device, fog, active, z = u)
+		img0 = gettileimg(s, colors, device, fog, active, locked, z = u)
 		img = pygame.transform.smoothscale(img0, (z*s, z*s))
 	tilecache[key] = img
 	return img
@@ -254,7 +257,8 @@ class SpinTile(Effect):
 			self.device = tile.device[2:]
 
 		device = self.device if self.drawon else None
-		self.img0 = gettileimg(tile.s, tile.colors, device, tile.fog, False)
+		locked = tile.lock and tile.lock != clientstate.you.username
+		self.img0 = gettileimg(tile.s, tile.colors, device, tile.fog, False, locked)
 		self.p0 = tile.x + 0.5 * tile.s, tile.y + 0.5 * tile.s
 		tileeffects[(tile.x, tile.y)] = self
 	def draw(self):
@@ -272,10 +276,11 @@ class FlipTile(Effect):
 	T = 0.25
 	def __init__(self, oldstate, newstate):
 		self.state0 = oldstate
+		locked = oldstate["lock"] and oldstate["lock"] != clientstate.you.username
 		self.img0 = gettileimg(oldstate["s"], oldstate["colors"], oldstate["device"],
-			oldstate["fog"], oldstate["active"])
+			oldstate["fog"], oldstate["active"], locked)
 		self.img1 = gettileimg(newstate["s"], newstate["colors"], newstate["device"],
-			newstate["fog"], newstate["active"])
+			newstate["fog"], newstate["active"], locked)
 		self.p0 = oldstate["x"] + 0.5 * oldstate["s"], oldstate["y"] + 0.5 * oldstate["s"]
 		tileeffects[(oldstate["x"], oldstate["y"])] = self
 	def draw(self):
@@ -356,7 +361,8 @@ def draw():
 		tile = clientstate.gridstate.getrawtile(x, y)
 		if not tile:
 			continue
-		img = gettileimg(tile.s, tile.colors, tile.device, tile.fog, tile.active)
+		locked = tile.lock # and tile.lock != clientstate.you.username
+		img = gettileimg(tile.s, tile.colors, tile.device, tile.fog, tile.active, locked)
 		screen.blit(img, worldtoscreen((x, y)))
 	visibleeffects.extend(effects)
 	for effect in visibleeffects:
@@ -415,6 +421,10 @@ def drawhud():
 			text.drawtext(screen, "%sXP" % settings.devicexp[device], 48, (0,0,0),
 				rect.center, anchor="center", ocolor=(255, 255, 255), d=2)
 			screen.set_at(rect.center, (255,0,0))
+	if hudpoint:
+		unlocked = hudpoint in clientstate.you.unlocked
+		menu.gethudbox(hudpoint, unlocked).draw(screen)
+
 
 def onhud((x,y)):
 	return x > settings.windowx
@@ -437,7 +447,7 @@ def handlehudclick(name):
 			hudrects[selected] = hudrects[name]
 			del hudrects[name]
 		elif name[0] == "1":
-			selected = name[:-1] + str((int(name[-1]) + 1) % 4)
+			selected = name[:-1] + str((int(name[-1]) + 3) % 4)
 			hudrects[selected] = hudrects[name]
 			del hudrects[name]
 		else:
