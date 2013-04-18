@@ -1,8 +1,8 @@
 
 train = {
 	0: [
-		"activetile@Welcome recruit, I'm Captain Nyrano. Emtar technology works a bit differently from ours, so here's a crash course. A tile becomes active if all of its contacts are touching contacts of the opposite color.",
-		"Left-click on a tile to rotate it. You can also right-click and middle-click. For alternate controls, see README.txt.",
+		"activetile@Welcome recruit, I'm Captain Nayrano. Emtar technology works a bit differently from ours, so here's a crash course. A tile becomes active if all of its contacts are touching contacts of the opposite color.",
+		"Left-click on a tile to rotate it left. You can also right-click and middle-click. For alternate controls, see README.txt.",
 		"resource@Start by activating some 1x1 resource tiles. Each one will get you one Credit. Get 5 Credits and I'll give you your next assignment.",
 	],
 	1: [
@@ -15,19 +15,21 @@ train = {
 	2: [
 		"Learn to use items.",
 	],
-	3: [
-		"Mwa ha ha ha haaaaaaaaaaaaa.",
-		"ha.",
-	],
 }
 
 cutscene = {
-	1: [
+	0: [
 		"Hear now, stranger, the last and only message of the Emtar. For reasons that will shortly be clear, all other record of our once vast civilization has been destroyed.",
 		"We evolved intelligence and developed technology much like many other species. Our technology was unique, however, in that it harnessed the two fundamental opposing components of the universe: the Ameloz wave and the Zolema particle.",
 		"Many species have, over time, discovered the Ameloz and the Zolema, and many have tried to harness them as did we. All others failed.",
 		"We alone understood that they cannot be used WITH each other, but only AGAINST each other. Thus we became the most powerful civilization in the galaxy.",
 	],
 }
+
+
+unlockboss = [
+	"Mwa ha ha ha haaaaaaaaaaaaa.",
+	"ha.",
+]
 
 

@@ -122,6 +122,15 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 
 	def qfinish(self, q):
 		if q.complete:
+			if q.qinfo["story"]:
+				if self.you.story == 4:
+					self.you.trained = 4
+					self.send("unlockboss", settings.bosscode)
+				self.send("cutscene", self.you.story)
+				self.you.story += 1
+			elif self.you.xp and self.you.trained == 2:
+				self.send("train", 2)
+				self.you.trained = 3
 			self.send("message", "Node successfully unlocked")
 		else:
 			self.send("message", "Node unlocking unsuccessful")
