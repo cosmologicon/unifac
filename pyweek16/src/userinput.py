@@ -36,8 +36,11 @@ def get():
 				mdownpos[button] = event.pos
 		if event.type == MOUSEBUTTONUP:
 			if event.button in dragging and not dragging[event.button]:
-				x, y = vista.screentotile(event.pos)
-				ret["rotate"] = x, y, 4 - event.button
+				if event.button == 1 and vista.onhud(event.pos):
+					ret["hudclick"] = vista.hudclick(event.pos)
+				else:
+					x, y = vista.screentotile(event.pos)
+					ret["rotate"] = x, y, 4 - event.button
 			elif event.button in (4,5):
 				if "scroll" not in ret:
 					ret["scroll"] = 0

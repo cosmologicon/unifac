@@ -30,6 +30,8 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 				self.on_qrequest(*args)
 			elif mtype == "qaccept":
 				self.on_qaccept(*args)
+			elif mtype == "unlock":
+				self.on_unlock(*args)
 			else:
 				raise ValueError("Unrecognized message type %s" % mtype)
 		except Exception:
@@ -49,7 +51,6 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 			serverstate.users[username] = player.Player({"username": username})
 			serverstate.passwords[username] = password
 			self.send("login", username, password)
-			self.send("cutscene", 1)
 		elif username not in serverstate.passwords or serverstate.passwords[username] != password:
 			self.error("invalid login: %s %s" % (username, password))
 			self.close()
@@ -84,6 +85,11 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		x, y, device = int(x), int(y), str(device)
 		serverstate.deploy(self.username, (x,y), device)
 		senddelta(serverstate.getdelta())
+		self.send("you", serverstate.users[self.username].getstate())
+
+	def on_unlock(self, dname):
+		dname = str(dname)
+		serverstate.unlock(self.username, dname)
 		self.send("you", serverstate.users[self.username].getstate())
 
 	def on_qrequest(self, (x,y)):

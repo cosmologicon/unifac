@@ -345,6 +345,7 @@ def think(dt):
 		effect.think(dt)
 	effects = [e for e in effects if e.alive]
 
+
 def draw():
 	screen.fill((0,0,0))
 	visibleeffects = []
@@ -371,12 +372,26 @@ def draw():
 		rect.center = worldtoscreen((monster.x + 0.5, monster.y + 0.5))
 		pygame.draw.ellipse(screen, (0,0,0), rect)
 
-	menu.drawoutsetbox(screen, settings.windowx, 0, settings.hudx, settings.screeny, 4, (20,20,20))
-	img = gettileimg(1, (0,1,0,1), "4laser", 0, False, 60)
-	screen.blit(img, (settings.windowx + 20, 20))
-	img = gettileimg(1, (0,1,0,1), "2laser0", 0, True, 60)
-	screen.blit(img, (settings.windowx + 100, 20))
+	drawhud()
 
+	if menu.stack:
+		menu.top().draw(screen)
+
+	pygame.display.flip()
+
+selected = None
+huds = 60
+hudrects = {
+	"none": (settings.windowx + 20, 20, huds, huds),
+	"wall": (settings.windowx + 100, 20, huds, huds),
+	"4laser": (settings.windowx + 180, 20, huds, huds),
+	"2laser0": (settings.windowx + 20, 100, huds, huds),
+	"1laser0": (settings.windowx + 100, 180, huds, huds),
+}
+
+def drawhud():
+	global selected
+	menu.drawoutsetbox(screen, settings.windowx, 0, settings.hudx, settings.screeny, 4, (20,20,20))
 	cimg = deviceimg("coin", 70)
 	screen.blit(cimg, cimg.get_rect(center = (settings.windowx + 40, settings.screeny - 40)))
 	text.drawtext(screen, "x %s" % clientstate.you.coins,
@@ -385,12 +400,51 @@ def draw():
 	text.drawtext(screen, "%s XP" % clientstate.you.xp,
 		40, (160, 160, 160), (settings.windowx + 70, settings.screeny - 70),
 		anchor="midleft", ocolor=(0,0,0))
+	
+	for dname, rect in hudrects.items():
+		if dname == "none":
+			device = None
+			active = True
+		else:
+			device = dname
+			active = selected == dname
+		img = gettileimg(1, (0,0,1,1), device, 0, active, z=huds)
+		rect = pygame.Rect(rect)
+		screen.blit(img, rect)
+		if device in settings.devicexp and device not in clientstate.you.unlocked:
+			text.drawtext(screen, "%sXP" % settings.devicexp[device], 48, (0,0,0),
+				rect.center, anchor="center", ocolor=(255, 255, 255), d=2)
+			screen.set_at(rect.center, (255,0,0))
 
+def onhud((x,y)):
+	return x > settings.windowx
 
-	if menu.stack:
-		menu.top().draw(screen)
+def hudclick(p):
+	for dname, rect in hudrects.items():
+		if pygame.Rect(rect).collidepoint(p):
+			return dname
+	return None
 
-	pygame.display.flip()
+def handlehudclick(name):
+	global selected
+	if name in (None, "none"):
+		selected = None
+	elif name not in clientstate.you.unlocked:
+		selected = None
+	elif name == selected:
+		if name[0] == "2":
+			selected = name[:-1] + str((int(name[-1]) + 1) % 2)
+			hudrects[selected] = hudrects[name]
+			del hudrects[name]
+		elif name[0] == "1":
+			selected = name[:-1] + str((int(name[-1]) + 1) % 4)
+			hudrects[selected] = hudrects[name]
+			del hudrects[name]
+		else:
+			selected = None
+	else:
+		selected = name
+
 
 def screenshot():
 	pygame.image.save(screen, util.screenshotname())

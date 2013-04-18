@@ -1,5 +1,5 @@
 import logging
-import grid, player, vista, monster, menu
+import grid, player, vista, monster, menu, settings
 
 log = logging.getLogger(__name__)
 
@@ -46,5 +46,12 @@ def handleeffects(effects):
 		if etype == "laser":
 			vista.LaserEffect(*args)
 
-
+def canunlock(dname):
+	if dname not in settings.devicexp:
+		return False
+	if dname in you.unlocked:
+		return False
+	if you.xp < settings.devicexp[dname]:
+		return False
+	return True
 
