@@ -49,11 +49,13 @@ def get():
 			if event.key == K_F12:
 				ret["screenshot"] = True
 			if event.key == K_1:
-				ret["deploy"] = mtile, "power"
+				ret["deploy"] = mtile, "1laser0"
 			if event.key == K_2:
 				ret["deploy"] = mtile, "wall"
 			if event.key == K_3:
 				ret["deploy"] = mtile, "4laser"
+			if event.key == K_4:
+				ret["deploy"] = mtile, "2laser0"
 			if event.key == K_q:
 				ret["qrequest"] = mtile
 		if event.type == QUIT:

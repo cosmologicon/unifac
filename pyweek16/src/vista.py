@@ -15,12 +15,12 @@ cameraz = 40
 
 def worldtoscreen((x, y)):
 	return (
-		int(settings.screenx * 0.5 + cameraz * x - camerax0),
+		int(settings.windowx * 0.5 + cameraz * x - camerax0),
 		int(settings.screeny * 0.5 + cameraz * y - cameray0),
 	)
 def screentoworld((px, py)):
 	return (
-		(px + camerax0 - 0.5 * settings.screenx) / cameraz,
+		(px + camerax0 - 0.5 * settings.windowx) / cameraz,
 		(py + cameray0 - 0.5 * settings.screeny) / cameraz,
 	)
 def screentotile(p):
@@ -38,13 +38,22 @@ def drag(dx, dy):
 	return True
 def zoom(dz, (x, y)):
 	global camerax0, cameray0, cameraz
-	z = cameraz + 2 * dz
-	if not 28 <= z <= 100:
-		return
+	z = cameraz
+	if dz > 0:
+		for j in range(dz):
+			zs = [zoom for zoom in settings.zooms if zoom > z]
+			if zs:
+				z = min(zs)
+			
+	else:
+		for j in range(-dz):
+			zs = [zoom for zoom in settings.zooms if zoom < z]
+			if zs:
+				z = max(zs)
 	# (x + x0 - sx/2) / z0 = (x + x1 - sx/2) / z1
 	# z1 x + z1 x0 - z1 sx/2 = z0 x + z0 x1 - z0 sx / 2
 	# z0 x1 = z1 x + z1 x0 - z1 sx/2 + z0 sx / 2 - z0 x
-	x = 1.0 / cameraz * ((z - cameraz) * (x - settings.screenx / 2) + z * camerax0)
+	x = 1.0 / cameraz * ((z - cameraz) * (x - settings.windowx / 2) + z * camerax0)
 	y = 1.0 / cameraz * ((z - cameraz) * (y - settings.screeny / 2) + z * cameray0)
 	tile = clientstate.gridstate.getbasetile(int(x/cameraz), int(y/cameraz))
 	if not tile or tile.fog:
@@ -55,15 +64,128 @@ def zoom(dz, (x, y)):
 
 def visibletiles():
 	xmin, ymin = screentotile((0, 0))
-	xmax, ymax = screentotile((settings.screenx, settings.screeny))
+	xmax, ymax = screentotile((settings.windowx, settings.screeny))
 	for x in range(xmin-4, xmax+1):
 		for y in range(ymin-4, ymax+1):
 			yield x, y
 
 
+u = settings.tileunit
+u2, u4 = u//2, u//4
+
+imgcache = {}
+def getimg(name):
+	if name in imgcache:
+		return imgcache[name]
+	if name in ("base-active", "base-inactive", "outline", "red-0", "blue-0", "fog", "coin", "wall", "1laser0"):
+		img = pygame.image.load(data.filepath("tile-%s" % u, name + ".png")).convert_alpha()
+	elif name[:-1] in ("red-", "blue-", "1laser"):
+		color, a = name[:-1], int(name[-1])
+		img = pygame.transform.rotate(getimg("%s0" % color), -90 * a)
+	elif name[:-1] in ("base-active-", "base-inactive-", "outline-", "fog-"):
+		img0 = getimg(name[:-2])
+		s = int(name[-1])
+		img = pygame.Surface((u*s, u*s)).convert_alpha()
+		img.fill((0,0,0,0))
+		print name, s
+		# I can do this much more cleverly, really I can, but it's late and I just want to see how it looks.
+		for x in range(2*s+1):
+			for y in range(2*s+1):
+				if (x, y) == (0, 0):
+					img.blit(img0, (0,0), (0,0,u4,u4))
+				elif (x, y) == (2*s, 0):
+					img.blit(img0, (-u4+u*s,0), (3*u4,0,u4,u4))
+				elif (x, y) == (0, 2*s):
+					img.blit(img0, (0,-u4+u*s), (0,3*u4,u4,u4))
+				elif (x, y) == (2*s, 2*s):
+					img.blit(img0, (-u4+u*s, -u4+u*s), (3*u4,3*u4,u4,u4))
+				elif x == 0:
+					img.blit(img0, (0,-u4+u2*y), (0,u4,u4,u2))
+				elif y == 0:
+					img.blit(img0, (-u4+u2*x,0), (u4,0,u2,u4))
+				elif x == 2*s:
+					img.blit(img0, (-u4+u*s,-u4+u2*y), (3*u4,u4,u4,u2))
+				elif y == 2*s:
+					img.blit(img0, (-u4+u2*x, -u4+u*s), (u4,3*u4,u2,u4))
+				else:
+					img.blit(img0, (-u4+u2*x, -u4+u2*y), (u4,u4,u2,u2))
+#		pygame.image.save(img, "%s.png" % name)
+	elif name.startswith("blue") or name.startswith("red"):
+		color, j, s = name.split("-")
+		s = int(s)
+		a, j = divmod(int(j), s)
+		if a == 0:
+			dx, dy = j, 0
+		elif a == 1:
+			dx, dy = s-1, j
+		elif a == 2:
+			dx, dy = s-1-j, s-1
+		elif a == 3:
+			dx, dy = 0, s-1-j
+		img = pygame.Surface((u*s, u*s)).convert_alpha()
+		img.fill((0,0,0,0))
+		img.blit(getimg("%s-%s" % (color, a)), (u*dx, u*dy))
+	imgcache[name] = img
+	return img
+
+def deviceimg(device, z):
+	if z == u:
+		return getimg(device)
+	key = "%s+%s" % (device, z)
+	if key in imgcache:
+		return imgcache[key]
+	img0 = deviceimg(device, u)
+	imgcache[key] = pygame.transform.smoothscale(img0, (z, z))
+	return imgcache[key]
+
 tilecache = {}
 def gettileimg(s, colors, device, fog, active, z = None):
 	z = z or cameraz
+	key = tuple(colors), device, fog, active, z
+	if key in tilecache:
+		return tilecache[key]
+	if z == u:
+		if fog == 0:
+			if s == 1:
+				if device is None:
+					img = pygame.Surface((u, u)).convert_alpha()
+					img.fill((0,0,0,0))
+					tnames = ["base-active" if active else "base-inactive"]
+					for j in range(4):
+						tnames.append("%s-%s" % (("blue" if colors[j] else "red"), j))
+					tnames.append("outline")
+					for tname in tnames:
+						img.blit(getimg(tname), (0, 0))
+				else:
+					img = gettileimg(s, colors, None, fog, active, z = u).copy()
+					if device in ("coin", "wall", "1laser0", "1laser1", "1laser2", "1laser3"):
+						img.blit(getimg(device), (0, 0))
+			else:
+				img = pygame.Surface((u*s, u*s)).convert_alpha()
+				img.fill((0,0,0,0))
+				tnames = ["base-active-%s" % s if active else "base-inactive-%s" % s]
+				for j in range(4*s):
+					tnames.append("%s-%s-%s" % (("blue" if colors[j] else "red"), j, s))
+				tnames.append("outline-%s" % s)
+				for tname in tnames:
+					img.blit(getimg(tname), (0, 0))
+					
+		elif fog == settings.penumbra:
+			img = pygame.Surface((u, u)).convert_alpha()
+			img.fill((0,0,0,0))
+		else:
+			img = gettileimg(s, colors, device, 0, active, z).copy()
+			f = getimg("fog")
+			for _ in range(fog):
+				img.blit(f, (0, 0))
+	else:
+		img0 = gettileimg(s, colors, device, fog, active, z = u)
+		img = pygame.transform.smoothscale(img0, (z*s, z*s))
+	tilecache[key] = img
+	return img
+	
+	
+	
 	key = s, tuple(colors), device, fog, active, z
 	if key in tilecache:
 		return tilecache[key]
@@ -88,6 +210,8 @@ def gettileimg(s, colors, device, fog, active, z = None):
 			"power": (0, 255, 255),
 			"wall": (255, 100, 100),
 			"4laser": (128, 128, 255),
+			"2laser0": (255, 144, 0),
+			"2laser1": (255, 100, 0),
 		}[device]
 		pygame.draw.circle(img, color, (w/2, h/2), z//4)
 	if fog == settings.penumbra:
@@ -117,14 +241,24 @@ class SpinTile(Effect):
 		self.dA = dA % 4
 		if self.dA > 2: self.dA -= 4
 		self.state = tile.getstate()
-		self.img0 = gettileimg(tile.s, tile.colors, None, tile.fog, False)
+		self.device = tile.device
+		self.drawon = self.device and ("laser" in self.device)
+		self.drawover = self.device in ("wall", "coin")
+
+		device = self.device if self.drawon else None
+		self.img0 = gettileimg(tile.s, tile.colors, device, tile.fog, False)
 		self.p0 = tile.x + 0.5 * tile.s, tile.y + 0.5 * tile.s
 		tileeffects[(tile.x, tile.y)] = self
 	def draw(self):
 		A = self.dA * min(self.t / self.T, 1)
 		img = pygame.transform.rotozoom(self.img0, -90 * A, 1)
-		rect = img.get_rect(center = worldtoscreen(self.p0))
+		px, py = worldtoscreen(self.p0)
+		rect = img.get_rect(center = (px, py-1))
 		screen.blit(img, rect)
+		if self.drawover:
+			img = deviceimg(self.device, cameraz)
+			rect = img.get_rect(center = (px, py))
+			screen.blit(img, rect)
 
 class FlipTile(Effect):
 	T = 0.25
@@ -146,14 +280,15 @@ class FlipTile(Effect):
 
 class CoinFlipTile(FlipTile):
 	def draw(self):
+		self.drawover = False
 		FlipTile.draw(self)
-		w = abs(int(cameraz/2 * math.cos(3.14 * self.t / self.T)))
+		w = abs(int(cameraz * math.cos(3.14 * self.t / self.T)))
 		x0, y0 = worldtoscreen(self.p0)
 		a = self.t / self.T
 		y0 -= int(cameraz * a * (2 - a))
-		rect = pygame.Rect(0, 0, w, cameraz//2)
-		rect.center = x0, y0
-		pygame.draw.ellipse(screen, (255, 255, 0), rect)
+		img = deviceimg("coin", cameraz)
+		rect = img.get_rect(center = (x0, y0))
+		screen.blit(img, rect)
 
 class SplatEffect(Effect):
 	T = 0.4
@@ -228,12 +363,25 @@ def draw():
 		rect.center = worldtoscreen((monster.x + 0.5, monster.y + 0.5))
 		pygame.draw.ellipse(screen, (0,0,0), rect)
 
+	menu.drawoutsetbox(screen, settings.windowx, 0, settings.hudx, settings.screeny, 4, (20,20,20))
+	img = gettileimg(1, (0,1,0,1), "4laser", 0, False, 60)
+	screen.blit(img, (settings.windowx + 20, 20))
+	img = gettileimg(1, (0,1,0,1), "2laser0", 0, True, 60)
+	screen.blit(img, (settings.windowx + 100, 20))
+
+	cimg = deviceimg("coin", 70)
+	screen.blit(cimg, cimg.get_rect(center = (settings.windowx + 40, settings.screeny - 40)))
+	text.drawtext(screen, "x %s" % clientstate.you.coins,
+		40, (255, 100, 255), (settings.windowx + 70, settings.screeny - 40),
+		anchor="midleft", ocolor=(0,0,0))
+	text.drawtext(screen, "%s XP" % clientstate.you.xp,
+		40, (160, 160, 160), (settings.windowx + 70, settings.screeny - 70),
+		anchor="midleft", ocolor=(0,0,0))
+
+
 	if menu.menu:
 		menu.menu.draw(screen)
 
-	text.drawtext(screen, "Coinz: %s" % clientstate.you.coins,
-		28, (255, 255, 255), (5, settings.screeny - 5),
-		anchor="bottomleft", ocolor=(0,0,0))
 	pygame.display.flip()
 
 def screenshot():
