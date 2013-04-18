@@ -45,9 +45,14 @@ def think(dt):
 	if "select" in inp:
 		if inp["select"] == "qaccept-solo":
 			send("qaccept", menu.top().qinfo["p"], True)
+			menu.pop()
 		if inp["select"] == "qaccept-group":
 			send("qaccept", menu.top().qinfo["p"], False)
-		menu.pop()
+			menu.pop()
+		if inp["select"] == "cancel":
+			menu.pop()
+		if inp["select"] == "next":
+			menu.advance()
 
 	# Process network updates
 	for message in getmessages():
@@ -76,6 +81,10 @@ def think(dt):
 		elif mtype == "qinfo":
 			log.debug("quest info %s", args[0])
 			menu.loadqinfo(*args)
+		elif mtype == "train":
+			menu.loadtraining(*args)
+		elif mtype == "cutscene":
+			menu.loadcutscene(*args)
 		elif mtype == "error":
 			log.warning("ERROR FROM SERVER: %s", args[0])
 
