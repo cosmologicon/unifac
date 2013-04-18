@@ -42,16 +42,24 @@ def getwraptext(text, size, color, width = 400, anchor = "center", fontname = No
 	width -= 2 * d
 	font = getfont(size, fontname = fontname)
 	def choppable(t):
-		return " " in t and font.size(t[:t.rindex(" ")])[0] > width
+		return " " in t and font.size(t[:t.rindex(" ")].replace("~", " "))[0] > width
 	texts = [text]
 	while choppable(texts[-1]):
 		texts.append("")
 		while choppable(texts[-2]):
 			a = texts[-2].rindex(" ")
 			texts[-2:] = texts[-2][:a], texts[-2][a+1:] + (" " + texts[-1] if texts[-1] else "")
+			if "|" in texts[-2]:
+				p = texts[-2].index("|")
+				texts[-1] = texts[-2][p+1:] + texts[-1]
+				texts[-2] = texts[-2][:p]
+	if "|" in texts[-1]:
+		p = texts[-1].index("|")
+		texts.append(texts[-1][p+1:])
+		texts[-2] = texts[-2][:p]
 	#log.debug(texts)
 	imgs = [
-		gettext(t, size, color, fontname = fontname, ocolor = ocolor, d = d)
+		gettext(t.replace("~", " "), size, color, fontname = fontname, ocolor = ocolor, d = d)
 		for t in texts
 	]
 	maxw = max(img.get_width() for img in imgs)

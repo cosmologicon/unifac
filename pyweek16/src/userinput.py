@@ -80,6 +80,11 @@ def menuget():
 		if event.type == MOUSEBUTTONUP:
 			if event.button in dragging and not dragging[event.button]:
 				ret["select"] = menu.menu.checkclick(event.pos)
+		if event.type == KEYDOWN:
+			if event.key == K_ESCAPE:
+				ret["select"] = "cancel"
+			if event.key == K_F12:
+				ret["screenshot"] = True
 		if event.type == QUIT:
 			ret["quit"] = True
 	return ret

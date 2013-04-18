@@ -24,7 +24,7 @@ colors = (255,0,0), (0,0,255), (128, 0, 128)
 
 # for d in `ls pyweek16/data/tile-320` ; do convert pyweek16/data/tile-320/$d -scale 25% pyweek16/data/tile-80/$d ; done
 tileunit = 80
-
+# convert pyweek16/data/tile-320/coin.png -scale 50% pyweek16/data/tile-80/resource.png
 
 
 # Game mechanics - don't mess with these unless you're running your own server!
@@ -49,11 +49,7 @@ devicesize = {
 	"1laser2": 1,
 	"1laser3": 1,
 }
-horizon = {
-	"eye": 10,
-}
 eradius = {
-	"eye": horizon["eye"] + penumbra,
 	"4laser": 3,
 	"2laser0": 3,
 	"2laser1": 3,
@@ -100,6 +96,13 @@ regions = {
 	"1laser2": [(0,1),(0,2),(0,3)],
 	"1laser3": [(-1,0),(-2,0),(-3,0)],
 }
+
+basesdist = 2, 2, 2, 2, 3, 3, 4
+basetdist = "resource ops scan supply".split() * 4 + ["record"]
+basexp = 0, 0, 1, 5, 25
+basecoins = 0, 0, 25, 100, 400
+baserange = 0, 0, 10, 15, 20
+
 
 
 if DEBUG:
