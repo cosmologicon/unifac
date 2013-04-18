@@ -13,7 +13,7 @@ resetlogin = True
 
 
 screenx, screeny = 854, 480
-hudx = 240
+hudx = 260
 windowx = screenx - hudx
 
 zooms = 24, 32, 40, 48, 60, 80
@@ -27,8 +27,7 @@ tileunit = 80
 # convert pyweek16/data/tile-320/coin.png -scale 50% pyweek16/data/tile-80/resource.png
 
 
-# Game mechanics - don't mess with these unless you're running your own server!
-# It WILL break your game!
+# Game mechanics - don't mess with these unless you're running your own server! It will break your game!
 sectorsize = 40
 horizonbuffer = 80  # Number of tiles beyond the edges of the fog to build
 penumbra = 4   # Width of the fog fade line
@@ -58,16 +57,28 @@ eradius = {
 	"1laser2": 3,
 	"1laser3": 3,
 }
+devicexp = {
+	"shuffle": 1,
+	"wall": 1,
+	"mine": 2,
+	"4laser": 3,
+	"2laser0": 3,
+	"2laser1": 3,
+	"1laser0": 3,
+	"1laser1": 3,
+	"1laser2": 3,
+	"1laser3": 3,
+}
 devicecost = {
 	"power": 1,
 	"wall": 1,
-	"4laser": 0,
-	"2laser0": 0,
-	"2laser1": 0,
-	"1laser0": 0,
-	"1laser1": 0,
-	"1laser2": 0,
-	"1laser3": 0,
+	"4laser": 3,
+	"2laser0": 3,
+	"2laser1": 3,
+	"1laser0": 3,
+	"1laser1": 3,
+	"1laser2": 3,
+	"1laser3": 3,
 }
 devicereload = {
 	"4laser": 0.5,

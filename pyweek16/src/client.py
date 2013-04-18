@@ -53,6 +53,10 @@ def think(dt):
 			menu.pop()
 		if inp["select"] == "next":
 			menu.advance()
+	if "hudclick" in inp:
+		vista.handlehudclick(inp["hudclick"])
+		if clientstate.canunlock(inp["hudclick"]):
+			send("unlock", inp["hudclick"])
 
 	# Process network updates
 	for message in getmessages():

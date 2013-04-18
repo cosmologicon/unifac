@@ -151,6 +151,24 @@ def deploy(who, (x, y), device):
 	gridstate.deploy(x, y, device)
 	glock.release()
 	users[who].coins -= settings.devicecost[device]
+def unlock(who, dname):
+	if dname not in settings.devicexp:
+		raise ValueError("Unrecognized device")
+	if users[who].xp < settings.devicexp[dname]:
+		raise ValueError("Not enough XP")
+	if dname in users[who].unlocked:
+		raise ValueError("Already unlocked")
+	users[who].unlocked[dname] = 1
+	if dname[0] == "2":
+		users[who].unlocked[dname[:-1] + "0"] = 1
+		users[who].unlocked[dname[:-1] + "1"] = 1
+	if dname[0] == "1":
+		users[who].unlocked[dname[:-1] + "0"] = 1
+		users[who].unlocked[dname[:-1] + "1"] = 1
+		users[who].unlocked[dname[:-1] + "2"] = 1
+		users[who].unlocked[dname[:-1] + "3"] = 1
+	users[who].xp -= settings.devicexp[dname]
+
 
 def getdelta():
 	glock.acquire()

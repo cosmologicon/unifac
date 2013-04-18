@@ -16,7 +16,7 @@
    version="1.1"
    inkscape:version="0.48.3.1 r9886"
    sodipodi:docname="tile.svg"
-   inkscape:export-filename="/home/christopher/projects/unifac/pyweek16/data/tile/2laser0.png"
+   inkscape:export-filename="/home/christopher/projects/unifac/pyweek16/data/tile-320/ops.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
   <defs
@@ -293,7 +293,7 @@
        transform="matrix(0,-1,1,0,0,0)" />
   </g>
   <g
-     style="display:inline"
+     style="display:none"
      inkscape:label="outline"
      id="g3809"
      inkscape:groupmode="layer">
@@ -472,7 +472,7 @@
      inkscape:groupmode="layer"
      id="layer9"
      inkscape:label="ops"
-     style="display:none">
+     style="display:inline">
     <rect
        style="fill:#828282;fill-opacity:1;stroke:#000000;stroke-width:3;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
        id="rect3962"
@@ -666,12 +666,13 @@
   <g
      inkscape:groupmode="layer"
      id="layer12"
-     inkscape:label="record">
+     inkscape:label="record"
+     style="display:none">
     <g
        id="g4019"
        transform="matrix(-0.24616751,-0.9692273,0.9692273,-0.24616751,-665.51539,1267.1092)">
       <path
-         d="m 300,892.36218 c 0,77.31987 -62.68014,140.00002 -140,140.00002 -77.319865,0 -140,-62.68015 -140,-140.00002 0,-77.31986 62.680135,-140 140,-140 77.31986,0 140,62.68014 140,140 z"
+         d="m 300,892.36218 a 140,140 0 1 1 -280,0 140,140 0 1 1 280,0 z"
          sodipodi:ry="140"
          sodipodi:rx="140"
          sodipodi:cy="892.36218"
@@ -690,10 +691,10 @@
          sodipodi:cy="892.36218"
          sodipodi:rx="140"
          sodipodi:ry="140"
-         d="M 162.22343,1032.3445 C 84.913319,1033.5725 21.245625,971.89573 20.017657,894.58561 18.789689,817.2755 80.466454,753.60781 157.77657,752.37984 c 1.19192,-0.0189 2.38404,-0.0226 3.57606,-0.0111" />
+         d="m 162.22343,1032.3445 a 140,140 0 1 1 -0.8708,-279.97578" />
       <path
          transform="matrix(-0.50000239,0,0,-0.50000239,241.11174,1408.5454)"
-         d="M 162.22343,1032.3445 C 84.913319,1033.5725 21.245625,971.89573 20.017657,894.58561 18.789689,817.2755 80.466454,753.60781 157.77657,752.37984 c 1.19192,-0.0189 2.38404,-0.0226 3.57606,-0.0111"
+         d="m 162.22343,1032.3445 a 140,140 0 1 1 -0.8708,-279.97578"
          sodipodi:ry="140"
          sodipodi:rx="140"
          sodipodi:cy="892.36218"
@@ -715,7 +716,7 @@
          sodipodi:cy="892.36218"
          sodipodi:rx="140"
          sodipodi:ry="140"
-         d="M 162.22343,1032.3445 C 84.913319,1033.5725 21.245625,971.89573 20.017657,894.58561 18.789689,817.2755 80.466454,753.60781 157.77657,752.37984 c 1.19192,-0.0189 2.38404,-0.0226 3.57606,-0.0111"
+         d="m 162.22343,1032.3445 a 140,140 0 1 1 -0.8708,-279.97578"
          transform="matrix(0.49999572,0.00258263,-0.00258263,0.49999572,87.304727,376.13326)" />
     </g>
   </g>
