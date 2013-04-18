@@ -13,7 +13,7 @@ def main():
 			client.think(dt)
 			if not client.started:
 				continue
-			vista.think(dt)
+			vista.think(min(dt, 0.05))
 			vista.draw()
 		log.debug("Completing client.playing loop")
 	pygame.quit()

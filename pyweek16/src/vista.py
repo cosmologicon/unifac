@@ -77,7 +77,8 @@ imgcache = {}
 def getimg(name):
 	if name in imgcache:
 		return imgcache[name]
-	if name in ("base-active", "base-inactive", "outline", "red-0", "blue-0", "fog", "coin", "wall", "1laser0"):
+	if name in ("base-active", "base-inactive", "outline", "red-0", "blue-0", "fog", "coin", "wall", "1laser0",
+			"resource", "ops", "supply", "scan", "record"):
 		img = pygame.image.load(data.filepath("tile-%s" % u, name + ".png")).convert_alpha()
 	elif name[:-1] in ("red-", "blue-", "1laser"):
 		color, a = name[:-1], int(name[-1])
@@ -169,6 +170,10 @@ def gettileimg(s, colors, device, fog, active, z = None):
 				tnames.append("outline-%s" % s)
 				for tname in tnames:
 					img.blit(getimg(tname), (0, 0))
+				if device:
+					dimg = getimg(device[2:])
+					rect = dimg.get_rect(center = img.get_rect().center)
+					img.blit(dimg, rect)
 					
 		elif fog == settings.penumbra:
 			img = pygame.Surface((u, u)).convert_alpha()
@@ -244,6 +249,9 @@ class SpinTile(Effect):
 		self.device = tile.device
 		self.drawon = self.device and ("laser" in self.device)
 		self.drawover = self.device in ("wall", "coin")
+		if self.device and self.device[:2] in ("b2", "b3", "b4", "b5"):
+			self.drawover = True
+			self.device = tile.device[2:]
 
 		device = self.device if self.drawon else None
 		self.img0 = gettileimg(tile.s, tile.colors, device, tile.fog, False)
@@ -379,8 +387,8 @@ def draw():
 		anchor="midleft", ocolor=(0,0,0))
 
 
-	if menu.menu:
-		menu.menu.draw(screen)
+	if menu.stack:
+		menu.top().draw(screen)
 
 	pygame.display.flip()
 

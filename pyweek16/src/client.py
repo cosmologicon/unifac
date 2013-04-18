@@ -44,10 +44,10 @@ def think(dt):
 		send("qrequest", inp["qrequest"])
 	if "select" in inp:
 		if inp["select"] == "qaccept-solo":
-			send("qaccept", menu.menu.qinfo["p"], True)
+			send("qaccept", menu.top().qinfo["p"], True)
 		if inp["select"] == "qaccept-group":
-			send("qaccept", menu.menu.qinfo["p"], False)
-		menu.menu = None
+			send("qaccept", menu.top().qinfo["p"], False)
+		menu.pop()
 
 	# Process network updates
 	for message in getmessages():

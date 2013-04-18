@@ -60,14 +60,10 @@ def randomnewcolors(oldcolors):
 		return r
 
 
-# What sectors must be prebuilt when this device is active?
-def horizonsectors(tile):
-	if tile.device not in settings.horizon:
-		return []
-	r = settings.horizon[tile.device] + settings.horizonbuffer
-	sx0, sx1 = (tile.x - r) // settings.sectorsize, (tile.x + r) // settings.sectorsize
-	sy0, sy1 = (tile.y - r) // settings.sectorsize, (tile.y + r) // settings.sectorsize
-	print "horizonsectors", tile.x, tile.y, r, sx0, sx1, sy0, sy1
+# What sectors must be prebuilt when this device is unlocked?
+def horizonsectors(x, y, r):
+	sx0, sx1 = (x - r) // settings.sectorsize, (x + r) // settings.sectorsize
+	sy0, sy1 = (y - r) // settings.sectorsize, (y + r) // settings.sectorsize
 	return [(sx, sy) for sx in range(sx0, sx1+1) for sy in range(sy0, sy1+1)]
 
 # Tiles adjacent to the tile at (x,y)

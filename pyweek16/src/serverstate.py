@@ -16,31 +16,64 @@ pwatch = {}
 update.monsters = monsters = {}
 quests = []
 
+def choosebases(n = 20):
+	bases = []
+	d2 = 0.2 * settings.sectorsize ** 2
+	while len(bases) < n:
+		x = random.randint(0, settings.sectorsize)
+		y = random.randint(0, settings.sectorsize)
+		s = random.choice(settings.basesdist)
+		t = random.choice(settings.basetdist)
+		if s == 2 and t == "record":
+			continue
+		if x + s >= settings.sectorsize or y + s >= settings.sectorsize:
+			continue
+		overlap = any((x - bx) ** 2 + (y - by) ** 2 < d2 for bx, by, bs, bt in bases)
+		if overlap:
+			d2 *= 0.9
+			continue
+		d2 = max(0.2 * settings.sectorsize ** 2, 2 * 4 ** 2)
+		bases.append((x, y, s, t))
+	return bases
+	
 
 def makesector(sx, sy):
 	if (sx, sy) in gridstate.sectors:
 		return
 	glock.acquire()
 	gridstate.fillsector(sx, sy)
-	for x in (5, 15, 25, 35):
-		for y in (5, 15, 25, 35):
-			gridstate.putdevice(sx*settings.sectorsize+x, sy*settings.sectorsize+y, "eye", random.choice((2,3,4)))
-	util.solvefog(gridstate, sx, sy)
+	x0, y0 = settings.sectorsize*sx, settings.sectorsize*sy
+	for x, y, s, t in choosebases(20):
+		gridstate.putdevice(x0+x, y0+y, "b%s%s" % (s, t), s)
+#	util.solvefog(gridstate, sx, sy)
 	glock.release()
+
+
+def getbaseradius(dname):
+	s, t = int(dname[1]), dname[:2]
+	r = settings.baserange[s]
+	if t == "scan":
+		r *= 2
+	return r
 
 # Uncover fog
 def sweepnode(x, y):
 	glock.acquire()
-	for sx, sy in util.horizonsectors(gridstate.getbasetile(x, y)):
+	tile = gridstate.getbasetile(x, y)
+	x += tile.s // 2
+	y += tile.s // 2
+	r = getbaseradius(tile.device)
+	for sx, sy in util.horizonsectors(x, y, r + settings.horizonbuffer):
 		makesector(sx, sy)
-	tile = gridstate.getrawtile(x, y)
-	r = settings.horizon[tile.device]
-	util.removefog(gridstate, x + tile.s//2, y + tile.s//2, r)
+	util.removefog(gridstate, x, y, r)
 	glock.release()
 
 makesector(0, 0)
-sweepnode(5, 5)
-sweepnode(-5, -5)
+for d, devices in gridstate.sectors[(0,0)].devices.items():
+	if not d.startswith("b"):
+		continue
+	for t in devices:
+		sweepnode(t.x, t.y)
 
 #quests.append(
 #	quest.Quest(None, gridstate.getrawtile(5, 0))
@@ -50,7 +83,6 @@ def resetupdate():
 	update.effects = []
 	update.monsterdelta = []
 resetupdate()
-print "md", update.monsterdelta
 
 def addrandommonster():
 	x = random.randint(-10, 20)
@@ -145,17 +177,27 @@ def questinfo(who, (x, y)):
 	tile = gridstate.getbasetile(x, y)
 	if not tile:
 		return None
-	if tile.device not in ("base", "eye",):
+	if tile.device[0:2] not in ("b2", "b3", "b4"):
 		return None
 	# TODO: make sure you can only quest on tiles you haven't already beaten
+	s, t = int(tile.device[1]), tile.device[2:]
 	qinfo = {
 		"p": (x, y),
-		"xp": 2,
-		"coins": 3,
-		"range": 10,
-		"difficulty": 0,
-		"bonus": False,
+		"xp": settings.basexp[s],
+		"coins": settings.basecoins[s],
+		"range": settings.baserange[s],
+		"difficulty": ["", "", "easy", "medium", "hard"][s],
+		"bonus": t == "supply",
+		"story": t == "record",
+		"s": s,
+		"t": t,
 	}
+	if t == "resource":
+		qinfo["coins"] *= 2
+	if t == "ops":
+		qinfo["xp"] *= 2
+	if t == "scan":
+		qinfo["range"] *= 2
 	return qinfo
 
 def initquest(who, p, solo, qinfo):
