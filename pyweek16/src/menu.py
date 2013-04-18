@@ -95,7 +95,7 @@ class Menu(object):
 
 	def addorders(self, t):
 		text.drawtext(self.surf, t, 32, (0, 255, 0), (self.rect.x + 20, self.rect.y + 20),
-			ocolor = (0,0,0), anchor="topleft", width = self.rect.width - 360)
+			ocolor = (0,0,0), anchor="topleft", width = self.rect.width - 380)
 
 	def adddialog(self, t):
 		text.drawtext(self.surf, t, 32, (255, 128, 0), (self.rect.centerx, self.rect.y + 200),
@@ -160,6 +160,24 @@ def loadtraining(tname):
 			menu.adddiagram(diagram)
 		menu.addnav()
 		lastmenu = menu
+
+def loadunlockboss(bosscode):
+	menu = Menu()
+	stack.append(menu)
+
+	texts = dialog.unlockboss
+	lastmenu = None
+	for t in texts:
+		if "%s" in t:
+			t = t % bosscode
+		if lastmenu:
+			menu = Menu()
+			lastmenu.next = menu
+		menu.addcaptain()
+		menu.addorders(t)
+		menu.addnav()
+		lastmenu = menu
+
 
 def loadcutscene(sname):
 	menu = Menu()

@@ -9,6 +9,7 @@ def init():
 	global screen
 	pygame.font.init()
 	screen = pygame.display.set_mode((settings.screenx, settings.screeny))
+	pygame.display.set_caption("Last Will of the Emtar")
 
 camerax0, cameray0 = 200, 200
 cameraz = 40
@@ -406,6 +407,9 @@ def drawhud():
 	text.drawtext(screen, "%s XP" % clientstate.you.xp,
 		40, (160, 160, 160), (settings.windowx + 70, settings.screeny - 70),
 		anchor="midleft", ocolor=(0,0,0))
+
+	if clientstate.you.trained < 3:
+		return
 	
 	for dname, rect in hudrects.items():
 		if dname == "none":

@@ -97,6 +97,10 @@ def think(dt):
 			clientstate.you.trained = args[0]
 		elif mtype == "cutscene":
 			menu.loadcutscene(*args)
+		elif mtype == "unlockboss":
+			bosscode = args[0]
+			open(data.filepath("bosscode.txt", "w")).write("%s\n" % bosscode)
+			menu.loadunlockboss(bosscode)
 		elif mtype == "error":
 			log.warning("ERROR FROM SERVER: %s", args[0])
 

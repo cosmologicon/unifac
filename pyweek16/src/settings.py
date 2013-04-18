@@ -115,6 +115,8 @@ basecoins = 0, 0, 25, 100, 400
 baserange = 0, 0, 10, 15, 20
 
 
+bosscode = "12345"
+
 
 if DEBUG:
 	logging.basicConfig(
