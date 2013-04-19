@@ -1,5 +1,5 @@
 import random, logging, math
-import monster, update, util
+import monster, update, util, settings
 
 log = logging.getLogger(__name__)
 
@@ -15,13 +15,14 @@ class Quest(object):
 		self.y0 = tile.y + tile.s // 2
 		self.p0 = self.x0, self.y0
 		self.monsters = []
-		self.r = 7   # spawn radius
-		self.n = 7  # max simultaneous monsters
-		self.T = 10
+		diff = qinfo["difficulty"]
+		self.r = settings.questr[diff]   # spawn radius
+		self.n = settings.questn[diff]  # max simultaneous monsters
+		self.T = settings.questT[diff]
 		self.progress = self.T * 0.1
 	# Tiles to lock down if this quest is in solo mode
 	def tiles(self):
-		R = self.r + 2
+		R = self.r + 3
 		for dx in range(-R, R):
 			for dy in range(-R, R):
 				if dx ** 2 + dy ** 2 <= R ** 2:
@@ -48,7 +49,12 @@ class Quest(object):
 		y = int(self.state0["y"] + self.r * math.cos(a))
 		if not update.grid.canmoveto(x, y) or (x,y) in update.monsters:
 			return
-		m = monster.Monster({ "name": util.randomname(), "x": x, "y": y, "target": self.p0 })
+		m = monster.Monster({
+			"name": util.randomname(),
+			"x": x, "y": y,
+			"target": self.p0,
+			"hp": random.choice((1,2,3)),
+		})
 		self.monsters.append(m)
 		update.monsters[(x,y)] = m
 		update.monsterdelta.append(m.getstate())

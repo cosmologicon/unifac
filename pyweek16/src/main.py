@@ -15,8 +15,6 @@ def main():
 				continue
 			vista.think(min(dt, 0.05))
 			vista.draw()
-		log.debug("Completing client.playing loop")
 	pygame.quit()
-	log.debug("quitting")
 
 

@@ -29,9 +29,14 @@ def think(dt):
 		if clientstate.canquest(x, y):
 			send("qrequest", inp["mtile"])
 		elif clientstate.gridstate.canrotate(x, y):
-			vista.SpinTile(clientstate.gridstate.getbasetile(x, y), dA)
-			clientstate.gridstate.rotate(x, y, dA)
-			send("rotate", (x, y), dA)
+			if vista.selected == "shuffle":
+				pass
+			elif vista.selected:
+				send("deploy", (x, y), vista.selected)
+			else:
+				vista.SpinTile(clientstate.gridstate.getbasetile(x, y), dA)
+				clientstate.gridstate.rotate(x, y, dA)
+				send("rotate", (x, y), dA)
 	if "drag" in inp:
 		if vista.drag(*inp["drag"]):
 			send("watch", *vista.p0())
@@ -154,7 +159,6 @@ class SocketThread(threading.Thread):
 			addmessage(message)
 		stop()
 	def stop(self):
-		log.debug("Stopping socket thread")
 		self.stopevent.set()
 		socket.close()
 

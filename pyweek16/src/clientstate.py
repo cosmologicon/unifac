@@ -65,7 +65,10 @@ def canquest(x, y):
 		return False
 	return True
 
+qstatus = None
+def qupdate(qprogress, qT):
+	global qstatus
+	qstatus = qprogress, qT
 
-def qupdate(*args):
-	print "quest update", args
+
 
