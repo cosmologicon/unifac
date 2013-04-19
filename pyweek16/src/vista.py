@@ -389,11 +389,18 @@ def draw():
 selected = None
 huds = 60
 hudrects = {
-	"none": (settings.windowx + 20, 20, huds, huds),
-	"wall": (settings.windowx + 100, 20, huds, huds),
-	"4laser": (settings.windowx + 180, 20, huds, huds),
-	"2laser0": (settings.windowx + 20, 100, huds, huds),
-	"1laser0": (settings.windowx + 100, 180, huds, huds),
+	"none":      (settings.windowx +  20,  20, huds, huds),
+	"shuffle":   (settings.windowx + 100,  20, huds, huds),
+	"wall":      (settings.windowx + 180,  20, huds, huds),
+	"1laser0":   (settings.windowx +  20, 100, huds, huds),
+	"2laser0":   (settings.windowx + 100, 100, huds, huds),
+	"4laser":    (settings.windowx + 180, 100, huds, huds),
+	"1blaster0": (settings.windowx +  20, 180, huds, huds),
+	"mine":      (settings.windowx + 100, 180, huds, huds),
+	"adjmine":   (settings.windowx + 180, 180, huds, huds),
+	"shield":    (settings.windowx +  20, 260, huds, huds),
+	"1shield0":  (settings.windowx + 100, 260, huds, huds),
+	"special":   (settings.windowx + 180, 260, huds, huds),
 }
 
 def drawhud():
@@ -408,13 +415,19 @@ def drawhud():
 		40, (160, 160, 160), (settings.windowx + 70, settings.screeny - 70),
 		anchor="midleft", ocolor=(0,0,0))
 
+	if clientstate.qstatus:
+		text.drawtext(screen, "Unlocking node: %s/%s" % clientstate.qstatus,
+			40, (255, 255, 255), (10, 10), anchor="topleft", ocolor=(0,0,0))
+
 	if clientstate.you.trained < 3:
 		return
 	
 	for dname, rect in hudrects.items():
+		if dname == "special" and not clientstate.you.special:
+			continue
 		if dname == "none":
 			device = None
-			active = True
+			active = False
 		else:
 			device = dname
 			active = selected == dname

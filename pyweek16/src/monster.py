@@ -1,14 +1,15 @@
 import random, logging
-import util, update
+import util, update, settings
 
 log = logging.getLogger(__name__)
 
 
 class Monster(util.serializable):
 	fields = "name x y target steptime alive t hp".split()
-	defaults = {"steptime": 3, "target": None, "hp": 1, "alive": True, "t": 0}
+	defaults = {"steptime": 3, "target": None, "hp": 3, "alive": True, "t": 0}
 	def __init__(self, *args, **kw):
 		util.serializable.__init__(self, *args, **kw)
+		self.wallstop = 0
 	# Returns True if state changed
 	def think(self, dt):
 		self.t += dt
@@ -29,11 +30,19 @@ class Monster(util.serializable):
 			return
 		if (x,y) in update.monsters:
 			return
+		tile = update.grid.getbasetile(self.x, self.y)
+		if tile and tile.active and tile.device == "wall":
+			if self.wallstop < 3:
+				self.wallstop += 1
+				return
+			ncolors = util.randomnewcolors(tile.colors)
+			update.grid.changecolors(self.x, self.y, ncolors)
 		update.effects.append(["step", self.x, self.y, x, y])
 		del update.monsters[(self.x, self.y)]
 		self.x, self.y = x, y
 		update.monsters[(self.x, self.y)] = self
 		update.monsterdelta.append(self.getstate())
+		self.wallstop = 0
 	def splat(self):
 		update.effects.append(["splat", self.x, self.y])
 		if not update.grid.shielded(self.x, self.y):
@@ -48,14 +57,18 @@ class Monster(util.serializable):
 		del update.monsters[(self.x, self.y)]
 		update.monsterdelta.append(self.getstate())
 
-	# Definitely not sure of this logic yet...
 	def splathere(self):
 		tile = update.grid.getrawtile(self.x, self.y)
-		if tile and tile.active:
-			return True
 		target = update.grid.getbasetile(*self.target)
 		if target.isneighbor(self.x, self.y):
 			return True
+		if tile and tile.active and tile.device not in (None, "wall", "coin"):
+			return True
+		if random.random() < 0.25:
+			for dx, dy in settings.ds:
+				tile = update.grid.getrawtile(self.x + dx, self.y + dy)
+				if tile and tile.active and tile.device not in (None, "wall", "coin"):
+					return True
 		return False
 
 	def choosestep(self):

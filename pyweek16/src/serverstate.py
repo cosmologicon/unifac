@@ -126,7 +126,7 @@ def think(dt):
 
 shots = {}
 def devicethink(dt, x, y, d):
-	if "laser" in d.device:
+	if "laser" in d.device or "blaster" in d.device:
 		if (x, y) in shots and shots[(x, y)] > 0:  # weapon reload
 			shots[(x,y)] -= dt
 			return
@@ -135,11 +135,20 @@ def devicethink(dt, x, y, d):
 			if (px, py) in monsters:
 				if monsters[(px, py)] < 0.5:
 					continue
-				monsters[(px, py)].hurt(1)
+				monsters[(px, py)].hurt(1 if "laser" in d.device else 3)  # laser = 1, blaster = 3
 				shots[(px, py)] = settings.devicereload[d.device]
 				update.effects.append(["laser", x, y, px, py])
 				break
-
+	if "mine" in d.device:
+		for dx, dy in settings.regions[d.device]:
+			px, py = x + dx, y + dy
+			if (px, py) in monsters:
+				if monsters[(px, py)] < 0.5:
+					continue
+				monsters[(px, py)].hurt(3)
+				update.effects.append(["bomb", ])
+				break
+		
 
 # Returns a list of tiles whose activation state changed
 def canrotate(who, (x, y)):
