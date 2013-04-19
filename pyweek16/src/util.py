@@ -39,6 +39,18 @@ def cycle(array, n):
 def rotate(s, colors, dA):
 	return cycle(colors, 3 * s * dA)
 
+def rdevice(device, dA):
+	if not device:
+		return device
+	if device[0] == "2":
+		return device[:-1] + str((int(device[-1]) + dA) % 2)
+	if device[0] == "1":
+		return device[:-1] + str((int(device[-1]) + dA) % 4)
+	return device		
+
+def spin(s, colors, device, dA):
+	return rotate(s, colors, dA), rdevice(device, dA)
+
 def randomcolors(s):
 	if s == 1:
 		rs = (0, 0, 0, 1), (0, 0, 1, 1), (0, 1, 0, 1), (0, 1, 1, 1)

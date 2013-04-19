@@ -1,4 +1,4 @@
-import pygame, math, logging
+import pygame, math, logging, os.path
 import settings, clientstate, data, util, menu, text
 
 log = logging.getLogger(__name__)
@@ -78,10 +78,9 @@ imgcache = {}
 def getimg(name):
 	if name in imgcache:
 		return imgcache[name]
-	if name in ("base-active", "base-inactive", "outline", "red-0", "blue-0", "fog", "coin", "wall", "1laser0",
-			"resource", "ops", "supply", "scan", "record"):
+	if os.path.exists(data.filepath("tile-%s" % u, name + ".png")):
 		img = pygame.image.load(data.filepath("tile-%s" % u, name + ".png")).convert_alpha()
-	elif name[:-1] in ("red-", "blue-", "1laser"):
+	elif name[:-1] in ("red-", "blue-", "1laser", "2laser", "1blaster", "1dshield"):
 		color, a = name[:-1], int(name[-1])
 		img = pygame.transform.rotate(getimg("%s0" % color), -90 * a)
 	elif name[:-1] in ("base-active-", "base-inactive-", "outline-", "fog-"):
@@ -89,7 +88,6 @@ def getimg(name):
 		s = int(name[-1])
 		img = pygame.Surface((u*s, u*s)).convert_alpha()
 		img.fill((0,0,0,0))
-		print name, s
 		# I can do this much more cleverly, really I can, but it's late and I just want to see how it looks.
 		for x in range(2*s+1):
 			for y in range(2*s+1):
@@ -143,7 +141,7 @@ def deviceimg(device, z):
 tilecache = {}
 def gettileimg(s, colors, device, fog, active, locked = False, z = None):
 	z = z or cameraz
-	key = tuple(colors), device, fog, active, locked, z
+	key = (colors and tuple(colors)), device, fog, active, locked, z
 	if key in tilecache:
 		return tilecache[key]
 	if z == u:
@@ -156,21 +154,23 @@ def gettileimg(s, colors, device, fog, active, locked = False, z = None):
 					img = pygame.Surface((u, u)).convert_alpha()
 					img.fill((0,0,0,0))
 					tnames = ["base-active" if active else "base-inactive"]
-					for j in range(4):
-						tnames.append("%s-%s" % (("blue" if colors[j] else "red"), j))
+					if colors:
+						for j in range(4):
+							tnames.append("%s-%s" % (("blue" if colors[j] else "red"), j))
 					tnames.append("outline")
 					for tname in tnames:
 						img.blit(getimg(tname), (0, 0))
 				else:
 					img = gettileimg(s, colors, None, fog, active, locked, z = u).copy()
-					if device in ("coin", "wall", "1laser0", "1laser1", "1laser2", "1laser3"):
+					if device in settings.devicesize:
 						img.blit(getimg(device), (0, 0))
 			else:
 				img = pygame.Surface((u*s, u*s)).convert_alpha()
 				img.fill((0,0,0,0))
 				tnames = ["base-active-%s" % s if active else "base-inactive-%s" % s]
-				for j in range(4*s):
-					tnames.append("%s-%s-%s" % (("blue" if colors[j] else "red"), j, s))
+				if colors:
+					for j in range(4*s):
+						tnames.append("%s-%s-%s" % (("blue" if colors[j] else "red"), j, s))
 				tnames.append("outline-%s" % s)
 				for tname in tnames:
 					img.blit(getimg(tname), (0, 0))
@@ -190,46 +190,6 @@ def gettileimg(s, colors, device, fog, active, locked = False, z = None):
 	else:
 		img0 = gettileimg(s, colors, device, fog, active, locked, z = u)
 		img = pygame.transform.smoothscale(img0, (z*s, z*s))
-	tilecache[key] = img
-	return img
-	
-	
-	
-	key = s, tuple(colors), device, fog, active, z
-	if key in tilecache:
-		return tilecache[key]
-	s, w, h = s, s * z, s * z
-	img = pygame.Surface((w, h)).convert_alpha()
-	img.fill((0,0,0,0))
-	bcolor = (100, 140, 0) if active else (100, 100, 100)
-	img.fill(bcolor, (1,1, w-2,h-2))
-	rs = (
-		[(z//4+z*j, 1, z//2, 5) for j in range(s)] +
-		[(w-6, z//4+z*j, 5, z//2) for j in range(s)] +
-		[(z//4+z*(s-j-1), h-6, z//2, 5) for j in range(s)] +
-		[(1, z//4+z*(s-j-1), 5, z//2) for j in range(s)]
-	)
-	for rect, colorcode in zip(rs, colors):
-		img.fill(settings.colors[colorcode], rect)
-	if device:
-		color = {
-			"eye": (255, 0, 255),
-			"base": (0, 0, 0),
-			"coin": (255, 255, 0),
-			"power": (0, 255, 255),
-			"wall": (255, 100, 100),
-			"4laser": (128, 128, 255),
-			"2laser0": (255, 144, 0),
-			"2laser1": (255, 100, 0),
-		}[device]
-		pygame.draw.circle(img, color, (w/2, h/2), z//4)
-	if fog == settings.penumbra:
-		img.fill((0,0,0))
-	else:
-		mask = pygame.Surface((w, h)).convert_alpha()
-		mask.fill((0,0,0,140))
-		for _ in range(fog):
-			img.blit(mask, (0, 0))
 	tilecache[key] = img
 	return img
 
@@ -355,6 +315,7 @@ def think(dt):
 def draw():
 	screen.fill((0,0,0))
 	visibleeffects = []
+	shields = []
 	for x, y in visibletiles():
 		if (x, y) in tileeffects:
 			visibleeffects.append(tileeffects[(x, y)])
@@ -362,22 +323,44 @@ def draw():
 		tile = clientstate.gridstate.getrawtile(x, y)
 		if not tile:
 			continue
-		locked = tile.lock # and tile.lock != clientstate.you.username
+		locked = tile.lock and tile.lock != clientstate.you.username
 		img = gettileimg(tile.s, tile.colors, tile.device, tile.fog, tile.active, locked)
 		screen.blit(img, worldtoscreen((x, y)))
+		if tile.active and tile.device and "shield" in tile.device:
+			shields.append(tile)
 	visibleeffects.extend(effects)
 	for effect in visibleeffects:
 		effect.draw()
 	nodraws = [e.p1 for e in effects if isinstance(e, StepEffect)]
+	import time
 	for monster in clientstate.monsters.values():
 		if (monster.x, monster.y) in nodraws:
 			continue
-		import time
 		s = 1 + 0.3 * math.sin(7 * time.time())
 		a = [0.2, 0.3, 0.5, 0.7][monster.hp]
 		rect = pygame.Rect(0, 0, int(a * cameraz * s), int(a * cameraz / s))
 		rect.center = worldtoscreen((monster.x + 0.5, monster.y + 0.5))
 		pygame.draw.ellipse(screen, (0,0,0), rect)
+
+	a = (time.time() / 1.4) % 1
+	if a < 0.2:
+		a *= 5
+		for shield in shields:
+			x0, y0 = shield.x + 0.5, shield.y + 0.5
+			r = int(0.2 * cameraz)
+			if shield.device == "shield":
+				pygame.draw.circle(screen, (0, 255, 100), worldtoscreen((x0 + 1.4*a, y0)), r, 3)
+				pygame.draw.circle(screen, (0, 255, 100), worldtoscreen((x0 - 1.4*a, y0)), r, 1)
+				pygame.draw.circle(screen, (0, 255, 100), worldtoscreen((x0, y0 + 1.4*a)), r, 1)
+				pygame.draw.circle(screen, (0, 255, 100), worldtoscreen((x0, y0 - 1.4*a)), r, 1)
+			if shield.device == "1dshield0":
+				pygame.draw.circle(screen, (0, 255, 100), worldtoscreen((x0, y0 - 3.4*a)), r, 3)
+			if shield.device == "1dshield1":
+				pygame.draw.circle(screen, (0, 255, 100), worldtoscreen((x0 + 3.4*a, y0)), r, 3)
+			if shield.device == "1dshield2":
+				pygame.draw.circle(screen, (0, 255, 100), worldtoscreen((x0, y0 + 3.4*a)), r, 3)
+			if shield.device == "1dshield3":
+				pygame.draw.circle(screen, (0, 255, 100), worldtoscreen((x0 - 3.4*a, y0)), r, 3)
 
 	drawhud()
 
@@ -399,7 +382,7 @@ hudrects = {
 	"mine":      (settings.windowx + 100, 180, huds, huds),
 	"adjmine":   (settings.windowx + 180, 180, huds, huds),
 	"shield":    (settings.windowx +  20, 260, huds, huds),
-	"1shield0":  (settings.windowx + 100, 260, huds, huds),
+	"1dshield0":  (settings.windowx + 100, 260, huds, huds),
 	"special":   (settings.windowx + 180, 260, huds, huds),
 }
 
@@ -410,14 +393,14 @@ def drawhud():
 	screen.blit(cimg, cimg.get_rect(center = (settings.windowx + 40, settings.screeny - 40)))
 	text.drawtext(screen, "x %s" % clientstate.you.coins,
 		40, (255, 100, 255), (settings.windowx + 70, settings.screeny - 40),
-		anchor="midleft", ocolor=(0,0,0))
+		anchor="midleft", ocolor=(0,0,0), fontname="RacingSansOne")
 	text.drawtext(screen, "%s XP" % clientstate.you.xp,
 		40, (160, 160, 160), (settings.windowx + 70, settings.screeny - 70),
-		anchor="midleft", ocolor=(0,0,0))
+		anchor="midleft", ocolor=(0,0,0), fontname="RacingSansOne")
 
 	if clientstate.qstatus:
-		text.drawtext(screen, "Unlocking node: %s/%s" % clientstate.qstatus,
-			40, (255, 255, 255), (10, 10), anchor="topleft", ocolor=(0,0,0))
+		text.drawtext(screen, "Unlocking node: %d/%d" % clientstate.qstatus,
+			40, (255, 255, 255), (10, 10), anchor="topleft", ocolor=(0,0,0), fontname="Homenaje")
 
 	if clientstate.you.trained < 3:
 		return
@@ -431,12 +414,12 @@ def drawhud():
 		else:
 			device = dname
 			active = selected == dname
-		img = gettileimg(1, (0,0,1,1), device, 0, active, z=huds)
+		img = gettileimg(1, None, device, 0, active, z=huds)
 		rect = pygame.Rect(rect)
 		screen.blit(img, rect)
 		if device in settings.devicexp and device not in clientstate.you.unlocked:
-			text.drawtext(screen, "%sXP" % settings.devicexp[device], 48, (0,0,0),
-				rect.center, anchor="center", ocolor=(255, 255, 255), d=2)
+			text.drawtext(screen, "%sxp" % settings.devicexp[device], 36, (0,0,0),
+				rect.center, anchor="center", ocolor=(255, 255, 255), d=2, fontname="Viga")
 			screen.set_at(rect.center, (255,0,0))
 	if hudpoint:
 		unlocked = hudpoint in clientstate.you.unlocked

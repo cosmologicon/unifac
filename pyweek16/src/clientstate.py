@@ -1,5 +1,5 @@
 import logging
-import grid, player, vista, monster, menu, settings
+import grid, player, vista, monster, menu, settings, util
 
 log = logging.getLogger(__name__)
 
@@ -13,13 +13,25 @@ def makeeffect(oldstate, newstate):
 	diffs = dict((field, oldstate[field] != newstate[field]) for field in grid.Tile.fields)
 	diffs["colors"] = tuple(oldstate["colors"]) != tuple(newstate["colors"])
 	assert not diffs["x"] and not diffs["y"] and not diffs["s"]
+	if not diffs["colors"] and not diffs["device"]:
+		return None
+	for dA in (1,2,3):
+		nstate = tuple(newstate["colors"]), newstate["device"]
+		if nstate == util.spin(oldstate["s"], oldstate["colors"], oldstate["device"], dA):
+			return vista.SpinTile(gridstate.getbasetile(oldstate["x"], oldstate["y"]), dA)
+			
+
+
 	if diffs["device"] and not diffs["colors"]:
 		if oldstate["device"] == "coin":
-			vista.CoinFlipTile(oldstate, newstate)
+			return vista.CoinFlipTile(oldstate, newstate)
 			#log.debug("CoinFlipTile effect created")
 		else:
-			vista.FlipTile(oldstate, newstate)
+			return vista.FlipTile(oldstate, newstate)
 			#log.debug("FlipTile effect created")
+		return
+
+
 	if diffs["colors"]:
 		vista.FlipTile(oldstate, newstate)
 		#log.debug("FlipTile effect created")

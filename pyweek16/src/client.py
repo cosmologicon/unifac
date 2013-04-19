@@ -29,9 +29,7 @@ def think(dt):
 		if clientstate.canquest(x, y):
 			send("qrequest", inp["mtile"])
 		elif clientstate.gridstate.canrotate(x, y):
-			if vista.selected == "shuffle":
-				pass
-			elif vista.selected:
+			if vista.selected:
 				send("deploy", (x, y), vista.selected)
 			else:
 				vista.SpinTile(clientstate.gridstate.getbasetile(x, y), dA)

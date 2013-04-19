@@ -36,7 +36,8 @@ class Monster(util.serializable):
 				self.wallstop += 1
 				return
 			ncolors = util.randomnewcolors(tile.colors)
-			update.grid.changecolors(self.x, self.y, ncolors)
+			update.grid.rotate(self.x, self.y, 1)
+#			update.grid.changecolors(self.x, self.y, ncolors)
 		update.effects.append(["step", self.x, self.y, x, y])
 		del update.monsters[(self.x, self.y)]
 		self.x, self.y = x, y
@@ -44,17 +45,21 @@ class Monster(util.serializable):
 		update.monsterdelta.append(self.getstate())
 		self.wallstop = 0
 	def splat(self):
-		update.effects.append(["splat", self.x, self.y])
 		if not update.grid.shielded(self.x, self.y):
 			tile = update.grid.getbasetile(self.x, self.y)
 			colors0 = tile.colors
 			ncolors = util.randomnewcolors(tile.colors)
-			update.grid.changecolors(self.x, self.y, ncolors)
-			update.grid.setdevice(self.x, self.y, None)
+			# Sorely needed amendment to make the game much much easier.
+			dA = random.choice((1,3))
+			update.grid.rotate(self.x, self.y, dA)
+#			update.grid.changecolors(self.x, self.y, ncolors)
+#			update.grid.setdevice(self.x, self.y, None)
 		self.die()
 	def die(self):
 		self.alive = False
-		del update.monsters[(self.x, self.y)]
+		update.effects.append(["splat", self.x, self.y])
+		if (self.x, self.y) in update.monsters:
+			del update.monsters[(self.x, self.y)]
 		update.monsterdelta.append(self.getstate())
 
 	def splathere(self):

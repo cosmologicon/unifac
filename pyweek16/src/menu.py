@@ -47,12 +47,14 @@ class Menu(object):
 		x = self.rect.x + 20
 		y = self.rect.y + 100
 		w = self.rect.width - 300
-		text.drawtext(self.surf, t, 25, (255,0,255), (x, y), ocolor=(0,0,0), width = w, anchor="topleft")
+		text.drawtext(self.surf, t, 25, (255,0,255), (x, y), ocolor=(0,0,0), width = w, anchor="topleft",
+			fontname="LondrinaSolid")
 
 	def addbutton(self, name, t, x, y, w, h, color = (100, 100, 100)):
 		self.buttons[name] = pygame.Rect(x, y, w, h)
 		drawoutsetbox(self.surf, x, y, w, h, 3, color)
-		text.drawtext(self.surf, t, 32, (255, 255, 255), (x + w//2, y + h//2), ocolor = (0,0,0))
+		text.drawtext(self.surf, t, 32, (255, 255, 255), (x + w//2, y + h//2), ocolor = (0,0,0),
+			fontname="JockeyOne")
 
 	def addnav(self):
 		self.addbutton("next", "Next",
@@ -67,8 +69,9 @@ class Menu(object):
 	def addoption(self, name, t, topt, color = (100, 100, 100)):
 		x, y, w, h = self.rect.left + 60, self.rect.top + 280 + 50 * len(self.buttons), 100, 40
 		self.addbutton(name, t, x, y, w, h, color)
-		text.drawtext(self.surf, topt, 26, (255, 255, 255), (x + w + 10, y + h // 2),
-			ocolor = (0,0,0), anchor="midleft", width = self.rect.width - 240)
+		text.drawtext(self.surf, topt, 20, (255, 255, 255), (x + w + 10, y + h // 2),
+			ocolor = (0,0,0), anchor="midleft", width = self.rect.width - 240,
+			fontname="Audiowide")
 	
 	def draw(self, screen):
 		screen.blit(self.surf, (0, 0))
@@ -94,16 +97,18 @@ class Menu(object):
 		self.surf.blit(img, rect)
 
 	def addorders(self, t):
-		text.drawtext(self.surf, t, 32, (0, 255, 0), (self.rect.x + 20, self.rect.y + 20),
-			ocolor = (0,0,0), anchor="topleft", width = self.rect.width - 380)
+		text.drawtext(self.surf, t, 22, (0, 255, 0), (self.rect.x + 20, self.rect.y + 15),
+			ocolor = (0,0,0), anchor="topleft", width = self.rect.width - 240,
+			fontname = "MeriendaOne")
 
 	def adddialog(self, t):
 		text.drawtext(self.surf, t, 32, (255, 128, 0), (self.rect.centerx, self.rect.y + 200),
-			ocolor = (0,0,0), anchor="midtop", width = self.rect.width - 360)
+			ocolor = (0,0,0), anchor="midtop", width = self.rect.width - 360,
+			fontname = "Audiowide")
 
 	def addmessage(self, t):
-		text.drawtext(self.surf, t, 40, (200, 200, 200), self.rect.center,
-			ocolor = (0,0,0), width = 240)
+		text.drawtext(self.surf, t, 32, (200, 200, 200), self.rect.center,
+			ocolor = (0,0,0), width = self.rect.width - 20, fontname = "Viga")
 
 	def adddiagram(self, dname):
 		import vista
@@ -120,6 +125,18 @@ class Menu(object):
 	def addicon(self, img):
 		rect = img.get_rect(topleft = (self.rect.x + 30, self.rect.y + 30))
 		self.surf.blit(img, rect)
+
+	def adddname(self, t):
+		text.drawtext(self.surf, t, 40, (255, 255, 255), (self.rect.x + 120, self.rect.y + 30),
+			ocolor = (0,0,0), anchor="topleft", width = self.rect.width - 140, fontname = "Homenaje")
+
+	def adddescription(self, t):
+		text.drawtext(self.surf, t, 24, (255, 255, 255), (self.rect.x + 20, self.rect.y + 130),
+			ocolor = (0,0,0), anchor="topleft", width = self.rect.width - 40, fontname = "LondrinaSolid")
+
+	def addcost(self, t):
+		text.drawtext(self.surf, t, 20, (128, 128, 128), (self.rect.x + 20, self.rect.bottom - 20),
+			ocolor = (0,0,0), anchor="bottomleft", width = self.rect.width - 40, fontname = "Viga")
 
 	def clickanywhere(self):
 		self.buttons["cancel"] = pygame.Rect((0, 0, self.sx, self.sy))
@@ -241,11 +258,22 @@ def loadmessage(message):
 hudboxes = {}
 def gethudbox(dname, unlocked):
 	import vista
+	if dname[-1] in "123":
+		dname = dname[:-1] + "0"
+	if dname == "special":  # TODO
+		dname = "none"
 	key = dname, unlocked
 	if key in hudboxes:
 		return hudboxes[key]
 	box = Menu(clear = False, size = (300, 400), dx = -100)
-	box.addicon(vista.gettileimg(1, (1,1,0,0), dname, 0, True, z = 80))
+	box.addicon(vista.gettileimg(1, None, dname, 0, True, z = 80))
+	box.adddname(dialog.dnames[dname])
+	box.adddescription(dialog.descriptions[dname])
+	if dname not in ("none", "special"):
+		if unlocked:
+			box.addcost("To use: %s Credits" % settings.devicecost[dname])
+		else:
+			box.addcost("To unlock: %s XP" % settings.devicexp[dname])
 	hudboxes[key] = box
 	return box
 

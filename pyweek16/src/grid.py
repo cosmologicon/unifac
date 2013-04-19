@@ -13,17 +13,20 @@ class Tile(util.serializable):
 	def color(self, side, offset = 0):
 		assert offset < self.s
 		return self.colors[side * self.s + offset]
-	def updatestate(self, grid):  # Returns true if the state is changed
-#		if self.device == "eye":
-#			return False
 
+	def neighborcolors(self, grid):
+		ret = []
+		if self.s == 1:
+			return [grid.getcolor(self.x + dx, self.y + dy, b)
+				for dx, dy, b in [(0,-1,2), (1,0,3), (0,1,0), (-1,0,1)]
+			]
+	def updatestate(self, grid):  # Returns true if the state is changed
 		nmatch = 0
 		if self.s == 1:
-			for dx, dy, a, b in [(0,-1,0,2), (1,0,1,3), (0,1,2,0), (-1,0,3,1)]:
-				bcolor = grid.getcolor(self.x + dx, self.y + dy, b)
+			for color, bcolor in zip(self.colors, self.neighborcolors(grid)):
 				if bcolor is None:
 					return False
-				nmatch += self.color(a) == bcolor
+				nmatch += color == bcolor
 			active = nmatch == 0
 		else:
 			for j in range(self.s):
@@ -57,6 +60,9 @@ class Tile(util.serializable):
 				dbase, ddir = self.device[:-1], int(self.device[-1])
 				self.device = "%s%s" % (dbase, (ddir + dA) % 4)
 		return self.changecolors(grid, util.rotate(self.s, self.colors, dA))
+	def matchcolors(self, grid):
+		colors = [(0 if color else 1) for color in self.neighborcolors(grid)]
+		return self.changecolors(grid, colors)
 	def changecolors(self, grid, colors):
 		ps, activated = [self.p], []
 		self.colors = colors
@@ -238,7 +244,15 @@ class Grid(object):
 			p = x // settings.sectorsize, y // settings.sectorsize
 			self.sectors[p].markdelta(x, y)
 		return activated
-
+	def matchcolors(self, x, y):
+		tile = self.getbasetile(x, y)
+		if not tile:
+			raise ValueError("Cannot change tile colors (%s,%s)" % (x, y))
+		ps, activated = tile.matchcolors(self)
+		for x, y in ps:
+			p = x // settings.sectorsize, y // settings.sectorsize
+			self.sectors[p].markdelta(x, y)
+		return activated
 
 	# To use when a *player* deploys a device - does not change colors or tile sizes
 	def deploy(self, x, y, device):

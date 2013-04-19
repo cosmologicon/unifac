@@ -65,5 +65,7 @@ http://elephantwendigo.deviantart.com/art/Sci-fi-girl-332007060
 The image "Vegetal Creature" is by Julie ann Lcok, availe under a CC-BY-NC-SA license here:
 http://www.elfwood.com/~jlock3/Vegetal-Creature-(Original-Version).2855238.html
 
+Fonts used are from Google Web Fonts, available under the Open Font License. See the
+subdirectories of data/font for details.
 
 
