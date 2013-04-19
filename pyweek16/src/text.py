@@ -7,7 +7,7 @@ fonts = {}
 def getfont(size, fontname = None):
 	if size not in fonts:
 		if fontname:
-			fonts[(fontname, size)] = pygame.font.Font(data.filepath(fontname + ".ttf"), size)
+			fonts[(fontname, size)] = pygame.font.Font(data.filepath("font", fontname, fontname + ".ttf"), size)
 		else:
 			fonts[(fontname, size)] = pygame.font.Font(None, size)
 	return fonts[(fontname, size)]
@@ -42,7 +42,7 @@ def getwraptext(text, size, color, width = 400, anchor = "center", fontname = No
 	width -= 2 * d
 	font = getfont(size, fontname = fontname)
 	def choppable(t):
-		return " " in t and font.size(t[:t.rindex(" ")].replace("~", " "))[0] > width
+		return " " in t and font.size(t.replace("~", " "))[0] > width
 	texts = [text]
 	while choppable(texts[-1]):
 		texts.append("")
@@ -57,13 +57,12 @@ def getwraptext(text, size, color, width = 400, anchor = "center", fontname = No
 		p = texts[-1].index("|")
 		texts.append(texts[-1][p+1:])
 		texts[-2] = texts[-2][:p]
-	#log.debug(texts)
 	imgs = [
 		gettext(t.replace("~", " "), size, color, fontname = fontname, ocolor = ocolor, d = d)
 		for t in texts
 	]
 	maxw = max(img.get_width() for img in imgs)
-	h = size * len(imgs)
+	h = int(size * (len(imgs) + 0.3))
 	surf = pygame.Surface((maxw, h)).convert_alpha()
 	surf.fill((0, 0, 0, 0))
 	if anchor in ("center", "midtop", "midbottom"):

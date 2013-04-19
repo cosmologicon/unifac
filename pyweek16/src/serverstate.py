@@ -170,11 +170,14 @@ def deploy(who, (x, y), device):
 	if device not in settings.devicecost or users[who].coins < settings.devicecost[device]:
 		raise ValueError("Not enough coins")
 	glock.acquire()
-	gridstate.deploy(x, y, device)
+	if device == "shuffle":
+		gridstate.matchcolors(x, y)
+	else:
+		gridstate.deploy(x, y, device)
 	glock.release()
 	users[who].coins -= settings.devicecost[device]
 def unlock(who, dname):
-	if dname not in settings.devicexp:
+	if dname not in settings.devicesize:
 		raise ValueError("Unrecognized device")
 	if users[who].xp < settings.devicexp[dname]:
 		raise ValueError("Not enough XP")

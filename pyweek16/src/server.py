@@ -24,6 +24,8 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 				self.on_watch(*args)
 			elif mtype == "rotate":
 				self.on_rotate(*args)
+			elif mtype == "shuffle":
+				self.on_rotate(*args)
 			elif mtype == "deploy":
 				self.on_deploy(*args)
 			elif mtype == "qrequest":

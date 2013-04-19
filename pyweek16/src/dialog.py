@@ -33,3 +33,32 @@ unlockboss = [
 ]
 
 
+dnames = {
+	"none": "Deselect",
+	"shuffle": "Recolor contacts",
+	"wall": "Barrier",
+	"1laser0": "Laser",
+	"2laser0": "Bidirectional Laser",
+	"4laser": "Quad Laser",
+	"1blaster0": "Heavy Blaster",
+	"mine": "Mine",
+	"adjmine": "Bomb",
+	"shield": "Shield",
+	"1dshield0": "Directional shield",
+}	
+
+descriptions = {
+	"none": "",
+	"shuffle": "Randomly recolor the contacts on a given tile.",
+	"wall": "Enemies passing over the barrier will be slowed down. When the enemy gets through, the barrier remains but is deactivated.",
+	"1laser0": "Rapid fire but weak. Fires up to a range of 4 tiles in a single direction. Once it's placed, it turns with the tile it's on. You can place a laser facing a different direction by repeatedly clicking on the icon on the right.",
+	"2laser0": "Rapid fire but weak. Fires up to a range of 2 tiles in two opposite directions. Once it's placed, it turns with the tile it's on. You can place a bidirectional laser facing the other direction by clicking on the icon on the right.",
+	"4laser": "Rapid fire but weak. Fires up to a range of 1 tile in any of 4 directions.",
+	"1blaster0": "Slow fire but strong. Fires up to a range of 3 tiles a single direction. Once it's placed, it turns with the tile it's on. You can place a blaster facing a different direction by repeatedly clicking on the icon on the right.",
+	"mine": "Takes out an enemy that lands on it. The enemy and the mine itself are destroyed, but the tile does not become deactivated.",
+	"adjmine": "Takes out an enemy that lands on it, as well as any enemies on the 4 adjacent tiles.",
+	"shield": "Protects the 4 adjacent tiles from being hurt by enemies. Shields cannot be protected with other shields.",
+	"1dshield0": "Protects 3 tiles in a single direction from being hurt by enemies. Shields cannot be protected with other shields.",
+}
+
+

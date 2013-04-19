@@ -41,7 +41,7 @@ class Quest(object):
 			self.complete = True
 		if not self.alive:
 			for m in self.monsters:
-				m.splat()
+				m.die()
 		self.monsters = [m for m in self.monsters if m.alive]
 	def spawn(self):
 		a = random.random() * 6.28
