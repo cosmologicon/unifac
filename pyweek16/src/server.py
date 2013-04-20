@@ -1,4 +1,4 @@
-import json, logging, tornado.ioloop, tornado.websocket, tornado.web, math
+import json, logging, tornado.ioloop, tornado.websocket, tornado.web, math, zlib
 import settings, util, serverstate, player, update
 
 log = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		self.username = None
 	
 	def on_message(self, message):
-		log.debug("Message received: %s" % message)
+		#log.debug("Message received: %s" % message)
 		try:
 			message = parsemessage(message)
 			mtype, args = message[0], message[1:]
@@ -37,6 +37,8 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 				self.on_qaccept(*args)
 			elif mtype == "unlock":
 				self.on_unlock(*args)
+			elif mtype == "cheat":
+				self.on_cheat()
 			else:
 				raise ValueError("Unrecognized message type %s" % mtype)
 		except Exception:
@@ -67,17 +69,20 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 			self.error("invalid login: %s %s" % (username, password))
 			self.close()
 			return
+		log.debug("Log in: %s", username)
 		self.you = serverstate.users[username]
 		self.send("you", self.you.getstate())
-		if username in serverstate.pwatch:
-			self.send("watch", *serverstate.pwatch[username])
+		if username not in serverstate.pwatch:
+			serverstate.pwatch[username] = (0,0)
+		self.send("watch", *serverstate.pwatch[username])
 		self.username = username
 		if self.you.trained == 0:
 			self.send("train", 0)
 			self.you.trained = 1
 		clienthandlers[username] = self
 		serverstate.activeusers.add(username)
-		state = serverstate.setwatch(username, 0, 0)
+		x, y = serverstate.pwatch[username]
+		state = serverstate.setwatch(username, x, y, True)
 		self.send("state", state)
 		self.send("monsters", [m.getstate() for m in serverstate.monsters.values()])
 
@@ -108,6 +113,8 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 
 	def on_deploy(self, (x,y), device):
 		x, y, device = int(x), int(y), str(device)
+		if not serverstate.canrotate(self.username, (x, y)):
+			return
 		act = serverstate.deploy(self.username, (x,y), device)
 		if act:
 			serverstate.handleactivation(act, self.username)
@@ -129,6 +136,12 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		if not qinfo:
 			self.error("Invalid quest")
 			return
+		if str(qinfo["p"]) in self.you.unlocked:
+			self.send("message", "Node already unlocked")
+			return
+		if qinfo["t"] == "record" and you.story >= 3:
+			self.send("message", "Record already complete")
+			return
 		self.send("qinfo", qinfo)
 
 	def on_qaccept(self, (x,y), solo):
@@ -139,6 +152,9 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		qinfo = serverstate.questinfo(self.username, p)
 		if not qinfo:
 			self.error("Invalid quest")
+		if str(qinfo["p"]) in self.you.unlocked:
+			self.send("message", "Node already unlocked")
+			return
 		serverstate.initquest(self.username, p, solo, qinfo)
 
 	def qupdate(self, q):
@@ -149,7 +165,7 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 			if settings.BOSS:
 				self.send("ending")
 			elif q.qinfo["story"]:
-				if self.you.story == 4:
+				if self.you.story == 2:
 					self.you.trained = 4
 					self.send("unlockboss", settings.bosscode)
 				self.send("cutscene", self.you.story)
@@ -157,13 +173,27 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 			elif self.you.xp and self.you.trained == 2:
 				self.send("train", 2)
 				self.you.trained = 3
+			self.you.unlocked[str(q.qinfo["p"])] = True
 			self.send("message", "Node successfully unlocked")
 		else:
 			self.send("message", "Node unlocking unsuccessful")
 		self.send("you", self.you.getstate())
 
+	def on_cheat(self):
+		log.debug("cheating %s %s", self.username, [q.who for q in serverstate.quests])
+		if settings.ALLOWCHEAT:
+			for q in serverstate.quests:
+				if q.who == self.username:
+					q.progress += 20
+
 	def send(self, *args):
-		self.write_message(json.dumps(args))
+		message = json.dumps(args)
+		if len(message) > 100:
+			zmessage = "z" + zlib.compress(message)
+			log.debug("Compressing %s %s", len(message), len(zmessage))
+			message = zmessage
+			
+		self.write_message(message)
 	
 	def error(self, message=None):
 		log.debug("Sending error message to %s: %s" % (self.username, message))
@@ -220,4 +250,6 @@ if __name__ == "__main__":
 		ioloop.start()
 	except KeyboardInterrupt:
 		closeall()
+		if not settings.BOSS:
+			serverstate.save()
 

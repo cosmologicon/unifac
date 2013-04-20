@@ -35,10 +35,10 @@ def watch(x, y):
 def drag(dx, dy):
 	global camerax0, cameray0
 	x, y = camerax0 - dx, cameray0 - dy
-	ix, iy = [int(math.floor(a/cameraz)) for a in (x, y)]
-	tile = clientstate.gridstate.getbasetile(ix, iy)
-	if not tile or tile.fog:
-		return
+#	ix, iy = [int(math.floor(a/cameraz)) for a in (x, y)]
+#	tile = clientstate.gridstate.getbasetile(ix, iy)
+#	if not tile or tile.fog:
+#		return
 	camerax0, cameray0 = x, y
 	return True
 def zoom(dz, (x, y)):
@@ -60,9 +60,9 @@ def zoom(dz, (x, y)):
 	# z0 x1 = z1 x + z1 x0 - z1 sx/2 + z0 sx / 2 - z0 x
 	x = 1.0 / cameraz * ((z - cameraz) * (x - settings.windowx / 2) + z * camerax0)
 	y = 1.0 / cameraz * ((z - cameraz) * (y - settings.screeny / 2) + z * cameray0)
-	tile = clientstate.gridstate.getbasetile(int(x/cameraz), int(y/cameraz))
-	if not tile or tile.fog:
-		return
+#	tile = clientstate.gridstate.getbasetile(int(x/cameraz), int(y/cameraz))
+#	if not tile or tile.fog:
+#		return
 	camerax0, cameray0 = x, y
 	cameraz = z
 	return True
@@ -188,7 +188,7 @@ def gettileimg(s, colors, device, fog, active, locked = False, z = None):
 			img.fill((0,0,0,0))
 		else:
 			img = gettileimg(s, colors, device, 0, active, locked, z).copy()
-			f = getimg("fog")
+			f = getimg("fog" if s == 1 else "fog-%s" % s)
 			for _ in range(fog):
 				img.blit(f, (0, 0))
 	else:
@@ -390,6 +390,7 @@ hudrects = {
 	"special":   (settings.windowx + 180, 260, huds, huds),
 }
 
+hudpoint = None
 def drawhud():
 	global selected
 	menu.drawoutsetbox(screen, settings.windowx, 0, settings.hudx, settings.screeny, 4, (20,20,20))
@@ -409,7 +410,13 @@ def drawhud():
 
 	if clientstate.qstatus:
 		text.drawtext(screen, "Unlocking node: %d/%d" % clientstate.qstatus,
-			40, (255, 255, 255), (10, 10), anchor="topleft", ocolor=(0,0,0), fontname="Homenaje")
+			40, (255, 255, 255), (10, 10), anchor="topleft", ocolor=(0,0,0), fontname="Homenaje", d = 2)
+	
+	x, y = camerax0 // cameraz, cameray0 // cameraz
+	text.drawtext(screen, "Location: %d,%d" % (x, -y),
+		30, (255, 255, 255), (10, settings.screeny - 10), anchor="bottomleft", ocolor=(0,0,0),
+		fontname="Homenaje", d = 2)
+	
 
 	if clientstate.you.trained < 3:
 		return

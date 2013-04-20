@@ -1,9 +1,11 @@
 import logging, pygame
-import settings, client, util, vista, menu, userinput
+import settings, client, util, vista, menu, userinput, sound
 
 log = logging.getLogger(__name__)
 
 def main():
+	pygame.mixer.init()
+	sound.playmusic("space1990")
 	vista.init()
 	menu.loadtitle()
 	menu.top().draw(vista.screen)
@@ -20,9 +22,12 @@ def main():
 				menu.pop()
 				username, password = util.getlogin()
 				runner = client.run(username, password)
+				settings.BOSS = False
 			if inp["select"] == "joinboss":
 				menu.pop()
-				runner = client.bossrun("12345")
+				bosscode = util.getbosscode()
+				runner = client.bossrun(bosscode)
+				settings.BOSS = True
 			if inp["select"] == "quit":
 				pygame.quit()
 				return
@@ -33,6 +38,11 @@ def main():
 
 	with runner:
 		clock = pygame.time.Clock()
+		if settings.BOSS:
+			menu.loadtraining("joinboss")
+			sound.playmusic("cephalopod")
+		else:
+			sound.playmusic("iceflow")
 		while client.playing:
 			dt = clock.tick(60) * 0.001
 			client.think(dt)

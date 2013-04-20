@@ -22,7 +22,12 @@ class Monster(util.serializable):
 		if self.hp <= 0:
 			self.die()
 	def step(self):
+		tile = update.grid.getbasetile(self.x, self.y)
 		if self.splathere():
+			if tile and tile.active and tile.device == "wall":
+				if self.wallstop < 3:
+					self.wallstop += 1
+					return
 			self.splat()
 			return
 		x, y = self.choosestep()
@@ -30,14 +35,10 @@ class Monster(util.serializable):
 			return
 		if (x,y) in update.monsters:
 			return
-		tile = update.grid.getbasetile(self.x, self.y)
 		if tile and tile.active and tile.device == "wall":
 			if self.wallstop < 3:
 				self.wallstop += 1
 				return
-#			ncolors = util.randomnewcolors(tile.colors)
-#			update.grid.rotate(self.x, self.y, 1)
-#			update.grid.changecolors(self.x, self.y, ncolors)
 		update.effects.append(["step", self.x, self.y, x, y])
 		del update.monsters[(self.x, self.y)]
 		self.x, self.y = x, y
@@ -48,12 +49,12 @@ class Monster(util.serializable):
 		if not update.grid.shielded(self.x, self.y):
 			tile = update.grid.getbasetile(self.x, self.y)
 			colors0 = tile.colors
-			ncolors = util.randomnewcolors(tile.colors)
+#			ncolors = util.randomnewcolors(tile.colors)
+#			update.grid.changecolors(self.x, self.y, ncolors)
+#			update.grid.setdevice(self.x, self.y, None)
 			# Sorely needed amendment to make the game much much easier.
 			dA = random.choice((1,3))
 			update.grid.rotate(self.x, self.y, dA)
-#			update.grid.changecolors(self.x, self.y, ncolors)
-#			update.grid.setdevice(self.x, self.y, None)
 		self.die()
 	def die(self):
 		self.alive = False

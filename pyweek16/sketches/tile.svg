@@ -16,7 +16,7 @@
    version="1.1"
    inkscape:version="0.48.3.1 r9886"
    sodipodi:docname="tile.svg"
-   inkscape:export-filename="/home/christopher/projects/unifac/pyweek16/data/tile-320/1dshield0.png"
+   inkscape:export-filename="/home/christopher/projects/unifac/pyweek16/data/psychofilter.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
   <defs
@@ -252,7 +252,8 @@
        fx="160"
        fy="892.36218"
        r="160"
-       gradientUnits="userSpaceOnUse" />
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-320,0)" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -1097,12 +1098,13 @@
      id="layer17"
      inkscape:label="filter">
     <rect
-       style="fill:url(#radialGradient4251);fill-opacity:1;stroke:none;stroke-width:3;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       style="fill:url(#radialGradient4251);fill-opacity:1;stroke:none"
        id="rect4243"
        width="320"
        height="320"
-       x="0"
-       y="732.36218" />
+       x="-320"
+       y="732.36218"
+       transform="scale(-1,1)" />
   </g>
   <g
      style="display:none"

@@ -1,22 +1,38 @@
 import logging, random, sys
 
-DEBUG = True
-LOCALPLAY = True
+DEBUG = "--debug" in sys.argv
+LOCALPLAY = "--local" in sys.argv
 BOSS = "--boss" in sys.argv
+ALLOWCHEAT = "--allowcheat" in sys.argv
 
 host = "ws://localhost" if LOCALPLAY else "ws://universefactory.net"
 port = 8516
 bossport = 8616
 url = "%s:%s" % (host, port)
 bossurl = "%s:%s" % (host, bossport)
+bosscode = "12345"
 
+serverstatedir = "serverstate"
+serverstate0 = None
+savetime = 3600
 
 loginname = None
 loginfile = "login-%s.json" if loginname else "login.json"
 resetlogin = "--reset" in sys.argv
 
 
+audio = "--noaudio" not in sys.argv
+sound = "--nosound" not in sys.argv
+music = "--nomusic" not in sys.argv
+
 screenx, screeny = 854, 480
+for arg in sys.argv:
+	if arg.startswith("-r="):
+		screenx, screeny = map(int, arg[3:].split("x"))
+	if arg.startswith("-state0="):
+		serverstate0 = arg[8:]
+	if arg.startswith("-bosscode="):
+		bosscode = arg[10:]
 hudx = 260
 windowx = screenx - hudx
 
@@ -184,8 +200,8 @@ questT = {
 	"easy": 40,
 	"medium": 60,
 	"hard": 80,
-#	"boss": 200,
-	"boss": 3,
+	"boss": 200,
+#	"boss": 3,
 }
 questr = {
 	"easy": 5,
@@ -199,8 +215,6 @@ questn = {
 	"hard": 40,
 	"boss": 100,
 }
-
-bosscode = "12345"
 
 
 if DEBUG:

@@ -2,19 +2,35 @@
 train = {
 	0: [
 		"activetile@Welcome recruit, I'm Captain Nayrano. Emtar technology works a bit differently from ours, so here's a crash course. A tile becomes active if all of its contacts are touching contacts of the opposite color.",
-		"Left-click on a tile to rotate it left. You can also right-click and middle-click. For alternate controls, see README.txt.",
+		"Left-click on a tile to rotate it left. You can also right-click and middle-click. For keyboard controls, see README.txt.",
 		"resource@Start by activating some 1x1 resource tiles. Each one will get you one Credit. Get 5 Credits and I'll give you your next assignment.",
 	],
 	1: [
 		"Not bad. Now let's unlock some nodes. Nodes are any tile larger than 1x1. Larger nodes are harder to unlock, so I recommend starting with a 2x2 node. To unlock a node, you need to activate it and keep it activated for a certain amount of time.",
-		"This station is infested with space mold that's attracted to unlocking nodes. It'll change the colors of the contacts, and you'll have to rotate tiles to fix it. Remember to keep the large tile activated!",
+		"This station is infested with space mold that's attracted to unlocking nodes. It'll rotate the tiles around the node, and you'll have to rotate them back to fix it. Remember to keep the large tile activated!",
 		"You'll learn some defensive measures later, but for now, just fix the damage that the mold causes until the node unlocks.",
-		"Once you have a node activated, click on it to begin the unlocking procedure. I recommend picking the Group option, unless someone is making your job difficult. Other players can help you, but only the player who first selected the node will get the reward.",
+		"Once you have a node activated, click on it to begin the unlocking procedure. I recommend picking the Group option. Other players can help you, but only the player who first selected the node will get the reward.",
 	],
 	2: [
-		"Now that you have some experience points, you can unlock items, which can be used on 1x1 tiles. The items will help you unlock bigger nodes. You may have also seen some ",
-		"Most of the items can be placed on tiles. For these items you MUST remember that they're only effective when the tile is activated. If the tile becomes deactivated while unlocking a node, try to reactivate it right away.",
-		"If you find it hard to place items correctly, see README.txt for alternate controls.",
+		"Now that you have some experience points, you can unlock items, which can be used on 1x1 tiles. The items will help you unlock bigger nodes.",
+		"Most of the items can be placed on tiles. You've probably seen some placed by other recruits. For these items you MUST remember that they're only effective when the tile is activated. If the tile becomes deactivated while unlocking a node, try to reactivate it right away.",
+		"For keyboard controls, see README.txt.",
+	],
+	"joinboss": [
+		"Ah, you decided to come after all. You wish to join me? No? Very well, but you can't stop progress. Soon I shall hold the power of the gods!",
+		"What? You think you can stop me by unlocking the central reactor before my preparations are complete? I'd like to see you try!",
+	],
+	"last": [
+		"This is an urgent request from Captain Nayrano at the deep space Emtar station.",
+		"Several of the recruits working on the Emtar tech are showing increasingly erratic and paranoid behavior. I believe this may be linked to the psychological effects mentioned in the recordings found here at the station. I recommend we shut down the project immediately pending further investigation.",
+		"I've already asked all workers to report back to headquarters to be taken off duty. I won't expose them to Emtar tech any further. Please send a psych eval unit and increased security as soon as... stand by. One of them is here.",
+		"Recruit, you've been doing great work. I'm taking you off duty for a few days. Get some rest.",
+		"...",
+		"""What? I didn't say anything about "power of the gods". Recruit, can you understand me?""",
+		"...",
+		"You're suffering from hallucinations. It's extremely important that you listen to me. You need to get away from the Emtar tech.",
+		"...",
+		"Command? It looks like the recruit is trying to unlock the central reactor. This could be bad. I need to deal with this now. Please hurry!",
 	],
 }
 
@@ -31,15 +47,10 @@ cutscene = {
 		"They were our only friends, and we killed them twice. Once by accident, when we destroyed their minds, and once in defense, when we destroyed their bodies.",
 	],
 	2: [
-		"We know now that we were never meant to exist. Our very way existence is destructive. We have removed every trace of our history and culture. As atonement for our crimes, and to see that we never again turn friends against one another, we have chosen our fate.",
+		"We know now that we were never meant to exist. Our very way of thinking is destructive. We have removed every trace of our history and culture from the galaxy. All that remains is this station. As atonement for our crimes, and to see that we never again turn friends against one another, we have chosen our fate.",
 		"We will transform ourselves into weak, unthinking, slime-like creatures, living forever on this station, the last remnant of our once great civilization. Although no longer able to reason or communicate, we will have a programmed desire to protect people from the technology here.",
 		"Our last will is simply this: depart this place, and do not pursue the technology you have found here. Forget you ever heard of the Emtar, of the Ameloz and the Zolema, of harmonious opposites. Leave and survive."
 	],
-	"joinboss": [
-		"Ah, you decided to come after all. You wish to join me? No? Very well, but you can’t stop progress. Soon I shall hold the power of the gods!",
-		"What? You think you can stop me by unlocking the central reactor before my preparations are complete? I’d like to see you try!",
-	],
-
 }
 
 
