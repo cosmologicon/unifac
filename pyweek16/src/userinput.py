@@ -53,6 +53,8 @@ def get():
 				ret["quit"] = True
 			if event.key == K_F12:
 				ret["screenshot"] = True
+			if event.key == K_F5:
+				ret["cheat"] = True
 			if event.key == K_1:
 				ret["deploy"] = mtile, "1laser0"
 			if event.key == K_2:

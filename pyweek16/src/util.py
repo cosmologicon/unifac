@@ -24,6 +24,15 @@ def savelogin(username, password):
 	fname = data.filepath(settings.loginfile)
 	open(fname, "w").write("%s %s" % (username, password))
 
+def getbosscode():
+	fname = data.filepath("bosscode.txt")
+	if os.path.exists(fname):
+		return open(fname).read().strip()
+	return None
+def savebosscode(code):
+	fname = data.filepath("bosscode.txt")
+	open(fname, "w").write("%s\n" % code)
+
 usednames = set()
 namechars = string.letters + string.digits
 def randomname(n = 5, chars = None):

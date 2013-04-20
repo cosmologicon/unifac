@@ -164,7 +164,6 @@ def randomsector(sx, sy):
 				"y": sy*a+y,
 				"colors": colors,
 			}
-#			if random.random() < 0.2: tilestate["device"] = "coin"
 			tilestates.append(tilestate)
 	return Sector((sx, sy, tilestates))
 
@@ -282,6 +281,10 @@ class Grid(object):
 				if (dx, dy) == (0, 0):
 					continue
 				self.settile({"x": x+dx, "y": y+dy, "colors": None, "parent": (x, y)})
+		for nx, ny in util.neighbors(s, x, y):
+			tile = self.getrawtile(x, y)
+			if tile:
+				tile.updatestate(self)
 	# This should be used by the server with care.
 	def settile(self, tilestate):
 		p = tilestate["x"] // settings.sectorsize, tilestate["y"] // settings.sectorsize

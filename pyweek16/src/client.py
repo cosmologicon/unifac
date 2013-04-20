@@ -1,9 +1,9 @@
 # Handle connections with the server in a separate thread
 # Reference: https://pypi.python.org/pypi/websocket-client/
 
-import threading, json, logging
+import threading, json, logging, zlib
 from lib.websocket import websocket
-import settings, util, clientstate, userinput, vista, menu
+import settings, util, clientstate, userinput, vista, menu, sound
 
 log = logging.getLogger(__name__)
 
@@ -45,19 +45,27 @@ def think(dt):
 	if "deploy" in inp:
 		pos, device = inp["deploy"]
 		send("deploy", pos, device)
+	if "cheat" in inp:
+		send("cheat")
 	if "screenshot" in inp:
 		vista.screenshot()
-	if "select" in inp:
-		if inp["select"] == "qaccept-solo":
-			send("qaccept", menu.top().qinfo["p"], True)
-			menu.pop()
-		if inp["select"] == "qaccept-group":
-			send("qaccept", menu.top().qinfo["p"], False)
+	if "select" in inp and inp["select"]:
+		if "qaccept" in inp["select"]:
+			qinfo = menu.top().qinfo
+			send("qaccept", qinfo["p"], ("solo" in inp["select"]))
 			menu.pop()
 		if inp["select"] == "cancel":
 			menu.pop()
 		if inp["select"] == "next":
 			menu.advance()
+		if not menu.stack:
+			if "qaccept" in inp["select"]:
+				if qinfo["t"] == "record":
+					sound.playmusic("minima")
+				else:
+					sound.playmusic("cephalopod")
+			else:
+				sound.playmusic("iceflow")
 	if "hudclick" in inp:
 		vista.handlehudclick(inp["hudclick"])
 		if clientstate.canunlock(inp["hudclick"]):
@@ -75,6 +83,8 @@ def think(dt):
 			login(*args)
 		elif mtype == "message":
 			print "message from server:", args[0]
+			if args[0] in ("Node successfully unlocked", "Node unlocking unsuccessful"):
+				clientstate.qstatus = None
 			menu.loadmessage(*args)
 		elif mtype == "you":
 			clientstate.you.setstate(*args)
@@ -133,6 +143,8 @@ def send(*args):
 	message = json.dumps(args)
 	socket.send(message)
 def parsemessage(message):
+	if message[0] == "z":
+		message = zlib.decompress(message[1:])
 	return json.loads(message)
 def login(uname, password):
 	global username

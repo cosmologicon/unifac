@@ -1,4 +1,4 @@
-import logging, threading, random
+import logging, threading, random, cPickle, os.path, time
 import grid, util, settings, player, monster, update, quest
 
 log = logging.getLogger(__name__)
@@ -15,6 +15,26 @@ rwatchers = {}  # map from sectors to the clients who are watching them
 pwatch = {}
 update.monsters = monsters = {}
 quests = []
+
+lastsave = 0
+def save():
+	global lastsave
+	lastsave = int(time.time())
+	s = "state-%s.pickle" % time.strftime("%Y%m%d%H")
+	path = os.path.join(settings.serverstatedir, s)
+	obj = gridstate, users, passwords, pwatch, monsters, quests
+	cPickle.dump(obj, open(path, "wb"))
+
+def load(fname):
+	global gridstate, users, passwords, pwatch, monsters, quests
+	log.debug("Loading...")
+	path = os.path.join(settings.serverstatedir, fname)
+	obj = cPickle.load(open(path, "rb"))
+	gridstate, users, passwords, pwatch, monsters, quests = obj
+	update.grid = gridstate
+	update.monsters = monsters
+	update.quests = quests
+	log.debug("Loading complete.")
 
 def choosebases(n = 20):
 	bases = []
@@ -86,8 +106,9 @@ def sweepnode(x, y, r = None):
 	util.removefog(gridstate, x, y, r)
 	glock.release()
 
-
-if settings.BOSS:
+if settings.serverstate0:
+	load(settings.serverstate0)
+elif settings.BOSS:
 	makesector(0, 0)
 	gridstate.putdevice(0, 0, "b5reactor", 5)
 	sweepnode(0, 0, 25)
@@ -146,6 +167,8 @@ def think(dt):
 				continue
 			devicethink(dt, x, y, d)
 			checked.add((x, y))
+	if not settings.BOSS and time.time() > lastsave + settings.savetime:
+		save()
 	glock.release()
 
 	return
@@ -160,6 +183,9 @@ def think(dt):
 
 shots = {}
 def devicethink(dt, x, y, d):
+	if not d.device:
+		log.debug("Error with None device %s %s %s", x, y, d)
+		return
 	if "laser" in d.device or "blaster" in d.device:
 		if (x, y) in shots and shots[(x, y)] > 0:  # weapon reload
 			shots[(x,y)] -= dt
@@ -192,7 +218,7 @@ def canrotate(who, (x, y)):
 		return False
 	if t.fog:
 		return False
-	return True	
+	return True
 def rotate((x, y), dA):
 	glock.acquire()
 	ret = gridstate.rotate(x, y, dA)
@@ -262,7 +288,7 @@ def questinfo(who, (x, y)):
 	# TODO: make sure you can only quest on tiles you haven't already beaten
 	s, t = int(tile.device[1]), tile.device[2:]
 	qinfo = {
-		"p": (x, y),
+		"p": (tile.x, tile.y),
 		"xp": settings.basexp[s],
 		"coins": settings.basecoins[s],
 		"range": settings.baserange[s],
@@ -296,7 +322,8 @@ def completequest(quest):
 	if quest.diff == "boss":
 		quest.alive = True
 		quest.progress = 0
-		update.effect.append(["gameover"])
+		update.effects.append(["gameover"])
+		initbossquest()
 	else:
 		who = quest.who
 		users[who].xp += quest.qinfo["xp"]
@@ -305,6 +332,10 @@ def completequest(quest):
 		sweepnode(tile.x, tile.y, quest.qinfo["range"])
 
 def initbossquest():
+	del quests[:]
+	monsters.clear()
+	gridstate.changecolors(0, 0, util.randomcolors(5))
+	
 	initquest(None, (0,0), False, {
 		"p": (0, 0),
 		"xp": 0,
@@ -348,8 +379,8 @@ def removewatcher(who):
 	for sector in watchers[who]:
 		rwatchers[sector].remove(who)
 	del watchers[who]
-	if who in pwatch:
-		del pwatch[who]
+#	if who in pwatch:
+#		del pwatch[who]
 
 # Given a gamestate delta, break it up into pieces to be sent to each appropriate client
 def breakdelta(delta):

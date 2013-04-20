@@ -53,7 +53,7 @@ def getwraptext(text, size, color, width = 400, anchor = "center", fontname = No
 				p = texts[-2].index("|")
 				texts[-1] = texts[-2][p+1:] + " " + texts[-1]
 				texts[-2] = texts[-2][:p]
-	if "|" in texts[-1]:
+	while "|" in texts[-1]:
 		p = texts[-1].index("|")
 		texts.append(texts[-1][p+1:])
 		texts[-2] = texts[-2][:p]
@@ -62,6 +62,8 @@ def getwraptext(text, size, color, width = 400, anchor = "center", fontname = No
 		for t in texts
 	]
 	maxw = max(img.get_width() for img in imgs)
+	if max(img.get_height() for img in imgs) > size:
+		size = max(img.get_height() for img in imgs)
 	h = int(size * (len(imgs) + 0.3))
 	surf = pygame.Surface((maxw, h)).convert_alpha()
 	surf.fill((0, 0, 0, 0))

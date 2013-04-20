@@ -1,5 +1,5 @@
 import pygame
-import settings, text, data, dialog
+import settings, text, data, dialog, util, time, random
 
 def drawoutsetbox(surf, x, y, w, h, d, color = (50, 50, 50)):
 	color1 = tuple(int(a * 0.6) for a in color)
@@ -24,6 +24,9 @@ def getpic(name):
 			pics[name] = pygame.Surface((img.get_width() + 6, img.get_height() + 3)).convert_alpha()
 			drawoutsetbox(pics[name], 0, 0, pics[name].get_width(), pics[name].get_height(), 3)
 			pics[name].blit(img, (3, 3))
+		if name == "filter":
+			img = pygame.image.load(data.filepath("psychofilter.png")).convert_alpha()
+			pics[name] = pygame.transform.smoothscale(img, (settings.screenx, settings.screeny))
 	return pics[name]
 
 class Menu(object):
@@ -42,6 +45,11 @@ class Menu(object):
 		drawoutsetbox(self.surf, self.rect.x, self.rect.y, self.rect.w, self.rect.h, 6)
 		self.buttons = {}
 		self.next = None
+
+	def darken(self):
+		f = self.surf.copy()
+		f.fill((0,0,0,128))
+		self.surf.blit(f, (0, 0))
 
 	def addinfotext(self, t):
 		x = self.rect.x + 20
@@ -66,8 +74,8 @@ class Menu(object):
 			(100, 0, 0)
 		)
 
-	def addoption(self, name, t, topt, color = (100, 100, 100)):
-		x, y, w, h = self.rect.left + 60, self.rect.top + 280 + 50 * len(self.buttons), 100, 40
+	def addoption(self, name, t, topt, color = (100, 100, 100), w = 100):
+		x, y, w, h = self.rect.left + 60, self.rect.top + 280 + 50 * len(self.buttons), w, 40
 		self.addbutton(name, t, x, y, w, h, color)
 		text.drawtext(self.surf, topt, 20, (255, 255, 255), (x + w + 10, y + h // 2),
 			ocolor = (0,0,0), anchor="midleft", width = self.rect.width - 240,
@@ -108,8 +116,8 @@ class Menu(object):
 			fontname = "MeriendaOne")
 
 	def adddialog(self, t):
-		text.drawtext(self.surf, t, 32, (255, 128, 0), (self.rect.centerx, self.rect.y + 200),
-			ocolor = (0,0,0), anchor="midtop", width = self.rect.width - 360,
+		text.drawtext(self.surf, t, 24, (255, 128, 0), (self.rect.centerx, self.rect.y + 232),
+			ocolor = (0,0,0), anchor="midtop", width = self.rect.width - 60,
 			fontname = "Audiowide")
 
 	def addmessage(self, t):
@@ -153,6 +161,9 @@ class Menu(object):
 			30, (128, 128, 255), (self.rect.centerx, self.rect.centery - 60),
 			ocolor = (0,0,0), d = 4, anchor="midtop", width = self.rect.width - 40, fontname = "JockeyOne")
 
+	def addfilter(self):
+		self.surf.blit(getpic("filter"), (0, 0))
+
 	def clickanywhere(self):
 		self.buttons["cancel"] = pygame.Rect((0, 0, self.sx, self.sy))
 
@@ -194,6 +205,8 @@ def loadtraining(tname):
 		if diagram:
 			menu.adddiagram(diagram)
 		menu.addnav()
+		if tname == "joinboss":
+			menu.addfilter()
 		lastmenu = menu
 
 def loadunlockboss(bosscode):
@@ -211,6 +224,7 @@ def loadunlockboss(bosscode):
 		menu.addcaptain()
 		menu.addorders(t)
 		menu.addnav()
+		menu.addfilter()
 		lastmenu = menu
 
 
@@ -251,13 +265,14 @@ def loadqinfo(qinfo):
 
 
 	if qinfo["t"] == "record":
-		menu.addinfotext("Unlocking this node will show The Last Will of the Emtar, recording #1 of 5")
+		import clientstate
+		menu.addinfotext("Unlocking this node will show The Last Will of the Emtar, recording #%s of 3" % (clientstate.you.story + 1))
 	else:
 		tex = (
 			"Difficulty: %s|" +
 			"Unlocking this node will have the following effects:|" +
 			"~~~Grant you %s resource units.|" +
-			"~~~Grant you %s experience units.|" +
+			"~~~Grant you %s experience points.|" +
 			"~~~Make visible tiles out to %s units."
 		) % (qinfo["difficulty"], qinfo["coins"], qinfo["xp"], qinfo["range"])
 		if qinfo["bonus"]:
@@ -284,7 +299,7 @@ def gethudbox(dname, unlocked):
 	key = dname, unlocked
 	if key in hudboxes:
 		return hudboxes[key]
-	box = Menu(clear = False, size = (300, 400), dx = -100)
+	box = Menu(clear = False, size = (420, 400), dx = -100)
 	box.addicon(vista.gettileimg(1, None, dname, 0, True, z = 80))
 	box.adddname(dialog.dnames[dname])
 	box.adddescription(dialog.descriptions[dname])
@@ -300,25 +315,31 @@ def loadtitle():
 	menu = Menu()
 	stack.append(menu)
 	menu.drawfullalien()
+	menu.darken()
 	menu.addcredits()
-	menu.addoption("join", "Join Server", "")
-	menu.addoption("joinboss", "Join Boss Server", "")
-	menu.addoption("quit", "Quit", "")
+	menu.addoption("join", "Join Server", "", w = 200)
+	if util.getbosscode():
+		menu.addoption("joinboss", "Join Boss Server", "", w = 200)
+	menu.addoption("quit", "Quit", "", w = 200)
 
 
 class Collapse(object):
 	def __init__(self):
 		self.t0 = time.time()
+		self.sx, self.sy = settings.screenx, settings.screeny
 		self.surf = pygame.Surface((self.sx, self.sy)).convert_alpha()
 	def draw(self, screen):
 		import vista
 		t = time.time() - self.t0
 		if t > 7:
 			advance()
-		vista.camerax0 += random.uniform(-1, 1) * t * 0.2
+		vista.camerax0 += random.uniform(-1, 1) * t * 2
+		vista.cameray0 += random.uniform(-1, 1) * t * 2
 		a = min(int(t / 4 * 255), 255)
 		self.surf.fill((255,255,255,a))
 		screen.blit(self.surf, (0, 0))
+	def checkclick(self, pos):
+		return False
 		
 
 def loadgameover():
@@ -326,6 +347,7 @@ def loadgameover():
 	collapse = Collapse()
 	credits = Menu()
 	credits.drawfullalien()
+	credits.darken()
 	credits.addcredits()
 	credits.clicktoadvance()
 	endtitle = Menu(size = (300, 120))
@@ -337,9 +359,7 @@ def loadgameover():
 	collapse.next = credits
 	credits.next = endtitle
 	endtitle.next = stinger
-	
-	
-	stack.push(collapse)
+	stack.append(collapse)
 	
 
 

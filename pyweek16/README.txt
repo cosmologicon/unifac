@@ -59,6 +59,12 @@ The library lib/websocket/websocket.py is used and distributed under the LGPL. P
 lib/websocket/LICENSE.txt for details. You can get it here:
 https://pypi.python.org/pypi/websocket-client/
 
+The following songs are by Kevin MacLeod (incompetech.com), available under a CC-BY license:
+Cephalopod
+Ice Flow
+Minima
+Space 1990
+
 The image "Sci-fi Girl" is by ElephantWindigo, available under a CC-BY-NC license here:
 http://elephantwendigo.deviantart.com/art/Sci-fi-girl-332007060
 
@@ -67,5 +73,8 @@ http://www.elfwood.com/~jlock3/Vegetal-Creature-(Original-Version).2855238.html
 
 Fonts used are from Google Web Fonts, available under the Open Font License. See the
 subdirectories of data/font for details.
+
+
+
 
 

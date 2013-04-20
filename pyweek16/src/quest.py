@@ -48,6 +48,17 @@ class Quest(object):
 			for m in self.monsters:
 				m.die()
 		self.monsters = [m for m in self.monsters if m.alive]
+		if self.diff == "boss":
+			if self.t > 60:
+				self.t = 0
+				update.grid.changecolors(self.tile.x, self.tile.y, util.randomcolors(5))
+			x, y = random.randint(-20, 20), random.randint(-20, 20)
+			tile = update.grid.getrawtile(x, y)
+			if tile and tile.s == 1:
+				ncolors = util.randomnewcolors(tile.colors)
+				update.grid.changecolors(tile.x, tile.y, ncolors)
+				update.grid.setdevice(tile.x, tile.y, None)
+
 	def spawn(self):
 		a = random.random() * 6.28
 		x = int(self.x0 + self.r * math.sin(a))
