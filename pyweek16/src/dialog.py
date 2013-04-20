@@ -42,7 +42,7 @@ cutscene = {
 	],
 	1: [
 		"We gave to the Galugen Blea what so many others had sought so jealously: our knowledge. We came to learn, however, how alone we really are. Most sentient beings possess an innate sense of the disharmony of opposites, a sense only we Emtar lack.",
-		"We alone can handle technology that relies on harmonious opposites. For all others, exposure to our devices takes a psychological toll. Hallucination and paranoia take hold, and the ability to tell ally from enemy is lost. And so it was with the Galugen Blea: our only friend became our nemesis.",
+		"We alone can grasp technology that relies on harmonious opposites. For all others, exposure to our devices takes a psychological toll. Hallucination and paranoia take hold, and the ability to tell ally from enemy is lost. And so it was with the Galugen Blea: our only friend became our nemesis.",
 		"They attacked us savagely. What came to be known as the War Between the Stars raged for centuries. In the end, we survived, but it was no victory.",
 		"They were our only friends, and we killed them twice. Once by accident, when we destroyed their minds, and once in defense, when we destroyed their bodies.",
 	],
@@ -55,8 +55,8 @@ cutscene = {
 
 
 unlockboss = [
-	"Do you see now the potential of this technology? Yes it can destroy battle fleets, but it's so much more: it can destroy minds. By exposing our enemies to this technology, we can make them turn against one another, while seeing us as their trusted friends."
-	"Unfortunately, brainwashing violates the Algol Convention. Those pompous generals would never authorize it. I'll have to take matters into my own hands."
+	"Do you see now the potential of this technology? Yes it can destroy battle fleets, but it's so much more: it can destroy minds. By exposing our enemies to this technology, we can make them turn against one another, while seeing us as their trusted friends.",
+	"Unfortunately, brainwashing violates the Algol Convention. Those pompous generals would never authorize it. I'll have to take matters into my own hands.",
 	"I'm afraid you now know too much, recruit. I tried to warn you but you couldn't stop asking questions. When you're ready to settle this once and for all, meet me back at headquarters, by the central reactor.",
 	"The code to access the final boss server is %s. The option to join the final boss server has been added to your main menu. If you want a friend who has not unlocked the final boss to join you, see README.txt to see how to share the code with them.",
 ]

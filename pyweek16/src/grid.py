@@ -263,7 +263,7 @@ class Grid(object):
 	def deploy(self, x, y, device):
 		tile = self.getbasetile(x, y)
 		if not tile or tile.s != settings.devicesize[device]:
-			raise ValueError("Cannot deploy to tile tile (%s,%s)" % (x, y))
+			raise ValueError("Cannot deploy to tile (%s,%s)" % (x, y))
 		self.setdevice(x, y, device)
 
 	def putdevice(self, x, y, device, s = None):

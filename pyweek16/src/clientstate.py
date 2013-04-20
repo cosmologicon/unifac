@@ -70,7 +70,9 @@ def canunlock(dname):
 
 def canquest(x, y):
 	tile = gridstate.getbasetile(x, y)
-	if you.trained < 1:
+	if not tile:
+		return False
+	if you.trained < 2:
 		return False
 	if tile.s == 1:
 		return False

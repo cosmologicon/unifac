@@ -3,7 +3,7 @@
 
 import threading, json, logging, zlib
 from lib.websocket import websocket
-import settings, util, clientstate, userinput, vista, menu, sound
+import settings, util, clientstate, userinput, vista, menu, sound, data
 
 log = logging.getLogger(__name__)
 
@@ -37,6 +37,14 @@ def think(dt):
 				vista.SpinTile(clientstate.gridstate.getbasetile(x, y), dA)
 				clientstate.gridstate.rotate(x, y, dA)
 				send("rotate", (x, y), dA)
+	if "krotate" in inp:
+		x, y, dA = inp["krotate"]
+		if clientstate.gridstate.canrotate(x, y):
+			vista.SpinTile(clientstate.gridstate.getbasetile(x, y), dA)
+			clientstate.gridstate.rotate(x, y, dA)
+			send("rotate", (x, y), dA)
+	if "kdragx" in inp and (inp["kdragx"] or inp["kdragy"]):
+		vista.kdrag(dt * inp["kdragx"], dt * inp["kdragy"])
 	if "drag" in inp:
 		if vista.drag(*inp["drag"]):
 			send("watch", *vista.p0())
@@ -44,7 +52,8 @@ def think(dt):
 		vista.zoom(inp["scroll"], inp["scrollpos"])
 	if "deploy" in inp:
 		pos, device = inp["deploy"]
-		send("deploy", pos, device)
+		if device in clientstate.you.unlocked:
+			send("deploy", pos, device)
 	if "cheat" in inp:
 		send("cheat")
 	if "screenshot" in inp:
@@ -59,13 +68,15 @@ def think(dt):
 		if inp["select"] == "next":
 			menu.advance()
 		if not menu.stack:
-			if "qaccept" in inp["select"]:
+			if settings.BOSS:
+				pass
+			elif "qaccept" in inp["select"]:
 				if qinfo["t"] == "record":
 					sound.playmusic("minima")
 				else:
 					sound.playmusic("cephalopod")
 			else:
-				sound.playmusic("iceflow")
+				sound.playmusic("space1990")
 	if "hudclick" in inp:
 		vista.handlehudclick(inp["hudclick"])
 		if clientstate.canunlock(inp["hudclick"]):
@@ -117,7 +128,7 @@ def think(dt):
 			menu.loadcutscene(*args)
 		elif mtype == "unlockboss":
 			bosscode = args[0]
-			open(data.filepath("bosscode.txt", "w")).write("%s\n" % bosscode)
+			open(data.filepath("bosscode.txt"), "w").write("%s\n" % bosscode)
 			menu.loadunlockboss(bosscode)
 		elif mtype == "error":
 			log.warning("ERROR FROM SERVER: %s", args[0])

@@ -10,7 +10,7 @@ port = 8516
 bossport = 8616
 url = "%s:%s" % (host, port)
 bossurl = "%s:%s" % (host, bossport)
-bosscode = "12345"
+bosscode = None
 
 serverstatedir = "serverstate"
 serverstate0 = None
@@ -31,8 +31,8 @@ for arg in sys.argv:
 		screenx, screeny = map(int, arg[3:].split("x"))
 	if arg.startswith("-state0="):
 		serverstate0 = arg[8:]
-	if arg.startswith("-bosscode="):
-		bosscode = arg[10:]
+	if arg.startswith("--bosscode="):
+		bosscode = arg[11:]
 hudx = 260
 windowx = screenx - hudx
 
@@ -197,9 +197,9 @@ basexp = 0, 0, 3, 8, 20
 basecoins = 0, 0, 20, 40, 60
 baserange = 0, 0, 10, 15, 20
 questT = {
-	"easy": 40,
-	"medium": 60,
-	"hard": 80,
+	"easy": 30,
+	"medium": 50,
+	"hard": 50,
 	"boss": 200,
 #	"boss": 3,
 }
@@ -211,8 +211,8 @@ questr = {
 }
 questn = {
 	"easy": 7,
-	"medium": 20,
-	"hard": 40,
+	"medium": 14,
+	"hard": 28,
 	"boss": 100,
 }
 

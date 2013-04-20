@@ -22,16 +22,66 @@ Double-click on run_game.pyw or open a terminal and run from the game directory:
 
   python run_game.py
 
-Command-line options
---------------------
-
 
 How to Play the Game
 --------------------
 
+Follow the in-game instructions.
 
-Controls
---------
+Tiles are activated when all of their contacts are touching contacts of the opposite color.
+
+Larger tiles may be unlocked, giving you rewards, by staying activated for long enough. Click on
+a larger tile to begin unlocking it.
+
+Defensive items may be unlocked and purchased by placing them on tiles.
+
+
+Basic Controls
+--------------
+
+Left-click on tiles to rotate them left. Right-click to rotate right. Left click and drag to scroll.
+Scroll wheel lets you zoom in and out.
+
+Click on items in the sidebar to unlock them. Some items can be rotated before being placed.
+Left-click to orient them correctly.
+
+Esc to quit.
+
+
+Advanced Controls
+-----------------
+
+Q/E: rotate the tile you're pointing to left/right. This is handy if you have an item selected.
+WASD or arrows: scroll
+
+keys to use the following item on the tile you're pointing to (after you've unlocked it):
+1 or space: recolor contacts
+2: barrier
+3: laser
+4: bidirectional laser
+5: quad laser
+6: blaster
+7: mine
+8: shrapnel mine
+9: shield
+0: directional shield
+
+F12: screenshot
+
+
+Command-line options
+--------------------
+
+-r=1024x768 or any other resolution: Set the resolution.
+Default resolution is 854x480, don't make it smaller or else some of the text might be cut off.
+
+--local : Play on a local server (which you can start with cd src ; python server.py)
+
+--reset : Clear login information and start over
+
+--nomusic : disable music
+
+--bosscode=12345678 : see below
 
 
 Final Boss Server
@@ -49,6 +99,7 @@ replacing 12345678 with the actual code.
 
 During the final boss battle, all items are unlocked and you have unlimited Credits. You can't
 use any special items you got on the main server.
+
 
 License
 -------
@@ -73,8 +124,4 @@ http://www.elfwood.com/~jlock3/Vegetal-Creature-(Original-Version).2855238.html
 
 Fonts used are from Google Web Fonts, available under the Open Font License. See the
 subdirectories of data/font for details.
-
-
-
-
 

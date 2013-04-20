@@ -41,6 +41,13 @@ def drag(dx, dy):
 #		return
 	camerax0, cameray0 = x, y
 	return True
+def kdrag(dx, dy):
+	global camerax0, cameray0
+	camerax0 += dx * 300
+	cameray0 += dy * 300
+	return True
+	
+
 def zoom(dz, (x, y)):
 	global camerax0, cameray0, cameraz
 	z = cameraz
@@ -340,7 +347,7 @@ def draw():
 	for monster in clientstate.monsters.values():
 		if (monster.x, monster.y) in nodraws:
 			continue
-		s = 1 + 0.3 * math.sin(7 * time.time())
+		s = 1 + 0.3 * math.sin(7 * time.time() + 0.1 * sum(map(ord, monster.name)))
 		a = [0.2, 0.3, 0.5, 0.7][monster.hp]
 		rect = pygame.Rect(0, 0, int(a * cameraz * s), int(a * cameraz / s))
 		rect.center = worldtoscreen((monster.x + 0.5, monster.y + 0.5))
