@@ -5,7 +5,9 @@ log = logging.getLogger(__name__)
 
 def main():
 	pygame.mixer.init()
-	sound.playmusic("space1990")
+	sound.playmusic("iceflow")
+	if settings.bosscode:
+		util.savebosscode(settings.bosscode)
 	vista.init()
 	menu.loadtitle()
 	menu.top().draw(vista.screen)
@@ -42,7 +44,7 @@ def main():
 			menu.loadtraining("joinboss")
 			sound.playmusic("cephalopod")
 		else:
-			sound.playmusic("iceflow")
+			sound.playmusic("space1990")
 		while client.playing:
 			dt = clock.tick(60) * 0.001
 			client.think(dt)

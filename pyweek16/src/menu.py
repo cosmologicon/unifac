@@ -1,5 +1,5 @@
 import pygame
-import settings, text, data, dialog, util, time, random
+import settings, text, data, dialog, util, time, random, clientstate
 
 def drawoutsetbox(surf, x, y, w, h, d, color = (50, 50, 50)):
 	color1 = tuple(int(a * 0.6) for a in color)
@@ -152,14 +152,15 @@ class Menu(object):
 		text.drawtext(self.surf, t, 20, (128, 128, 128), (self.rect.x + 20, self.rect.bottom - 20),
 			ocolor = (0,0,0), anchor="bottomleft", width = self.rect.width - 40, fontname = "Viga")
 
-	def addcredits(self):
+	def addcredits(self, names = True):
 		text.drawtext(self.surf, "Last Will of the Emtar", 48, (255, 128, 128),
 			(self.rect.centerx, self.rect.centery - 60),
 			ocolor = (0,0,0), d = 4, anchor="midbottom", width = self.rect.width - 40, fontname = "RuslanDisplay")
-		text.drawtext(self.surf,
-			"by Christopher Night|music by Kevin MacLeod (incompetech.com)|",
-			30, (128, 128, 255), (self.rect.centerx, self.rect.centery - 60),
-			ocolor = (0,0,0), d = 4, anchor="midtop", width = self.rect.width - 40, fontname = "JockeyOne")
+		if names:
+			text.drawtext(self.surf,
+				"by Christopher Night|music by Kevin MacLeod (incompetech.com)|",
+				30, (128, 128, 255), (self.rect.centerx, self.rect.centery - 60),
+				ocolor = (0,0,0), d = 4, anchor="midtop", width = self.rect.width - 40, fontname = "JockeyOne")
 
 	def addfilter(self):
 		self.surf.blit(getpic("filter"), (0, 0))
@@ -253,7 +254,12 @@ def loadqinfo(qinfo):
 	menu.addcaptain()
 
 	if qinfo["t"] == "record":
-		tex = "Record Nodes are useless. They just have recordings left over. Don't bother unlocking them."
+		if clientstate.you.story == 0:
+			tex = "Record Nodes are useless. They just have old recordings. Don't waste your time unlocking them."
+		elif clientstate.you.story == 1:
+			tex = "I told you not to unlock any Record Nodes. We're on a schedule here, stick to your job!"
+		elif clientstate.you.story == 2:
+			tex = "I am ORDERING you not to unlock this Record Node!"
 	else:
 		tex = {
 			"ops": "Operations Nodes give you extra experience points, which you need to unlock abilities.",
@@ -265,7 +271,6 @@ def loadqinfo(qinfo):
 
 
 	if qinfo["t"] == "record":
-		import clientstate
 		menu.addinfotext("Unlocking this node will show The Last Will of the Emtar, recording #%s of 3" % (clientstate.you.story + 1))
 	else:
 		tex = (
@@ -348,17 +353,34 @@ def loadgameover():
 	credits = Menu()
 	credits.drawfullalien()
 	credits.darken()
-	credits.addcredits()
+	credits.addcredits(False)
 	credits.clicktoadvance()
-	endtitle = Menu(size = (300, 120))
-	endtitle.addmessage("Last Will of Theresa Nayrano")
-	endtitle.clicktoadvance()
+	endtitle1 = Menu(size = (700, 240))
+	endtitle1.addmessage("Eighteen days after the Emtar station project began, the station suffered a critical reactor breach. All personnel on board were killed.")
+	endtitle1.clicktoadvance()
+	endtitle2 = Menu(size = (500, 120))
+	endtitle2.addmessage("What follows is the final transmission from the station.")
+	endtitle2.clicktoadvance()
+	endtitle3 = Menu(size = (300, 120))
+	endtitle3.addmessage("Last Will of Theresa Nayrano")
+	endtitle3.clicktoadvance()
 	loadtraining("last")
 	stinger = stack.pop()
+	credits2 = Menu()
+	credits2.drawfullalien()
+	credits2.darken()
+	credits2.addcredits(True)
 	
 	collapse.next = credits
-	credits.next = endtitle
-	endtitle.next = stinger
+	credits.next = endtitle1
+	endtitle1.next = endtitle2
+	endtitle2.next = endtitle3
+	endtitle3.next = stinger
+	last = stinger
+	while last.next:
+		last = last.next
+	last.next = credits2
+
 	stack.append(collapse)
 	
 

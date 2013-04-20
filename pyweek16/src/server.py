@@ -5,7 +5,7 @@ log = logging.getLogger(__name__)
 
 clienthandlers = {}
 
-if settings.BOSS:
+if settings.BOSS and not settings.bosscode:
 	bosscode = util.randomname(10, "0123456789")
 	bosscode = "12345"
 	log.info("BOSS CODE: %s", bosscode)
@@ -54,7 +54,7 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 
 	def on_login(self, username, password):
 		if settings.BOSS:
-			if password != bosscode:
+			if password != settings.bosscode:
 				self.error("Incorrect boss code!")
 				self.close()
 				return
@@ -139,7 +139,7 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		if str(qinfo["p"]) in self.you.unlocked:
 			self.send("message", "Node already unlocked")
 			return
-		if qinfo["t"] == "record" and you.story >= 3:
+		if qinfo["t"] == "record" and self.you.story >= 3:
 			self.send("message", "Record already complete")
 			return
 		self.send("qinfo", qinfo)
@@ -183,12 +183,12 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		log.debug("cheating %s %s", self.username, [q.who for q in serverstate.quests])
 		if settings.ALLOWCHEAT:
 			for q in serverstate.quests:
-				if q.who == self.username:
+				if q.who in (None, self.username):
 					q.progress += 20
 
 	def send(self, *args):
 		message = json.dumps(args)
-		if len(message) > 100:
+		if len(message) > 1000:
 			zmessage = "z" + zlib.compress(message)
 			log.debug("Compressing %s %s", len(message), len(zmessage))
 			message = zmessage
@@ -226,15 +226,18 @@ def closeall():
 def think():
 	serverstate.resetupdate()
 	serverstate.think(0.5)
-	if update.monsterdelta:
-		sendall("monsters", update.monsterdelta)
 	if update.effects:
 		sendall("effects", update.effects)
+	if update.monsterdelta:
+		sendall("monsters", update.monsterdelta)
 	for q in update.quests:
 		if q.who in clienthandlers:
 			clienthandlers[q.who].qfinish(q)
 	for q in serverstate.quests:
-		if q.who in clienthandlers:
+		if settings.BOSS and not q.who:
+			for clienthandler in clienthandlers.values():
+				clienthandler.qupdate(q)
+		elif q.who in clienthandlers:
 			clienthandlers[q.who].qupdate(q)
 	senddelta(serverstate.getdelta())
 

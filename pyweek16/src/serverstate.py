@@ -19,11 +19,13 @@ quests = []
 lastsave = 0
 def save():
 	global lastsave
+	log.debug("Saving...")
 	lastsave = int(time.time())
 	s = "state-%s.pickle" % time.strftime("%Y%m%d%H")
 	path = os.path.join(settings.serverstatedir, s)
 	obj = gridstate, users, passwords, pwatch, monsters, quests
 	cPickle.dump(obj, open(path, "wb"))
+	log.debug("Saving complete.")
 
 def load(fname):
 	global gridstate, users, passwords, pwatch, monsters, quests
@@ -148,8 +150,14 @@ def addrandommonster():
 
 
 def think(dt):
-	global quests
+	global quests, bossreset
 	glock.acquire()
+	if settings.BOSS and bossreset:
+		quests.append(bossreset)
+		bossreset = False
+		quests[0].alive = True
+		quests[0].progress = 0
+		initbossquest()
 	for q in quests:
 		q.think(dt)
 		if not q.alive:
@@ -228,6 +236,8 @@ def rotate((x, y), dA):
 	glock.release()
 	return ret
 def deploy(who, (x, y), device):
+	if device not in users[who].unlocked:
+		raise ValueError("Device not unlocked")
 	if device not in settings.devicecost or users[who].coins < settings.devicecost[device]:
 		raise ValueError("Not enough resources")
 	glock.acquire()
@@ -317,13 +327,12 @@ def initquest(who, p, solo, qinfo):
 	if solo:
 		gridstate.locktiles(who, q.tiles())
 
-
+bossreset = False
 def completequest(quest):
+	global bossreset
 	if quest.diff == "boss":
-		quest.alive = True
-		quest.progress = 0
 		update.effects.append(["gameover"])
-		initbossquest()
+		bossreset = quest
 	else:
 		who = quest.who
 		users[who].xp += quest.qinfo["xp"]
