@@ -26,9 +26,9 @@ def savelogin(username, password):
 
 usednames = set()
 namechars = string.letters + string.digits
-def randomname(n = 5):
+def randomname(n = 5, chars = None):
 	while True:
-		r = "".join(random.choice(namechars) for _ in range(n))
+		r = "".join(random.choice(chars or namechars) for _ in range(n))
 		if r not in usednames:
 			return r
 

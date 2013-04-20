@@ -23,13 +23,15 @@ def think(dt):
 	# Process local updates
 	inp = userinput.get()
 	if "quit" in inp:
+		x, y = vista.p0()
+		send("watch", x, y, True)
 		stop()
 	if "rotate" in inp:
 		x, y, dA = inp["rotate"]
 		if clientstate.canquest(x, y):
 			send("qrequest", inp["mtile"])
 		elif clientstate.gridstate.canrotate(x, y):
-			if vista.selected:
+			if vista.selected and dA == 3:
 				send("deploy", (x, y), vista.selected)
 			else:
 				vista.SpinTile(clientstate.gridstate.getbasetile(x, y), dA)
@@ -72,9 +74,12 @@ def think(dt):
 		if mtype == "login":
 			login(*args)
 		elif mtype == "message":
+			print "message from server:", args[0]
 			menu.loadmessage(*args)
 		elif mtype == "you":
 			clientstate.you.setstate(*args)
+		elif mtype == "watch":
+			vista.watch(*args)
 		elif mtype == "completestate":
 			clientstate.gridstate.setstate(*args)
 			started = True
@@ -82,16 +87,16 @@ def think(dt):
 			clientstate.gridstate.applystate(*args)
 			started = True
 		elif mtype == "delta":
-			log.debug("delta %s", args[0])
+			#log.debug("delta %s", args[0])
 			clientstate.applydelta(*args)
 		elif mtype == "monsters":
-			log.debug("monsters %s", args[0])
+			#log.debug("monsters %s", args[0])
 			clientstate.handlemonsters(*args)
 		elif mtype == "effects":
-			log.debug("effects %s", args[0])
+			#log.debug("effects %s", args[0])
 			clientstate.handleeffects(*args)
 		elif mtype == "qinfo":
-			log.debug("quest info %s", args[0])
+			#log.debug("quest info %s", args[0])
 			menu.loadqinfo(*args)
 		elif mtype == "qupdate":
 			clientstate.qupdate(*args)
@@ -179,6 +184,20 @@ class run(object):
 		socketthread = SocketThread()
 		socketthread.start()
 		send("login", username, self.password)
+	def __exit__(self, *args):
+		socketthread.stop()
+		socketthread.join()
+
+
+class bossrun(object):
+	def __init__(self, bosscode):
+		self.bosscode = bosscode
+	def __enter__(self):
+		global socket, socketthread
+		socket = websocket.create_connection(settings.bossurl)
+		socketthread = SocketThread()
+		socketthread.start()
+		send("login", None, self.bosscode)
 	def __exit__(self, *args):
 		socketthread.stop()
 		socketthread.join()

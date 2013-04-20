@@ -19,9 +19,6 @@ def makeeffect(oldstate, newstate):
 		nstate = tuple(newstate["colors"]), newstate["device"]
 		if nstate == util.spin(oldstate["s"], oldstate["colors"], oldstate["device"], dA):
 			return vista.SpinTile(gridstate.getbasetile(oldstate["x"], oldstate["y"]), dA)
-			
-
-
 	if diffs["device"] and not diffs["colors"]:
 		if oldstate["device"] == "coin":
 			return vista.CoinFlipTile(oldstate, newstate)
@@ -30,7 +27,6 @@ def makeeffect(oldstate, newstate):
 			return vista.FlipTile(oldstate, newstate)
 			#log.debug("FlipTile effect created")
 		return
-
 
 	if diffs["colors"]:
 		vista.FlipTile(oldstate, newstate)
@@ -53,10 +49,15 @@ def handleeffects(effects):
 		etype, args = effect[0], effect[1:]
 		if etype == "splat":
 			vista.SplatEffect(*args)
+		if etype == "bomb":
+			# TODO separate bomb effects
+			vista.SplatEffect(*args)
 		if etype == "step":
 			vista.StepEffect(*args)
 		if etype == "laser":
 			vista.LaserEffect(*args)
+		if etype == "gameover":
+			menu.loadgameover()
 
 def canunlock(dname):
 	if dname not in settings.devicexp:

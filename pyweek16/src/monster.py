@@ -35,8 +35,8 @@ class Monster(util.serializable):
 			if self.wallstop < 3:
 				self.wallstop += 1
 				return
-			ncolors = util.randomnewcolors(tile.colors)
-			update.grid.rotate(self.x, self.y, 1)
+#			ncolors = util.randomnewcolors(tile.colors)
+#			update.grid.rotate(self.x, self.y, 1)
 #			update.grid.changecolors(self.x, self.y, ncolors)
 		update.effects.append(["step", self.x, self.y, x, y])
 		del update.monsters[(self.x, self.y)]
@@ -70,10 +70,11 @@ class Monster(util.serializable):
 		if tile and tile.active and tile.device not in (None, "wall", "coin"):
 			return True
 		if random.random() < 0.25:
-			for dx, dy in settings.ds:
+			for dx, dy in [(0,0)]:
 				tile = update.grid.getrawtile(self.x + dx, self.y + dy)
-				if tile and tile.active and tile.device not in (None, "wall", "coin"):
-					return True
+				if tile and tile.active and tile.device:
+					if any(a in tile.device for a in "laser blaster shield".split()):
+						return True
 		return False
 
 	def choosestep(self):

@@ -96,8 +96,14 @@ class Menu(object):
 		rect.centerx = self.rect.centerx
 		self.surf.blit(img, rect)
 
+	def drawfullalien(self):
+		self.surf.fill((0,0,0))
+		img = pygame.image.load(data.filepath("original", "spacebird_complete1.jpg"))
+		rect = img.get_rect(center = self.surf.get_rect().center)
+		self.surf.blit(img, rect)
+
 	def addorders(self, t):
-		text.drawtext(self.surf, t, 22, (0, 255, 0), (self.rect.x + 20, self.rect.y + 15),
+		text.drawtext(self.surf, t + "|", 22, (0, 255, 0), (self.rect.x + 20, self.rect.y + 15),
 			ocolor = (0,0,0), anchor="topleft", width = self.rect.width - 240,
 			fontname = "MeriendaOne")
 
@@ -138,8 +144,20 @@ class Menu(object):
 		text.drawtext(self.surf, t, 20, (128, 128, 128), (self.rect.x + 20, self.rect.bottom - 20),
 			ocolor = (0,0,0), anchor="bottomleft", width = self.rect.width - 40, fontname = "Viga")
 
+	def addcredits(self):
+		text.drawtext(self.surf, "Last Will of the Emtar", 48, (255, 128, 128),
+			(self.rect.centerx, self.rect.centery - 60),
+			ocolor = (0,0,0), d = 4, anchor="midbottom", width = self.rect.width - 40, fontname = "RuslanDisplay")
+		text.drawtext(self.surf,
+			"by Christopher Night|music by Kevin MacLeod (incompetech.com)|",
+			30, (128, 128, 255), (self.rect.centerx, self.rect.centery - 60),
+			ocolor = (0,0,0), d = 4, anchor="midtop", width = self.rect.width - 40, fontname = "JockeyOne")
+
 	def clickanywhere(self):
 		self.buttons["cancel"] = pygame.Rect((0, 0, self.sx, self.sy))
+
+	def clicktoadvance(self):
+		self.buttons["next"] = pygame.Rect((0, 0, self.sx, self.sy))
 
 
 stack = []
@@ -208,7 +226,8 @@ def loadcutscene(sname):
 			lastmenu.next = menu
 		menu.addalien()
 		menu.adddialog(t)
-		menu.addnav()
+#		menu.addnav()
+		menu.clicktoadvance()
 		lastmenu = menu
 
 
@@ -276,6 +295,52 @@ def gethudbox(dname, unlocked):
 			box.addcost("To unlock: %s XP" % settings.devicexp[dname])
 	hudboxes[key] = box
 	return box
+
+def loadtitle():
+	menu = Menu()
+	stack.append(menu)
+	menu.drawfullalien()
+	menu.addcredits()
+	menu.addoption("join", "Join Server", "")
+	menu.addoption("joinboss", "Join Boss Server", "")
+	menu.addoption("quit", "Quit", "")
+
+
+class Collapse(object):
+	def __init__(self):
+		self.t0 = time.time()
+		self.surf = pygame.Surface((self.sx, self.sy)).convert_alpha()
+	def draw(self, screen):
+		import vista
+		t = time.time() - self.t0
+		if t > 7:
+			advance()
+		vista.camerax0 += random.uniform(-1, 1) * t * 0.2
+		a = min(int(t / 4 * 255), 255)
+		self.surf.fill((255,255,255,a))
+		screen.blit(self.surf, (0, 0))
+		
+
+def loadgameover():
+	clear()
+	collapse = Collapse()
+	credits = Menu()
+	credits.drawfullalien()
+	credits.addcredits()
+	credits.clicktoadvance()
+	endtitle = Menu(size = (300, 120))
+	endtitle.addmessage("Last Will of Theresa Nayrano")
+	endtitle.clicktoadvance()
+	loadtraining("last")
+	stinger = stack.pop()
+	
+	collapse.next = credits
+	credits.next = endtitle
+	endtitle.next = stinger
+	
+	
+	stack.push(collapse)
+	
 
 
 

@@ -28,6 +28,10 @@ def screentotile(p):
 	return [int(math.floor(a)) for a in screentoworld(p)]
 def p0():
 	return int(math.floor(camerax0 / cameraz)), int(math.floor(cameray0 / cameraz))
+def watch(x, y):
+	global camerax0, cameray0
+	camerax0 = x * cameraz
+	cameray0 = y * cameraz
 def drag(dx, dy):
 	global camerax0, cameray0
 	x, y = camerax0 - dx, cameray0 - dy
@@ -391,12 +395,17 @@ def drawhud():
 	menu.drawoutsetbox(screen, settings.windowx, 0, settings.hudx, settings.screeny, 4, (20,20,20))
 	cimg = deviceimg("coin", 70)
 	screen.blit(cimg, cimg.get_rect(center = (settings.windowx + 40, settings.screeny - 40)))
-	text.drawtext(screen, "x %s" % clientstate.you.coins,
-		40, (255, 100, 255), (settings.windowx + 70, settings.screeny - 40),
-		anchor="midleft", ocolor=(0,0,0), fontname="RacingSansOne")
-	text.drawtext(screen, "%s XP" % clientstate.you.xp,
-		40, (160, 160, 160), (settings.windowx + 70, settings.screeny - 70),
-		anchor="midleft", ocolor=(0,0,0), fontname="RacingSansOne")
+	if clientstate.you.coins < 100000:
+		text.drawtext(screen, "x %s" % clientstate.you.coins,
+			40, (255, 100, 255), (settings.windowx + 70, settings.screeny - 40),
+			anchor="midleft", ocolor=(0,0,0), fontname="RacingSansOne")
+		text.drawtext(screen, "%s XP" % clientstate.you.xp,
+			40, (160, 160, 160), (settings.windowx + 70, settings.screeny - 70),
+			anchor="midleft", ocolor=(0,0,0), fontname="RacingSansOne")
+	else:
+		text.drawtext(screen, "unlimited",
+			40, (255, 100, 255), (settings.windowx + 70, settings.screeny - 40),
+			anchor="midleft", ocolor=(0,0,0), fontname="RacingSansOne")
 
 	if clientstate.qstatus:
 		text.drawtext(screen, "Unlocking node: %d/%d" % clientstate.qstatus,

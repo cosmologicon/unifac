@@ -35,18 +35,36 @@ def choosebases(n = 20):
 		d2 = max(0.2 * settings.sectorsize ** 2, 2 * 4 ** 2)
 		bases.append((x, y, s, t))
 	return bases
-	
+
+def addrandomcoin(sx, sy):
+	if (sx, sy) not in gridstate.sectors:
+		return
+	x = sx * settings.sectorsize + random.randint(0, settings.sectorsize-1)
+	y = sy * settings.sectorsize + random.randint(0, settings.sectorsize-1)
+	tile = gridstate.getbasetile(x, y)
+	if not tile or tile.s > 1:
+		return
+	if (tile.active or tile.device) and random.random() < 0.99:
+		return
+	glock.acquire()
+	gridstate.setdevice(x, y, "coin")
+	glock.release()
 
 def makesector(sx, sy):
 	if (sx, sy) in gridstate.sectors:
 		return
 	glock.acquire()
 	gridstate.fillsector(sx, sy)
-	x0, y0 = settings.sectorsize*sx, settings.sectorsize*sy
-	for x, y, s, t in choosebases(20):
-		gridstate.putdevice(x0+x, y0+y, "b%s%s" % (s, t), s)
+	if not settings.BOSS:
+		x0, y0 = settings.sectorsize*sx, settings.sectorsize*sy
+		for x, y, s, t in choosebases(20):
+			gridstate.putdevice(x0+x, y0+y, "b%s%s" % (s, t), s)
+		sector = gridstate.sectors[(sx, sy)]
+		while len(sector.devices["coin"]) < settings.backgroundcoins:
+			addrandomcoin(sx, sy)
 #	util.solvefog(gridstate, sx, sy)
 	glock.release()
+
 
 
 def getbaseradius(dname):
@@ -68,12 +86,18 @@ def sweepnode(x, y, r = None):
 	util.removefog(gridstate, x, y, r)
 	glock.release()
 
-makesector(0, 0)
-for d, devices in gridstate.sectors[(0,0)].devices.items():
-	if not d.startswith("b"):
-		continue
-	for t in devices:
-		sweepnode(t.x, t.y)
+
+if settings.BOSS:
+	makesector(0, 0)
+	gridstate.putdevice(0, 0, "b5reactor", 5)
+	sweepnode(0, 0, 25)
+else:
+	makesector(0, 0)
+	for d, devices in gridstate.sectors[(0,0)].devices.items():
+		if not d.startswith("b"):
+			continue
+		for t in devices:
+			sweepnode(t.x, t.y)
 
 #quests.append(
 #	quest.Quest(None, gridstate.getrawtile(5, 0))
@@ -115,7 +139,6 @@ def think(dt):
 	quests = [q for q in quests if q.alive]
 	for m in monsters.values():
 		m.think(dt)
-	glock.release()
 	checked = set()
 	for q in quests:
 		for x, y, d in gridstate.aqdevices(q.tile.x, q.tile.y, q.r):
@@ -123,6 +146,17 @@ def think(dt):
 				continue
 			devicethink(dt, x, y, d)
 			checked.add((x, y))
+	glock.release()
+
+	return
+	if 5 * random.random() < dt:
+		glock.acquire()
+		for (sx, sy), sector in gridstate.sectors.items():
+			while len(sector.devices["coins"]) < settings.backgroundcoins:
+				print sx, sy, len(gridstate.sectors[(sx,sy)].devices["coins"])
+				addrandomcoin(sx, sy)
+		glock.release()
+
 
 shots = {}
 def devicethink(dt, x, y, d):
@@ -143,10 +177,11 @@ def devicethink(dt, x, y, d):
 		for dx, dy in settings.regions[d.device]:
 			px, py = x + dx, y + dy
 			if (px, py) in monsters:
-				if monsters[(px, py)] < 0.5:
+				if monsters[(px, py)].t < 0.5:
 					continue
-				monsters[(px, py)].hurt(3)
-				update.effects.append(["bomb", ])
+				monsters[(px, py)].hurt(5)
+				gridstate.setdevice(x, y, None)
+				update.effects.append(["bomb", x, y])
 				break
 		
 
@@ -168,14 +203,16 @@ def rotate((x, y), dA):
 	return ret
 def deploy(who, (x, y), device):
 	if device not in settings.devicecost or users[who].coins < settings.devicecost[device]:
-		raise ValueError("Not enough coins")
+		raise ValueError("Not enough resources")
 	glock.acquire()
 	if device == "shuffle":
-		gridstate.matchcolors(x, y)
+		ret = gridstate.matchcolors(x, y)
 	else:
 		gridstate.deploy(x, y, device)
+		ret = None
 	glock.release()
 	users[who].coins -= settings.devicecost[device]
+	return ret
 def unlock(who, dname):
 	if dname not in settings.devicesize:
 		raise ValueError("Unrecognized device")
@@ -256,16 +293,36 @@ def initquest(who, p, solo, qinfo):
 
 
 def completequest(quest):
-	who = quest.who
-	users[who].xp += quest.qinfo["xp"]
-	users[who].coins += quest.qinfo["coins"]
-	tile = quest.tile
-	sweepnode(tile.x, tile.y, quest.qinfo["range"])
-	
+	if quest.diff == "boss":
+		quest.alive = True
+		quest.progress = 0
+		update.effect.append(["gameover"])
+	else:
+		who = quest.who
+		users[who].xp += quest.qinfo["xp"]
+		users[who].coins += quest.qinfo["coins"]
+		tile = quest.tile
+		sweepnode(tile.x, tile.y, quest.qinfo["range"])
+
+def initbossquest():
+	initquest(None, (0,0), False, {
+		"p": (0, 0),
+		"xp": 0,
+		"range": 30,
+		"difficulty": "boss",
+		"bonus": False,
+		"story": False,
+		"s": 5,
+		"t": "boss",
+	})
+
+
+if settings.BOSS:
+	initbossquest()
 
 # Returns a gamestate update to be sent to this client
-def setwatch(who, x, y):
-	if who in pwatch:
+def setwatch(who, x, y, force = False):
+	if who in pwatch and not force:
 		x0, y0 = pwatch[who]
 		if abs(x0 - x) + abs(y0 - y) < settings.watchstick:
 			return None

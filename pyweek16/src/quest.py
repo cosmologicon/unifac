@@ -15,11 +15,12 @@ class Quest(object):
 		self.y0 = tile.y + tile.s // 2
 		self.p0 = self.x0, self.y0
 		self.monsters = []
-		diff = qinfo["difficulty"]
+		self.diff = diff = qinfo["difficulty"]
 		self.r = settings.questr[diff]   # spawn radius
 		self.n = settings.questn[diff]  # max simultaneous monsters
 		self.T = settings.questT[diff]
 		self.progress = self.T * 0.1
+		self.t = 0
 	# Tiles to lock down if this quest is in solo mode
 	def tiles(self):
 		R = self.r + 3
@@ -28,14 +29,18 @@ class Quest(object):
 				if dx ** 2 + dy ** 2 <= R ** 2:
 					yield self.x0 + dx, self.y0 + dy
 	def think(self, dt):
-		while len(self.monsters) < self.n:
+		self.t += dt
+		while len(self.monsters) < self.n and random.random() < 0.99:
 			self.spawn()
 		if self.tile.active:
 			self.progress += dt
 		else:
 			self.progress -= dt
 		if self.progress <= 0:
-			self.alive = False
+			if self.diff == "boss":
+				self.progress = 0
+			else:
+				self.alive = False
 		if self.progress >= self.T:
 			self.alive = False
 			self.complete = True
@@ -45,8 +50,8 @@ class Quest(object):
 		self.monsters = [m for m in self.monsters if m.alive]
 	def spawn(self):
 		a = random.random() * 6.28
-		x = int(self.state0["x"] + self.r * math.sin(a))
-		y = int(self.state0["y"] + self.r * math.cos(a))
+		x = int(self.x0 + self.r * math.sin(a))
+		y = int(self.y0 + self.r * math.cos(a))
 		if not update.grid.canmoveto(x, y) or (x,y) in update.monsters:
 			return
 		m = monster.Monster({
