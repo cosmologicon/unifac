@@ -24,6 +24,7 @@ resetlogin = "--reset" in sys.argv
 audio = "--noaudio" not in sys.argv
 sound = "--nosound" not in sys.argv
 music = "--nomusic" not in sys.argv
+dvorak = "--dvorak" in sys.argv
 
 screenx, screeny = 854, 480
 for arg in sys.argv:

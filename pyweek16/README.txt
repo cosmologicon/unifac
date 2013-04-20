@@ -1,5 +1,5 @@
-Game Name
-=========
+Last Will of the Emtar
+======================
 
 PyWeek 16
 Team: Universe Factory 16
@@ -22,16 +22,22 @@ Double-click on run_game.pyw or open a terminal and run from the game directory:
 
   python run_game.py
 
+If you want to run the server locally, you need tornado
+
+  sudo pip install tornado
+  cd src
+  python server.py
+
 
 How to Play the Game
 --------------------
 
 Follow the in-game instructions.
 
-Tiles are activated when all of their contacts are touching contacts of the opposite color.
+Tiles are activated when all of their contacts are touching contacts of the other color.
 
-Larger tiles may be unlocked, giving you rewards, by staying activated for long enough. Click on
-a larger tile to begin unlocking it.
+Large tiles may be unlocked, giving you rewards, by staying activated for long enough. Click on
+a large tile to begin unlocking it.
 
 Defensive items may be unlocked and purchased by placing them on tiles.
 
@@ -40,10 +46,10 @@ Basic Controls
 --------------
 
 Left-click on tiles to rotate them left. Right-click to rotate right. Left click and drag to scroll.
-Scroll wheel lets you zoom in and out.
+Scroll wheel to zoom in and out.
 
-Click on items in the sidebar to unlock them. Some items can be rotated before being placed.
-Left-click to orient them correctly.
+Click on items in the sidebar to unlock them and then select them. Some items can be rotated before
+being placed. Left-click to orient them correctly.
 
 Esc to quit.
 
@@ -75,11 +81,13 @@ Command-line options
 -r=1024x768 or any other resolution: Set the resolution.
 Default resolution is 854x480, don't make it smaller or else some of the text might be cut off.
 
---local : Play on a local server (which you can start with cd src ; python server.py)
+--local : Play on a local server
 
 --reset : Clear login information and start over
 
 --nomusic : disable music
+
+--dvorak : Dvorak keyboard controls
 
 --bosscode=12345678 : see below
 
@@ -119,7 +127,7 @@ Space 1990
 The image "Sci-fi Girl" is by ElephantWindigo, available under a CC-BY-NC license here:
 http://elephantwendigo.deviantart.com/art/Sci-fi-girl-332007060
 
-The image "Vegetal Creature" is by Julie ann Lcok, availe under a CC-BY-NC-SA license here:
+The image "Vegetal Creature" is by Julie ann Lock, available under a CC-BY-NC-SA license here:
 http://www.elfwood.com/~jlock3/Vegetal-Creature-(Original-Version).2855238.html
 
 Fonts used are from Google Web Fonts, available under the Open Font License. See the
