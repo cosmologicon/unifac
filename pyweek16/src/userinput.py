@@ -77,17 +77,21 @@ def get():
 				ret["deploy"] = mtile, "shield"
 			if event.key == K_0:
 				ret["deploy"] = mtile, [d for d in vista.hudrects if d.startswith("1dshield")][0]
-			if event.key in (K_q, K_QUOTE):
+			if event.key == (K_QUOTE if settings.dvorak else K_q):
 				ret["krotate"] = mtile[0], mtile[1], 3
-			if event.key in (K_e, K_PERIOD):
+			if event.key == (K_PERIOD if settings.dvorak else K_e):
 				ret["krotate"] = mtile[0], mtile[1], 1
 		if event.type == QUIT:
 			ret["quit"] = True
 
 
 	m = pygame.key.get_pressed()
-	ret["kdragx"] = int(m[K_RIGHT] or m[K_e] or m[K_d]) - int(m[K_LEFT] or m[K_a])
-	ret["kdragy"] = int(m[K_DOWN] or m[K_o] or m[K_s]) - int(m[K_UP] or m[K_COMMA] or m[K_w])
+	if settings.dvorak:
+		ret["kdragx"] = int(m[K_RIGHT] or m[K_e]) - int(m[K_LEFT] or m[K_a])
+		ret["kdragy"] = int(m[K_DOWN] or m[K_o]) - int(m[K_UP] or m[K_COMMA])
+	else:
+		ret["kdragx"] = int(m[K_RIGHT] or m[K_d]) - int(m[K_LEFT] or m[K_a])
+		ret["kdragy"] = int(m[K_DOWN] or m[K_s]) - int(m[K_UP] or m[K_w])
 
 	return ret
 
