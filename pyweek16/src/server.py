@@ -5,13 +5,18 @@ log = logging.getLogger(__name__)
 
 clienthandlers = {}
 
+if settings.BOSS:
+	bosscode = util.randomname(10, "0123456789")
+	bosscode = "12345"
+	log.info("BOSS CODE: %s", bosscode)
+
 class GameHandler(tornado.websocket.WebSocketHandler):
 	def open(self):
 		log.debug("WebSocket opened")
 		self.username = None
 	
 	def on_message(self, message):
-#		log.debug("Message received: %s" % message)
+		log.debug("Message received: %s" % message)
 		try:
 			message = parsemessage(message)
 			mtype, args = message[0], message[1:]
@@ -23,8 +28,6 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 			if mtype == "watch":
 				self.on_watch(*args)
 			elif mtype == "rotate":
-				self.on_rotate(*args)
-			elif mtype == "shuffle":
 				self.on_rotate(*args)
 			elif mtype == "deploy":
 				self.on_deploy(*args)
@@ -48,7 +51,14 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		log.debug("WebSocket closed %s" % self.username)
 
 	def on_login(self, username, password):
-		if not username:
+		if settings.BOSS:
+			if password != bosscode:
+				self.error("Incorrect boss code!")
+				self.close()
+				return
+			username = util.randomname()
+			serverstate.users[username] = player.maxedplayer(username)
+		elif not username:
 			username, password = util.randomname(), util.randomname(12)
 			serverstate.users[username] = player.Player({"username": username})
 			serverstate.passwords[username] = password
@@ -59,6 +69,8 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 			return
 		self.you = serverstate.users[username]
 		self.send("you", self.you.getstate())
+		if username in serverstate.pwatch:
+			self.send("watch", *serverstate.pwatch[username])
 		self.username = username
 		if self.you.trained == 0:
 			self.send("train", 0)
@@ -69,13 +81,15 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		self.send("state", state)
 		self.send("monsters", [m.getstate() for m in serverstate.monsters.values()])
 
-	def on_watch(self, x, y):
+	def on_watch(self, x, y, force=False):
+		if settings.BOSS:
+			x, y = 0, 0
 		x, y = [int(math.floor(a)) for a in (x, y)]
 		serverstate.glock.acquire()
 		tile = serverstate.gridstate.getrawtile(x, y)
 		if not tile or tile.fog:
 			return
-		state = serverstate.setwatch(self.username, x, y)
+		state = serverstate.setwatch(self.username, x, y, force)
 		serverstate.glock.release()
 		if state:
 			self.send("state", state)
@@ -94,16 +108,22 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 
 	def on_deploy(self, (x,y), device):
 		x, y, device = int(x), int(y), str(device)
-		serverstate.deploy(self.username, (x,y), device)
+		act = serverstate.deploy(self.username, (x,y), device)
+		if act:
+			serverstate.handleactivation(act, self.username)
 		senddelta(serverstate.getdelta())
 		self.send("you", self.you.getstate())
 
 	def on_unlock(self, dname):
+		if settings.BOSS:
+			return
 		dname = str(dname)
 		serverstate.unlock(self.username, dname)
 		self.send("you", self.you.getstate())
 
 	def on_qrequest(self, (x,y)):
+		if settings.BOSS:
+			return
 		p = int(x), int(y)
 		qinfo = serverstate.questinfo(self.username, p)
 		if not qinfo:
@@ -112,6 +132,8 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		self.send("qinfo", qinfo)
 
 	def on_qaccept(self, (x,y), solo):
+		if settings.BOSS:
+			return
 		p = int(x), int(y)
 		solo = bool(solo)
 		qinfo = serverstate.questinfo(self.username, p)
@@ -124,7 +146,9 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 
 	def qfinish(self, q):
 		if q.complete:
-			if q.qinfo["story"]:
+			if settings.BOSS:
+				self.send("ending")
+			elif q.qinfo["story"]:
 				if self.you.story == 4:
 					self.you.trained = 4
 					self.send("unlockboss", settings.bosscode)
@@ -142,6 +166,7 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		self.write_message(json.dumps(args))
 	
 	def error(self, message=None):
+		log.debug("Sending error message to %s: %s" % (self.username, message))
 		self.send("error", message)
 
 def parsemessage(message):
@@ -188,7 +213,7 @@ if __name__ == "__main__":
 	application = tornado.web.Application([
 		(r"/", GameHandler),
 	])
-	application.listen(settings.port)
+	application.listen(settings.bossport if settings.BOSS else settings.port)
 	ioloop = tornado.ioloop.IOLoop.instance()
 	tornado.ioloop.PeriodicCallback(think, 500).start()
 	try:

@@ -1,15 +1,19 @@
-import logging
+import logging, random, sys
 
 DEBUG = True
 LOCALPLAY = True
+BOSS = "--boss" in sys.argv
 
 host = "ws://localhost" if LOCALPLAY else "ws://universefactory.net"
 port = 8516
+bossport = 8616
 url = "%s:%s" % (host, port)
+bossurl = "%s:%s" % (host, bossport)
+
 
 loginname = None
 loginfile = "login-%s.json" if loginname else "login.json"
-resetlogin = True
+resetlogin = "--reset" in sys.argv
 
 
 screenx, screeny = 854, 480
@@ -33,6 +37,7 @@ horizonbuffer = 80  # Number of tiles beyond the edges of the fog to build
 penumbra = 4   # Width of the fog fade line
 watchradius = 60
 watchstick = 40
+backgroundcoins = 100
 
 devicesize = {
 	"coin": 1,
@@ -65,6 +70,7 @@ eradius = {
 	"1laser1": 4,
 	"1laser2": 4,
 	"1laser3": 4,
+	"mine": 1,
 	"adjmine": 1,
 	"1blaster0": 2,
 	"1blaster1": 2,
@@ -102,7 +108,7 @@ devicexp = {
 	"1dshield3": 20,
 }
 devicecost = {
-	"shuffle": 5,
+	"shuffle": 2,
 	"wall": 3,
 
 	"mine": 3,
@@ -154,6 +160,10 @@ regions = {
 	"1dshield1": [(x,0) for x in (1,2,3)],
 	"1dshield2": [(0,y) for y in (1,2,3)],
 	"1dshield3": [(-x,0) for x in (1,2,3)],
+	"1blaster0": [(0,-y) for y in (1,2,3)],
+	"1blaster1": [(x,0) for x in (1,2,3)],
+	"1blaster2": [(0,y) for y in (1,2,3)],
+	"1blaster3": [(-x,0) for x in (1,2,3)],
 	"4laser": list(ds),
 	"2laser0": [(0,y) for y in (-1,1,-2,2)],
 	"2laser1": [(x,0) for x in (-1,1,-2,2)],
@@ -166,15 +176,16 @@ regions = {
 }
 
 basesdist = 2, 2, 2, 2, 3, 3, 4
-basetdist = "resource ops scan supply".split() * 6 + ["record"]
-basexp = 0, 0, 1, 4, 10
+basetdist = "resource ops scan".split() * 4 + ["record"]
+basexp = 0, 0, 3, 8, 20
 basecoins = 0, 0, 20, 40, 60
 baserange = 0, 0, 10, 15, 20
 questT = {
 	"easy": 40,
 	"medium": 60,
 	"hard": 80,
-	"boss": 200,
+#	"boss": 200,
+	"boss": 3,
 }
 questr = {
 	"easy": 5,
@@ -183,8 +194,8 @@ questr = {
 	"boss": 12,
 }
 questn = {
-	"easy": 6,
-	"medium": 15,
+	"easy": 7,
+	"medium": 20,
 	"hard": 40,
 	"boss": 100,
 }

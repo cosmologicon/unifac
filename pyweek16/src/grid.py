@@ -66,7 +66,10 @@ class Tile(util.serializable):
 	def changecolors(self, grid, colors):
 		ps, activated = [self.p], []
 		self.colors = colors
+		wasactive = self.active
 		self.updatestate(grid)
+		if self.active != wasactive:
+			activated.append(self.p)
 		for x, y in util.neighbors(self.s, self.x, self.y):
 			tile = grid.getbasetile(x, y)
 			wasactive = tile.active
@@ -131,6 +134,9 @@ class Sector(object):
 		self.markdelta(x, y)
 	def setdevice(self, x, y, device):
 		tile = self.tiles[(x, y)]
+		if tile.device:
+			if tile in self.devices[tile.device]:
+				self.devices[tile.device].remove(tile)
 		tile.device = device
 		self.devices[device].append(tile)
 		self.markdelta(x, y)
@@ -158,7 +164,7 @@ def randomsector(sx, sy):
 				"y": sy*a+y,
 				"colors": colors,
 			}
-			if random.random() < 0.2: tilestate["device"] = "coin"
+#			if random.random() < 0.2: tilestate["device"] = "coin"
 			tilestates.append(tilestate)
 	return Sector((sx, sy, tilestates))
 

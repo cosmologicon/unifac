@@ -20,7 +20,7 @@ def get():
 		if event.type == MOUSEBUTTONDOWN and event.button in (1,2,3):
 			mdownpos[event.button] = event.pos
 			dragging[event.button] = False
-		if event.type == MOUSEMOTION and 1 in event.buttons:
+		if event.type == MOUSEMOTION and event.buttons[0]:
 			button = 1
 			if button not in mdownpos:
 				mdownpos[button] = event.pos
