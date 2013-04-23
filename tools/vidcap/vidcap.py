@@ -1,28 +1,30 @@
 # Linux/pygame video capture utility by Christopher Night - public domain
 # Requires mogrify, oggenc (if there's audio), and mencoder
 
-# BASIC USAGE: record your gameplay from start to finish in real time
-#    During the game, simply import this file as a module (import vidcap) from your main module.
-#    A frame will be recorded every time you call pygame.display.flip(). After the game, execute
-#    this file directly to encode the AVI:
-#       python vidcap.py [viddir]
-#    This will produce the file viddir/vidcap.avi.
-#    Make sure you call pygame.init() early in your program (but after you import vidcap). This is
-#    how vidcap knows to start the recording, and it's necessary for timing to work.
+# 0. Install dependencies: sudo apt-get install imagemagick vorbis-tools mencoder
+ 
+# 1. Recording. Place this file into your source directory. Within your game, import it with
+# "import vidcap". Then the recording will start when you call pygame.init(). That's all there
+# is to it. (For best synchronization results, import vidcap before any of your other modules.)
+
+# 2. Encoding. When you're done, simply run vidcap.py as "python vidcap.py" or whatever. This
+# will create an AVI in the vidcap directory called vidcap.avi. Watch and enjoy!
 
 # To delete a video and all of its files, simply remove the directory.
 
-# TODO: document calling the functions manually
 
-# TODO: how to start and stop recording during gameplay
+# Advanced API:
 
-# TODO: draw mouse cursor
-
-import pygame, datetime, os, inspect, subprocess, glob
+# vidcap.record() : begin recording
+# vidcap.stop() : stop recording
+# vidcap.toggle() : toggle recording
+# vidcap.cap() : explicitly capture a frame. You don't need to call this directly, it's done
+#   automatically whenever you call pygame.display.flip().
 
 wrappygame = True  # Should this module wrap pygame.display.flip and pygame.init so that the video
-                   # is automatically recorded when you call these functions? If this is false,
+                   # is automatically recorded when you call these functions? If this is False,
                    # you'll need to call vidcap.cap() once per frame
+                   # Audio will not work if this is set to False.
 
 viddir = None  # You can set this to an explicit directory path if you like
                # Otherwise it will default to a directory with a current timestamp
@@ -32,7 +34,11 @@ recordsymbol = True  # Put a "recording" symbol in the corner when recording
 
 usepng = False  # Use png rather than bmp (takes less disk space but is slower)
 
-drawmouse = True
+drawmouse = True  # Draw the mouse cursor onto the recording
+
+
+
+import pygame, datetime, os, inspect, subprocess, glob
 
 
 _recording = True
