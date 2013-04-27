@@ -1,6 +1,6 @@
 import random, logging
 from collections import defaultdict
-import settings, util
+import settings, util, json, zlib
 
 log = logging.getLogger(__name__)
 
@@ -178,19 +178,38 @@ class Grid(object):
 		for tile in sector.tiles.values():
 			tile.updatestate(self)
 		# TODO: update adjacent tiles
+	def zipsectors(self, sectors = None):
+		if sectors is None:
+			sectors = self.sectors
+		for sx, sy in sectors:
+			if not isinstance(self.sectors[(sx, sy)], str):
+				self.zipsector(sx, sy)
+	def zipsector(self, sx, sy):
+		self.sectors[(sx, sy)] = zlib.compress(json.dumps(self.sectors[(sx, sy)].getstate()))
+	def unzipsector(self, sx, sy):
+		sector = Sector(json.loads(zlib.decompress(self.sectors[(sx, sy)])))
+		self.sectors[(sx, sy)] = sector
+		return sector
+	def getsector(self, sx, sy):
+		if (sx, sy) not in self.sectors:
+			return None
+		sector = self.sectors[(sx, sy)]
+		if isinstance(sector, str):
+			return self.unzipsector(sx, sy)
+		return sector
 	def getrawtile(self, x, y):  # Return None if there's a pseudotile at that location
 		sx = x // settings.sectorsize
 		sy = y // settings.sectorsize
 		if (sx, sy) not in self.sectors:
 			return None
-		tile = self.sectors[(sx, sy)].gettile(x, y)
+		tile = self.getsector(sx, sy).gettile(x, y)
 		return None if tile.parent else tile
 	def getbasetile(self, x, y):  # Returns the true tile if there's a pseudotile at that location
 		sx = x // settings.sectorsize
 		sy = y // settings.sectorsize
 		if (sx, sy) not in self.sectors:
 			return None
-		tile = self.sectors[(sx, sy)].gettile(x, y)
+		tile = self.getsector(sx, sy).gettile(x, y)
 		return self.getbasetile(*tile.parent) if tile.parent else tile
 	def getcolor(self, x, y, side):
 		tile = self.getbasetile(x, y)
@@ -205,8 +224,8 @@ class Grid(object):
 		return tile.color(side, offset)
 	def getstate(self, sectors = None):
 		if sectors is None:
-			return [(x, y, sector.getstate()) for (x, y), sector in self.sectors.items()]
-		return [(x, y, self.sectors[(x,y)].getstate()) for x, y in sectors]
+			sectors = self.sectors
+		return [(x, y, self.getsector(x, y).getstate()) for (x, y) in sectors]
 	def setstate(self, state):
 		self.sectors = {}
 		self.applystate(state)
@@ -218,12 +237,14 @@ class Grid(object):
 	def getdelta(self):
 		ret = {}
 		for spos, sector in self.sectors.items():
+			if isinstance(sector, str):
+				continue
 			d = sector.getdelta()
 			if d: ret[spos] = d
 		return ret.items()  # can't JSON a dict with tuples for keys
 	def applydelta(self, delta):
 		for spos, sdelta in delta:
-			for dstate in self.sectors[tuple(spos)].applydelta(sdelta):
+			for dstate in self.getsector(*tuple(spos)).applydelta(sdelta):
 				yield dstate
 	def canrotate(self, x, y):
 		tile = self.getbasetile(x, y)
@@ -238,7 +259,7 @@ class Grid(object):
 		ps, activated = tile.rotate(self, dA)
 		for x, y in ps:
 			p = x // settings.sectorsize, y // settings.sectorsize
-			self.sectors[p].markdelta(x, y)
+			self.getsector(*p).markdelta(x, y)
 		return activated
 	def changecolors(self, x, y, colors):
 		tile = self.getbasetile(x, y)
@@ -247,7 +268,7 @@ class Grid(object):
 		ps, activated = tile.changecolors(self, colors)
 		for x, y in ps:
 			p = x // settings.sectorsize, y // settings.sectorsize
-			self.sectors[p].markdelta(x, y)
+			self.getsector(*p).markdelta(x, y)
 		return activated
 	def matchcolors(self, x, y):
 		tile = self.getbasetile(x, y)
@@ -256,7 +277,7 @@ class Grid(object):
 		ps, activated = tile.matchcolors(self)
 		for x, y in ps:
 			p = x // settings.sectorsize, y // settings.sectorsize
-			self.sectors[p].markdelta(x, y)
+			self.getsector(*p).markdelta(x, y)
 		return activated
 
 	# To use when a *player* deploys a device - does not change colors or tile sizes
@@ -288,16 +309,16 @@ class Grid(object):
 	# This should be used by the server with care.
 	def settile(self, tilestate):
 		p = tilestate["x"] // settings.sectorsize, tilestate["y"] // settings.sectorsize
-		self.sectors[p].settile(tilestate)
+		self.getsector(*p).settile(tilestate)
 	def setdevice(self, x, y, device):
 		p = x // settings.sectorsize, y // settings.sectorsize
-		self.sectors[p].setdevice(x, y, device)
+		self.getsector(*p).setdevice(x, y, device)
 	def setfog(self, x, y, fog):
 		p = x // settings.sectorsize, y // settings.sectorsize
-		self.sectors[p].setfog(x, y, fog)
+		self.getsector(*p).setfog(x, y, fog)
 	def activate(self, x, y):
 		p = x // settings.sectorsize, y // settings.sectorsize
-		self.sectors[p].activate(x, y)
+		self.getsector(*p).activate(x, y)
 	def devices(self, sx, sy):  # All devices with an area of effect overlapping this sector
 		xmin = settings.sectorsize * sx
 		xmax = xmin + settings.sectorsize
@@ -308,7 +329,7 @@ class Grid(object):
 				ax, ay = sx + dsx, sy + dsy
 				if (ax, ay) not in self.sectors:
 					continue
-				sector = self.sectors[(ax, ay)]
+				sector = self.getsector(ax, ay)
 				for dname, tiles in sector.devices.items():
 					if dname not in settings.eradius:
 						continue
@@ -329,7 +350,7 @@ class Grid(object):
 				ax, ay = sx + dsx, sy + dsy
 				if (ax, ay) not in self.sectors:
 					continue
-				sector = self.sectors[(ax, ay)]
+				sector = self.getsector(ax, ay)
 				for dname, tiles in sector.devices.items():
 					if dname not in settings.eradius:
 						continue
@@ -373,7 +394,7 @@ class Grid(object):
 				continue
 			tile.lock = who
 			p = tile.x // settings.sectorsize, tile.y // settings.sectorsize
-			self.sectors[p].markdelta(tile.x, tile.y)
+			self.getsector(*p).markdelta(tile.x, tile.y)
 			
 	def unlocktiles(self, who, tiles):
 		for x, y in tiles:
@@ -384,7 +405,7 @@ class Grid(object):
 				continue
 			tile.lock = None
 			p = tile.x // settings.sectorsize, tile.y // settings.sectorsize
-			self.sectors[p].markdelta(tile.x, tile.y)
+			self.getsector(*p).markdelta(tile.x, tile.y)
 
 
 

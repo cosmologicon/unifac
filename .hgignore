@@ -4,4 +4,6 @@ syntax: glob
 *.pyo
 *~
 a.out
+data/login.json
+data/bosscode.txt
 

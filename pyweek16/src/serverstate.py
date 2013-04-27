@@ -21,10 +21,17 @@ def save():
 	global lastsave
 	log.debug("Saving...")
 	lastsave = int(time.time())
+	gridstate.zipsectors()
 	s = "state-%s.pickle" % time.strftime("%Y%m%d%H")
 	path = os.path.join(settings.serverstatedir, s)
 	obj = gridstate, users, passwords, pwatch, monsters, quests
 	cPickle.dump(obj, open(path, "wb"))
+	
+#	import zlib, json
+#	s1 = json.dumps(gridstate.getstate())
+#	s2 = cPickle.dumps(gridstate)
+#	print "Grid state size %s %s %s %s" % (len(s1), len(zlib.compress(s1)), len(s2), len(zlib.compress(s2)))
+	
 	log.debug("Saving complete.")
 
 def load(fname):
