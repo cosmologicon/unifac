@@ -9,7 +9,7 @@ Members: Cosmologicon
 Running the Game
 ----------------
 
-You must have python 2 and pygame installed.
+You must have python 2 and pygame installed. I used python 2.7 and pygame 1.9.
 
   http://www.python.org/getit/
   http://www.pygame.org/download.shtml

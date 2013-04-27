@@ -152,6 +152,7 @@ class GameHandler(tornado.websocket.WebSocketHandler):
 		qinfo = serverstate.questinfo(self.username, p)
 		if not qinfo:
 			self.error("Invalid quest")
+			return
 		if str(qinfo["p"]) in self.you.unlocked:
 			self.send("message", "Node already unlocked")
 			return

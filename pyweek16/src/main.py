@@ -1,9 +1,11 @@
 import logging, pygame
 import settings, client, util, vista, menu, userinput, sound
+#import vidcap
 
 log = logging.getLogger(__name__)
 
 def main():
+	pygame.init()
 	pygame.mixer.init()
 	sound.playmusic("iceflow")
 	if settings.bosscode:
@@ -14,6 +16,8 @@ def main():
 	pygame.display.flip()
 	clock = pygame.time.Clock()
 	while menu.stack:
+		menu.top().draw(vista.screen)
+		pygame.display.flip()
 		dt = clock.tick(60) * 0.001
 		inp = userinput.menuget()
 		if "quit" in inp:
@@ -49,6 +53,9 @@ def main():
 			dt = clock.tick(60) * 0.001
 			client.think(dt)
 			if not client.started:
+				if menu.stack:
+					menu.top().draw(vista.screen)
+					pygame.display.flip()
 				continue
 			vista.think(min(dt, 0.05))
 			vista.draw()
