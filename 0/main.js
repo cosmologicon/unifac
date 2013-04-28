@@ -68,8 +68,8 @@ UFX.scenes.main = {
 		level.bitks.forEach(function (kspec) {
 			var thing0 = things[kspec[0]], thing1 = things[kspec[1]], f = kspec[2] || 0.5
 			things.push(new Bit(
-				f * (thing0.x + thing1.x),
-				f * (thing0.y + thing1.y)
+				(1-f) * thing0.x + f * thing1.x,
+				(1-f) * thing0.y + f * thing1.y
 			))
 		})
 		level.bitxs.forEach(function (xspec) {
@@ -170,6 +170,7 @@ UFX.scenes.main = {
 		var athings = things.filter(function (thing) {
 			return !thing.done && !(thing.trans && thing.trans.kills)
 		})
+		console.log(athings)
 		if (athings.length > 1) {
 			this.superfluous = true
 			var piece = this.piece

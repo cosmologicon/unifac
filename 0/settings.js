@@ -12,11 +12,12 @@ var settings = {
 var beaten = {}
 
 function getlevels() {
-	return ["northwest", "northeast"]
+	var unbeaten = function (lname) { return !beaten[lname] }
 
-	if (beaten.northwest) {
-		return ["0"]
-	}
-	return ["northwest"]
+	var ret = ["northwest", "northeast", "southwest", "southeast"].filter(unbeaten)
+	if (ret.length) return ret
+
+	var ret = ["0"].filter(unbeaten)
+	return ret
 }
 
