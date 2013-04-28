@@ -4,7 +4,7 @@ var camera = {
 		var sx = canvas.width, sy = canvas.height, s = Math.min(sx, sy)
 		this.x0 = sx / 2
 		this.y0 = sy / 2
-		this.z = s / 24
+		this.z = s / 28
 	},
 	screentoworld: function (p) {
 		if (!p) return null

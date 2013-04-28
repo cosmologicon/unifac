@@ -1,9 +1,17 @@
 UFX.scenes.main = {
 	start: function () {
-		things.push(new Piece())
-		things.push(new Target(3, 3))
-		this.athing = null
-		things[1].trans = new Deploy()
+		things.push(new Target(10, 10))
+		things.push(new Target(-10, 10))
+		things.push(new Target(-10, -10))
+		things.push(new Target(10, -10))
+		things.push(new Bit(5, 5))
+		things.forEach(function (thing) {
+			thing.trans = new Deploy(thing)
+		})
+		this.piece = new Piece("( m -2 -2 l 2 -2 l 1 1 l -2 2 )")
+		this.athing = this.piece
+		this.piece.active = true
+		things.push(this.piece)
 	},
 	thinkargs: function (dt) {
 		var clicked = false
@@ -30,6 +38,10 @@ UFX.scenes.main = {
 			if (atarget) {
 				if (this.athing) {
 					this.athing.active = false
+					this.collect(this.athing, atarget)
+					if (this.athing.disposible) {
+						this.athing.done = true
+					}
 					things.push(new Ghost(this.athing, atarget))
 				}
 				this.athing = atarget
@@ -42,6 +54,20 @@ UFX.scenes.main = {
 		things = things.filter(function (thing) { return !thing.done })
 		camera.think(dt)
 		if (settings.DEBUG) this.dirty = true
+	},
+	collect: function (thing0, thing1) {
+		var px = thing1.x - thing0.x, py = thing1.y - thing0.y, p2 = px * px + py * py
+		things.forEach(function (thing) {
+			if (!thing.collectible) return
+			var dx = thing.x - thing0.x, dy = thing.y - thing0.y //, d = Math.sqrt(dx * dx + dy * dy)
+			var dot = dx * px + dy * py
+			var a = clip(dot / p2, 0, 1)
+			var ax = thing.x - (thing0.x + a * px)
+			var ay = thing.y - (thing0.y + a * py)
+			if (ax * ax + ay * ay <= settings.Dmin * settings.Dmin) {
+				thing.trans = new GrowFade()
+			}
+		})
 	},
 	draw: function () {
 		if (!this.dirty) return
