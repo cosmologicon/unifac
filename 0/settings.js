@@ -8,3 +8,15 @@ var settings = {
 	Dmin: 0.5,
 }
 
+
+var beaten = {}
+
+function getlevels() {
+	return ["northwest", "northeast"]
+
+	if (beaten.northwest) {
+		return ["0"]
+	}
+	return ["northwest"]
+}
+

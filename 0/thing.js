@@ -95,8 +95,12 @@ var DrawPath = {
 	init: function (path) {
 		this.path = path || "b o 0 0 2"
 	},
-	draw: function () {
-		UFX.draw(this.path, "fs gray f fs white lw 0.2 s")
+	draw: function (neg) {
+		if (neg) {
+			UFX.draw(this.path, "fs #CCC f lw 0.2 s")
+		} else {
+			UFX.draw(this.path, "fs gray f lw 0.2 s")
+		}
 	},
 }
 var DrawTcircle = {
@@ -111,7 +115,8 @@ var DrawStar = {
 }
 
 // Centerpiece of each level, also the level identifier shape
-function Piece(path, x, y) {
+function Piece(name, path, x, y) {
+	this.name = name
 	this.x = x || 0
 	this.y = y || 0
 	this.path = path || this.path
@@ -143,7 +148,7 @@ Target.prototype = UFX.Thing()
 function Bit(x, y) {
 	this.x = x
 	this.y = y
-	this.t = Math.random() * 10
+	this.t = Math.random() * 1000
 	this.think(0)
 }
 Bit.prototype = UFX.Thing()
