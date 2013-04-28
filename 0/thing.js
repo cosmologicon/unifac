@@ -27,6 +27,7 @@ var Transitions = {
 		if (!this.trans) return
 		this.trans.think(dt, this)
 		if (this.trans.done) {
+			if (this.trans.kills) this.done = true
 			this.trans = null
 		}
 	},
@@ -59,6 +60,16 @@ var Unclickable = {
 		return false
 	},
 }
+var Collectible = {
+	init: function () {
+		this.collectible = true
+	},
+}
+var Disposible = {
+	init: function () {
+		this.disposible = true
+	},
+}
 
 var WobbleOnActive = {
 	init: function (omega, beta) {
@@ -72,19 +83,31 @@ var WobbleOnActive = {
 		}
 	},
 }
+var Rocks = {
+	draw: function () {
+		var A = 20 * Math.sin(this.t * 0.1)
+		UFX.draw("r", A)
+	},
+}
+
 
 var DrawPath = {
 	init: function (path) {
 		this.path = path || "b o 0 0 2"
 	},
 	draw: function () {
-		UFX.draw(this.path, "alpha 0.5 f alpha 1 lw 0.2 s")
+		UFX.draw(this.path, "fs gray f fs white lw 0.2 s")
 	},
 }
 var DrawTcircle = {
 	draw: function () {
 		UFX.draw("b o 0 0 1 lw 0.3 s b o 0 0 0.5 f")
-	}
+	},
+}
+var DrawStar = {
+	draw: function () {
+		UFX.draw("z 0.2 0.2 ( m 0 4 l 1 1 l 4 0 l 1 -1 l 0 -4 l -1 -1 l -4 0 l -1 1 ) f")
+	},
 }
 
 // Centerpiece of each level, also the level identifier shape
@@ -113,5 +136,22 @@ Target.prototype = UFX.Thing()
 	.addcomp(WobbleOnActive)
 	.addcomp(DrawTcircle)
 	.addcomp(Clickable, 1)
+	.addcomp(Disposible)
 
+
+// Star bits. These represent your possessions or whatever
+function Bit(x, y) {
+	this.x = x
+	this.y = y
+	this.t = Math.random() * 10
+	this.think(0)
+}
+Bit.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Ticks)
+	.addcomp(Transitions)
+	.addcomp(Rocks)
+	.addcomp(DrawStar)
+	.addcomp(Unclickable)
+	.addcomp(Collectible)
 

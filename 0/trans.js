@@ -28,10 +28,21 @@ var NonLinearTrans = {
 	},
 }
 
+var Hesitates = {
+	init: function (T) {
+		this.hT0 = T || 0
+		this.hT = 0
+	},
+	think: function (dt) {
+		this.hT += dt
+		this.t = Math.max(Math.min(this.t, this.hT - this.hT0), 0)
+	},
+}
+
+
 
 
 function Spin() {
-	this.t = 0
 }
 Spin.prototype = UFX.Thing()
 	.addcomp(Ticks)
@@ -43,20 +54,36 @@ Spin.prototype = UFX.Thing()
 		},
 	})
 
-function Deploy() {
-	this.t = 0
+function Deploy(obj) {
+	var A = Math.atan2(obj.x, obj.y)
+	this.hT0 = 0.1 * A
 }
 Deploy.prototype = UFX.Thing()
 	.addcomp(Ticks)
+	.addcomp(Hesitates)
 	.addcomp(FiniteLife, 0.8)
-	.addcomp(NonLinearTrans, -1)
+	.addcomp(NonLinearTrans, -3)
 	.addcomp({
 		draw: function (obj) {
 			UFX.draw("t", -obj.x * (1-this.f), -obj.y * (1-this.f))
 		},
 	})
-	
 
+function GrowFade() {
+}
+GrowFade.prototype = UFX.Thing()
+	.addcomp(Ticks)
+	.addcomp(FiniteLife, 0.5)
+	.addcomp(NonLinearTrans)
+	.addcomp({
+		init: function () {
+			this.kills = true
+		},
+		draw: function (obj) {
+			s = 1 + 2 * this.f
+			UFX.draw("z", s, s, "alpha", 1-this.f)
+		},
+	})
 
 // Effects
 
@@ -70,7 +97,7 @@ function Ghost(thing0, thing1) {
 Ghost.prototype = UFX.Thing()
 	.addcomp(Ticks)
 	.addcomp(FiniteLife, 0.3)
-	.addcomp(NonLinearTrans)
+	.addcomp(NonLinearTrans, -3)
 	.addcomp({
 		getf: function (t) {
 			var f = clip(t / this.T, 0, 1)
@@ -92,5 +119,6 @@ Ghost.prototype = UFX.Thing()
 			return true
 		},
 	})
+	.addcomp(Unclickable)
 
 
