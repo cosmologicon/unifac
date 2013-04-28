@@ -21,7 +21,7 @@ window.onload = function () {
 		minups: 10,
 		maxups: 200,
 	})
-	UFX.scene.push("main")
+	UFX.scene.push("select")
 	UFX.mouse.init(canvas)
 	UFX.mouse.qdown = false
 }

@@ -69,6 +69,24 @@ Deploy.prototype = UFX.Thing()
 		},
 	})
 
+function Undeploy(obj) {
+	var A = Math.atan2(obj.x, obj.y)
+	this.hT0 = 0.1 * A
+}
+Undeploy.prototype = UFX.Thing()
+	.addcomp(Ticks)
+	.addcomp(Hesitates)
+	.addcomp(FiniteLife, 0.8)
+	.addcomp(NonLinearTrans, -3)
+	.addcomp({
+		init: function () {
+			this.kills = true
+		},
+		draw: function (obj) {
+			UFX.draw("t", -obj.x * this.f, -obj.y * this.f)
+		},
+	})
+
 function GrowFade() {
 }
 GrowFade.prototype = UFX.Thing()
