@@ -9,25 +9,13 @@ function rmod(x,z){return(x%z+z)%z}
 
 var canvas = null, context = null
 window.onload = function () {
+	document.title = settings.gamename
 	canvas = document.createElement("canvas")
 	document.body.insertBefore(canvas)
 	context = canvas.getContext("2d")
 	UFX.draw.setcontext(context)
 	UFX.maximize.resizemode = "total"
 	UFX.maximize.fill(canvas)
-
-
-window.requestAnimationFrame = window.requestAnimationFrame
-	|| window.mozRequestAnimationFrame
-	|| window.webkitRequestAnimationFrame
-	|| window.msRequestAnimationFrame
-window.cancelAnimationFrame = window.cancelAnimationFrame
-	|| window.mozCancelAnimationFrame
-	|| window.webkitCancelAnimationFrame
-	|| window.msCancelAnimationFrame
-UFX.ticker.sync = true
-
-
 	UFX.scene.init({
 		minups: 10,
 		maxups: 200,
