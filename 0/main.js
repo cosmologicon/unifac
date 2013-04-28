@@ -47,6 +47,7 @@ UFX.scenes.select = {
 				}
 			})
 			if (chosen) {
+				play("note-34")
 				this.done = true
 				this.selected = chosen
 				chosen.trans = new Undeploy(chosen)
@@ -160,6 +161,7 @@ UFX.scenes.main = {
 							this.athing.done = true
 						}
 						things.push(new Ghost(this.athing, atarget))
+						play("note-3")
 					}
 					this.athing = atarget
 					this.athing.active = true
@@ -181,9 +183,11 @@ UFX.scenes.main = {
 				if (things.length == 1) {
 					if (this.superfluous) {
 						UFX.scene.swap("select", this.levelname)
+						play("note-543")
 					} else {
 						beaten[this.levelname] = true
 						UFX.scene.swap("select", this.levelname, true)
+						play(true ? "fin" : "note-346")
 					}
 				}
 			}
@@ -206,6 +210,7 @@ UFX.scenes.main = {
 			var ay = thing.y - (thing0.y + a * py)
 			if (ax * ax + ay * ay <= settings.Dmin * settings.Dmin) {
 				thing.trans = new GrowFade()
+				play("note-68")
 			}
 		})
 	},
@@ -213,7 +218,6 @@ UFX.scenes.main = {
 		var athings = things.filter(function (thing) {
 			return !thing.done && !(thing.trans && thing.trans.kills)
 		})
-		console.log(athings)
 		if (athings.length > 1) {
 			this.superfluous = true
 			var piece = this.piece
