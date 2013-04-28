@@ -19,6 +19,26 @@ var Ticks = {
 		this.t += dt
 	},
 }
+var Transitions = {
+	init: function () {
+		this.trans = null
+	},
+	think: function (dt) {
+		if (!this.trans) return
+		this.trans.think(dt, this)
+		if (this.trans.done) {
+			this.trans = null
+		}
+	},
+	draw: function () {
+		if (this.trans) {
+			this.trans.draw(this)
+		}
+	},
+	halts: function () {
+		return this.trans && this.trans.halts
+	},
+}
 
 var Clickable = {
 	init: function (r) {
@@ -27,6 +47,11 @@ var Clickable = {
 	hits: function (x, y) {
 		var dx = x - this.x, dy = y - this.y
 		return dx * dx + dy * dy < this.r * this.r
+	},
+	draw: function () {
+		if (settings.DEBUG) {
+			UFX.draw("b o 0 0", this.r, "lw 0.03 ss red s")
+		}
 	},
 }
 var Unclickable = {
@@ -71,9 +96,10 @@ function Piece(path, x, y) {
 Piece.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Ticks)
-	.addcomp(Clickable, 2)
+	.addcomp(Transitions)
 	.addcomp(WobbleOnActive)
 	.addcomp(DrawPath)
+	.addcomp(Clickable, 2)
 
 // Just a normal target
 function Target(x, y) {
@@ -83,11 +109,9 @@ function Target(x, y) {
 Target.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Ticks)
-	.addcomp(Clickable, 1)
+	.addcomp(Transitions)
 	.addcomp(WobbleOnActive)
 	.addcomp(DrawTcircle)
-
-
-
+	.addcomp(Clickable, 1)
 
 

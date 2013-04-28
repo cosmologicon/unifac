@@ -6,6 +6,7 @@ if (settings.DEBUG) {
 }
 function clip(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
 function rmod(x,z){return(x%z+z)%z}
+var tau = 6.283185307179586
 
 var canvas = null, context = null
 window.onload = function () {
