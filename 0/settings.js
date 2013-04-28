@@ -13,12 +13,25 @@ var settings = {
 var beaten = {}
 
 function getlevels() {
+	var ret = ["north", "south"]
+	if (beaten.north) {
+		ret.push("northwest")
+		ret.push("northeast")
+	}
+	if (beaten.south) {
+		ret.push("southwest")
+		ret.push("southeast")
+	}
+	if (beaten.southwest && beaten.northwest) {
+		ret.push("west")
+	}
+	if (beaten.southeast && beaten.northeast) {
+		ret.push("east")
+	}
+	if (beaten.east && beaten.west) {
+		ret.push("0")
+	}
 	var unbeaten = function (lname) { return !beaten[lname] }
-
-	var ret = ["northwest", "northeast", "southwest", "southeast", "dbox", "sbox", "rack"].filter(unbeaten)
-	if (ret.length) return ret
-
-	var ret = ["0"].filter(unbeaten)
-	return ret
+	return ret.filter(unbeaten)
 }
 
