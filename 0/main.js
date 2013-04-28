@@ -112,6 +112,15 @@ UFX.scenes.main = {
 				things.push(new Dagger(p[0], p[1]))
 			})
 		}
+		if (level.sisterps) {
+			level.sisterps.forEach(function (p) {
+				var s0 = new Sister(p[0], p[1])
+				var s1 = new Sister(p[2], p[3], s0)
+				s0.sister = s1
+				things.push(s0)
+				things.push(s1)
+			})
+		}
 		level.bitks.forEach(function (kspec) {
 			var thing0 = things[kspec[0]], thing1 = things[kspec[1]], f = kspec[2] || 0.5
 			things.push(new Bit(
