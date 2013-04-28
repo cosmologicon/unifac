@@ -70,6 +70,14 @@ var Disposible = {
 		this.disposible = true
 	},
 }
+var FreesSister = {
+	think: function (dt) {
+		if (this.active && !this.sister.free) {
+			this.sister.free = true
+			this.sister.trans = new GrowFadeHalt(this.sister)
+		}
+	},
+}
 
 var WobbleOnActive = {
 	init: function (omega, beta) {
@@ -146,11 +154,24 @@ var DrawTtriangle = {
 		UFX.draw("[ z 0.4 0.4 ( m 1 0.6 l -1 0.6 l 0 -1.4 ) ] f")
 	},
 }
+var DrawTsquare = {
+	draw: function () {
+		UFX.draw("lw 0.3 sr -1 -1 2 2 fr -0.5 -0.5 1 1")
+	},
+}
 var DrawStar = {
 	draw: function () {
 		UFX.draw("z 0.2 0.2 ( m 0 4 l 1 1 l 4 0 l 1 -1 l 0 -4 l -1 -1 l -4 0 l -1 1 ) f")
 	},
 }
+var DrawString = {
+	draw: function () {
+		if (this.active || this.trans || this.done) return
+		if (this.sister.active || this.sister.trans || this.sister.done) return
+		UFX.draw("[ b m", this.x, this.y, "l", this.sister.x, this.sister.y, "lw 0.1 s ]")
+	},
+}
+
 
 // Centerpiece of each level, also the level identifier shape
 function Piece(name, path, x, y, r) {
@@ -164,7 +185,7 @@ Piece.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Ticks)
 	.addcomp(Transitions)
-	.addcomp(WobbleOnActive)
+	.addcomp(WobbleOnActive, null, 0.05)
 	.addcomp(DrawPath)
 	.addcomp(Clickable, 2)
 
@@ -194,6 +215,22 @@ Dagger.prototype = UFX.Thing()
 	.addcomp(DrawTtriangle)
 	.addcomp(Clickable, 1.4)
 	.addcomp(Disposible)
+
+
+function Sister(x, y, sister) {
+	this.x = x
+	this.y = y
+	this.sister = sister
+}
+Sister.prototype = UFX.Thing()
+	.addcomp(DrawString)
+	.addcomp(WorldBound)
+	.addcomp(Ticks)
+	.addcomp(Transitions)
+	.addcomp(DrawTsquare)
+	.addcomp(Clickable, 1.4)
+	.addcomp(Disposible)
+	.addcomp(FreesSister)
 
 
 // Star bits. These represent your possessions or whatever
