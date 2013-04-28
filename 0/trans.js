@@ -111,6 +111,7 @@ function Ghost(thing0, thing1) {
 	var dx = thing1.x - thing0.x, dy = thing1.y - thing0.y
 	this.T = Math.sqrt(Math.max(dx * dx + dy * dy, 1)) / settings.ghostv
 	this.think(0)
+	this.trans = { kills: true }
 }
 Ghost.prototype = UFX.Thing()
 	.addcomp(Ticks)
