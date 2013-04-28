@@ -15,7 +15,7 @@ function getlevels() {
 	var unbeaten = function (lname) { return !beaten[lname] }
 
 	var ret = ["northwest", "northeast", "southwest", "southeast"].filter(unbeaten)
-	if (ret.length) return ret
+	//if (ret.length) return ret
 
 	var ret = ["0"].filter(unbeaten)
 	return ret
