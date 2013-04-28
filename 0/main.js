@@ -1,17 +1,25 @@
 UFX.scenes.main = {
 	start: function () {
-		things.push(new Target(10, 10))
-		things.push(new Target(-10, 10))
-		things.push(new Target(-10, -10))
-		things.push(new Target(10, -10))
-		things.push(new Bit(5, 5))
-		things.forEach(function (thing) {
-			thing.trans = new Deploy(thing)
-		})
-		this.piece = new Piece("( m -2 -2 l 2 -2 l 1 1 l -2 2 )")
+		var level = levels.northwest
+		
+		this.piece = new Piece(level.ppath)
 		this.athing = this.piece
 		this.piece.active = true
 		things.push(this.piece)
+		level.targetps.forEach(function (p) {
+			things.push(new Target(p[0], p[1]))
+		})
+		level.bitks.forEach(function (kspec) {
+			var thing0 = things[kspec[0]], thing1 = things[kspec[1]]
+			things.push(new Bit(
+				0.5 * (thing0.x + thing1.x),
+				0.5 * (thing0.y + thing1.y)
+			))
+		})
+		things.forEach(function (thing) {
+			thing.trans = new Deploy(thing)
+		})
+		things.reverse()
 	},
 	thinkargs: function (dt) {
 		var clicked = false
