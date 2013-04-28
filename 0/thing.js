@@ -135,7 +135,7 @@ Target.prototype = UFX.Thing()
 	.addcomp(Transitions)
 	.addcomp(WobbleOnActive)
 	.addcomp(DrawTcircle)
-	.addcomp(Clickable, 1)
+	.addcomp(Clickable, 1.4)
 	.addcomp(Disposible)
 
 
