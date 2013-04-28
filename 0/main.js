@@ -3,6 +3,7 @@ UFX.scenes.main = {
 		things.push(new Piece())
 		things.push(new Target(3, 3))
 		this.athing = null
+		things[1].trans = new Deploy()
 	},
 	thinkargs: function (dt) {
 		var clicked = false
@@ -13,7 +14,11 @@ UFX.scenes.main = {
 	},
 	think: function (dt, mpos, clicked) {
 		this.dirty = true
-		if (clicked) {
+		var halted = false
+		things.forEach(function (thing) {
+			halted = halted || thing.halts()
+		})
+		if (!halted && clicked) {
 			var mx = mpos[0], my = mpos[1]
 			var atarget = null
 			things.forEach(function (thing) {
@@ -23,7 +28,10 @@ UFX.scenes.main = {
 				}
 			})
 			if (atarget) {
-				if (this.athing) this.athing.active = false
+				if (this.athing) {
+					this.athing.active = false
+					things.push(new Ghost(this.athing, atarget))
+				}
 				this.athing = atarget
 				this.athing.active = true
 			}
@@ -31,6 +39,7 @@ UFX.scenes.main = {
 		things.forEach(function (thing) {
 			thing.think(dt)
 		})
+		things = things.filter(function (thing) { return !thing.done })
 		camera.think(dt)
 		if (settings.DEBUG) this.dirty = true
 	},
