@@ -64,6 +64,9 @@ Deploy.prototype = UFX.Thing()
 	.addcomp(FiniteLife, 0.8)
 	.addcomp(NonLinearTrans, -3)
 	.addcomp({
+		init: function () {
+			this.halts = true
+		},
 		draw: function (obj) {
 			UFX.draw("t", -obj.x * (1-this.f), -obj.y * (1-this.f))
 		},
@@ -81,6 +84,7 @@ Undeploy.prototype = UFX.Thing()
 	.addcomp({
 		init: function () {
 			this.kills = true
+			this.halts = true
 		},
 		draw: function (obj) {
 			UFX.draw("t", -obj.x * this.f, -obj.y * this.f)
@@ -102,6 +106,24 @@ GrowFade.prototype = UFX.Thing()
 			UFX.draw("z", s, s, "alpha", 1-this.f)
 		},
 	})
+
+function GrowFadeHalt() {
+}
+GrowFadeHalt.prototype = UFX.Thing()
+	.addcomp(Ticks)
+	.addcomp(FiniteLife, 0.5)
+	.addcomp(NonLinearTrans)
+	.addcomp({
+		init: function () {
+			this.kills = true
+			this.halts = true
+		},
+		draw: function (obj) {
+			s = 1 + 2 * this.f
+			UFX.draw("z", s, s, "alpha", 1-this.f)
+		},
+	})
+
 
 // Effects
 

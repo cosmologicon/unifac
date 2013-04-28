@@ -95,11 +95,21 @@ var DrawPath = {
 	init: function (path) {
 		this.path = path || "b o 0 0 2"
 	},
-	draw: function (neg) {
-		if (neg) {
-			UFX.draw(this.path, "fs #CCC f lw 0.2 s")
+	draw: function (menu, selected, a) {
+		if (!menu) {
+			selected = true
+			a = 0
+		}
+		if (a >= 1) {
+			UFX.draw("lw 0.2", this.path, "fs #CCC ss black f s")
+		} else if (selected) {
+			var c0 = clip(Math.floor(192 * a), 0, 192) + 32
+			var c1 = clip(Math.floor(255 * (1-a)), 0, 255)
+			var color0 = "rgb(" + c0 + "," + c0 + "," + c0 + ")"
+			var color1 = "rgb(" + c1 + "," + c1 + "," + c1 + ")"
+			UFX.draw("lw 0.2", this.path, "fs", color0, "ss", color1, "f s")
 		} else {
-			UFX.draw(this.path, "fs gray f lw 0.2 s")
+			UFX.draw("lw 0.2", this.path, "alpha", a, "fs #CCC ss black f s")
 		}
 	},
 }
@@ -115,11 +125,12 @@ var DrawStar = {
 }
 
 // Centerpiece of each level, also the level identifier shape
-function Piece(name, path, x, y) {
+function Piece(name, path, x, y, r) {
 	this.name = name
 	this.x = x || 0
 	this.y = y || 0
 	this.path = path || this.path
+	this.r = r || 2
 }
 Piece.prototype = UFX.Thing()
 	.addcomp(WorldBound)

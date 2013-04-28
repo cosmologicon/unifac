@@ -1,10 +1,10 @@
 
 var camera = {
-	think: function (dt) {
+	think: function (dt, zfactor) {
 		var sx = canvas.width, sy = canvas.height, s = Math.min(sx, sy)
 		this.x0 = sx / 2
 		this.y0 = sy / 2
-		this.z = s / 28
+		this.z = s / 28 * (zfactor || 1)
 	},
 	screentoworld: function (p) {
 		if (!p) return null

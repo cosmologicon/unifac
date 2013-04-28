@@ -1,9 +1,10 @@
 var levels = {}
 
 levels[0] = {
-	ppath: "b o 0 0 5",
+	ppath: "b o 0 0 3.6",
 	px: 0,
 	py: 0,
+	pr: 3.6,
 	targetps: [
 	],
 	bitks: [

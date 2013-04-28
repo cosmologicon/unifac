@@ -1,12 +1,25 @@
 UFX.scenes.select = {
-	start: function () {
+	start: function (lastlevel, victory) {
 		var levelnames = getlevels()
 		things = []
+		var selected = null
 		levelnames.forEach(function (levelname) {
 			var level = levels[levelname]
-			var piece = new Piece(levelname, level.ppath, level.px, level.py)
-			things.push(piece)
+			var piece = new Piece(levelname, level.ppath, level.px, level.py, level.pr)
+			if (!victory && levelname == lastlevel) {
+				piece.trans = new Deploy(piece)
+				selected = piece
+			} else {
+				things.push(piece)
+			}
 		})
+		if (!selected && lastlevel) {
+			selected = new Piece(lastlevel, levels[lastlevel].ppath, 0, 0, levels[lastlevel].pr)
+			selected.trans = new GrowFadeHalt(selected)
+		}
+		if (selected) things.push(selected)
+		this.selected = selected
+		this.done = false
 	},
 	thinkargs: function (dt) {
 		var clicked = false
@@ -16,7 +29,12 @@ UFX.scenes.select = {
 		return [dt, camera.screentoworld(UFX.mouse.pos), clicked]
 	},
 	think: function (dt, mpos, clicked) {
-		var halted = false
+		if (this.selected && !this.done) {
+			if (!this.selected.trans) {
+				this.selected = null
+			}
+		}
+		var halted = this.selected && this.selected.trans
 		things.forEach(function (thing) {
 			halted = halted || thing.halts()
 		})
@@ -29,21 +47,44 @@ UFX.scenes.select = {
 				}
 			})
 			if (chosen) {
-				UFX.scene.swap("main", chosen.name)
+				this.done = true
+				this.selected = chosen
+				chosen.trans = new Undeploy(chosen)
+				things.splice(things.indexOf(chosen), 1)
+				things.push(chosen)
 			}
 		}
 		things.forEach(function (thing) {
 			thing.think(dt)
 		})
 		things = things.filter(function (thing) { return !thing.done })
-		camera.think(dt)
+		if (this.selected && this.done) {
+			if (!this.selected.trans) {
+				UFX.scene.swap("main", this.selected.name)
+			}
+		}
+
+		this.f = 1
+		if (this.selected) {
+			//this.f = this.selected.trans ? this.selected.trans.t / this.selected.trans.T : 1
+			this.f = this.selected.trans ? this.selected.trans.f : 1
+			if (this.done) this.f = 1 - this.f
+			this.f = clip(this.f, 0, 1)
+		}
+		camera.think(dt, 1 + this.f)
+
 	},
 	draw: function () {
-		UFX.draw("[ fs white f0 fs black ss black")
+
+		var c = clip(Math.floor(255 * this.f), 0, 255)
+		var bcolor = "rgb(" + c + "," + c + "," + c + ")"
+
+		UFX.draw("[ fs", bcolor, "f0 fs black ss black")
 		camera.draw()
+		var selected = this.selected, f = this.f
 		things.forEach(function (thing) {
 			context.save()
-			thing.draw(true)
+			thing.draw(true, thing === selected, f)
 			context.restore()
 		})
 		UFX.draw("]")
@@ -58,7 +99,7 @@ UFX.scenes.main = {
 		var level = levels[levelname]
 		things = []
 
-		this.piece = new Piece(levelname, level.ppath, 0, 0)
+		this.piece = new Piece(levelname, level.ppath, 0, 0, level.pr)
 		this.athing = this.piece
 		this.piece.active = true
 		things.push(this.piece)
@@ -138,10 +179,12 @@ UFX.scenes.main = {
 					this.score()
 				}
 				if (things.length == 1) {
-					if (!this.superfluous) {
+					if (this.superfluous) {
+						UFX.scene.swap("select", this.levelname)
+					} else {
 						beaten[this.levelname] = true
+						UFX.scene.swap("select", this.levelname, true)
 					}
-					UFX.scene.swap("select")
 				}
 			}
 		}
