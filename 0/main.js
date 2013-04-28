@@ -107,11 +107,6 @@ UFX.scenes.main = {
 		level.targetps.forEach(function (p) {
 			things.push(new Target(p[0], p[1]))
 		})
-		if (level.daggerps) {
-			level.daggerps.forEach(function (p) {
-				things.push(new Dagger(p[0], p[1]))
-			})
-		}
 		if (level.sisterps) {
 			level.sisterps.forEach(function (p) {
 				var s0 = new Sister(p[0], p[1])
@@ -119,6 +114,11 @@ UFX.scenes.main = {
 				s0.sister = s1
 				things.push(s0)
 				things.push(s1)
+			})
+		}
+		if (level.daggerps) {
+			level.daggerps.forEach(function (p) {
+				things.push(new Dagger(p[0], p[1]))
 			})
 		}
 		level.bitks.forEach(function (kspec) {
@@ -159,14 +159,18 @@ UFX.scenes.main = {
 			halted = halted || thing.halts()
 		})
 		var atarget = null
-		if (!halted && !this.clickedhome && clicked) {
+		this.ptarget = null
+		if (!halted && !this.clickedhome) {
 			var mx = mpos[0], my = mpos[1]
 			things.forEach(function (thing) {
 				if (thing.hits(mx, my)) {
 					atarget = thing
 				}
 			})
-			if (atarget && !atarget.active) {
+			if (!clicked && atarget && !atarget.active) {
+				this.ptarget = atarget
+			}
+			if (clicked && atarget && !atarget.active) {
 				if (atarget instanceof Dagger) {
 					if (this.athing && !(this.athing instanceof Piece)) {
 						this.collect(this.athing, atarget)
@@ -213,7 +217,7 @@ UFX.scenes.main = {
 				}
 			}
 		}
-		if (atarget === this.piece) {
+		if (clicked && atarget === this.piece) {
 			this.clickedhome = true
 			this.piece.active = false
 		}
@@ -256,6 +260,9 @@ UFX.scenes.main = {
 		if (!this.dirty) return
 		UFX.draw("[ fs black f0 fs white ss white")
 		camera.draw()
+		if (this.ptarget && this.athing) {
+			UFX.draw("lw 0.05 m", this.athing.x, this.athing.y, "l", this.ptarget.x, this.ptarget.y, "s")
+		}
 		things.forEach(function (thing) {
 			context.save()
 			thing.draw()
