@@ -10,11 +10,20 @@ UFX.scenes.main = {
 			things.push(new Target(p[0], p[1]))
 		})
 		level.bitks.forEach(function (kspec) {
-			var thing0 = things[kspec[0]], thing1 = things[kspec[1]]
+			var thing0 = things[kspec[0]], thing1 = things[kspec[1]], f = kspec[2] || 0.5
 			things.push(new Bit(
-				0.5 * (thing0.x + thing1.x),
-				0.5 * (thing0.y + thing1.y)
+				f * (thing0.x + thing1.x),
+				f * (thing0.y + thing1.y)
 			))
+		})
+		level.bitxs.forEach(function (xspec) {
+			// http://en.wikipedia.org/wiki/Line-line_intersection
+			var x = xspec.map(function (k) { return things[k].x })
+			var y = xspec.map(function (k) { return things[k].y })
+			var D = (x[0] - x[1]) * (y[2] - y[3]) - (y[0] - y[1]) * (x[2] - x[3])
+			var px = (x[0]*y[1]-y[0]*x[1])*(x[2]-x[3]) - (x[0]-x[1])*(x[2]*y[3]-y[2]*x[3])
+			var py = (x[0]*y[1]-y[0]*x[1])*(y[2]-y[3]) - (y[0]-y[1])*(x[2]*y[3]-y[2]*x[3])
+			things.push(new Bit(px/D, py/D))
 		})
 		things.forEach(function (thing) {
 			thing.trans = new Deploy(thing)
