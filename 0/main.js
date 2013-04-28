@@ -107,6 +107,11 @@ UFX.scenes.main = {
 		level.targetps.forEach(function (p) {
 			things.push(new Target(p[0], p[1]))
 		})
+		if (level.daggerps) {
+			level.daggerps.forEach(function (p) {
+				things.push(new Dagger(p[0], p[1]))
+			})
+		}
 		level.bitks.forEach(function (kspec) {
 			var thing0 = things[kspec[0]], thing1 = things[kspec[1]], f = kspec[2] || 0.5
 			things.push(new Bit(
@@ -152,15 +157,22 @@ UFX.scenes.main = {
 					atarget = thing
 				}
 			})
-			if (atarget) {
-				if (!atarget.active) {
+			if (atarget && !atarget.active) {
+				if (atarget instanceof Dagger) {
+					if (this.athing && !(this.athing instanceof Piece)) {
+						this.collect(this.athing, atarget)
+						atarget.done = true
+						things.unshift(new Ghost(atarget, this.athing))
+						play("note-3")
+					}
+				} else {
 					if (this.athing) {
 						this.athing.active = false
 						this.collect(this.athing, atarget)
 						if (this.athing.disposible) {
 							this.athing.done = true
 						}
-						things.push(new Ghost(this.athing, atarget))
+						things.unshift(new Ghost(this.athing, atarget))
 						play("note-3")
 					}
 					this.athing = atarget
@@ -187,7 +199,7 @@ UFX.scenes.main = {
 					} else {
 						beaten[this.levelname] = true
 						UFX.scene.swap("select", this.levelname, true)
-						play(true ? "fin" : "note-346")
+						play(this.levelname == "0" ? "fin" : "note-346")
 					}
 				}
 			}

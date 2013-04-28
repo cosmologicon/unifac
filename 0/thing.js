@@ -75,10 +75,15 @@ var WobbleOnActive = {
 	init: function (omega, beta) {
 		this.womega = omega || 2.6
 		this.wbeta = beta || 0.12
+		this.wf = 0
+	},
+	think: function (dt) {
+		this.wf += (this.active ? 2 : -2) * dt
+		this.wf = clip(this.wf, 0, 1)
 	},
 	draw: function () {
-		if (this.active) {
-			var s = Math.exp(this.wbeta * Math.sin(this.t * this.womega))
+		if (this.wf) {
+			var s = Math.exp(this.wf * this.wbeta * Math.sin(this.t * this.womega))
 			UFX.draw("z", s, 1/s)
 		}
 	},
@@ -89,6 +94,23 @@ var Rocks = {
 		UFX.draw("r", A)
 	},
 }
+
+var FacesActive = {
+	init: function () {
+		this.A = 0
+	},
+	think: function (dt) {
+		var as = things.filter(function (thing) { return thing.active })
+		if (!as.length) return
+		var dx = as[0].x - this.x, dy = as[0].y - this.y
+		var A = Math.atan2(dx, -dy), dA = zmod(A - this.A, tau)
+		this.A += 5 * dt * dA
+	},
+	draw: function () {
+		UFX.draw("r", this.A)
+	},
+}
+
 
 
 var DrawPath = {
@@ -116,6 +138,12 @@ var DrawPath = {
 var DrawTcircle = {
 	draw: function () {
 		UFX.draw("b o 0 0 1 lw 0.3 s b o 0 0 0.5 f")
+	},
+}
+var DrawTtriangle = {
+	draw: function () {
+		UFX.draw("( m 1 0.6 l -1 0.6 l 0 -1.4 ) lw 0.3 s")
+		UFX.draw("[ z 0.4 0.4 ( m 1 0.6 l -1 0.6 l 0 -1.4 ) ] f")
 	},
 }
 var DrawStar = {
@@ -151,6 +179,19 @@ Target.prototype = UFX.Thing()
 	.addcomp(Transitions)
 	.addcomp(WobbleOnActive)
 	.addcomp(DrawTcircle)
+	.addcomp(Clickable, 1.4)
+	.addcomp(Disposible)
+
+function Dagger(x, y) {
+	this.x = x
+	this.y = y
+}
+Dagger.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Ticks)
+	.addcomp(Transitions)
+	.addcomp(FacesActive)
+	.addcomp(DrawTtriangle)
 	.addcomp(Clickable, 1.4)
 	.addcomp(Disposible)
 
