@@ -26,3 +26,28 @@ window.onload = function () {
 	UFX.mouse.qdown = false
 }
 
+
+UFX.resource.onload = function () {
+	for (var s in UFX.resource.sounds) {
+		if (s.indexOf("note") > -1) {
+			UFX.resource.sounds[s] = new UFX.resource.Multisound(UFX.resource.sounds[s])
+		}
+	}
+}
+UFX.resource.load({
+	"note-3": "sound/note-3.ogg",
+	"note-34": "sound/note-34.ogg",
+	"note-68": "sound/note-68.ogg",
+	"note-346": "sound/note-346.ogg",
+	"note-543": "sound/note-543.ogg",
+	"fin": "sound/fin.ogg",
+})
+
+function play(sname) {
+	if (settings.silent) return
+	if (UFX.resource.sounds[sname] && UFX.resource.sounds[sname].play) {
+		UFX.resource.sounds[sname].play()
+	}
+}
+
+
