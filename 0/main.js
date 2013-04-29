@@ -22,11 +22,19 @@ UFX.scenes.select = {
 		this.done = false
 	},
 	thinkargs: function (dt) {
-		var clicked = false
-		UFX.mouse.events().forEach(function (event) {
-			clicked = clicked || event.type == "up"
-		})
-		return [dt, camera.screentoworld(UFX.mouse.pos), clicked]
+		var clicked = false, pos = [-1000, -1000]
+		if (UFX.mouse.active) {
+			UFX.mouse.events().forEach(function (event) {
+				clicked = clicked || event.type == "down"
+			})
+			pos = UFX.mouse.pos
+		} else if (UFX.touch.active) {
+			UFX.touch.events().forEach(function (event) {
+				clicked = clicked || event.type == "start"
+				pos = event.pos
+			})
+		}
+		return [dt, camera.screentoworld(pos), clicked]
 	},
 	think: function (dt, mpos, clicked) {
 		if (this.selected && !this.done) {
@@ -146,11 +154,19 @@ UFX.scenes.main = {
 		this.homet = 0.3
 	},
 	thinkargs: function (dt) {
-		var clicked = false
-		UFX.mouse.events().forEach(function (event) {
-			clicked = clicked || event.type == "up"
-		})
-		return [dt, camera.screentoworld(UFX.mouse.pos), clicked]
+		var clicked = false, pos = [-1000, -1000]
+		if (UFX.mouse.active) {
+			UFX.mouse.events().forEach(function (event) {
+				clicked = clicked || event.type == "down"
+			})
+			pos = UFX.mouse.pos
+		} else if (UFX.touch.active) {
+			UFX.touch.events().forEach(function (event) {
+				clicked = clicked || event.type == "start"
+				pos = event.pos
+			})
+		}
+		return [dt, camera.screentoworld(pos), clicked]
 	},
 	think: function (dt, mpos, clicked) {
 		this.dirty = true

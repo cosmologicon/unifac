@@ -13,7 +13,7 @@ var canvas = null, context = null
 window.onload = function () {
 	document.title = settings.gamename
 	canvas = document.createElement("canvas")
-	document.body.insertBefore(canvas)
+	document.body.insertBefore(canvas, null)
 	context = canvas.getContext("2d")
 	UFX.draw.setcontext(context)
 	UFX.maximize.resizemode = "total"
@@ -24,7 +24,17 @@ window.onload = function () {
 	})
 	UFX.scene.push("select")
 	UFX.mouse.init(canvas)
-	UFX.mouse.qdown = false
+	UFX.mouse.qup = false
+	UFX.mouse.qdown = true
+	UFX.touch.active = false
+	UFX.touch.capture = {
+		start: true,
+	}
+	canvas.ontouchstart = function (event) {
+		UFX.touch.active = true
+		UFX.touch.init(canvas)
+		UFX.mouse.active = false
+	}
 }
 
 
