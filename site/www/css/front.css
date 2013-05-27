@@ -33,7 +33,7 @@ section header a, section header a:hover {
 section article {
 	display: inline-block;
 	vertical-align: top;
-	max-width: 50%;
+	width: 50%;
 	margin: 0 5% 0 0;
 	text-align: justify;
 }
