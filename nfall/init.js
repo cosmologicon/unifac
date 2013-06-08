@@ -9,6 +9,9 @@ function zmod(x,z){return((x+z/2)%z+z)%z-z/2}
 var tau = 6.283185307179586
 
 var canvas = document.getElementById("canvas")
+canvas.width = settings.sx
+canvas.height = settings.sy
+
 var context = canvas.getContext("2d")
 UFX.draw.setcontext(context)
 UFX.mouse.init(canvas)
