@@ -4,8 +4,9 @@ var settings = {
 	DEBUG: window.location.href.indexOf("DEBUG") > -1,
 	silent: window.location.href.indexOf("SILENT") > -1,
 	
-	sx: 500,
-	sy: 350,
+	sx: 800,
+	sy: 600,
+	clickr: 20,
 	
 }
 
