@@ -109,7 +109,7 @@ function Moon(wheel, A, wr, r) {
 Moon.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(OnWheel)
-	.addcomp(DrawCircle, 12, "white")
+	.addcomp(DrawCircle, 12, "gray")
 
 
 

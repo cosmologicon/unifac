@@ -4,12 +4,12 @@ UFX.scenes.menu = {
 		planets.push(new Planet(22, [[0, 10]]))
 		var wheel = { x: 60, y: 0, A0: 0 }
 		suns.push(new Sun(wheel, 20, 100))
-		suns.push(new Sun(wheel, 20 + tau/2, 100))
+//		suns.push(new Sun(wheel, 20 + tau/2, 100))
 //		suns.push(new Sun(wheel, 20 + tau/4, 100))
 		var wheel = { x: -60, y: 0, A0: 1 }
 		moons.push(new Moon(wheel, 20, 100))
-		moons.push(new Moon(wheel, 20 + tau/3, 100))
-		moons.push(new Moon(wheel, 20 - tau/3, 100))
+//		moons.push(new Moon(wheel, 20 + tau/3, 100))
+//		moons.push(new Moon(wheel, 20 - tau/3, 100))
 		
 		this.selected = null
 	},
@@ -46,7 +46,8 @@ UFX.scenes.menu = {
 				if (this.selected === camera) {
 					camera.pan(mstate.left.drag.dx, mstate.left.drag.dy)
 				} else {
-					var dx = mx - this.selected.wheel.x, dy = my - this.selected.wheel.y
+					var p = camera.screentoworld([mx, my])
+					var dx = p[0] - this.selected.wheel.x, dy = p[1] - this.selected.wheel.y
 					this.selected.wheel.A0 = Math.atan2(dx, -dy) - this.selected.A
 				}
 			}
