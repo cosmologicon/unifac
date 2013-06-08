@@ -1,7 +1,7 @@
 
 UFX.scenes.menu = {
 	start: function () {
-		loadlevel(0)
+		loadlevel(2)
 		this.selected = null
 	},
 	
