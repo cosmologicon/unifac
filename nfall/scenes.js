@@ -1,16 +1,7 @@
 
 UFX.scenes.menu = {
 	start: function () {
-		planets.push(new Planet(22, [[0, 10]]))
-		var wheel = { x: 60, y: 0, A0: 0 }
-		suns.push(new Sun(wheel, 20, 100))
-//		suns.push(new Sun(wheel, 20 + tau/2, 100))
-//		suns.push(new Sun(wheel, 20 + tau/4, 100))
-		var wheel = { x: -60, y: 0, A0: 1 }
-		moons.push(new Moon(wheel, 20, 100))
-//		moons.push(new Moon(wheel, 20 + tau/3, 100))
-//		moons.push(new Moon(wheel, 20 - tau/3, 100))
-		
+		loadlevel(0)
 		this.selected = null
 	},
 	

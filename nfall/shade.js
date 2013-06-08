@@ -3,6 +3,7 @@ function Shade(source, bodies) {
 	this.source = source
 	this.x = source.x
 	this.y = source.y
+	this.color = source.color
 	this.build(bodies)
 }
 Shade.prototype = {
@@ -42,7 +43,7 @@ Shade.prototype = {
 				") clip"
 			)
 		})
-		UFX.draw("fs white alpha 0.25 fr -10000 -10000 20000 20000")
+		UFX.draw("fs white alpha 0.15 fr -10000 -10000 20000 20000")
 		context.restore()
 	},
 	shaded: function (obj) {
