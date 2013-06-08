@@ -70,8 +70,8 @@ var HasTowers = {
 	draw: function () {
 		var x0 = this.x, y0 = this.y
 		this.towers.forEach(function (tower) {
-			UFX.draw("[ r", tower.A, "fs green fr -1 0 2", -tower.r, "]")
-			UFX.draw("fs", (tower.shaded ? "white" : "red"), "b o 0", -tower.r, "3 f")
+			UFX.draw("[ r", tower.A, "fs green fr -1 0 2", -tower.r)
+			UFX.draw("fs", (tower.shaded ? "white" : "red"), "b o 0", -tower.r, "3 f ]")
 		})
 	},
 }
@@ -79,7 +79,9 @@ var HasTowers = {
 
 
 
-function Planet(r, towerspec) {
+function Planet(x, y, r, towerspec) {
+	this.x = x || 0
+	this.y = y || 0
 	this.r = r || this.r
 	this.addtowers(towerspec || [])
 }
