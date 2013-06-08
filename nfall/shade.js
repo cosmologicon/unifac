@@ -27,7 +27,6 @@ Shade.prototype = {
 				S2: Math.sin(A0 + dA),
 				C2: Math.cos(A0 + dA),
 			})
-//			console.log(dx, dy, d, h)
 		}
 	},
 	draw: function () {
@@ -50,7 +49,6 @@ Shade.prototype = {
 		var dx = obj.x - this.x, dy = obj.y - this.y
 		var d = Math.sqrt(dx * dx + dy * dy), A = Math.atan2(dx, -dy)
 		return this.specs.some(function (spec) {
-//			console.log(obj.x, obj.y, dx, dy, A, spec.A0, spec.A0 - A, spec.dA, spec.h, d)
 			return Math.abs(zmod(spec.A0 - A, tau)) < spec.dA && spec.h < d
 		})
 	},
