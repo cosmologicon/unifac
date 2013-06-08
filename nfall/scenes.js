@@ -1,11 +1,11 @@
 
 UFX.scenes.menu = {
 	start: function () {
-		planets.push(new Planet(22))
+		planets.push(new Planet(22, [[0, 10]]))
 		var wheel = { x: 60, y: 0, A0: 0 }
 		suns.push(new Sun(wheel, 20, 100))
 		suns.push(new Sun(wheel, 20 + tau/2, 100))
-		suns.push(new Sun(wheel, 20 + tau/4, 100))
+//		suns.push(new Sun(wheel, 20 + tau/4, 100))
 		var wheel = { x: -60, y: 0, A0: 1 }
 		moons.push(new Moon(wheel, 20, 100))
 		moons.push(new Moon(wheel, 20 + tau/3, 100))
@@ -20,6 +20,8 @@ UFX.scenes.menu = {
 		planets.forEach(think)
 		moons.forEach(think)
 		suns.forEach(think)
+		
+		planets.forEach(function (planet) { planet.stowers() })
 	},
 	
 	draw: function () {
@@ -31,14 +33,7 @@ UFX.scenes.menu = {
 		function draw(obj) { context.save() ; obj.draw() ; context.restore() }
 		moons.forEach(draw)
 		planets.forEach(draw)
-		
-		var shade = new Shade(suns[0], planets.concat(moons))
-		shade.draw()
-		var shade = new Shade(suns[1], planets.concat(moons))
-		shade.draw()
-		var shade = new Shade(suns[2], planets.concat(moons))
-		shade.draw()
-		
+		suns.forEach(function (sun) { sun.drawshade() })
 		suns.forEach(draw)
 		context.restore()
 	},

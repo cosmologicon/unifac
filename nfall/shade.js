@@ -49,9 +49,10 @@ Shade.prototype = {
 	shaded: function (obj) {
 		var dx = obj.x - this.x, dy = obj.y - this.y
 		var d = Math.sqrt(dx * dx + dy * dy), A = Math.atan2(dx, -dy)
-		for (var j = 0 ; j < this.specs.length ; ++j) {
-		}
-		return false
+		return this.specs.some(function (spec) {
+//			console.log(obj.x, obj.y, dx, dy, A, spec.A0, spec.A0 - A, spec.dA, spec.h, d)
+			return Math.abs(zmod(spec.A0 - A, tau)) < spec.dA && spec.h < d
+		})
 	},
 }
 
