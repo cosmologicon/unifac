@@ -1,5 +1,18 @@
 var leveldata = {
-	0: {
+	train0: {
+		planets: [
+			[0, 0, 24, [[0, 18]]]
+		],
+		wheels: [
+			[0, 0, 0],
+		],
+		suns: [
+			[0, 0, 120],
+		],
+		moons: [
+		],
+	},
+	train1: {
 		planets: [
 			[0, 0, 24, [[0.6, 18]]]
 		],
@@ -15,7 +28,7 @@ var leveldata = {
 		moons: [
 		],
 	},
-	1: {
+	train2: {
 		planets: [
 			[0, 0, 24, [[0.6, 18], [0, 18]]]
 		],
@@ -31,7 +44,7 @@ var leveldata = {
 			[0, 0, 150],
 		],
 	},
-	"doubletrip": {
+	doubletrip: {
 		planets: [
 			[-200, 0, 24, [[0, 18], [tau/2, 18]]]
 		],

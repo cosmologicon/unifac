@@ -1,8 +1,8 @@
 var camera = {
-	x0: 0,
-	y0: 0,
-	z: 1,
-	
+	init: function () {
+		this.x0 = this.y0 = 0
+		this.z = 1
+	},
 	screentoworld: function (p) {
 		return p ? [
 			(p[0] - this.x0) / this.z,
@@ -24,4 +24,18 @@ var camera = {
 		UFX.draw("t", this.x0, this.y0, "z", this.z, this.z)
 	},
 }
+
+function screengrab() {
+	var can = document.createElement("canvas")
+	can.width = canvas.width
+	can.height = canvas.height
+	var con = can.getContext("2d")
+	con.drawImage(canvas, 0, 0)
+	can.draw = function () {
+		context.drawImage(this, 0, 0)
+	}
+	return can
+}
+
+
 

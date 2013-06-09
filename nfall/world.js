@@ -74,6 +74,9 @@ var HasTowers = {
 			UFX.draw("fs", (tower.shaded ? "white" : "red"), "b o 0", -tower.r, "3 f ]")
 		})
 	},
+	shaded: function () {
+		return this.towers.every(function (tower) { return tower.shaded })
+	},
 }
 
 
