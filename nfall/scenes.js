@@ -15,8 +15,8 @@ UFX.scenes.menu = {
 		levels.forEach(function (level, j) {
 			var label = level[0], levelname = level[1]
 			buttons.push({
-				x: 30,
-				y: 30 + 60 * j,
+				x: canvas.width * 0.5 - 200 + 240 * Math.floor(j / 6),
+				y: 160 + 60 * (j % 6),
 				w: 160,
 				h: 45,
 				text: label,
@@ -41,7 +41,11 @@ UFX.scenes.menu = {
 		}
 	},
 	draw: function () {
-		UFX.draw("fs black f0 textalign center textbaseline middle font 32px~'Trade~Winds'")
+		UFX.draw("fs black f0 textalign center textbaseline middle",
+			"[ t", canvas.width/2, "50 font 64px~'Trade~Winds' fs white ft0 Nightfall ]",
+			"[ t", canvas.width/2, "100 font 22px~'Trade~Winds' fs gray ft0 by~Christopher~Night ]",
+			"font 32px~'Trade~Winds'"
+		)
 		this.buttons.forEach(function (button) {
 			var rect = [button.x, button.y, button.w, button.h]
 			var color = beaten[button.levelname] ? "#040" : "#400"
@@ -185,6 +189,7 @@ UFX.scenes.action = {
 		
 		if (planets.every(function (planet) { return planet.shaded() })) {
 			beaten[this.levelname] = true
+			savegame()
 			UFX.scene.push("transout")
 		}
 	},

@@ -16,3 +16,15 @@ var tau = 6.283185307179586
 
 var beaten = {}
 
+function savegame() {
+	localStorage[settings.gamename + ":" + settings.version + ":save"] = JSON.stringify(beaten)
+}
+function loadgame() {
+	beaten = JSON.parse(localStorage[settings.gamename + ":" + settings.version + ":save"] || "{}")
+}
+function resetgame() {
+	delete localStorage[settings.gamename + ":" + settings.version + ":save"]
+	window.location = window.location
+}
+loadgame()
+
