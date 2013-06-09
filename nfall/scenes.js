@@ -18,7 +18,7 @@ UFX.scenes.menu = {
 	think: function (dt, mstate) {
 		this.t += dt
 		if (mstate && mstate.left.down) {
-			UFX.scene.push("transin", "train0")
+			UFX.scene.push("transin", "crossbeam")
 		}
 	},
 	draw: function () {
@@ -167,6 +167,7 @@ UFX.scenes.action = {
 		context.translate(0.5 * canvas.width, 0.5 * canvas.height)
 		camera.draw()
 		function draw(obj) { context.save() ; obj.draw() ; context.restore() }
+		wheels.forEach(draw)
 		moons.forEach(draw)
 		planets.forEach(draw)
 		suns.forEach(function (sun) { sun.drawshade() })
