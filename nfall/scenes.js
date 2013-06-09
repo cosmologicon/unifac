@@ -10,6 +10,20 @@ function overlay(amount, color) {
 UFX.scenes.menu = {
 	start: function () {
 		this.t = 0
+		var levels = getlevels()
+		var buttons = this.buttons = []
+		levels.forEach(function (level, j) {
+			var label = level[0], levelname = level[1]
+			buttons.push({
+				x: 30,
+				y: 30 + 60 * j,
+				w: 160,
+				h: 45,
+				text: label,
+				levelname: levelname,
+			})
+		})
+		
 	},
 	thinkargs: function (dt) {
 		var mstate = UFX.mouse.active && UFX.mouse.state()
@@ -18,11 +32,25 @@ UFX.scenes.menu = {
 	think: function (dt, mstate) {
 		this.t += dt
 		if (mstate && mstate.left.down) {
-			UFX.scene.push("transin", "crossbeam")
+			var x = mstate.pos[0], y = mstate.pos[1]
+			this.buttons.forEach(function (button) {
+				if (x < button.x || x > button.x + button.w) return
+				if (y < button.y || y > button.y + button.h) return
+				UFX.scene.push("transin", button.levelname)
+			})
 		}
 	},
 	draw: function () {
-		UFX.draw("fs red f0")
+		UFX.draw("fs black f0 textalign center textbaseline middle font 32px~'Trade~Winds'")
+		this.buttons.forEach(function (button) {
+			var rect = [button.x, button.y, button.w, button.h]
+			var color = beaten[button.levelname] ? "#040" : "#400"
+			UFX.draw("[",
+				"fs", color, "ss white lw 3 fr", rect, "sr", rect,
+				"t", button.x + 0.5 * button.w, button.y + 0.5 * button.h + 1,
+				"fs white ss black lw 1 st0", button.text, "ft0", button.text,
+			"]")
+		})
 		overlay((0.5 - this.t) / 0.5)
 	},
 }
@@ -156,6 +184,7 @@ UFX.scenes.action = {
 		planets.forEach(function (planet) { planet.stowers() })
 		
 		if (planets.every(function (planet) { return planet.shaded() })) {
+			beaten[this.levelname] = true
 			UFX.scene.push("transout")
 		}
 	},

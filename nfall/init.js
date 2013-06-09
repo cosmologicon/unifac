@@ -24,7 +24,7 @@ canvas.ontouchstart = function (event) {
 }
 
 
-window.onload = function () {
+UFX.resource.onload = function () {
 	UFX.maximize.resizemode = "total"
 //	UFX.maximize.fill(canvas)
 	UFX.scene.init({
@@ -33,5 +33,6 @@ window.onload = function () {
 	})
 	UFX.scene.push("menu")
 }
+UFX.resource.loadwebfonts("Condiment", "Allan", "Trade Winds")
 
 
