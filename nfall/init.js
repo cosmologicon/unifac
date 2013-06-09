@@ -26,7 +26,6 @@ canvas.ontouchstart = function (event) {
 
 UFX.resource.onload = function () {
 	UFX.maximize.resizemode = "total"
-//	UFX.maximize.fill(canvas)
 	UFX.scene.init({
 		minups: 10,
 		maxups: 200,
@@ -55,4 +54,5 @@ function music() {
 	][nmusic]
 }
 music()
+
 
