@@ -33,6 +33,26 @@ UFX.resource.onload = function () {
 	})
 	UFX.scene.push("menu")
 }
-UFX.resource.loadwebfonts("Condiment", "Allan", "Trade Winds")
+UFX.resource.loadwebfonts("Condiment", "Allan", "Trade Winds", "Viga")
 
+var nmusic = 0
+function music() {
+	nmusic += 1
+	nmusic %= 5
+	;[1,2,3,4].forEach(function (j) {
+		if (j == nmusic) {
+			document.getElementById("music" + j).play()
+		} else {
+			document.getElementById("music" + j).pause()
+		}
+	})
+	document.getElementById("music").innerHTML = [
+		"Music is off",
+		"Track 1: Arcadia",
+		"Track 2: Moonlight Hall",
+		"Track 3: The Complex",
+		"Track 4: Minima",
+	][nmusic]
+}
+music()
 

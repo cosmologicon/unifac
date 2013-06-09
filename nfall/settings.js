@@ -6,7 +6,7 @@ var settings = {
 	
 	sx: 800,
 	sy: 600,
-	clickr: 30,
+	clickr: 20,
 }
 
 function clip(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
