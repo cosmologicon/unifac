@@ -79,6 +79,20 @@ var HasTowers = {
 	},
 }
 
+var ConnectChildren = {
+	draw: function () {
+		UFX.draw("r", this.A0, "b m 0 0 o 0 0 3 m 0 0")
+		var A = 0
+		this.children.forEach(function (child) {
+			UFX.draw("l", child.wr * Math.sin(A), child.wr * -Math.cos(A))
+			var dA = zmod(child.A - A, tau)
+			UFX.draw((dA > 0 ? "a" : "aa"), 0, 0, child.wr, A-tau/4, A-tau/4+dA)
+			A = child.A
+		})
+		UFX.draw("ss #121212 lw 6 s ss #090909 lw 4 s")
+	},
+}
+
 
 
 
@@ -96,6 +110,7 @@ Planet.prototype = UFX.Thing()
 
 function Sun(wheel, A, r) {
 	this.wheel = wheel
+	this.wheel.children.push(this)
 	this.A = A
 	this.wr = r
 }
@@ -107,6 +122,7 @@ Sun.prototype = UFX.Thing()
 
 function Moon(wheel, A, wr, r) {
 	this.wheel = wheel
+	this.wheel.children.push(this)
 	this.A = A
 	this.wr = wr
 	this.r = r || this.r
@@ -115,6 +131,17 @@ Moon.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(OnWheel)
 	.addcomp(DrawCircle, 12, "gray")
+
+function Wheel(x, y, A0) {
+	this.x = x || 0
+	this.y = y || 0
+	this.A0 = A0 || 0
+	this.children = []
+}
+Wheel.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(ConnectChildren)
+	.definemethod("think")
 
 
 
