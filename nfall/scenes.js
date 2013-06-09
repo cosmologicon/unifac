@@ -36,7 +36,7 @@ UFX.scenes.menu = {
 			this.buttons.forEach(function (button) {
 				if (x < button.x || x > button.x + button.w) return
 				if (y < button.y || y > button.y + button.h) return
-				UFX.scene.push("transin", button.levelname)
+				UFX.scene.swap("transin", button.levelname)
 			})
 		}
 	},
@@ -68,7 +68,7 @@ UFX.scenes.transin = {
 	},
 	think: function (dt) {
 		this.t += dt
-		if (this.t > 0.5) UFX.scene.push("action", this.levelname)
+		if (this.t > 0.5) UFX.scene.swap("action", this.levelname)
 	},
 	draw: function () {
 		this.back.draw()
@@ -110,7 +110,7 @@ UFX.scenes.transout = {
 	},
 	think: function (dt) {
 		this.t += dt
-		if (this.t > 4) UFX.scene.push("menu")
+		if (this.t > 4) UFX.scene.swap("menu")
 		if (this.t > 1.8) {
 			this.st += dt
 			while (this.st > 0.1) {
@@ -150,9 +150,13 @@ UFX.scenes.action = {
 		this.t += dt
 
 		if (mstate && mstate.pos) {
-			var mx = mstate.pos[0] - 0.5 * settings.sx
-			var my = mstate.pos[1] - 0.5 * settings.sy
+			var mx = mstate.pos[0] - 0.5 * canvas.width
+			var my = mstate.pos[1] - 0.5 * canvas.height
 			if (mstate.left.down) {
+				if (mstate.pos[0] < 60 && mstate.pos[1] < 30) {
+					UFX.scene.swap("menu")
+					return
+				}
 				var selected = camera
 				suns.concat(moons).forEach(function (obj) {
 					var p = camera.worldtoscreen([obj.x, obj.y])
@@ -190,7 +194,7 @@ UFX.scenes.action = {
 		if (planets.every(function (planet) { return planet.shaded() })) {
 			beaten[this.levelname] = true
 			savegame()
-			UFX.scene.push("transout")
+			UFX.scene.swap("transout")
 		}
 	},
 	
@@ -207,6 +211,7 @@ UFX.scenes.action = {
 		suns.forEach(function (sun) { sun.drawshade() })
 		suns.forEach(draw)
 		context.restore()
+		UFX.draw("fs white font 22px~Viga ft back 30 15")
 		overlay((0.5 - this.t) / 0.5)
 	},
 
