@@ -141,4 +141,17 @@ function loadlevel(lname) {
 	})
 }
 		
+function getlevels() {
+	return [
+		["Urff", "train0"],
+		["Trisol", "train1"],
+		["Yclept", "train2"],
+		["Mesel", "crossbeam"],
+		["Vognon", "offset"],
+		["Fulcra", "doubletrip"],
+	]
+}
+
+
+
 
