@@ -199,7 +199,7 @@ UFX.scenes.action = {
 	},
 	
 	draw: function () {
-		UFX.draw("fs black f0")
+		UFX.draw("alpha 1 fs black f0")
 		
 		context.save()
 		context.translate(0.5 * canvas.width, 0.5 * canvas.height)
