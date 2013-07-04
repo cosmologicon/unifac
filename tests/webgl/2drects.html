@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<script src="../../UFX/src/random.js"></script>
+<script id="2d-vertex-shader" type="x-shader/x-vertex">
+attribute vec2 a_position;
+
+//uniform vec2 u_resolution;
+
+uniform mat4 xform;
+
+void main() {
+   // convert the rectangle from pixels to 0.0 to 1.0
+//   vec2 zeroToOne = a_position / u_resolution;
+
+   // convert from 0->1 to 0->2
+//   vec2 zeroToTwo = zeroToOne * 2.0;
+
+   // convert from 0->2 to -1->+1 (clipspace)
+//   vec2 clipSpace = zeroToTwo - 1.0;
+
+   gl_Position = xform * vec4(a_position, 0, 1);
+}
+</script>
+<script id="2d-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+uniform vec4 u_color;
+
+void main() {
+   gl_FragColor = u_color;
+}
+</script>
+<canvas id="canvas"></canvas>
+<script>
+// Taken from http://www.html5rocks.com/en/tutorials/webgl/webgl_fundamentals/
+
+
+// Get A WebGL context
+var canvas = document.getElementById("canvas");
+canvas.width = 600 ; canvas.height = 400
+var gl = canvas.getContext("experimental-webgl");
+
+// setup a GLSL program
+function createShaderFromScript(gl, scriptId, shaderType) {
+  // Create the shader object
+  var shader = gl.createShader(shaderType);
+  // Load the shader source
+  var shaderScript = document.getElementById(scriptId);
+  gl.shaderSource(shader, shaderScript.text);
+  // Compile the shader
+  gl.compileShader(shader);
+  return shader;
+};
+var vertexShader = createShaderFromScript(gl, "2d-vertex-shader", gl.VERTEX_SHADER);
+var fragmentShader = createShaderFromScript(gl, "2d-fragment-shader", gl.FRAGMENT_SHADER);
+var program = gl.createProgram()
+gl.attachShader(program, vertexShader)
+gl.attachShader(program, fragmentShader)
+gl.linkProgram(program)
+gl.useProgram(program);
+
+var colorLocation = gl.getUniformLocation(program, "u_color");
+
+// look up where the vertex data needs to go.
+var positionLocation = gl.getAttribLocation(program, "a_position");
+
+// set the resolution
+var resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+gl.uniform2f(resolutionLocation, canvas.width, canvas.width);
+
+var xform = gl.getUniformLocation(program, "xform");
+gl.uniformMatrix4fv(xform, false, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+
+
+var buffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+gl.enableVertexAttribArray(positionLocation);
+gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+function go() {
+	// draw 50 random rectangles in random colors
+	for (var ii = 0; ii < 20; ++ii) {
+		// draw a random rectangle
+		var theta = UFX.random(10000), S = Math.sin(theta), C = Math.cos(theta)
+		var r = UFX.random(40, 80)
+		var r = 0
+		//gl.uniformMatrix4fv(xform, false, [C*r, S*r, 0, 0, -S*r, C*r, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+
+		drawRectangle(
+			gl, UFX.random(), UFX.random(), UFX.random(), UFX.random(),
+//			gl, -0.5, -0.5, 1, 1,
+			[UFX.random(), UFX.random(), UFX.random()]
+		);
+	}
+}
+setInterval(go, 1000)
+
+function drawRectangle(gl, x, y, w, h, color) {
+	drawLines(gl, [x, y, x+w, y, x+w, y+h, x, y+h], color)
+}
+
+function drawLines(gl, ps, color) {
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ps), gl.STATIC_DRAW)
+	gl.uniform4f(colorLocation, color[0], color[1], color[2], 1)
+	gl.drawArrays(gl.LINE_LOOP, 0, ps.length / 2)
+}
+
+
+
+
+</script>
+
