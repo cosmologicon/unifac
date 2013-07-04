@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<script src="../../UFX/src/random.js"></script>
+<script src="../../UFX/src/maximize.js"></script>
+<script id="2d-vertex-shader" type="x-shader/x-vertex">
+attribute vec2 a_position;
+uniform mat4 xform;
+void main() {
+   gl_Position = xform * vec4(a_position, 0, 1);
+}
+</script>
+<script id="2d-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+uniform vec4 u_color;
+void main() {
+   gl_FragColor = u_color;
+}
+</script>
+<canvas id="canvas" style="border: thin black solid"></canvas>
+<script>
+// Get the xform matrix for Robot Underground:
+// Translate to center of screen (not necessary?)
+// Vertical flip (?)
+// Scale by canvas scale factor
+// Translate to camera center
+// Zoom to camera zoom level
+// Translate to object's position
+// Rotate by object's rotation
+// Scale by object size
+
+
+// Based on http://www.html5rocks.com/en/tutorials/webgl/webgl_fundamentals/
+var canvas = document.getElementById("canvas");
+canvas.width = 600 ; canvas.height = 300
+//UFX.maximize.resizemode = "total"
+//UFX.maximize.fill(canvas)
+var gl = canvas.getContext("experimental-webgl");
+
+// setup a GLSL program
+function createShaderFromScript(gl, scriptId, shaderType) {
+  var shader = gl.createShader(shaderType);
+  var shaderScript = document.getElementById(scriptId);
+  gl.shaderSource(shader, shaderScript.text);
+  gl.compileShader(shader);
+  return shader;
+};
+var vertexShader = createShaderFromScript(gl, "2d-vertex-shader", gl.VERTEX_SHADER);
+var fragmentShader = createShaderFromScript(gl, "2d-fragment-shader", gl.FRAGMENT_SHADER);
+var program = gl.createProgram()
+gl.attachShader(program, vertexShader)
+gl.attachShader(program, fragmentShader)
+gl.linkProgram(program)
+gl.useProgram(program);
+
+var colorLocation = gl.getUniformLocation(program, "u_color");
+var positionLocation = gl.getAttribLocation(program, "a_position");
+var xform = gl.getUniformLocation(program, "xform");
+
+
+var buffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+gl.enableVertexAttribArray(positionLocation);
+gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+// Star points
+var ps = []
+for (var j = 0 ; j < 5 ; ++j) {
+	var theta = j * 2/5 * 6.283
+	ps.push(10 * Math.sin(theta))
+	ps.push(10 * Math.cos(theta))
+}
+ps = new Float32Array(ps)
+var color = [0.8, 0.8, 0.8]
+
+var clearps = new Float32Array([-1, -1, 1, -1, 1, 1, -1, 1])
+//var clearps = new Float32Array([-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5])
+//var clearps = new Float32Array([0, 0, 0.1, 0.1, -0.1, 0.1])
+function clear() {
+	gl.uniformMatrix4fv(xform, false, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+	gl.bufferData(gl.ARRAY_BUFFER, clearps, gl.STATIC_DRAW)
+	gl.uniform4f(colorLocation, 0, 0, 0, 1)
+	gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+}
+function drawstar(x, y, r, s) {
+	var W = 1/canvas.width, H = 1/canvas.height
+	var cx = 0, cy = 0, cz = 1
+	var S = Math.sin(r), C = Math.cos(r)
+//	cx = 0.1 ; cy = 0.1
+//	gl.uniformMatrix4fv(xform, false, [W, 0, 0, 0, 0, H, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+//	gl.uniformMatrix4fv(xform, false, [cz*W, 0, 0, 0, 0, cz*H, 0, 0, 0, 0, 1, 0, -cx*cz*W, -cy*cz*H, 0, 1]);
+//	gl.uniformMatrix4fv(xform, false, [cz*W, 0, 0, 0, 0, cz*H, 0, 0, 0, 0, 1, 0, (x-cx)*cz*W, (y-cy)*cz*H, 0, 1]);
+//	gl.uniformMatrix4fv(xform, false, [cz*W*C, -cz*H*S, 0, 0, cz*W*S, cz*H*C, 0, 0, 0, 0, 1, 0, (x-cx)*cz*W, (y-cy)*cz*H, 0, 1]);
+	gl.uniformMatrix4fv(xform, false, [cz*W*C*s, -cz*H*S*s, 0, 0, cz*W*S*s, cz*H*C*s, 0, 0, 0, 0, 1, 0, (x-cx)*cz*W, (y-cy)*cz*H, 0, 1]);
+	gl.bufferData(gl.ARRAY_BUFFER, ps, gl.STATIC_DRAW)
+	gl.uniform4f(colorLocation, color[0], color[1], color[2], 1)
+	gl.drawArrays(gl.LINE_LOOP, 0, 5)
+}
+
+
+var t0 = Date.now() * 0.001, tavg = 0
+function go() {
+	setTimeout(go, 1)
+	clear()
+	var t = Date.now() * 0.001
+	tavg = 0.95 * tavg + 0.05 * (t -t0) ; t0 = t
+//	if (UFX.random() < 0.05) console.log(1/tavg)
+
+	drawstar(0, 0, 0, 6)
+	for (var tp = 0 ; tp < 1000 ; tp += 100) {
+		S = Math.sin(t), C = Math.cos(t)
+		drawstar(300 * S, 100 * C, 4.318*t, 3 - C)
+	}
+}
+go()
+
+
+</script>
+
