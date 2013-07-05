@@ -152,8 +152,12 @@ if __name__ == '__main__':
         for filename in filenames:
             imgname = filename.split(".")[0]
             s = SVG("%s/%s" % (dirpath, filename))
-            svgdata["%s.%s" % (group, imgname)] = s.paths
-#            print group, imgname
+            svgdata["%s.%s" % (group, imgname)] = {
+                "paths": s.paths,
+                "width": s.width,
+                "height": s.height,
+            }
+#            print group, imgname, s.width, s.height
 
     print len(svgdata), len(json.dumps(svgdata))
     open("../data/imagedata.js", "w").write("var imagedata = %s\n" % json.dumps(svgdata))
