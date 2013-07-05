@@ -33,7 +33,15 @@ DungeonGrid.prototype = {
 		var n = +UFX.random.choice(Object.keys(this.cells))
 		return gridxy(n)
 	},
-	// TODO: isClear
+	isClear: function (start, size) {
+		for (var x = 0 ; x < size[0] ; ++x) {
+			for (var y = 0 ; y < size[1] ; ++y) {
+				if (this.cells[gridn(start[0] + x, start[1] + y)])
+					return false
+			}
+		}
+		return true
+	},
 	// TODO: circleClear
 	hasLOS: function (pos1, pos2) {
 		if (pos2[0] < pos1[0]) {  // work left to right
@@ -63,12 +71,35 @@ DungeonGrid.prototype = {
 		dy *= radius / d
 		return this.hasLOS([pos1[0] + dy, pos1[1] - dx], [pos2[0] + dy, pos2[1] - dx]) &&
 		       this.hasLOS([pos1[0] - dy, pos1[1] + dx], [pos2[0] - dy, pos2[1] + dx])
-   },
-   // TODO: checkEdge
-   // TODO: getCorners
-   // TODO: getWalls
-   // TODO: getTopCell, etc.
-   // TODO: topPos, etc.
+	},
+	// TODO: checkEdge
+	// TODO: getCorners
+	// TODO: getWalls
+	getTopCell: function () {
+		return Math.max.apply(null, Object.keys(this.cells).map(gridx))
+	},
+	getBottomCell: function () {
+		return Math.min.apply(null, Object.keys(this.cells).map(gridx))
+	},
+	getRightCell: function () {
+		return Math.max.apply(null, Object.keys(this.cells).map(gridy))
+	},
+	getLeftCell: function () {
+		return Math.min.apply(null, Object.keys(this.cells).map(gridy))
+	},
+
+	topPos: function (pos) {
+		return [this.top_offs[0] + pos[0], this.top_offs[1] + pos[1]]
+	},
+	bottomPos: function (pos) {
+		return [this.bottom_offs[0] + pos[0], this.bottom_offs[1] + pos[1]]
+	},
+	leftPos: function (pos) {
+		return [this.left_offs[0] + pos[0], this.left_offs[1] + pos[1]]
+	},
+	rightPos: function (pos) {
+		return [this.right_offs[0] + pos[0], this.right_offs[1] + pos[1]]
+	},
 }
 
 

@@ -32,6 +32,14 @@ var graphics = {
 		gl.enableVertexAttribArray(this.positionLocation)
 		gl.vertexAttribPointer(this.positionLocation, 2, gl.FLOAT, false, 0, 0)
 
+		// Converrt JSONed imagedata into Float32Arrays
+		for (var sname in imagedata) {
+			var paths = imagedata[sname].paths
+			for (var j = 0 ; j < paths.length ; ++j) {
+				paths[j] = new Float32Array(paths[j])
+			}
+		}
+
 		this.W = 2/canvas.width
 		this.H = 2/canvas.height
 		this.cx = 0
@@ -46,12 +54,8 @@ var graphics = {
 		gl.uniform4f(this.colorLocation, color[0], color[1], color[2], 1)
 		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
 	},
-	setxform: function (x, y, r, s) {
-		if (r) {
-			var S = Math.sin(r), C = Math.cos(r)
-		} else {
-			var S = 0, C = 1
-		}
+	setxform: function (x, y, s, r) {
+		var S = r ? Math.sin(r) : 0, C = r ? Math.cos(r) : 1
 		s = s || 1
 		x = x || 0
 		y = y || 0
@@ -67,6 +71,14 @@ var graphics = {
 		gl.bufferData(gl.ARRAY_BUFFER, ps, gl.STATIC_DRAW)
 		gl.uniform4f(this.colorLocation, color[0], color[1], color[2], 1)
 		gl.drawArrays(gl.LINE_STRIP, 0, ps.length / 2)
+	},
+	drawsprite: function (name, color, x, y, h, r) {
+		var idata = imagedata[name]
+		color = color || [1, 1, 1]
+		this.setxform(x, y, h / idata.height, r)
+		idata.paths.forEach(function (ps, j) {
+			graphics.drawlinestrip(ps, color)
+		})
 	},
 }
 
