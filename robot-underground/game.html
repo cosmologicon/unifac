@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<script id="2d-vertex-shader" type="x-shader/x-vertex">
+// Simplest shaders imaginable - that's all we realy need.
+attribute vec2 pos;
+uniform mat4 xform;
+void main() {
+	gl_Position = xform * vec4(pos, 0, 1);
+}
+</script>
+<script id="2d-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+uniform vec4 color;
+void main() {
+   gl_FragColor = color;
+}
+</script>
+<canvas id="canvas"></canvas>
+<script src="../UFX/src/resource.js"></script>
+<script src="../UFX/src/ticker.js"></script>
+<script src="../UFX/src/scene.js"></script>
+<script src="../UFX/src/random.js"></script>
+<script src="constants.js"></script>
+<script src="mission.js"></script>
+<script src="missionmode.js"></script>
+<script src="world.js"></script>
+<script src="worldgen.js"></script>
+<script src="graphics.js"></script>
+<script src="data/imagedata.js"></script>
+<script src="main.js"></script>
+
