@@ -1,7 +1,7 @@
 
 var canvas = document.getElementById("canvas")
-canvas.width = constants.scr_w
-canvas.height = constants.scr_h
+canvas.width = settings.scr_w
+canvas.height = settings.scr_h
 var gl = canvas.getContext("webgl", { antialias: true })
 
 var graphics = {
@@ -74,7 +74,6 @@ var graphics = {
 	},
 	drawsprite: function (name, color, x, y, h, r) {
 		var idata = imagedata[name]
-		color = color || [1, 1, 1]
 		this.setxform(x, y, h / idata.height, r)
 		idata.paths.forEach(function (ps, j) {
 			graphics.drawlinestrip(ps, color)

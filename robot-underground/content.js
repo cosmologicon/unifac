@@ -20,6 +20,7 @@ function setupFirstMission(ps, m) {
 		maxrooms: 6,
 	})
 	var camden = m.addProtag(m.map.bottomPos([150, 150]))
+	m.placeEnemiesRandomlyAnywhere({ Spider: 12, Scorpion: 8 })
 }
 
 

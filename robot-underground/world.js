@@ -1,5 +1,7 @@
 
 
+var edgenum = { top: 1, bottom: 2, left: 4, right: 8, topleft: 16, topright: 32, bottomleft: 64, bottomright: 128 }
+
 function gridn(x, y) { return (x + 16384 << 15) + y + 16384 }
 function gridx(n) { return (n >> 15) - 16384 }
 function gridy(n) { return (n & 32767) - 16384 }
@@ -42,7 +44,37 @@ DungeonGrid.prototype = {
 		}
 		return true
 	},
-	// TODO: circleClear
+	circleClear: function (pos, radius) {
+		var mincx = Math.floor((pos[0] - radius) / this.csize)
+		var maxcx = Math.floor((pos[0] + radius) / this.csize)
+		var mincy = Math.floor((pos[1] - radius) / this.csize)
+		var maxcy = Math.floor((pos[1] + radius) / this.csize)
+		var cells = this.cells
+		function fastCheck() {
+			for (var cx = mincx ; cx <= maxcx ; ++cx) {
+				for (var cy = mincy ; cy <= maxcy ; ++cy) {
+					if (!this.cells[gridn(cx, cy)]) {
+						return false
+					}
+				}
+			}
+			return true
+		}
+		if (fastCheck()) return true
+		
+		var cellRadius = Math.floor(radius / this.csize) + 1
+		var ecx = Math.floor(pos[0]/this.csize), ecy = Math.floor(pos[1]/this.csize)
+		for (var cx = -cellradius ; cx <= cellradius ; ++cx) {
+			for (var cy = -cellradius ; cy <= cellradius ; ++cy) {
+				if (this.cells[gridn(ecx + cx, ecy + cy)]) continue
+				var rx = cx < 0 ? this.csize*(ecx+cx+1) : cx > 0 ? this.csize*(ecx+cx) : pos[0]
+				var ry = cy < 0 ? this.csize*(ecy+cy+1) : cy > 0 ? this.csize*(ecy+cy) : pos[1]
+				var dx = pos[0] - rx, dy = pos[1] - ry
+				if (dx * dx + dy * dy < radius * raidus) return false
+			}
+		}
+		return true
+	},
 	hasLOS: function (pos1, pos2) {
 		if (pos2[0] < pos1[0]) {  // work left to right
 			var tmp = pos1 ; pos1 = pos2 ; pos2 = tmp
@@ -72,20 +104,64 @@ DungeonGrid.prototype = {
 		return this.hasLOS([pos1[0] + dy, pos1[1] - dx], [pos2[0] + dy, pos2[1] - dx]) &&
 		       this.hasLOS([pos1[0] - dy, pos1[1] + dx], [pos2[0] - dy, pos2[1] + dx])
 	},
-	// TODO: checkEdge
-	// TODO: getCorners
-	// TODO: getWalls
+
+	checkEdge: function (cell, edges, side) {
+		if (!this.cells[cell]) {
+			edges[cell] = edges[cell] || 0
+			edges[cell] += side
+		}
+	},
+	getCorners: function (edges) {
+		var corners = {}
+		for (var n in edges) corners[n] = edges[n]
+		for (var cell in edges) {
+			var x = gridx(cell), y = gridy(cell)
+			if (edgenum.top & edges[cell]) {
+				if ((edges[gridn(x+1, y+1)] || 0) && edgenum.left) {
+					var corner = gridn(x+1, y)
+					corners[corner] = (corners[corner] || 0) + edgenum.topleft
+				}
+				if ((edges[gridn(x-1, y+1)] || 0) && edgenum.right) {
+					var corner = gridn(x-1, y)
+					corners[corner] = (corners[corner] || 0) + edgenum.topright
+				}
+			}
+			if (edgenum.bottom & edges[cell]) {
+				if ((edges[gridn(x+1, y-1)] || 0) && edgenum.left) {
+					var corner = gridn(x+1, y)
+					corners[corner] = (corners[corner] || 0) + edgenum.bottomleft
+				}
+				if ((edges[gridn(x-1, y-1)] || 0) && edgenum.right) {
+					var corner = gridn(x-1, y)
+					corners[corner] = (corners[corner] || 0) + edgenum.bottomright
+				}
+			}
+		}
+		return corners
+	},
+	getWalls: function () {
+		var edges = {}
+		for (var n in this.cells) {
+			var x = gridx(n), y = gridy(n)
+			this.checkEdge(gridn(x, y+1), edges, edgenum.bottom)
+			this.checkEdge(gridn(x+1, y), edges, edgenum.left)
+			this.checkEdge(gridn(x, y-1), edges, edgenum.top)
+			this.checkEdge(gridn(x-1, y), edges, edgenum.right)
+		}
+		return this.getCorners(edges)
+	},
+
 	getTopCell: function () {
-		return Math.max.apply(null, Object.keys(this.cells).map(gridx))
+		return gridxy(Object.keys(this.cells).sort(function (n1, n2) { return gridx(n2) - gridx(n1) })[0])
 	},
 	getBottomCell: function () {
-		return Math.min.apply(null, Object.keys(this.cells).map(gridx))
+		return gridxy(Object.keys(this.cells).sort(function (n1, n2) { return gridx(n1) - gridx(n2) })[0])
 	},
 	getRightCell: function () {
-		return Math.max.apply(null, Object.keys(this.cells).map(gridy))
+		return gridxy(Object.keys(this.cells).sort(function (n1, n2) { return gridy(n2) - gridy(n1) })[0])
 	},
 	getLeftCell: function () {
-		return Math.min.apply(null, Object.keys(this.cells).map(gridy))
+		return gridxy(Object.keys(this.cells).sort(function (n1, n2) { return gridy(n1) - gridy(n2) })[0])
 	},
 
 	topPos: function (pos) {

@@ -49,7 +49,6 @@ function makeDungeon2(args) {
 }
 
 function makeDungeon1(args) {
-	console.log("makeDungeon1", args)
 	var startpos = args.startpos || [100, 70]
 	var minroomsize = args.minroomsize || 2
 	var maxroomsize = args.maxroomsize || 5

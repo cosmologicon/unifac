@@ -1,5 +1,6 @@
 
-function Mission() {
+function Mission(handler) {
+	this.handler = handler
 	// set map, protag, actors, scripts
 	this.dead = {}
 	this.born = {}
@@ -29,15 +30,113 @@ Mission.prototype = {
 		return this.protag
 	},
 	// TODO: addScenery, addEntity
-	// TODO: placeEnemiesRandomlyAnywhere, placeEnemiesRandomly
-	// TODO: placeSquad
-	// TODO: runScript, advanceScript
-	
-
-	draw_world: function () {
-		var cs = this.mission.map.csize
-		
+	placeEnemiesRandomlyAnywhere: function (enemies, outOfSight) {
+		if (outOfSight === undefined) outOfSight = true
+		var m = this.map, cells = Object.keys(m.cells), p = this.protag.pos
+		if (outOfSight) {
+			cells = cells.filter(function (n) { return !m.hasLOS(p, m.cellCentre(gridxy(n)))})
+		}
+		this.placeEnemiesRandomly(enemies, cells)
 	},
+	placeEnemiesRandomly: function (enemies, unusedCells) {
+		for (var type in enemies) {
+			for (var j = 0 ; j < enemies[type] ; ++j) {
+				var celln = unusedCells.pop()  // TODO: shouldn't we be shuffling these?
+				var abspos = this.map.cellCentre(gridxy(celln))
+				var newEnemy = makeEnemy(type, this, abspos)
+				// squad seems like it's always empty, so ignore it (leave off method placeSquad)
+				this.entities.add(newEnemy)
+			}
+		}
+	},
+	// TODO: runScript, advanceScript
+	tick: function () {
+		// TODO script stuff
+		if (!this.currentScript) {
+			var es = this.entities.entitiesWithin(this.protag.pos, ENTITY_TICK_DISTANCE)
+			for (var id in es) { es[id].tick() }
+			var clear = this.missionCleared()
+			this.entities.removeSet(this.dead)
+			this.dead = {}
+			for (var id in this.born) {
+				this.entities.add(this.born[id])
+			}
+			if (!clear) {
+				if (this.missionCleared() && this.clearScript) {
+					this.runScript(this.clearScript)
+				}
+			}
+			this.born = {}
+		}
+	},
+	
+	closestHostileTo: function (pos, radius, requireLOS, requireAlive, requireObjective) {
+		var hostiles = [], es = this.entities.entitiesWithin(pos, radius)
+		for (var id in es) {
+			var e = es[id]
+			if (!(e instanceof Actor)) continue
+			if (!e.hostile) continue
+			if (requireObjective && !e.isObjective()) continue
+			if (requireAlive && e.currenthp <= 0) continue
+			hostiles.push(e)
+		}
+		if (!hostiles.length) return null
+		hostiles.sort(function (item) { return distanceBetween(pos, item.pos) })
+		if (!requireLOS) return hostiles[0]
+		for (var j = 0 ; j < hostiles.length ; ++j) {
+			if (this.map.hasLOS(pos, hostiles[j].pos)) {
+				return hostiles[j]
+			}
+		}
+		return null
+	},
+
+	missionCleared: function () {
+		for (var n in this.entities.ei) {
+			for (var id in this.entities.ei[n]) {
+				var e = this.entities.ei[n][id]
+				if (e instanceof Actor && e.isObjective()) {
+					return false
+				}
+			}
+		}
+		return true
+	},
+
+	getHostileAt: function (pos) {
+		var es = this.entities.entitiesAt(pos)
+		for (var j = 0 ; j < es.length ; ++j) {
+			var e = es[j]
+			if (e instanceof Actor && e.hostile) {
+				return e
+			}
+		}
+		return null
+	},
+	
+	getActorAt: function (pos, includeprotag) {
+		if (includeprotag === undefined) includeprotag = true
+		var es = this.entities.entitiesAt(pos)
+		for (var j = 0 ; j < es.length ; ++j) {
+			var e = es[j]
+			if (e instanceof Actor && (includeprotag || e !== this.protag)) {
+				return e
+			}
+		}
+		return null
+	},
+	
+	registerScript: function (script) {
+		this.scripts.push(script)
+	},
+	
+	actorTalkScript: function (pos, name, stats, bearing, radius) {
+		var e = new Actor(pos, stats, radius, bearing, false, name)
+		this.entities.add(e)
+		return e.setTalkScript
+	},
+	
+	// TODO: enemyDeathScript, setStartScript, setEjectScript, setClearScript	
 }
 
 

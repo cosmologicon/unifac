@@ -14,16 +14,16 @@ var robotstate = {
 		this.xp = 0
 		this.level = 0
 		this.stats = CombatStats(
-			constants.ROBOT_INITIAL_ATTACK,
-			constants.ROBOT_INITIAL_DEFENCE,
-			constants.ROBOT_INITIAL_HP,
-			constants.ROBOT_BASE_SPEED
+			ROBOT_INITIAL_ATTACK,
+			ROBOT_INITIAL_DEFENCE,
+			ROBOT_INITIAL_HP,
+			ROBOT_BASE_SPEED
 		)
 		this.weaponslots = 2
 //		this.weaponry = [new LightLaser(), new LightRepairKit()]
 		this.armoury = new Armour()
 		this.weaponry = []
-		this.maxenergy = constants.ROBOT_INITIAL_MAX_ENERGY
+		this.maxenergy = ROBOT_INITIAL_MAX_ENERGY
 		if (protag_level && protag_level > 4) {
 			// TODO: cheat code
 		}
@@ -35,15 +35,15 @@ var robotstate = {
 	addXP: function (amt) {
 		this.xp += amt
 		var levelled_up = false
-		while (this.xp >= 1 << (this.level + constants.LEVEL_0_EXPONENT)) {
+		while (this.xp >= 1 << (this.level + LEVEL_0_EXPONENT)) {
 			this.levelup()
 			levelled_up = true
 		}
 		return levelled_up
 	},
 	addMetal: function (amt, metal_name) {
-		if (!metal_name) metal_name = UFX.random.choice(constants.METALS)
-		var idx = constants.METALS.indexOf(metal_name)
+		if (!metal_name) metal_name = UFX.random.choice(METALS)
+		var idx = METALS.indexOf(metal_name)
 		this.metal[idx] += amt
 		// TODO: gamelog
 	},
@@ -57,9 +57,9 @@ var robotstate = {
 	levelup: function () {
 		this.level += 1
 		// TODO: gamelog
-		this.stats.attack += constants.ROBOT_ATTACK_INCREASE
-		this.stats.defence += constants.ROBOT_DEFENCE_INCREASE
-		this.stats.maxhp += constants.ROBOT_HP_INCREASE
+		this.stats.attack += ROBOT_ATTACK_INCREASE
+		this.stats.defence += ROBOT_DEFENCE_INCREASE
+		this.stats.maxhp += ROBOT_HP_INCREASE
 	},
 
 	getAttack: function () {
@@ -84,8 +84,6 @@ var robotstate = {
 		return 1 + 0.01 * this.armoury.getResistance(damageType)
 	},
 }
-
-robotstate.init(null)
 
 
 
