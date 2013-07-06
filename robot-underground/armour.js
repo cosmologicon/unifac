@@ -32,13 +32,13 @@ Armour.prototype = extend(Equippable.prototype, {
 		if (this.isIdentified) {
 			for (var type in this.percentages) {
 				var value = this.getPercentage(type)
-				if (value > 0) efx.append(value + "% increased " + type + ".")
-				if (value < 0) efx.append(-value + "% decreased " + type + ".")
+				if (value > 0) efx.push(value + "% increased " + type + ".")
+				if (value < 0) efx.push(-value + "% decreased " + type + ".")
 			}
 			for (var type in this.resistances) {
 				var value = this.getResistance(type)
-				if (value > 0) efx.append(value + "% increased resistance to " + type + " damage.")
-				if (value < 0) efx.append(-value + "% decreased resistance to " + type + " damage.")
+				if (value > 0) efx.push(value + "% increased resistance to " + type + " damage.")
+				if (value < 0) efx.push(-value + "% decreased resistance to " + type + " damage.")
 			}
 		}
 		return efx.join("\n")

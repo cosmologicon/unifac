@@ -25,8 +25,12 @@ EntityIndex.prototype = {
 		e.indices = e.indices.filter(function (index) { return index !== that })
 		delete this.ei[this.indexPos(e.pos)][e.id]
 	},
-	// TODO: addSet, removeSet
-	// TODO: __iter__
+	addSet: function (es) {
+		for (var id in es) { this.add(es[id]) }
+	},
+	removeSet: function (es) {
+		for (var id in es) { this.remove(es[id]) }
+	},
 	moveEntity: function (e, oldpos, newpos) {
 		delete this.ei[this.indexPos(oldpos)][e.id]
 		this.ei[this.indexPos(newpos)][e.id] = e
@@ -53,8 +57,37 @@ EntityIndex.prototype = {
 		}
 		return res
 	},
-	// TODO: canMove
-	// TODO: entitiesWithinRect
+	canMove: function (entity, pos, radius) {
+		if (!entity.solid) return true
+		// I'm reusing some code here, hope I'm doing it right!
+		var es = this.entitiesWithin(pos, radius)
+		for (var id in es) {
+			if (es[id].solid && es[id] !== entity) return false
+		}
+		return true
+	},
+	entitiesWithinRect: function (pos, size, precise) {
+		var tx = pos[0], ty = pos[1], rmax = this.max_entity_radius
+		var sx = size[0], sy = size[1]
+		var cmin = this.indexForPos([tx - rmax, ty - rmax]), cxmin = cmin[0], cymin = cmin[1]
+		var cmax = this.indexForPos([tx + sx + rmax, ty + sx + rmax]), cxmax = cmax[0], cymax = cmax[1]
+		var res = {}
+		for (var cx = cxmin ; cx <= cxmax ; ++cx) {
+			for (var cy = cymin ; cy <= cymax ; ++cy) {
+				var n = gridn(cx, cy), ei = this.ei[n]
+				if (!ei) continue
+				for (var id in ei) {
+					// Note: precise is always false, so let's make this a little simpler....
+					var e = ei[id]
+					if (e.pos[0] + e.r > tx && e.pos[0] - e.r < tx + sx + 1 &&
+					    e.pos[1] + e.r > ty && e.pos[1] - e.r < ty + sy + 1) {
+						res[id] = e
+					}
+				}
+			}
+		}
+		return res
+	},
 }
 
 

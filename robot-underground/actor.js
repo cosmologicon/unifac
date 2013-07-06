@@ -12,9 +12,19 @@ Actor.prototype = extend(Entity.prototype, {
 		this.currenthp = this.stats.maxhp
 		this.hostile = hostile
 		this.dest = null
+		this.scriptNodes = []
+		this.scriptBearing = null
+		this.name = name
+		this.deathScript = null
+		this.talkScript = null
+		this.areaScripts = {}
+		var r = this.resistances = {}
+		mod.rskeys.forEach(function (rskey) { r[Damage[rskey]] = 0 })
 		
-		//TODO ....
+		this.pendingDamage = 0
+		this.pendingDamageCtr = 0
 	},
+
 	// TODO: setTalkScript, addAreaScript, setDeathScript
 	takeDamage: function (amount, type) {
 		if (this.currenthp <= 0) return
@@ -30,7 +40,7 @@ Actor.prototype = extend(Entity.prototype, {
 		} else {
 			this.pendingDamage += amount
 			if (this.pendingDamageCtr == 0) {
-				this.pendingDamageCtr = constants.DAMAGE_AGGREGATE_TIME
+				this.pendingDamageCtr = DAMAGE_AGGREGATE_TIME
 			}
 		}
 	},
@@ -48,17 +58,18 @@ Actor.prototype = extend(Entity.prototype, {
 	},
 	move: function (tripScripts) {
 		if (tripScripts === undefined) tripScripts = true
+		var m = this.mission
 		function unobstructed(pos) {
-			return this.mission.map.circleClear(pos, this.r) &&
-				this.mission.entities.canMove(this, pos, this.r)
+			return m.map.circleClear(pos, this.r) && m.entities.canMove(this, pos, this.r)
 		}
 		if (this.dest) {
+			console.log(this.dest)
 			var totalspeed = this.getSpeed()
 			while (totalspeed) {
 				if (!this.dest) break
 				var dx = this.dest[0] - this.pos[0], dy = this.dest[1] - this.pos[1]
 				var dist = Math.sqrt(dx*dx + dy*dy)
-				var step = Math.min(totalspeed, constants.MOVEMENT_STEP)
+				var step = Math.min(totalspeed, MOVEMENT_STEP)
 				totalspeed -= step
 				if (dist <= step) {
 					var newpos = this.dest
@@ -139,7 +150,7 @@ function Protag(mission, pos) {
 }
 Protag.prototype = extend(Actor.prototype, {
 	init: function (mission, pos) {
-		Actor.prototype.init.call(this, mission, pos, robotstate.stats, constants.PROTAGONIST_RADIUS, 0, false, "Camden")
+		Actor.prototype.init.call(this, mission, pos, robotstate.stats, PROTAGONIST_RADIUS, 0, false, "Camden")
 		this.robotstate = robotstate
 		this.weaponry = this.robotstate.weaponry
 		this.currentEnergy = this.robotstate.getMaxEnergy()
@@ -155,7 +166,7 @@ Protag.prototype = extend(Actor.prototype, {
 		if (tripScripts === undefined) tripScripts = true
 		if (this.targ && !this.targ.hostile) {
 			var dx = this.pos[0] - this.targ.pos[0], dy = this.pos[1] - this.targ.pos[1]
-			var dr = constants.PROTAGONIST_TALKRANGE + this.targ.r
+			var dr = PROTAGONIST_TALKRANGE + this.targ.r
 			if (dx * dx + dy * dy < dr * dr) return
 		}
 		Actor.prototype.move.call(this, tripScripts)
@@ -174,17 +185,17 @@ Protag.prototype = extend(Actor.prototype, {
 		Actor.prototype.tick.call(this)
 		this.numticks++
 		// TODO: gamelog
-		if (this.numticks == constants.ROBOT_DUNGEON_TIME_LIMIT && this.mission.isTimed) {
+		if (this.numticks == ROBOT_DUNGEON_TIME_LIMIT && this.mission.isTimed) {
 			this.mission.dispatch_event("on_time_out")
-		} else if (this.numticks < constants.ROBOT_DUNGEON_TIME_LIMIT || !this.mission.isTimed) {
-			this.currentEnergy = Math.min(this.robotstate.getMaxenergy(),
+		} else if (this.numticks < ROBOT_DUNGEON_TIME_LIMIT || !this.mission.isTimed) {
+			this.currentEnergy = Math.min(this.robotstate.getMaxEnergy(),
 				this.currentEnergy + this.robotstate.getEnergyRegen())
 		}
 		this.weaponry.forEach(function (w) { if (w) w.tick() })
 		this.attack()
 		if (this.targ && !this.targ.hostile) {
 			var dx = this.pos[0] - this.targ.pos[0], dy = this.pos[1] - this.targ.pos[1]
-			var dr = constants.PROTAGONIST_TALKRANGE + this.targ.r
+			var dr = PROTAGONIST_TALKRANGE + this.targ.r
 			if (dx * dx + dy * dy < dr * dr) {
 				if (this.targ.talkScript) {
 					// TODO: gamelog
@@ -242,11 +253,6 @@ Protag.prototype = extend(Actor.prototype, {
 		Actor.prototype.die.apply(this)
 	},
 })
-
-
-
-
-
 
 
 

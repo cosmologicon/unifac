@@ -1,19 +1,48 @@
 
 UFX.scenes.missionmode = {
 	start: function () {
-		this.mission = new Mission()
+		// TODO: scripts, inventory, hud, dialogue, etc.
 		
+		this.mission = new Mission(this)
+		this.walls = this.mission.map.getWalls()
 		this.world_chunks = {}
 		// TODO: should this be updated if the window is resized? Does it even need to depend on scr_w/h?
-		this.world_chunk_x = Math.ceil(constants.scr_w / this.mission.map.csize)
-		this.world_chunk_y = Math.ceil(constants.scr_h / this.mission.map.csize)
+		this.world_chunk_x = Math.ceil(settings.scr_w / this.mission.map.csize)
+		this.world_chunk_y = Math.ceil(settings.scr_h / this.mission.map.csize)
+		this.new_xp = 0
+		this.new_xp_delay = 0
+		this.last_get_float = 0
+		
+		this.frameno = 0
+		this.current_zoom = 1.0
+		this.desired_zoom = 1.0
+		this.current_hud_zoom = 1.0
+		this.desired_hud_zoom = 1.0
+		this.debug_circles = false
+		this.area_mode = false
+		
+		this.drag_to_move = false
+		this.mouse_protected = 0
+		this.mouse_x = this.mouse_y = 0
+		this.cursor = new GameCursor(this)
+		
+	},
+	
+	get_mouse_world_coordinates: function () {
+		return this.mouse_to_world(this.mouse_x, this.mouse_y)
 	},
 
 	mouse_to_world: function (x, y) {
+		var scale = settings.scr_h * this.current_zoom / WORLD_SCREEN_HEIGHT
 		return [
-			this.mission.protag.pos[0] + (x - constants.scr_w/2) / scale,
-			this.mission.protag.pos[1] + (y - constants.scr_h/2) / scale,
+			this.mission.protag.pos[0] + (x - settings.scr_w/2) / scale,
+			this.mission.protag.pos[1] + (y - settings.scr_h/2) / scale,
 		]
+	},
+	
+	set_mouse: function (x, y) {
+		this.mouse_x = x
+		this.mouse_y = y
 	},
 	
 	draw_world: function (minx, miny, maxx, maxy) {
@@ -51,6 +80,26 @@ UFX.scenes.missionmode = {
 		//this.wall_chunks[cn].wallps, this.wall_color)
 		
 	},
+
+	draw_entity: function (e, pos) {
+		pos = pos || e.pos
+		// TODO: get colors into saved data
+		// TODO: handle turret bearings
+		var colour = [0.5, 0.5, 1]
+		graphics.drawsprite("robots.overcamden3", colour, pos[0], pos[1], e.r, e.bearing) // TODO...
+	},
+	draw_entities: function (minx, miny, maxx, maxy) {
+		var es = this.mission.entities.entitiesWithinRect([minx, miny], [maxx-minx, maxy-miny])
+		for (var id in es) {
+			if (es[id].visible) this.draw_entity(es[id])
+			// TODO: debug circles
+		}
+		// TODO: debug circles
+		// TODO: area mode
+	},
+
+
+
 	make_world_chunk: function(cx, cy) {
 		// The original used display lists but webGL doesn't support them. So build a big buffer
 		// with all the floor and wall data
@@ -70,19 +119,38 @@ UFX.scenes.missionmode = {
 	// ported from MissionMode.ondraw
 	draw: function () {
 		graphics.clear()
-		var w = canvas.height, h = canvas.height
-		if (false) {
-			graphics.cx = this.protag.pos[0]
-			graphics.cy = this.protag.pos[1]
-			graphics.cz = this.current_zoom * h / constants.WORLD_SCREEN_HEIGHT
+		var w = canvas.height, h = canvas.height, m = this.mission
+		if (!m.currentScript || !m.currentScript.blankScreen) {
+			graphics.cx = m.protag.pos[0]
+			graphics.cy = m.protag.pos[1]
+			graphics.cz = this.current_zoom * h / WORLD_SCREEN_HEIGHT
 			var minp = this.mouse_to_world(0, 0), minx = minp[0], miny = minp[1]
 			var maxp = this.mouse_to_world(w, h), maxx = maxp[0], maxy = maxp[1]
-			this.draw_world(minx, miny, maxx, maxy)
+//			this.draw_world(minx, miny, maxx, maxy)
 			this.draw_entities(minx, miny, maxx, maxy)
 		}
-		graphics.cz = 0.1
-		graphics.setxform()
-		graphics.drawsprite("robots.goldhawk", [0, 0, 1], -200, -500)
+		// TODO: a bunch more drawing functions
+	},
+
+	can_click: function () {
+		var m = this.mission
+		return !(this.mouse_protected > 0 || m.isCutscene || m.currentScript && m.currentScript.state == "frozen")
+	},
+
+	
+	thinkargs: function (dt) {
+		return [dt, UFX.mouse.state(), UFX.key.state()]
+	},
+	think: function (dt, mstate, kstate) {
+		this.cursor.update(this.mouse_x, this.mouse_y)
+		this.current_zoom += 0.1 * (this.desired_zoom - this.current_zoom)
+		this.current_hud_zoom += 0.05 * (this.desired_hud_zoom - this.current_hud_zoom)
+		if (this.mouse_protected > 0) --this.mouse_protected
+		// TODO update weapon icons
+		// TODO xp delay
+		// TODO currentscript
+		this.bullets = []
+		this.mission.tick()
 	},
 }
 
