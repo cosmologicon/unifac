@@ -60,8 +60,8 @@ var graphics = {
 		x = x || 0
 		y = y || 0
 		var arr = new Float32Array([
-			this.cz*this.W*C*s, -this.cz*this.H*S*s, 0, 0,
-			this.cz*this.W*S*s, this.cz*this.H*C*s, 0, 0,
+			this.cz*this.W*C*s, this.cz*this.H*S*s, 0, 0,
+			-this.cz*this.W*S*s, this.cz*this.H*C*s, 0, 0,
 			0, 0, 1, 0,
 			(x-this.cx)*this.cz*this.W, (y-this.cy)*this.cz*this.H, 0, 1
 		])
@@ -79,7 +79,64 @@ var graphics = {
 			graphics.drawlinestrip(ps, color)
 		})
 	},
+	drawwall: function (code, color, x, y, h) {
+		this.drawsprite(wallimgnames[code], color, x, y, h, 0)
+	},
 }
+
+
+// cat graphics/__init__.py | grep "world\." | sed 's|world|edgenum|g;s|svg.SVG.||;s|images.||;s|\/|.|;s|).||;s|^ *|wallimgnames[|;s|:|] =|;s|.svgz||'
+var wallimgnames = {}
+wallimgnames[edgenum.top] = "scenery.wallup"
+wallimgnames[edgenum.bottom] = "scenery.walldown"
+wallimgnames[edgenum.left] = "scenery.wallleft"
+wallimgnames[edgenum.right] = "scenery.wallright"
+wallimgnames[edgenum.top + edgenum.bottom] = "scenery.equals"
+wallimgnames[edgenum.left + edgenum.right] = "scenery.uprightequals"
+wallimgnames[edgenum.left + edgenum.top] = "scenery.cornertl"
+wallimgnames[edgenum.right + edgenum.top] = "scenery.cornertr"
+wallimgnames[edgenum.left + edgenum.bottom] = "scenery.cornerbl"
+wallimgnames[edgenum.right + edgenum.bottom] = "scenery.cornerbr"
+wallimgnames[edgenum.top + edgenum.left + edgenum.bottom] = "scenery.deadright"
+wallimgnames[edgenum.top + edgenum.right + edgenum.bottom] = "scenery.deadleft"
+wallimgnames[edgenum.top + edgenum.left + edgenum.right] = "scenery.deaddown"
+wallimgnames[edgenum.right + edgenum.left + edgenum.bottom] = "scenery.deadup"
+wallimgnames[edgenum.topleft] = "scenery.cornerpieceul"
+wallimgnames[edgenum.topright] = "scenery.cornerpieceur"
+wallimgnames[edgenum.bottomleft] = "scenery.cornerpiecedl"
+wallimgnames[edgenum.bottomright] = "scenery.cornerpiecedr"
+wallimgnames[edgenum.topleft + edgenum.topright] = "scenery.dblcornertop"
+wallimgnames[edgenum.topright + edgenum.bottomright] = "scenery.dblcornerright"
+wallimgnames[edgenum.bottomleft + edgenum.bottomright] = "scenery.dblcornerbottom"
+wallimgnames[edgenum.bottomleft + edgenum.topleft] = "scenery.dblcornerleft"
+wallimgnames[edgenum.bottomleft + edgenum.topright] = "scenery.dblcornerdiagright"
+wallimgnames[edgenum.topleft + edgenum.bottomright] = "scenery.dblcornerdiagleft"
+wallimgnames[edgenum.left + edgenum.bottomright] = "scenery.linecornrightdown"
+wallimgnames[edgenum.left + edgenum.topright] = "scenery.linecornrightup"
+wallimgnames[edgenum.right + edgenum.bottomleft] = "scenery.linecornleftdown"
+wallimgnames[edgenum.right + edgenum.topleft] = "scenery.linecornleftup"
+wallimgnames[edgenum.top + edgenum.bottomleft] = "scenery.linecorndownleft"
+wallimgnames[edgenum.top + edgenum.bottomright] = "scenery.linecorndownright"
+wallimgnames[edgenum.bottom + edgenum.topleft] = "scenery.linecornupleft"
+wallimgnames[edgenum.bottom + edgenum.topright] = "scenery.linecornupright"
+wallimgnames[edgenum.left + edgenum.bottomright + edgenum.topright] = "scenery.linecornright"
+wallimgnames[edgenum.top + edgenum.bottomright + edgenum.bottomleft] = "scenery.linecorndown"
+wallimgnames[edgenum.right + edgenum.topleft + edgenum.bottomleft] = "scenery.linecornleft"
+wallimgnames[edgenum.bottom + edgenum.topleft + edgenum.topright] = "scenery.linecornup"
+wallimgnames[edgenum.left + edgenum.top + edgenum.bottomright] = "scenery.cornercornerbr"
+wallimgnames[edgenum.right + edgenum.top + edgenum.bottomleft] = "scenery.cornercornerbl"
+wallimgnames[edgenum.left + edgenum.bottom + edgenum.topright] = "scenery.cornercornertr"
+wallimgnames[edgenum.right + edgenum.bottom + edgenum.topleft] = "scenery.cornercornertll"
+wallimgnames[edgenum.topleft + edgenum.topright + edgenum.bottomleft] = "scenery.triplecornerdr"
+wallimgnames[edgenum.topleft + edgenum.topright + edgenum.bottomright] = "scenery.triplecornerlr"
+wallimgnames[edgenum.topleft + edgenum.bottomright + edgenum.bottomleft] = "scenery.triplecornerur"
+wallimgnames[edgenum.bottomright + edgenum.topright + edgenum.bottomleft] = "scenery.triplecornerul"
+wallimgnames[edgenum.topleft + edgenum.topright + edgenum.bottomleft + edgenum.bottomright] = "scenery.quadcorner"
+
+
+
+
+
 
 
 

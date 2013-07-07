@@ -48,7 +48,9 @@ GameCursor.prototype = {
 		if (this.modehandler) {
 			this.modehandler.set_mouse(x, y)
 		}
-		// TODO: self.graphic.draw_at(x-20,y-20,40,self.colour)
+		var img = {walk: "cursors.arrows", fire: "cursors.crosshair", talk: "cursors.cursorfriend",
+			inactive: "misc.cross"}[this.mode]
+		graphics.drawsprite(img, x-20, y-20, 40, [1,1,1])
 	},
 }
 

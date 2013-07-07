@@ -32,16 +32,17 @@ Mission.prototype = {
 	// TODO: addScenery, addEntity
 	placeEnemiesRandomlyAnywhere: function (enemies, outOfSight) {
 		if (outOfSight === undefined) outOfSight = true
-		var m = this.map, cells = Object.keys(m.cells), p = this.protag.pos
+		var m = this.map, cells = m.cellkeys.splice(0), p = this.protag.pos
 		if (outOfSight) {
 			cells = cells.filter(function (n) { return !m.hasLOS(p, m.cellCentre(gridxy(n)))})
 		}
 		this.placeEnemiesRandomly(enemies, cells)
 	},
 	placeEnemiesRandomly: function (enemies, unusedCells) {
+		UFX.random.shuffle(unusedCells)
 		for (var type in enemies) {
 			for (var j = 0 ; j < enemies[type] ; ++j) {
-				var celln = unusedCells.pop()  // TODO: shouldn't we be shuffling these?
+				var celln = unusedCells.pop()
 				var abspos = this.map.cellCentre(gridxy(celln))
 				var newEnemy = makeEnemy(type, this, abspos)
 				// squad seems like it's always empty, so ignore it (leave off method placeSquad)

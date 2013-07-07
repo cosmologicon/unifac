@@ -58,12 +58,11 @@ Actor.prototype = extend(Entity.prototype, {
 	},
 	move: function (tripScripts) {
 		if (tripScripts === undefined) tripScripts = true
-		var m = this.mission
+		var m = this.mission, e = this
 		function unobstructed(pos) {
-			return m.map.circleClear(pos, this.r) && m.entities.canMove(this, pos, this.r)
+			return m.map.circleClear(pos, e.r) && m.entities.canMove(e, pos, e.r)
 		}
 		if (this.dest) {
-			console.log(this.dest)
 			var totalspeed = this.getSpeed()
 			while (totalspeed) {
 				if (!this.dest) break
@@ -103,6 +102,11 @@ Actor.prototype = extend(Entity.prototype, {
 		}
 		var denied = false
 		// TODO: handle areaScripts
+		if (denied) {
+			this.dest = null
+		} else {
+			this.setPos(newpos)
+		}
 	},
 	
 	// TODO: scriptMove, setScriptPath, describe
