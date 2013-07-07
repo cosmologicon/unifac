@@ -33,7 +33,9 @@ EntityIndex.prototype = {
 	},
 	moveEntity: function (e, oldpos, newpos) {
 		delete this.ei[this.indexPos(oldpos)][e.id]
-		this.ei[this.indexPos(newpos)][e.id] = e
+		var n = this.indexPos(newpos)
+		if (!this.ei[n]) this.ei[n] = {}
+		this.ei[n][e.id] = e
 	},
 	entitiesAt: function (pos) {
 		return this.entitesWithin(pos, 0)
@@ -116,7 +118,7 @@ Entity.prototype = {
 	},
 	
 	describe: function () {
-		return self.name
+		return this.name
 	},
 	die: function () {
 		this.mission.dead[this.id] = this

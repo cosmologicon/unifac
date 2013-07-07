@@ -48,10 +48,10 @@ UFX.scenes.missionmode = {
 	draw_world: function (minx, miny, maxx, maxy) {
 		var cs = this.mission.map.csize
 		// TODO: they used int here, which rounds to 0. I think floor is better. verify.
-		var mincx = Math.floor(minx/cs - 1) / this.world_chunk_x
-		var mincy = Math.floor(miny/cs - 1) / this.world_chunk_y
-		var maxcx = Math.floor(maxx/cs) / this.world_chunk_x
-		var maxcy = Math.floor(maxy/cs) / this.world_chunk_y
+		var mincx = Math.floor(Math.floor(minx/cs - 1) / this.world_chunk_x)
+		var mincy = Math.floor(Math.floor(miny/cs - 1) / this.world_chunk_y)
+		var maxcx = Math.floor(Math.floor(maxx/cs) / this.world_chunk_x)
+		var maxcy = Math.floor(Math.floor(maxy/cs) / this.world_chunk_y)
 		for (var cx = mincx ; cx <= maxcx ; ++cx) {
 			for (var cy = mincy ; cy <= maxcy ; ++cy) {
 				this.draw_world_chunk(cx, cy)
@@ -61,24 +61,34 @@ UFX.scenes.missionmode = {
 	draw_world_chunk: function (cx, cy) {
 		// Draw floor
 		var cs = this.mission.map.csize
-		for (var dx = 0 ; dx < self.world_chunk_x ; ++dx) {
-			var x = dx + self.world_chunk_x * cx
-			for (var dy = 0 ; dy < self.world_chunk_y ; ++dy) {
-				var y = dy + self.world_chunk_y * cy
+		for (var dx = 0 ; dx < this.world_chunk_x ; ++dx) {
+			var x = dx + this.world_chunk_x * cx
+			for (var dy = 0 ; dy < this.world_chunk_y ; ++dy) {
+				var y = dy + this.world_chunk_y * cy
 				var n = gridn(x, y)
 				if (this.mission.map.cells[n]) {
-//					graphics.drawsprite(
+					graphics.drawsprite("scenery.floor1", [.3,.3,.5], x*cs, y*cs, cs, 0)
+				}
+				if (this.walls[n]) {
+					graphics.drawwall(this.walls[n], [0, 0.6, 0.6], x*cs, y*cs, cs)
 				}
 			}
 		}
-
-
-		// TODO: get this caching right once I figure out VBOs
-		//var cn = gridn(cx, cy)
-		//if (!(cn in this.world_chunks) {
-		//}
-		//this.wall_chunks[cn].wallps, this.wall_color)
-		
+	},
+	make_world_chunk: function(cx, cy) {
+		// The original used display lists but webGL doesn't support them. So build a big buffer
+		// with all the floor and wall data
+		var fdata = imagedata["scenery.floor1"]
+		var wallps = [], floorps = []
+		for (var dx = 0 ; dx < this.world_chunk_x ; ++dx) {
+			var x = dx + this.world_chunk_x * cx
+			for (var dy = 0 ; dy < this.world_chunk_y ; ++dy) {
+				var y = dy + this.world_chunk_y * cy
+				var n = gridn(x, y)
+				if (this.mission.map.cells[n]) {
+				}
+			}
+		}
 	},
 
 	draw_entity: function (e, pos) {
@@ -86,7 +96,14 @@ UFX.scenes.missionmode = {
 		// TODO: get colors into saved data
 		// TODO: handle turret bearings
 		var colour = [0.5, 0.5, 1]
-		graphics.drawsprite("robots.overcamden3", colour, pos[0], pos[1], e.r, e.bearing) // TODO...
+		var sname = {Camden: "robots.overcamden3", Spider: "enemies.spider", Scorpion: "enemies.scorpion1"}
+		graphics.drawsprite(sname[e.name], colour, pos[0], pos[1], e.r, e.bearing/57.3) // TODO...
+		if (settings.DEBUG) {
+			var r = e.r
+			graphics.drawsprite("cursors.perfectcircle", [1,1,1], pos[0]-r, pos[1]-r, r*2)
+			r += CURSOR_RADIUS
+			graphics.drawsprite("cursors.perfectcircle", [0.6, 0.6, 0.6], pos[0]-r, pos[1]-r, r*2)
+		}
 	},
 	draw_entities: function (minx, miny, maxx, maxy) {
 		var es = this.mission.entities.entitiesWithinRect([minx, miny], [maxx-minx, maxy-miny])
@@ -98,35 +115,17 @@ UFX.scenes.missionmode = {
 		// TODO: area mode
 	},
 
-
-
-	make_world_chunk: function(cx, cy) {
-		// The original used display lists but webGL doesn't support them. So build a big buffer
-		// with all the floor and wall data
-		var fdata = imagedata["scenery.floor1"]
-		var wallps = [], floorps = []
-		for (var dx = 0 ; dx < self.world_chunk_x ; ++dx) {
-			var x = dx + self.world_chunk_x * cx
-			for (var dy = 0 ; dy < self.world_chunk_y ; ++dy) {
-				var y = dy + self.world_chunk_y * cy
-				var n = gridn(x, y)
-				if (this.mission.map.cells[n]) {
-				}
-			}
-		}
-	},
-
 	// ported from MissionMode.ondraw
 	draw: function () {
 		graphics.clear()
-		var w = canvas.height, h = canvas.height, m = this.mission
+		var w = settings.scr_w, h = settings.scr_h, m = this.mission
 		if (!m.currentScript || !m.currentScript.blankScreen) {
 			graphics.cx = m.protag.pos[0]
 			graphics.cy = m.protag.pos[1]
 			graphics.cz = this.current_zoom * h / WORLD_SCREEN_HEIGHT
 			var minp = this.mouse_to_world(0, 0), minx = minp[0], miny = minp[1]
 			var maxp = this.mouse_to_world(w, h), maxx = maxp[0], maxy = maxp[1]
-//			this.draw_world(minx, miny, maxx, maxy)
+			this.draw_world(minx, miny, maxx, maxy)
 			this.draw_entities(minx, miny, maxx, maxy)
 		}
 		// TODO: a bunch more drawing functions
@@ -151,6 +150,8 @@ UFX.scenes.missionmode = {
 		// TODO currentscript
 		this.bullets = []
 		this.mission.tick()
+		
+		if (mstate.pos) this.set_mouse(mstate.pos[0], settings.scr_h - mstate.pos[1])
 	},
 }
 

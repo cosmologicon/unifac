@@ -22,8 +22,8 @@ function loadFixedMap(name) {
 	var map = new DungeonGrid(100)
 	var img = UFX.resource.images[name]
 	var data = extractImgData(img)
-	for (var y = 0, j = 0 ; y < img.height ; ++y, j += 4) {
-		for (var x = 0 ; x < img.width ; ++x) {
+	for (var y = img.height-1, j = 0 ; y >= 0 ; --y) {
+		for (var x = 0 ; x < img.width ; ++x, j += 4) {
 			if (data[j]) map.setCell([x, y], 1)
 		}
 	}
@@ -31,6 +31,7 @@ function loadFixedMap(name) {
 }
 
 function makeDungeon2(args) {
+	console.log("makeDungeon2")
 	var map = makeDungeon1(args)
 	var dirs = ["top", "bottom", "left", "right"]
 	var Dirs = ["Top", "Bottom", "Left", "Right"]
@@ -44,6 +45,8 @@ function makeDungeon2(args) {
 		var xoffs = my[0] - o[0] + dx[j], yoffs = my[1] - o[1] + dy[j]
 		othermap.pasteInto(map, [xoffs, yoffs])
 		map[dir+"_offs"] = [xoffs * map.csize, yoffs * map.csize]
+		console.log(dir, args[dir], Object.keys(othermap.cells).length, my, o, xoffs, yoffs)
+		console.log(dir, Object.keys(map.cells).length)
 	}
 	return map
 }
@@ -59,9 +62,8 @@ function makeDungeon1(args) {
 
 	var map = new DungeonGrid(100)
 	var r = new Room(startpos, [maxroomsize, maxroomsize])
+	console.log(r.pos, r.size)
 	r.addToDungeon(map)
-	
-	return map
 
 	while (map.rooms.length < maxrooms) {
 		var start_room = UFX.random.choice(map.rooms)
@@ -69,8 +71,8 @@ function makeDungeon1(args) {
 			UFX.random.rand(minroomsize, maxroomsize + 1),
 			UFX.random.rand(minroomsize, maxroomsize + 1)
 		]
-		var xoffs = -Math.floor(newroomsize / 2)
-		var yoffs = -Math.floor(newroomsize / 2)
+		var xoffs = -Math.floor(newroomsize[0] / 2)
+		var yoffs = -Math.floor(newroomsize[1] / 2)
 		var dir = UFX.random.rand(4), xv = [0, 0, -1, 1][dir], yv = [-1, 1, 0, 0][dir]
 		var buffer = Math.floor(newroomsize[dir < 2 ? 1 : 0] / 2)
 		var start_dig = start_room.pos.slice()
@@ -92,7 +94,7 @@ function makeDungeon1(args) {
 			}
 		}
 		for (var ddig = 0 ; okdist && ddig < okdist ; ++ddig) {
-			map.setCell(start_dig[0] + ddig * xv, start_dig[1] + ddig * yv, 1)
+			map.setCell([start_dig[0] + ddig * xv, start_dig[1] + ddig * yv], 1)
 		}
 		if (extratunnels && !okdist) {
 			// TODO: looks like there's a bug here (ddig2 never used), so leave it for now

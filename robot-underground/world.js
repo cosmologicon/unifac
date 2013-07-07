@@ -2,10 +2,16 @@
 
 var edgenum = { top: 1, bottom: 2, left: 4, right: 8, topleft: 16, topright: 32, bottomleft: 64, bottomright: 128 }
 
+// JavaScript doesn't let you use tuples as keys. I could convert them to strings, but the
+// deconversion would be tricky and probably expensive. This is a standard mapping between
+// (int, int) pairs and uints to be used for keys.
+// To keep the keys to 31-bits, the coordinates should remain in the range [-16k, 16k]
+
 function gridn(x, y) { return (x + 16384 << 15) + y + 16384 }
-function gridx(n) { return (n >> 15) - 16384 }
-function gridy(n) { return (n & 32767) - 16384 }
+function gridx(n) { return (+n >> 15) - 16384 }
+function gridy(n) { return (+n & 32767) - 16384 }
 function gridxy(n) { return [gridx(n), gridy(n)] }
+function griddn(dx, dy) { return dx * (1 << 15) + dy }
 
 
 function DungeonGrid(csize) {
@@ -26,9 +32,9 @@ DungeonGrid.prototype = {
 		return [(pos[0] + 0.5) * this.csize, (pos[1] + 0.5) * this.csize]
 	},
 	pasteInto: function (othermap, offset) {
-		var dn = gridn(offset[0], offset[1])
+		var dn = griddn(offset[0], offset[1])
 		for (var n in this.cells) {
-			othermap[n + dn] = this.cells[n]
+			othermap.cells[(+n) + dn] = this.cells[n]
 		}
 	},
 	getClearSpace: function () {
@@ -53,7 +59,7 @@ DungeonGrid.prototype = {
 		function fastCheck() {
 			for (var cx = mincx ; cx <= maxcx ; ++cx) {
 				for (var cy = mincy ; cy <= maxcy ; ++cy) {
-					if (!this.cells[gridn(cx, cy)]) {
+					if (!cells[gridn(cx, cy)]) {
 						return false
 					}
 				}
@@ -62,7 +68,7 @@ DungeonGrid.prototype = {
 		}
 		if (fastCheck()) return true
 		
-		var cellRadius = Math.floor(radius / this.csize) + 1
+		var cellradius = Math.floor(radius / this.csize) + 1
 		var ecx = Math.floor(pos[0]/this.csize), ecy = Math.floor(pos[1]/this.csize)
 		for (var cx = -cellradius ; cx <= cellradius ; ++cx) {
 			for (var cy = -cellradius ; cy <= cellradius ; ++cy) {
@@ -70,7 +76,7 @@ DungeonGrid.prototype = {
 				var rx = cx < 0 ? this.csize*(ecx+cx+1) : cx > 0 ? this.csize*(ecx+cx) : pos[0]
 				var ry = cy < 0 ? this.csize*(ecy+cy+1) : cy > 0 ? this.csize*(ecy+cy) : pos[1]
 				var dx = pos[0] - rx, dy = pos[1] - ry
-				if (dx * dx + dy * dy < radius * raidus) return false
+				if (dx * dx + dy * dy < radius * radius) return false
 			}
 		}
 		return true
@@ -152,16 +158,16 @@ DungeonGrid.prototype = {
 	},
 
 	getTopCell: function () {
-		return gridxy(Object.keys(this.cells).sort(function (n1, n2) { return gridx(n2) - gridx(n1) })[0])
-	},
-	getBottomCell: function () {
-		return gridxy(Object.keys(this.cells).sort(function (n1, n2) { return gridx(n1) - gridx(n2) })[0])
-	},
-	getRightCell: function () {
 		return gridxy(Object.keys(this.cells).sort(function (n1, n2) { return gridy(n2) - gridy(n1) })[0])
 	},
-	getLeftCell: function () {
+	getBottomCell: function () {
 		return gridxy(Object.keys(this.cells).sort(function (n1, n2) { return gridy(n1) - gridy(n2) })[0])
+	},
+	getRightCell: function () {
+		return gridxy(Object.keys(this.cells).sort(function (n1, n2) { return gridx(n2) - gridx(n1) })[0])
+	},
+	getLeftCell: function () {
+		return gridxy(Object.keys(this.cells).sort(function (n1, n2) { return gridx(n1) - gridx(n2) })[0])
 	},
 
 	topPos: function (pos) {
