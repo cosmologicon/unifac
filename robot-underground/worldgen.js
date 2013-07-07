@@ -31,7 +31,6 @@ function loadFixedMap(name) {
 }
 
 function makeDungeon2(args) {
-	console.log("makeDungeon2")
 	var map = makeDungeon1(args)
 	var dirs = ["top", "bottom", "left", "right"]
 	var Dirs = ["Top", "Bottom", "Left", "Right"]
@@ -45,8 +44,6 @@ function makeDungeon2(args) {
 		var xoffs = my[0] - o[0] + dx[j], yoffs = my[1] - o[1] + dy[j]
 		othermap.pasteInto(map, [xoffs, yoffs])
 		map[dir+"_offs"] = [xoffs * map.csize, yoffs * map.csize]
-		console.log(dir, args[dir], Object.keys(othermap.cells).length, my, o, xoffs, yoffs)
-		console.log(dir, Object.keys(map.cells).length)
 	}
 	return map
 }
@@ -62,7 +59,6 @@ function makeDungeon1(args) {
 
 	var map = new DungeonGrid(100)
 	var r = new Room(startpos, [maxroomsize, maxroomsize])
-	console.log(r.pos, r.size)
 	r.addToDungeon(map)
 
 	while (map.rooms.length < maxrooms) {

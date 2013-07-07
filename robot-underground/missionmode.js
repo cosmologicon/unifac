@@ -109,11 +109,26 @@ UFX.scenes.missionmode = {
 		var es = this.mission.entities.entitiesWithinRect([minx, miny], [maxx-minx, maxy-miny])
 		for (var id in es) {
 			if (es[id].visible) this.draw_entity(es[id])
-			// TODO: debug circles
 		}
 		// TODO: debug circles
 		// TODO: area mode
 	},
+
+	// TODO: draw_weapon_fx, draw_floaties
+	
+	draw_cursor_shadows: function () {
+		var p = this.mission.protag
+		if (p.scriptNodes.length) return
+		if (p.dest) {
+			graphics.drawcursor("walk", p.dest[0], p.dest[1], [0.5, 0.5, 0])
+		}
+		if (p.targ) {
+			graphics.drawcursor("fire", p.targ.pos[0], p.targ.pos[1], [0.5, 0, 0])
+		}
+		// TODO: edit_npc
+	},
+	
+	// TODO draw_inventory, draw_script
 
 	// ported from MissionMode.ondraw
 	draw: function () {
@@ -127,6 +142,9 @@ UFX.scenes.missionmode = {
 			var maxp = this.mouse_to_world(w, h), maxx = maxp[0], maxy = maxp[1]
 			this.draw_world(minx, miny, maxx, maxy)
 			this.draw_entities(minx, miny, maxx, maxy)
+			
+			this.draw_cursor_shadows()
+			this.cursor.draw()  // I'm guessing this is called automatically in pyglet
 		}
 		// TODO: a bunch more drawing functions
 	},
@@ -135,13 +153,44 @@ UFX.scenes.missionmode = {
 		var m = this.mission
 		return !(this.mouse_protected > 0 || m.isCutscene || m.currentScript && m.currentScript.state == "frozen")
 	},
+	
+	// Replaces on_mouse_press, on_mouse_drag, on_mouse_scroll, and on_key_press
+	handle_input: function (mstate, kstate) {
+		if (mstate.pos) this.set_mouse(mstate.pos[0], settings.scr_h - mstate.pos[1])
+		this.cursor.update(this.mouse_x, this.mouse_y)
 
+		if (mstate.left.down) this.on_mouse_press(mstate.pos, kstate.pressed.ctrl)
+		if (mstate.right.down) this.on_mouse_press(mstate.pos, true)
+
+		if (mstate.left.drag) this.on_mouse_drag(mstate.pos, mstate.left.drag, kstate.pressed.ctrl)
+		if (mstate.right.drag) this.on_mouse_drag(mstate.pos, mstate.right.drag, true)
+	},
+	on_mouse_press: function (pos, targetonly) {
+		this.drag_to_move = false
+		var m = this.mission
+		// TODO: script and HUD stuff
+		var e = this.cursor.entity_under_cursor
+		if (e && (e instanceof Actor) && e !== m.protag) {
+			m.protag.targ = e
+			if (!e.hostile) m.protag.set_dest(e.pos)
+		} else if (!targetonly) {
+			m.protag.set_dest(this.get_mouse_world_coordinates())
+			this.drag_to_move = true
+		}
+	},
+	on_mouse_drag: function (pos, drag, targetonly) {
+		// TODO: inventory mode etc
+		var m = this.mission
+		if (this.drag_to_move && !targetonly) {
+			m.protag.set_dest(this.get_mouse_world_coordinates())
+		}
+	},
 	
 	thinkargs: function (dt) {
 		return [dt, UFX.mouse.state(), UFX.key.state()]
 	},
 	think: function (dt, mstate, kstate) {
-		this.cursor.update(this.mouse_x, this.mouse_y)
+		this.handle_input(mstate, kstate)
 		this.current_zoom += 0.1 * (this.desired_zoom - this.current_zoom)
 		this.current_hud_zoom += 0.05 * (this.desired_hud_zoom - this.current_hud_zoom)
 		if (this.mouse_protected > 0) --this.mouse_protected
@@ -151,7 +200,6 @@ UFX.scenes.missionmode = {
 		this.bullets = []
 		this.mission.tick()
 		
-		if (mstate.pos) this.set_mouse(mstate.pos[0], settings.scr_h - mstate.pos[1])
 	},
 }
 
