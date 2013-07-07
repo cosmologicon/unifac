@@ -16,13 +16,15 @@ GameCursor.prototype = {
 		var mpos = this.modehandler.get_mouse_world_coordinates()
 		var es = this.modehandler.mission.entities.entitiesWithin(mpos, CURSOR_RADIUS)
 		var anactor = null, sometreasure = null, anentity = null, theprotag = null
-		for (var j = 0 ; j < es.length ; ++j) {
-			var e = es[j]
+		var broken = false
+		for (var id in es) {
+			var e = es[id]
 			if (e instanceof Actor) {
 				anactor = e
 				if (e.hostile) {
 					this.entity_under_cursor = e
 					this.mode = "fire"
+					broken = true
 					break
 				}
 				if (e.talkScript) {
@@ -40,17 +42,13 @@ GameCursor.prototype = {
 			}
 			theprotag = e
 		}
-		if (j == es.length) {
+		if (!broken) {
 			this.entity_under_cursor = anactor || sometreasure || anentity || theprotag
 		}
 	},
-	draw: function (x, y) {
-		if (this.modehandler) {
-			this.modehandler.set_mouse(x, y)
-		}
-		var img = {walk: "cursors.arrows", fire: "cursors.crosshair", talk: "cursors.cursorfriend",
-			inactive: "misc.cross"}[this.mode]
-		graphics.drawsprite(img, x-20, y-20, 40, [1,1,1])
+	draw: function () {
+		var p = this.modehandler.get_mouse_world_coordinates()
+		graphics.drawcursor(this.mode, p[0], p[1])
 	},
 }
 

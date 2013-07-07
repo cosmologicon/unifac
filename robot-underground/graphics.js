@@ -82,6 +82,12 @@ var graphics = {
 	drawwall: function (code, color, x, y, h) {
 		this.drawsprite(wallimgnames[code], color, x, y, h, 0)
 	},
+	drawcursor: function (mode, x, y, color) {
+		var img = {walk: "cursors.arrows", fire: "cursors.crosshair", talk: "cursors.cursorfriend",
+			inactive: "misc.cross"}[mode]
+		color = color || {walk: [1,1,0], fire: [1,0,0], talk: [0,1,0], inactive: [1,1,1]}[mode]
+		graphics.drawsprite(img, color, x-20, y-20, 40, 0)
+	},
 }
 
 

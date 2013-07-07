@@ -4,6 +4,8 @@ UFX.resource.onload = function () {
 	initPlotState(plotstate)
 	robotstate.init(null)
 	graphics.clear()
+	UFX.mouse.capture.right = true
+	UFX.mouse.capture.wheel = true
 	UFX.mouse.init(canvas)
 	UFX.key.init(canvas)
 	UFX.scene.init()
