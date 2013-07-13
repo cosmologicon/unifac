@@ -152,6 +152,9 @@ if __name__ == '__main__':
         for filename in filenames:
             imgname = filename.split(".")[0]
             s = SVG("%s/%s" % (dirpath, filename))
+            if group in ["enemies", "robots"]:
+            	s.paths = [[x - 0.5*s.height for x in path] for path in s.paths]
+        	s.paths = [map(int, map(round, path)) for path in s.paths]
             svgdata["%s.%s" % (group, imgname)] = {
                 "paths": s.paths,
                 "width": s.width,

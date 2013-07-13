@@ -33,7 +33,11 @@ graphics.init()
 
 function clip(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
 
+function splitcap(s) { return s.replace(/([A-Z])/g, ' $1').substr(1) }
 
+function playsound(name) {
+	//TODO: port sound module, need a few UFX.multisounds
+}
 
 
 

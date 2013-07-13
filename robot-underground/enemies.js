@@ -44,7 +44,7 @@ Enemy.prototype = extend(Actor.prototype, {
 })
 
 
-// allweapons, [attack, defense, hp, speed], guardradius, size, xpvalue, dropLevel, explosions,
+// allweapons, [attack, defence, hp, speed], guardradius, size, xpvalue, dropLevel, explosions,
 //  ai, aiargs, resistances [laser physical fire electric explosion], 
 var enemyinfo = {
 	"Spider": [["WimpyClaw"], [1, 2, 5, 4], 4, 15, 8, 1, 1, BlindAI, [], [50, 0, -50, 0, 0]],
@@ -63,7 +63,7 @@ function makeEnemy(type, mission, pos) {
 		var info = enemyinfo[type], weapons = info[0], stats = info[1], guardradius = info[2]
 		var size = info[3], xpvalue = info[4], dropLevel = info[5], explosions = info[6]
 		var ai = info[7], aiargs = info[8], resists = info[9]
-		var name = type.replace(/([A-Z])/g, ' $1').substr(1) // split on capital letters
+		var name = splitcap(type)
 		var bearing = null
 		enemy.init(mission, pos, weapons, stats, guardradius, size, xpvalue, name, bearing,
 			explosions, ai, aiargs, dropLevel)

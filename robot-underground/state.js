@@ -2,8 +2,8 @@
 
 
 
-function CombatStats(attack, defense, hp, speed) {
-	return { attack: attack, defense: defense, maxhp: hp, speed: speed }
+function CombatStats(attack, defence, hp, speed) {
+	return { attack: attack, defence: defence, maxhp: hp, speed: speed }
 }
 
 // renamed from main.control.plotstate and main.control.robotstate
@@ -20,9 +20,8 @@ var robotstate = {
 			ROBOT_BASE_SPEED
 		)
 		this.weaponslots = 2
-//		this.weaponry = [new LightLaser(), new LightRepairKit()]
+		this.weaponry = [makeWeapon("LightLaser"), makeWeapon("LightRepairKit")]
 		this.armoury = new Armour()
-		this.weaponry = []
 		this.maxenergy = ROBOT_INITIAL_MAX_ENERGY
 		if (protag_level && protag_level > 4) {
 			// TODO: cheat code

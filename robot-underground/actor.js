@@ -23,13 +23,24 @@ Actor.prototype = extend(Entity.prototype, {
 		
 		this.pendingDamage = 0
 		this.pendingDamageCtr = 0
+		
+		this.setDeathScript([["die"]])
 	},
 
-	// TODO: setTalkScript, addAreaScript, setDeathScript
+	setTalkScript: function (spec) {
+		this.talkScript = new Script(spec, this.mission, this)
+	},
+	addAreaScript: function (spec, pos, size, multifire) {
+		this.areaScripts.push([pos, size, multifire, new Script(spec, this.mission, this)])
+	},
+	setDeathScript: function (spec) {
+		this.deathScript = new Script(spec, this.mission, this)
+	},
+
 	takeDamage: function (amount, type) {
 		if (this.currenthp <= 0) return
 		if (!this.hostile && this.mission.protag !== this) return
-		amount /= this.getDefense() * (1 + this.getResistance(type)/100)
+		amount /= this.getDefence() * (1 + this.getResistance(type)/100)
 		this.currenthp -= amount
 		if (this.currenthp <= 0) {
 			if (this.deathScript) {
@@ -44,7 +55,7 @@ Actor.prototype = extend(Entity.prototype, {
 			}
 		}
 	},
-	kill: function (silent) {
+	kill: function (silent) {  // Does not invoke deathScript
 		if (!silent) {
 			this.mission.dispatch_event("on_damage", this.pos, this.currenthp + this.pendingDamage)
 		}
@@ -222,8 +233,22 @@ Protag.prototype = extend(Actor.prototype, {
 		for (var j = 0 ; j < this.weaponry.length ; ++j) {
 			var w = this.weaponry[j]
 			if (!w) continue
+			if (w.mode == "Inactive") continue
+			if (w.mode == "Autofire" && w.cooldown <= 0) {
+				var temptarg = this.mission.closestHostileTo(this.pos, w.getRange(), true, true, true)
+			} else {
+				var temptarg = this.targ && this.targ.hostile ? this.targ : null
+			}
+			if (temptarg && w.canFire(this, temptarg) && this.currentEnergy > w.getEnergyUse()) {
+				console.log("firing", temptarg.currenthp)
+				w.fire(this, temptarg)
+				console.log(temptarg.currenthp)
+				this.currentEnergy -= w.getEnergyUse()
+			}
 		}
-		// TODO: finish this method
+		if (this.targ && this.mission.dead[this.targ.id]) {
+			this.targ = null
+		}
 	},
 	
 	heal: function (amount) {
@@ -232,7 +257,7 @@ Protag.prototype = extend(Actor.prototype, {
 	},
 	
 	getAttack: function () { return this.robotstate.getAttack() },
-	getDefense: function () { return this.robotstate.getDefense() },
+	getDefence: function () { return this.robotstate.getDefence() },
 	getMaxHP: function () { return this.robotstate.getMaxHP() },
 	getSpeed: function () { return this.robotstate.getSpeed() },
 	getResistance: function (damageType) {

@@ -13,7 +13,7 @@ var mod = {
 	speed: "speed",
 	maxenergy: "energy capacity",
 	energyregen: "energy regeneration",
-	pckeys: "attack defense hp speed maxenergy energyregen".split(" "),
+	pckeys: "attack defence hp speed maxenergy energyregen".split(" "),
 
 	physical: Damage.physical,
 	laser: Damage.laser,

@@ -6,12 +6,20 @@ UFX.scenes.missionmode = {
 		this.mission = new Mission(this)
 		this.walls = this.mission.map.getWalls()
 		this.world_chunks = {}
-		// TODO: should this be updated if the window is resized? Does it even need to depend on scr_w/h?
-		this.world_chunk_x = Math.ceil(settings.scr_w / this.mission.map.csize)
-		this.world_chunk_y = Math.ceil(settings.scr_h / this.mission.map.csize)
+		// Note: this was originally based on the screen size, but I want to have variable screen sizes
+		this.world_chunk_x = 8
+		this.world_chunk_y = 8
 		this.new_xp = 0
 		this.new_xp_delay = 0
 		this.last_get_float = 0
+
+		this.lasers = {}
+		this.lightnings = {}
+		this.live_floaties = {}
+		this.dead_floaties = {}
+		this.bullets = []
+		this.claws = {}
+		this.trails = []
 		
 		this.frameno = 0
 		this.current_zoom = 1.0
@@ -184,6 +192,116 @@ UFX.scenes.missionmode = {
 		if (this.drag_to_move && !targetonly) {
 			m.protag.set_dest(this.get_mouse_world_coordinates())
 		}
+	},
+	
+	on_weapon_fire: function (weapon, shooter, target) {
+		if (shooter === this.mission.protag) {
+			for (var idx = 0 ; idx < robotstate.weaponry.length ; ++idx) {
+				var wpn = robotstate.weaponry[idx]
+				if (wpn === weapon) {
+//					this.weapon_icons[idx].border = WEAPON_ICON_BORDER_FIRING
+//					this.weapon_icons[idx].flashtime = WEAPON_ICON_BORDER_FLASH_FRAMES
+				}
+			}
+		}
+		var id = shooter.id + "," + target.id
+		switch (weapon.effectname) {
+			case Damage.electric:
+				this.lightnings[id] = weapon.basecooldown
+				playsound("lightning")
+				break
+			case Damage.physical:
+				if (this.frameno - this.last_bullet_sound >= 20) playsound("bullet")
+				this.bullets.push([shooter, target])
+				break
+			case Damage.fire:
+				playsound("rifle")
+				this.bullets.push([shooter, target])
+				break
+			case Damage.shotgun:
+				playsound("shotgun")
+				for (var j = 0 ; j < SHOTGUN_PELLETS ; ++j) this.bullets.push([shooter, target])
+				break
+			case Damage.laser:
+				playsound("shot")
+				this.lasers[id] = 5
+				break
+			case Damage.claw:
+				var hand = UFX.random() < 0.5 ? 1 : 0, id = target.id + "|" + hand
+				if (id in this.claws) id = target.id + "|" + (1 - hand)
+				this.claws[id] = 5
+				break
+		}
+	},
+	on_explode: function (exploder) {
+		if (exploder.blast) {
+			playsound("explosion")
+		}
+	},
+	on_mine_lay: function (owner, mine) {
+		playsound("mine_lay")
+	},
+	on_projectile_fire: function (owner, projectile) {
+		// TODO: this horrible hack, probably should key off the projectile name
+	},
+	on_projectile_move: function (pos, bearing, trailtype) {
+		this.trails.push([pos, bearing, trailtype, 10])
+	},
+	on_gain_xp: function (amount) {
+		this.new_xp += amount
+		if (this.new_xp_delay <= 0) {
+			this.new_xp_delay = XP_AGGREGATE_TIME
+		}
+	},
+	on_damage: function (pos, amount) {
+		this.add_floaty(amount.toFixed(1), pos, FLOATY_DAMAGE_COLOUR)
+	},
+	on_heal: function (pos, amount) {
+		this.add_floaty(amount.toFixed(0), pos, FLOATY_HEALING_COLOR, FLOAT_HEAL_DELAY)
+	},
+	on_pick_up: function () {
+		playsound("pickup")
+		if (this.frameno - this.last_get_float > PICKUP_AGGREGATE_TIME) {
+			this.add_floaty("GET!", this.mission.protag.pos, FLOATY_PICKUP_COLOUR)
+		}
+	},
+	on_time_out: function () {
+	},
+	on_level_up: function () {
+		playsound("level_up")
+		this.add_floaty("LEVEL UP!", this.mission.protag.pos, FLOATY_LEVEL_UP_COLOUR, FLOAT_LEVEL_DELAY)
+	},
+	on_multi_kill: function (pos, n) {
+		this.add_floaty(n.toFixed(0) + " HIT!", pos, FLOATY_COMBO_COLOUR, FLOAT_COMBO_DELAY)
+	},
+	on_portrait_change: function () {
+	},
+	on_dialogue_change: function () {
+		this.dialogue_changed = true
+		var s = this.mission.currentScript
+		if (s && s.state === "waitChoice") {
+			this.mouse_protected = DIALOGUE_CLICK_PROTECTION_FRAMES
+			this.choice_mode = true
+			this.current_dialogue_menu = s.speakerIsLeft ? this.dialogue_menu_l : this.dialogue_menu_r
+			// TODO: dialogue options
+		} else {
+			this.choice_mode = false
+			if (s && s.state === "waitKey") {
+				this.mouse_protected = DIALOGUE_CLICK_PROTECTION_FRAMES
+			}
+		}
+	},
+	// TODO: on_inventory, on_equipment_change
+	on_set_zoom: function (zoom) {
+		this.desired_zoom = zoom
+	},
+	on_stop_mode: function () {
+		this.cursor.modehandler = null
+	},
+	// TODO: weapon_clicked, eject_clicked, update_weapons, close_inventory
+	add_floaty: function (text, pos, colour, delay) {
+		delay = delay || 0
+		// TODO: labels, how do they work?
 	},
 	
 	thinkargs: function (dt) {

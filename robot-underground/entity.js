@@ -121,6 +121,7 @@ Entity.prototype = {
 		return this.name
 	},
 	die: function () {
+		console.log("killing", this.id)
 		this.mission.dead[this.id] = this
 	},
 }
