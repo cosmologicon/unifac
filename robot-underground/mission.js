@@ -50,9 +50,52 @@ Mission.prototype = {
 			}
 		}
 	},
-	// TODO: runScript, advanceScript
+	
+	runScript: function (myScript, delay) {
+		if (delay || this.currentScript) {
+			this.scriptQueue.push([delay, myScript])
+		} else {
+			this.currentScript = myScript
+			if (myScript.state !== "endConversation") {
+				myScript.restart()
+			}
+			myScript.state = "running"
+			this.advanceScript()
+		}
+	},
+	advanceScript: function () {
+		if (!this.currentScript) return
+		console.log(this.currentScript)
+		if (this.currentScript.state === "frozen") {
+			this.currentScript.freezeTicks--
+			if (this.currentScript.freezeTicks <= 0) {
+				this.currentScript.state = "running"
+			}
+		}
+		if (this.currentScript.state === "running") {
+			this.currentScript.advance()
+		}
+		switch (this.currentScript.state) {
+			case "waitKey": case "waitChoice": break
+			case "terminated": case "endConversation": this.currentScript = null ; break
+			case "endMission": start_mode("game.mission", true) ; break
+			case "endGame": start_mode("menu.main", true) ; break
+		}
+	},
+
 	tick: function () {
-		// TODO script stuff
+		if (this.scriptQueue.length && !this.currentScript) {
+			this.scriptQueue.sort(function (s1, s2) { return s2[0] - s1[0] })
+			if (this.scriptQueue[0][0] <= 0) {
+				this.currentScript = this.scriptQueue.shift()[1]
+				this.currentScript.state = "running"
+			}
+			for (var j = 0 ; j < this.scriptQueue.length ; ++j) {
+				this.scriptQueue[j][0]--
+			}
+		}
+		this.advanceScript()
+
 		if (!this.currentScript) {
 			var es = this.entities.entitiesWithin(this.protag.pos, ENTITY_TICK_DISTANCE)
 			for (var id in es) { es[id].tick() }
@@ -130,14 +173,38 @@ Mission.prototype = {
 	registerScript: function (script) {
 		this.scripts.push(script)
 	},
-	
+	// TODO: is this actually the right way to do this?
 	actorTalkScript: function (pos, name, stats, bearing, radius) {
 		var e = new Actor(pos, stats, radius, bearing, false, name)
 		this.entities.add(e)
 		return e.setTalkScript
 	},
-	
-	// TODO: enemyDeathScript, setStartScript, setEjectScript, setClearScript	
+	enemyDeathScript: function (etype, pos, bearing) {
+		var e = makeEnemy(etype, this, pos)
+		if (bearing !== undefined) e.bearing = bearing
+		this.entities.add(e)
+		return e.setDeathScript
+	},
+	setStartScript: function (script) {
+		this.startScript = new Script(script, this)
+	},
+	setEjectScript: function (script) {
+		this.ejectScript = new Script(script, this)
+	},
+	setClearScript: function (script) {
+		this.clearScript = new Script(script, this)
+	},
+
+	// I guess this is what this thing does in pyglet
+	dispatch_event: function (type) {
+//		try {
+			var args = Array.prototype.splice.call(arguments, 1)
+			this.handler[type].apply(this.handler, args)
+//		} catch (e) {
+//			throw "Error disptaching " + type + " " + args
+//		}
+	},
+
 }
 
 
