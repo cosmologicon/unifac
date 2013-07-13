@@ -197,12 +197,9 @@ Mission.prototype = {
 
 	// I guess this is what this thing does in pyglet
 	dispatch_event: function (type) {
-//		try {
-			var args = Array.prototype.splice.call(arguments, 1)
-			this.handler[type].apply(this.handler, args)
-//		} catch (e) {
-//			throw "Error disptaching " + type + " " + args
-//		}
+		if (!this.handler[type]) throw "Unable to handle " + type
+		var args = Array.prototype.splice.call(arguments, 1)
+		this.handler[type].apply(this.handler, args)
 	},
 
 }

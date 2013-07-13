@@ -23,22 +23,14 @@ var graphics = {
 		this.xform = gl.getUniformLocation(program, "xform")
 		
 		this.matrix0 = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1])
-		this.xforms.push(this.matrix0)
 
-		this.clearps = new Float32Array([-1, -1, 1, -1, 1, 1, -1, 1])
+		this.clearbuffer = gl.createBuffer()
+		this.bindbuffer(this.clearbuffer)
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, 1, 1, -1, 1]), gl.STATIC_DRAW)
 
-		var buffer = gl.createBuffer()
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
-		gl.enableVertexAttribArray(this.positionLocation)
-		gl.vertexAttribPointer(this.positionLocation, 2, gl.FLOAT, false, 0, 0)
-
-		// Converrt JSONed imagedata into Float32Arrays
-		for (var sname in imagedata) {
-			var paths = imagedata[sname].paths
-			for (var j = 0 ; j < paths.length ; ++j) {
-				paths[j] = new Float32Array(paths[j])
-			}
-		}
+		this.imgbuffer = gl.createBuffer()
+		this.bindbuffer(this.imgbuffer)
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(gdata.ps), gl.STATIC_DRAW)
 
 		this.W = 2/canvas.width
 		this.H = 2/canvas.height
@@ -46,16 +38,23 @@ var graphics = {
 		this.cy = 0
 		this.cz = 1
 	},
-	xforms: [],
-	clear: function(color) {
-		color = color || [0, 0, 0]
+	bindbuffer: function (buffer) {
+		this.currentbuffer = buffer
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
+		gl.enableVertexAttribArray(this.positionLocation)
+		gl.vertexAttribPointer(this.positionLocation, 2, gl.FLOAT, false, 0, 0)
+	},
+	setcolour: function (colour) {
+		gl.uniform4f(this.colorLocation, colour[0], colour[1], colour[2], 1)
+	},
+	clear: function (colour) {
+		this.bindbuffer(this.clearbuffer)
 		gl.uniformMatrix4fv(this.xform, false, this.matrix0)
-		gl.bufferData(gl.ARRAY_BUFFER, this.clearps, gl.STATIC_DRAW)
-		gl.uniform4f(this.colorLocation, color[0], color[1], color[2], 1)
+		this.setcolour(colour || [0, 0, 0])
 		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
 	},
-	setxform: function (x, y, s, r) {
-		var S = r ? Math.sin(r) : 0, C = r ? Math.cos(r) : 1
+	setxform: function (x, y, s, A) {
+		var S = A ? Math.sin(A) : 0, C = A ? Math.cos(A) : 1
 		s = s || 1
 		x = x || 0
 		y = y || 0
@@ -67,26 +66,40 @@ var graphics = {
 		])
 		gl.uniformMatrix4fv(this.xform, false, arr)
 	},
-	drawlinestrip: function (ps, color) {
-		gl.bufferData(gl.ARRAY_BUFFER, ps, gl.STATIC_DRAW)
-		gl.uniform4f(this.colorLocation, color[0], color[1], color[2], 1)
-		gl.drawArrays(gl.LINE_STRIP, 0, ps.length / 2)
+//	drawlinestrip: function (ps, color) {
+//		gl.bufferData(gl.ARRAY_BUFFER, ps, gl.STATIC_DRAW)
+//		gl.uniform4f(this.colorLocation, color[0], color[1], color[2], 1)
+//		gl.drawArrays(gl.LINE_STRIP, 0, ps.length / 2)
+//	},
+	trace: function (sprite, x, y, h, A) {
+		if (this.currentbuffer !== this.imgbuffer) this.bindbuffer(this.imgbuffer)
+		this.setxform(x, y, h / sprite.height, A)
+		gl.drawArrays(gl.LINES, sprite.p0, sprite.np)
 	},
-	drawsprite: function (name, color, x, y, h, r) {
-		var idata = imagedata[name]
-		this.setxform(x, y, h / idata.height, r)
-		idata.paths.forEach(function (ps, j) {
-			graphics.drawlinestrip(ps, color)
-		})
+	draw: function (img, x, y, h, A, opts) {
+		if (img.colour) this.setcolour(img.colour)
+
+		if (img.np) {  // regular SVG
+			this.trace(img, x, y, h, A)
+		} else if (img.frames) {  // AnimatedSVG
+			var frameno = Math.floor(opts.frameno / img.framelength) % img.frames.length
+			this.draw(img.frames[frameno], x, y, h, A, opts)
+		} else if (img.states) {  // StatefulSVG
+			this.draw(img.states[opts.state], x, y, h, A, opts)
+		} else if (img.base) {  // TurretSVG
+			this.draw(img.base, x, y, h, A, opts)
+			this.draw(img.turret, x, y, h, opts.turretbearing, opts)
+		}
 	},
-	drawwall: function (code, color, x, y, h) {
-		this.drawsprite(wallimgnames[code], color, x, y, h, 0)
+	drawfloor: function (cx, cy, cs) {
+		this.draw(gdata.floor, cx*cs, cy*cs, cs, 0)
 	},
-	drawcursor: function (mode, x, y, color) {
-		var img = {walk: "cursors.arrows", fire: "cursors.crosshair", talk: "cursors.cursorfriend",
-			inactive: "misc.cross"}[mode]
-		color = color || {walk: [1,1,0], fire: [1,0,0], talk: [0,1,0], inactive: [1,1,1]}[mode]
-		graphics.drawsprite(img, color, x-20, y-20, 40, 0)
+
+	drawwall: function (code, cx, cy, cs) {
+		this.draw(gdata.walls[code], cx*cs, cy*cs, cs, 0)
+	},
+	drawcursor: function (mode, x, y) {
+		this.draw(gdata.cursors[mode], x-20, y-20, 40, 0)
 	},
 }
 
