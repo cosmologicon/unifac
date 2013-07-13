@@ -75,10 +75,12 @@ UFX.scenes.missionmode = {
 				var y = dy + this.world_chunk_y * cy
 				var n = gridn(x, y)
 				if (this.mission.map.cells[n]) {
-					graphics.drawsprite("scenery.floor1", [.3,.3,.5], x*cs, y*cs, cs, 0)
+					graphics.setcolour([.3,.3,.5])
+					graphics.drawfloor(x, y, cs)
 				}
 				if (this.walls[n]) {
-					graphics.drawwall(this.walls[n], [0, 0.6, 0.6], x*cs, y*cs, cs)
+					graphics.setcolour([0, 0.6, 0.6])
+					graphics.drawwall(this.walls[n], x, y, cs)
 				}
 			}
 		}
@@ -101,16 +103,15 @@ UFX.scenes.missionmode = {
 
 	draw_entity: function (e, pos) {
 		pos = pos || e.pos
-		// TODO: get colors into saved data
-		// TODO: handle turret bearings
-		var colour = [0.5, 0.5, 1]
-		var sname = {Camden: "robots.overcamden3", Spider: "enemies.spider", Scorpion: "enemies.scorpion1"}
-		graphics.drawsprite(sname[e.name], colour, pos[0], pos[1], e.r, e.bearing/57.3) // TODO...
+		var opts = { frameno: this.frameno, state: e.anim_state, turretbearing: e.turretbearing }
+		graphics.draw(gdata.sprites[e.name], pos[0], pos[1], e.r, e.bearing/57.3, opts)
 		if (settings.DEBUG) {
 			var r = e.r
-			graphics.drawsprite("cursors.perfectcircle", [1,1,1], pos[0]-r, pos[1]-r, r*2)
+			graphics.setcolour([1,1,1])
+			graphics.draw(gdata.debug_iface_circle, pos[0]-r, pos[1]-r, r*2)
 			r += CURSOR_RADIUS
-			graphics.drawsprite("cursors.perfectcircle", [0.6, 0.6, 0.6], pos[0]-r, pos[1]-r, r*2)
+			graphics.setcolour([0.6,0.6,0.6])
+			graphics.draw(gdata.debug_iface_circle, pos[0]-r, pos[1]-r, r*2)
 		}
 	},
 	draw_entities: function (minx, miny, maxx, maxy) {
