@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<script src="../../UFX/src/random.js"></script>
+<script src="../../UFX/src/ticker.js"></script>
+<script src="../../UFX/src/noise.js"></script>
+<script src="../../UFX/src/texture.js"></script>
+<script id="2d-vertex-shader" type="x-shader/x-vertex">
+attribute vec3 aVertexPosition;
+attribute vec2 aTextureCoord;
+
+uniform mat4 xform;
+
+varying mediump vec2 vTextureCoord;
+
+void main(void) {
+	gl_Position = xform * vec4(aVertexPosition, 1.0);
+	vTextureCoord = aTextureCoord;
+}
+</script>
+<script id="2d-fragment-shader" type="x-shader/x-fragment">
+varying highp vec2 vTextureCoord;
+
+uniform sampler2D uSampler;
+
+void main(void) {
+	gl_FragColor = texture2D(uSampler, vTextureCoord);
+}
+</script>
+<canvas id="canvas" style="border: thin gray solid"></canvas>
+<script>
+// Figure out how to render text to a gl context
+// http://delphic.me.uk/webgltext.html
+// https://developer.mozilla.org/en-US/docs/Web/WebGL/Using_textures_in_WebGL
+// http://stackoverflow.com/questions/9457152/glsl-2-0-color-and-texture?rq=1
+
+
+var canvas = document.getElementById("canvas");
+canvas.width = 854 ; canvas.height = 480
+var gl = canvas.getContext("experimental-webgl");
+
+function createShaderFromScript(gl, scriptId, shaderType) {
+	var shader = gl.createShader(shaderType)
+	var shaderScript = document.getElementById(scriptId)
+	gl.shaderSource(shader, shaderScript.text)
+	gl.compileShader(shader)
+	return shader
+}
+var vertexShader = createShaderFromScript(gl, "2d-vertex-shader", gl.VERTEX_SHADER);
+var fragmentShader = createShaderFromScript(gl, "2d-fragment-shader", gl.FRAGMENT_SHADER);
+var program = gl.createProgram()
+gl.attachShader(program, vertexShader)
+gl.attachShader(program, fragmentShader)
+gl.linkProgram(program)
+gl.useProgram(program)
+
+gl.clearColor(0, 0.1, 0, 1)
+
+//var colorLocation = gl.getUniformLocation(program, "u_color")
+var aVertexPosition = gl.getAttribLocation(program, "aVertexPosition")
+var aTextureCoord = gl.getAttribLocation(program, "aTextureCoord")
+var xform = gl.getUniformLocation(program, "xform")
+var uSampler = gl.getUniformLocation(program, "uSampler")
+
+gl.activeTexture(gl.TEXTURE0)
+gl.uniform1i(uSampler, 0)
+gl.enable(gl.BLEND)
+gl.blendFunc(gl.SRC_ALPHA, gl.ONE)
+
+function render(text, color, fontsize) {
+	var can = document.createElement("canvas")
+	var con = can.getContext("2d")
+	con.font = fontsize + "px monospace"
+	var w0 = con.measureText(text).width, h0 = fontsize, w = 4, h = 4
+	while (w < w0) w <<= 1
+	while (h < h0) h <<= 1
+	can.width = w ; can.height = h
+	con.font = fontsize + "px monospace"
+	con.fillStyle = "rgba(255,255,0,0.3)"
+	con.fillRect(0, 0, w0, h0)
+	con.fillStyle = color
+	con.textBaseline = "top"
+	con.fillText(text, 0, 0)
+	return can
+}
+
+
+//var tcan = UFX.texture.stone()
+var tcan = render("HTML5 rocks!", "blue", 20)
+var texture = gl.createTexture()
+//gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+gl.bindTexture(gl.TEXTURE_2D, texture)
+gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, tcan)
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+gl.generateMipmap(gl.TEXTURE_2D);
+
+//gl.bindTexture(gl.TEXTURE_2D, null);
+
+
+function setxform(x, y, r, s) {
+	var W = 2/canvas.width, H = 2/canvas.height
+	var cx = 0, cy = 0, cz = 1
+	var S = Math.sin(r), C = Math.cos(r)
+	console.log([cz*W*C*s, -cz*H*S*s, 0, 0, cz*W*S*s, cz*H*C*s, 0, 0, 0, 0, 1, 0, (x-cx)*cz*W, (y-cy)*cz*H, 0, 1])
+	gl.uniformMatrix4fv(xform, false, [cz*W*C*s, -cz*H*S*s, 0, 0, cz*W*S*s, cz*H*C*s, 0, 0, 0, 0, 1, 0, (x-cx)*cz*W, (y-cy)*cz*H, 0, 1]);
+}
+function loaddata(ps) {
+	gl.bufferData(gl.ARRAY_BUFFER, ps, gl.STATIC_DRAW)
+}
+function setcolor(color) {
+	gl.uniform4f(colorLocation, color[0], color[1], color[2], color[3])
+}
+function drawlines(off, len) {
+	gl.drawArrays(gl.LINES, off, len)
+}
+function drawstrip(off, len) {
+	gl.drawArrays(gl.LINE_STRIP, off, len)
+}
+function bindbuffer(buffer) {
+	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+	gl.enableVertexAttribArray(aVertexPosition);
+	gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
+}
+function bindtexbuffer(buffer) {
+	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+	gl.enableVertexAttribArray(aTextureCoord);
+	gl.vertexAttribPointer(aTextureCoord, 2, gl.FLOAT, false, 0, 0);
+}
+
+gl.clear(gl.COLOR_BUFFER_BIT)
+
+var buffer = gl.createBuffer()
+bindbuffer(buffer)
+setxform(0,0,0,1)
+// setcolor([1, 0, 0, 0])
+var w = tcan.width, h = tcan.height
+loaddata(new Float32Array([0, 0, w, 0, w, -h, 0, -h]))
+var texbuffer = gl.createBuffer()
+bindtexbuffer(texbuffer)
+loaddata(new Float32Array([0,0,1,0,1,1,0,1]))
+gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+
+
+
+</script>
+
