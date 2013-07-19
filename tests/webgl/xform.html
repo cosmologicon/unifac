@@ -30,9 +30,17 @@ void main() {
 
 // Based on http://www.html5rocks.com/en/tutorials/webgl/webgl_fundamentals/
 var canvas = document.getElementById("canvas");
-canvas.width = 600 ; canvas.height = 300
-//UFX.maximize.resizemode = "total"
-//UFX.maximize.fill(canvas)
+canvas.width = 300 ; canvas.height = 150
+canvas.style.width = "1200px"
+canvas.style.height = "600px"
+//UFX.maximize.fill(canvas, "total")
+UFX.maximize.onadjust = function (canvas, w, h) {
+// TODO: why doesn't this work?
+	canvas.style.width = w + "px"
+	canvas.style.height = h + "px"
+	canvas.width = w
+	canvas.height = h
+}
 var gl = canvas.getContext("experimental-webgl");
 
 // setup a GLSL program
