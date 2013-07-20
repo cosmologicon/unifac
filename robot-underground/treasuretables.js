@@ -23,9 +23,15 @@ var treasuretables = {
 		var metal = metaldrops[dropLevel]
 		var r = UFX.random()
 		for (var j = 0 ; j < plotstate.act ; ++j) {
-			if (metal[j+1] < seed) return j
+			if (metal[j+1] < r) return j
 		}
 		return plotstate.act - 1
+	},
+	
+	dropMetal: function (mission, pos, dropLevel) {
+		var which = this.getMetal(dropLevel)
+		var amount = UFX.random.rand(1, dropLevel * 16 >> which)
+		new Metal(mission, METALS[which], amount, pos)
 	},
 	
 	// TODO: getRandomWeapon, getRandomArmour, addRandomMods

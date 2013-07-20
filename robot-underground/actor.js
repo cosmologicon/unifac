@@ -138,7 +138,7 @@ Actor.prototype = extend(Entity.prototype, {
 	},
 	
 	die: function () {
-		this.mission.dispatch_event("on_destroy")
+		// this.mission.dispatch_event("on_destroy")  // No-op apparently
 		Entity.prototype.die.apply(this)
 	},
 	

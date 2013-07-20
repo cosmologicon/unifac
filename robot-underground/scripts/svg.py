@@ -61,10 +61,12 @@ class SVG(object):
             f = open(filename)
         self.tree = parse(f)
         self.parse_doc()
-        if "enemies" in filename or "robots" in filename:
-        	self.paths = [[x - 0.5*self.height for x in path] for path in self.paths]
 
         self.paths = filter(None, self.paths)
+
+    def shiftcenter(self):
+        self.paths = [[x - 0.5*self.height for x in path] for path in self.paths]
+
 
     def parse_float(self, txt):
         if txt.endswith('px'):

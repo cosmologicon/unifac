@@ -1,6 +1,7 @@
 
 function EntityIndex(csize) {
 	this.ei = {}
+	this.es = {}  // All entities
 	this.max_entity_radius = 0
 	this.csize = csize || 1000
 }
@@ -17,6 +18,7 @@ EntityIndex.prototype = {
 		var n = this.indexPos(e.pos)
 		if (!this.ei[n]) this.ei[n] = {}
 		this.ei[n][e.id] = e
+		this.es[e.id] = e
 		e.indices.push(this)
 		this.max_entity_radius = Math.max(this.max_entity_radius, e.r)
 	},
@@ -24,6 +26,7 @@ EntityIndex.prototype = {
 		var that = this
 		e.indices = e.indices.filter(function (index) { return index !== that })
 		delete this.ei[this.indexPos(e.pos)][e.id]
+		delete this.es[e.id]
 	},
 	addSet: function (es) {
 		for (var id in es) { this.add(es[id]) }
