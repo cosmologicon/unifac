@@ -38,6 +38,10 @@ function splitcap(s) { return s.replace(/([A-Z])/g, ' $1').substr(1) }
 function playsound(name) {
 	//TODO: port sound module, need a few UFX.multisounds
 }
+function stopmusic() {
+}
+function playmusic(song) {
+}
 
 
 

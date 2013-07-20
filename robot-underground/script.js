@@ -9,8 +9,44 @@ function Script(spec, mission, actor) {
 	this.waitingOn = []
 }
 Script.prototype = {
-	// TODO: setDialogue, choose, clearDialogue, setQuestion
-	// TODO: setLeftPortrait, setRightPortrait, clearLeftPortrait, clearRightPortrait, clearAll
+	say_l: function (text, speaker) {
+		this.currentDialogue = text
+		if (speaker) this.leftSpeaker = speaker
+		this.currentSpeaker = this.leftSpeaker
+		this.speakerIsLeft = true
+		this.isQuestion = false
+		this.mission.dispatch_event("on_dialogue_change")
+		this.state = "waitKey"
+	},
+	say_l_unlabelled: function (text) {
+		return this.say_l(text)
+	},
+	say_r: function (text, speaker) {
+		this.currentDialogue = text
+		if (speaker) this.rightSpeaker = speaker
+		this.currentSpeaker = this.rightSpeaker
+		this.speakerIsLeft = false
+		this.isQuestion = false
+		this.mission.dispatch_event("on_dialogue_change")
+		this.state = "waitKey"
+	},
+	say_r_unlabelled: function (text) {
+		return this.say_r(text)
+	},
+
+	// TODO: choose, clearDialogue, setQuestion
+	// TODO: setLeftPortrait, setRightPortrait
+	speaker_l: function (svg) {  // setLeftPortrait
+		this.currentLeftPortrait = svg
+		this.leftSpeaker = gdata.portraits[svg]
+		this.mission.dispatch_event("on_portrait_change")
+	},
+	speaker_r: function (svg) {  // setRightPortrait
+		this.currentRightPortrait = svg
+		this.rightSpeaker = gdata.portraits[svg]
+		this.mission.dispatch_event("on_portrait_change")
+	},
+	// clearLeftPortrait, clearRightPortrait, clearAll
 	// TODO: setBlank
 	heal: function (num) {
 		this.actor.heal(num)
@@ -49,6 +85,10 @@ Script.prototype = {
 		this.deny = false
 		// TODO: this.generator = ...
 	},
+	change_music: function (song) {
+		if (!song) stopmusic()
+		else playmusic(song)
+	},
 	advance: function () {
 		
 		this.waitingOn = this.waitingOn.filter(function (a) { return a.scriptNodes })
@@ -63,6 +103,7 @@ Script.prototype = {
 			if (this.spec.length) {
 				var state = this.spec.shift()
 				if (state.pop) {
+					if (!this[state[0]]) throw "Unimplemented method " + state[0]
 					this[state[0]].apply(this, state.splice(1))
 				} else {
 					this.state = state

@@ -22,21 +22,37 @@ var graphics = {
 		this.positionLocation = gl.getAttribLocation(program, "pos")
 		this.xform = gl.getUniformLocation(program, "xform")
 		
-		this.matrix0 = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1])
-
-		this.clearbuffer = gl.createBuffer()
-		this.bindbuffer(this.clearbuffer)
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, 1, 1, -1, 1]), gl.STATIC_DRAW)
+		gl.clearColor(0, 0, 0, 1)
+		gl.enable(gl.BLEND)
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
 		this.imgbuffer = gl.createBuffer()
 		this.bindbuffer(this.imgbuffer)
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(gdata.ps), gl.STATIC_DRAW)
 
+		this.primbuffer = gl.createBuffer()  // for drawing procedurally-generated primitives
+
 		this.W = 2/canvas.width
 		this.H = 2/canvas.height
 		this.cx = 0
 		this.cy = 0
-		this.cz = 1
+		this.cz = 1  // world zoom level
+		this.hz = 1  // hud zoom level
+		
+		// drawing the choppy rectangles
+		var rectps = [0.5,0.5]
+		for (var dir = 0 ; dir < 4 ; ++dir) {
+			for (var j = 0 ; j < 10 ; ++j) {
+				var p = [0,1,j/10,1-j/10], x = p[[2,1,3,0][dir]], y = p[[0,2,1,3][dir]]
+				rectps.push(UFX.random.normal(x, 0.005))
+				rectps.push(UFX.random.normal(y, 0.005))
+			}
+		}
+		rectps.push(rectps[2])
+		rectps.push(rectps[3])
+		this.rectbuffer = gl.createBuffer()
+		this.bindbuffer(this.rectbuffer)
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(rectps), gl.STATIC_DRAW)
 	},
 	bindbuffer: function (buffer) {
 		this.currentbuffer = buffer
@@ -45,13 +61,10 @@ var graphics = {
 		gl.vertexAttribPointer(this.positionLocation, 2, gl.FLOAT, false, 0, 0)
 	},
 	setcolour: function (colour) {
-		gl.uniform4f(this.colorLocation, colour[0], colour[1], colour[2], 1)
+		gl.uniform4f(this.colorLocation, colour[0], colour[1], colour[2], (colour.length === 4 ? colour[3] : 1))
 	},
-	clear: function (colour) {
-		this.bindbuffer(this.clearbuffer)
-		gl.uniformMatrix4fv(this.xform, false, this.matrix0)
-		this.setcolour(colour || [0, 0, 0])
-		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+	clear: function () {
+		gl.clear(gl.COLOR_BUFFER_BIT)
 	},
 	setxform: function (x, y, s, A) {
 		var S = A ? Math.sin(A) : 0, C = A ? Math.cos(A) : 1
@@ -66,18 +79,29 @@ var graphics = {
 		])
 		gl.uniformMatrix4fv(this.xform, false, arr)
 	},
-//	drawlinestrip: function (ps, color) {
-//		gl.bufferData(gl.ARRAY_BUFFER, ps, gl.STATIC_DRAW)
-//		gl.uniform4f(this.colorLocation, color[0], color[1], color[2], 1)
-//		gl.drawArrays(gl.LINE_STRIP, 0, ps.length / 2)
-//	},
+	sethudxform: function (x, y, sx, sy) {
+		x = x || 0
+		y = y || 0
+		sx = sx || 1
+		sy = sy || sx
+		gl.uniformMatrix4fv(this.xform, false, new Float32Array(
+			[this.hz*this.W*sx, 0, 0, 0, 0, this.hz*this.H*sy, 0, 0, 0, 0, 1, 0,
+			x*this.hz*this.W-1, y*this.hz*this.H-1, 0, 1]
+		))
+	},
 	trace: function (sprite, x, y, h, A) {
 		if (this.currentbuffer !== this.imgbuffer) this.bindbuffer(this.imgbuffer)
 		this.setxform(x, y, h / sprite.height, A)
 		gl.drawArrays(gl.LINES, sprite.p0, sprite.np)
 	},
+	tracehud: function (sprite, x, y, h) {
+		if (this.currentbuffer !== this.imgbuffer) this.bindbuffer(this.imgbuffer)
+		this.sethudxform(x, y, h / sprite.height)
+		gl.drawArrays(gl.LINES, sprite.p0, sprite.np)
+	},
 	draw: function (img, x, y, h, A, opts) {
-		if (img.colour) this.setcolour(img.colour)
+		if (opts && opts.colour) this.setcolour(opts.colour)
+		else if (img.colour) this.setcolour(img.colour)
 
 		if (img.np) {  // regular SVG
 			this.trace(img, x, y, h, A)
@@ -91,6 +115,11 @@ var graphics = {
 			this.draw(img.turret, x, y, h, opts.turretbearing, opts)
 		}
 	},
+	drawhud: function (img, x, y, h, opts) {
+		if (opts && opts.colour) this.setcolour(opts.colour)
+		else if (img.colour) this.setcolour(img.colour)
+		this.tracehud(img, x, y, h)
+	},
 	drawfloor: function (cx, cy, cs) {
 		this.draw(gdata.floor, cx*cs, cy*cs, cs, 0)
 	},
@@ -101,61 +130,43 @@ var graphics = {
 	drawcursor: function (mode, x, y) {
 		this.draw(gdata.cursors[mode], x-20, y-20, 40, 0)
 	},
+	
+	// Draw procedurally-generated graphical primitives
+	primload: function (ps) {
+		if (this.currentbuffer !== this.primbuffer) this.bindbuffer(this.primbuffer)
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ps), gl.DYNAMIC_DRAW)
+	},
+	drawstrip: function (ps) {
+		this.primload(ps)
+		gl.drawArrays(gl.LINE_STRIP, 0, ps.length / 2)
+	},
+	drawhudrect: function (pos, size, outline, solid) {
+		this.sethudxform(pos[0], pos[1], size[0], size[1])
+		if (this.currentbuffer !== this.rectbuffer) this.bindbuffer(this.rectbuffer)
+		if (solid) {
+			this.setcolour(solid)
+			gl.drawArrays(gl.TRIANGLE_FAN, 0, 42)
+		}
+		if (outline) {
+			this.setcolour(outline)
+			gl.drawArrays(gl.LINE_LOOP, 1, 40)
+		}
+	},
 }
 
-
-// cat graphics/__init__.py | grep "world\." | sed 's|world|edgenum|g;s|svg.SVG.||;s|images.||;s|\/|.|;s|).||;s|^ *|wallimgnames[|;s|:|] =|;s|.svgz||'
-var wallimgnames = {}
-wallimgnames[edgenum.top] = "scenery.wallup"
-wallimgnames[edgenum.bottom] = "scenery.walldown"
-wallimgnames[edgenum.left] = "scenery.wallleft"
-wallimgnames[edgenum.right] = "scenery.wallright"
-wallimgnames[edgenum.top + edgenum.bottom] = "scenery.equals"
-wallimgnames[edgenum.left + edgenum.right] = "scenery.uprightequals"
-wallimgnames[edgenum.left + edgenum.top] = "scenery.cornertl"
-wallimgnames[edgenum.right + edgenum.top] = "scenery.cornertr"
-wallimgnames[edgenum.left + edgenum.bottom] = "scenery.cornerbl"
-wallimgnames[edgenum.right + edgenum.bottom] = "scenery.cornerbr"
-wallimgnames[edgenum.top + edgenum.left + edgenum.bottom] = "scenery.deadright"
-wallimgnames[edgenum.top + edgenum.right + edgenum.bottom] = "scenery.deadleft"
-wallimgnames[edgenum.top + edgenum.left + edgenum.right] = "scenery.deaddown"
-wallimgnames[edgenum.right + edgenum.left + edgenum.bottom] = "scenery.deadup"
-wallimgnames[edgenum.topleft] = "scenery.cornerpieceul"
-wallimgnames[edgenum.topright] = "scenery.cornerpieceur"
-wallimgnames[edgenum.bottomleft] = "scenery.cornerpiecedl"
-wallimgnames[edgenum.bottomright] = "scenery.cornerpiecedr"
-wallimgnames[edgenum.topleft + edgenum.topright] = "scenery.dblcornertop"
-wallimgnames[edgenum.topright + edgenum.bottomright] = "scenery.dblcornerright"
-wallimgnames[edgenum.bottomleft + edgenum.bottomright] = "scenery.dblcornerbottom"
-wallimgnames[edgenum.bottomleft + edgenum.topleft] = "scenery.dblcornerleft"
-wallimgnames[edgenum.bottomleft + edgenum.topright] = "scenery.dblcornerdiagright"
-wallimgnames[edgenum.topleft + edgenum.bottomright] = "scenery.dblcornerdiagleft"
-wallimgnames[edgenum.left + edgenum.bottomright] = "scenery.linecornrightdown"
-wallimgnames[edgenum.left + edgenum.topright] = "scenery.linecornrightup"
-wallimgnames[edgenum.right + edgenum.bottomleft] = "scenery.linecornleftdown"
-wallimgnames[edgenum.right + edgenum.topleft] = "scenery.linecornleftup"
-wallimgnames[edgenum.top + edgenum.bottomleft] = "scenery.linecorndownleft"
-wallimgnames[edgenum.top + edgenum.bottomright] = "scenery.linecorndownright"
-wallimgnames[edgenum.bottom + edgenum.topleft] = "scenery.linecornupleft"
-wallimgnames[edgenum.bottom + edgenum.topright] = "scenery.linecornupright"
-wallimgnames[edgenum.left + edgenum.bottomright + edgenum.topright] = "scenery.linecornright"
-wallimgnames[edgenum.top + edgenum.bottomright + edgenum.bottomleft] = "scenery.linecorndown"
-wallimgnames[edgenum.right + edgenum.topleft + edgenum.bottomleft] = "scenery.linecornleft"
-wallimgnames[edgenum.bottom + edgenum.topleft + edgenum.topright] = "scenery.linecornup"
-wallimgnames[edgenum.left + edgenum.top + edgenum.bottomright] = "scenery.cornercornerbr"
-wallimgnames[edgenum.right + edgenum.top + edgenum.bottomleft] = "scenery.cornercornerbl"
-wallimgnames[edgenum.left + edgenum.bottom + edgenum.topright] = "scenery.cornercornertr"
-wallimgnames[edgenum.right + edgenum.bottom + edgenum.topleft] = "scenery.cornercornertll"
-wallimgnames[edgenum.topleft + edgenum.topright + edgenum.bottomleft] = "scenery.triplecornerdr"
-wallimgnames[edgenum.topleft + edgenum.topright + edgenum.bottomright] = "scenery.triplecornerlr"
-wallimgnames[edgenum.topleft + edgenum.bottomright + edgenum.bottomleft] = "scenery.triplecornerur"
-wallimgnames[edgenum.bottomright + edgenum.topright + edgenum.bottomleft] = "scenery.triplecornerul"
-wallimgnames[edgenum.topleft + edgenum.topright + edgenum.bottomleft + edgenum.bottomright] = "scenery.quadcorner"
-
-
-
-
-
-
-
+wall_colours = {
+	town: [1,.9,.8],
+	cave: [.8,.8,.6],
+	basic: [1,1,1],
+}
+floor_colours = {
+	town: [.2,.1,0],
+	cave: [.4,.4,.4],
+	basic: [0,.1,.2],
+}
+trail_colours = {
+	fire: [1,1,0,1,0,0],
+	smoke: [1,1,1,0,0,0],
+	railgun: [0,1,1,0,0,1],
+}
 

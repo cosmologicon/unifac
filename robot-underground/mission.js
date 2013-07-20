@@ -65,7 +65,6 @@ Mission.prototype = {
 	},
 	advanceScript: function () {
 		if (!this.currentScript) return
-		console.log(this.currentScript)
 		if (this.currentScript.state === "frozen") {
 			this.currentScript.freezeTicks--
 			if (this.currentScript.freezeTicks <= 0) {
