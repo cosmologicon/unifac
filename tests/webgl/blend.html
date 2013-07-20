@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<script id="2d-vertex-shader" type="x-shader/x-vertex">
+attribute vec2 pos;
+void main(void) {
+    gl_Position = vec4(pos, 0.0, 1.0);
+}
+</script>
+<script id="2d-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+uniform vec4 color;
+void main(void) {
+    gl_FragColor = color;
+}
+</script>
+<canvas id="canvas" style="border: thin gray solid"></canvas>
+<script>
+// Figure out the correct blending function
+
+// Set up canvas and gl context, load shaders
+var canvas = document.getElementById("canvas");
+canvas.width = 720 ; canvas.height = 280
+var gl = canvas.getContext("experimental-webgl");
+function createShaderFromScript(gl, scriptId, shaderType) {
+	var shader = gl.createShader(shaderType)
+	var shaderScript = document.getElementById(scriptId)
+	gl.shaderSource(shader, shaderScript.text)
+	gl.compileShader(shader)
+	return shader
+}
+var vertexShader = createShaderFromScript(gl, "2d-vertex-shader", gl.VERTEX_SHADER)
+var fragmentShader = createShaderFromScript(gl, "2d-fragment-shader", gl.FRAGMENT_SHADER)
+var program = gl.createProgram()
+gl.attachShader(program, vertexShader)
+gl.attachShader(program, fragmentShader)
+gl.linkProgram(program)
+gl.useProgram(program)
+var color = gl.getUniformLocation(program, "color")
+var pos = gl.getAttribLocation(program, "pos")
+var buffer = gl.createBuffer()
+gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
+gl.enableVertexAttribArray(pos)
+gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0)
+
+// Set blending function
+gl.enable(gl.BLEND)
+gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+
+gl.clearColor(0, 0, 0, 1)
+gl.clear(gl.COLOR_BUFFER_BIT)
+
+// Draw gradient of rectangles in red and black with varying alphas
+function drawrect(x, y, w, h, rcolor) {
+	gl.uniform4fv(color, rcolor)
+	var ps = [x,y,x+w,y,x+w,y+h,x,y+h]
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ps), gl.STATIC_DRAW)
+	gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+}
+
+for (var j = 0 ; j <= 10 ; ++j) {
+	var alpha = 0.1 * j
+	drawrect((j/5-1)*0.86-1/14, 0.1, 1/7, 0.7, [1,0,0,alpha])
+	drawrect((j/5-1)*0.86-1/14, -0.8, 1/7, 0.7, [0,0,0,alpha])
+}
+</script>
+
