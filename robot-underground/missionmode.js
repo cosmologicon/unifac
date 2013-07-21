@@ -124,8 +124,24 @@ UFX.scenes.missionmode = {
 		var target = this.cursor.entity_under_cursor
 		return target ? target.describe() : ""
 	},
+
+	draw_metal: function () {
+		var fontsize = HUD_FONT_SMALL * settings.scr_h, dy = Math.round(fontsize * 1.3)
+        var x = HUD_MARGIN * settings.scr_h, y = (HUD_MARGIN + HUD_ICON_SIZE) * settings.scr_h
+        var texts = []
+        for (var j = 0 ; j < METALS.length ; ++j) {
+        	var metal_name = METALS[j], amount = robotstate.metal[j]
+        	if (!amount) continue
+        	texts.push(metal_name + ": " + amount)
+    	}
+    	texts.reverse()
+    	texts.forEach(function (t, j) {
+    		text.drawhud(t, x, y, fontsize, "white", "left", "bottom")
+        	y -= dy
+    	})
+	},
 	
-	// TODO: draw_metal draw_mouseover
+	// TODO: draw_mouseover
 	
 	draw_portrait: function () {
 		var protag = this.mission.protag
@@ -134,19 +150,58 @@ UFX.scenes.missionmode = {
 		var health = protag.currenthp / robotstate.getMaxHP()
 		graphics.drawhudrect([px, py], [sx, sy], [1, 1, 1, 1], [0, 0, 0, 0.8])
 		var colour = [1.0 - health, health, 0.0]
-		graphics.drawhud(gdata.portraits.Camden, px, py, sy, {colour: colour})
+		graphics.draw(gdata.portraits.Camden, px, py, sy, {colour: colour, hud: true})
 	},
 	
-	// TODO: draw_stats draw_targetinfo 
+	draw_stats: function () {
+		var protag = this.mission.protag
+		var hp = Math.max(0, protag.currenthp), maxhp = robotstate.getMaxHP()
+		var energy = Math.ceil(protag.currentEnergy * 100 / robotstate.getMaxEnergy())
+		var level = robotstate.level, xp = robotstate.xp  // TODO: helpers.format_xp
+		
+		var x = settings.scr_w - HUD_MARGIN * settings.scr_h
+		var y = (HUD_PORTRAIT_BOTTOM - HUD_SPACING) * settings.scr_h
+		var fontsize = Math.ceil(HUD_FONT_SMALL * settings.scr_h), dy = Math.round(fontsize * 1.3)
+		var texts = [
+			hp.toFixed(0) + " / " + maxhp + " hp",
+			energy + "% energy",
+			"Level " + level,
+			xp + " XP",
+		]
+		texts.forEach(function (t, j) {
+			text.drawhud(t, x, y-j*dy, fontsize, "white", "right", "top")
+		})
+	},
+	
+	draw_targetinfo: function () {
+		var target = this.mission.protag.targ
+		if (!target || !target.hostile) return
+		var txt = target.describe()
+		var fontsize = HUD_FONT_SMALL * settings.scr_h
+		// TODO: I think the info wraps with a width of HUD_TARGETINFO_WIDTH*scr_h
+		var infotext = text.gettexture(txt, fontsize, "white")
+		var r = Math.max(target.r, infotext.w1 / 2)
+		var p = HUD_TARGETINFO_PAD * settings.scr_h
+		var w = 2 * (r + p)
+
+		var tx = HUD_TARGETINFO_LEFT * settings.scr_w, x = tx - p
+		var ty = settings.scr_h - w - 2 * p, y = ty + p
+		var h = infotext.h1 + p
+		
+		graphics.drawhudrect([x,y-h-p], [w,h+w], [1,1,1,1], [0,0,0,0.8])
+		var opts = { frameno: this.frameno, state: target.anim_state, turretbearing: target.turretbearing, hud: true }
+		graphics.draw(gdata.sprites[target.name], x+r+p, y+r, target.r, target.bearing/57.3, opts)
+		text.drawhud(txt, tx, ty, fontsize, "white", "left", "top")
+	},
 	
 	draw_hud: function () {
 		var scr_w = settings.scr_w, scr_h = settings.scr_h
 		// TODO
 		//this.draw_mouseover()
 		this.draw_portrait()
-		//this.draw_stats()
-		//this.draw_metal()
-		//this.draw_targetinfo()
+		this.draw_stats()
+		this.draw_metal()
+		this.draw_targetinfo()
 		
 		//TODO: mission timer
 		
