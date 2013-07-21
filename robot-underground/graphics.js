@@ -2,7 +2,7 @@
 var canvas = document.getElementById("canvas")
 canvas.width = settings.scr_w
 canvas.height = settings.scr_h
-var gl = canvas.getContext("webgl", { antialias: true })
+var gl = canvas.getContext("experimental-webgl", { antialias: true })
 
 var graphics = {
 	init: function () {
@@ -18,9 +18,16 @@ var graphics = {
 		gl.attachShader(program, makeshader(gl, "2d-fragment-shader", gl.FRAGMENT_SHADER))
 		gl.linkProgram(program)
 		gl.useProgram(program)
-		this.colorLocation = gl.getUniformLocation(program, "color")
-		this.positionLocation = gl.getAttribLocation(program, "pos")
-		this.xform = gl.getUniformLocation(program, "xform")
+		this.svars = {  // shader variables
+			// From the vertex shader
+			pos: gl.getAttribLocation(program, "pos"),
+			tcoord: gl.getAttribLocation(program, "tcoord"),
+			xform: gl.getUniformLocation(program, "xform"),
+			// From the fragment shader
+			tfac: gl.getUniformLocation(program, "tfac"),
+			sampler: gl.getUniformLocation(program, "sampler"),
+			colour: gl.getUniformLocation(program, "colour"),
+		}
 		
 		gl.clearColor(0, 0, 0, 1)
 		gl.enable(gl.BLEND)
@@ -40,7 +47,7 @@ var graphics = {
 		this.hz = 1  // hud zoom level
 		
 		// drawing the choppy rectangles
-		var rectps = [0.5,0.5]
+		var rectps = [0,0,1,0,1,1,0,1,0.5,0.5]
 		for (var dir = 0 ; dir < 4 ; ++dir) {
 			for (var j = 0 ; j < 10 ; ++j) {
 				var p = [0,1,j/10,1-j/10], x = p[[2,1,3,0][dir]], y = p[[0,2,1,3][dir]]
@@ -48,55 +55,91 @@ var graphics = {
 				rectps.push(UFX.random.normal(y, 0.005))
 			}
 		}
-		rectps.push(rectps[2])
-		rectps.push(rectps[3])
+		rectps.push(rectps[10])
+		rectps.push(rectps[11])
 		this.rectbuffer = gl.createBuffer()
 		this.bindbuffer(this.rectbuffer)
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(rectps), gl.STATIC_DRAW)
+
+		gl.activeTexture(gl.TEXTURE0)
+		gl.uniform1i(this.svars.sampler, 0)
+		// The texture coordinate buffer is very simple - basically we only ever draw complete
+		//   textures.
+		this.texbuffer = gl.createBuffer()
+		this.bindtexbuffer(this.texbuffer)
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,1,1,1,1,0,0,0]), gl.STATIC_DRAW)
 	},
+	// Set the vertex array buffer
 	bindbuffer: function (buffer) {
+		if (this.currentbuffer === buffer) return
 		this.currentbuffer = buffer
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
-		gl.enableVertexAttribArray(this.positionLocation)
-		gl.vertexAttribPointer(this.positionLocation, 2, gl.FLOAT, false, 0, 0)
+		gl.enableVertexAttribArray(this.svars.pos)
+		gl.vertexAttribPointer(this.svars.pos, 2, gl.FLOAT, false, 0, 0)
+	},
+	// Set the texture coordinate array buffer
+	bindtexbuffer: function (buffer) {
+		if (this.currentbuffer === buffer) return
+		this.currentbuffer = buffer
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
+		gl.enableVertexAttribArray(this.svars.tcoord)
+		gl.vertexAttribPointer(this.svars.tcoord, 2, gl.FLOAT, false, 0, 0)
 	},
 	setcolour: function (colour) {
-		gl.uniform4f(this.colorLocation, colour[0], colour[1], colour[2], (colour.length === 4 ? colour[3] : 1))
+		if (colour.length == 3) colour.push(1)
+		gl.uniform4fv(this.svars.colour, colour)
+		gl.uniform1f(this.svars.tfac, 0)
+		gl.disableVertexAttribArray(this.svars.tcoord)
+	},
+	settexture: function (texture) {
+		gl.bindTexture(gl.TEXTURE_2D, texture)
+		gl.enableVertexAttribArray(this.svars.tcoord)
+		gl.vertexAttribPointer(this.svars.tcoord, 2, gl.FLOAT, false, 0, 0)
+		gl.uniform1f(this.svars.tfac, 1)
 	},
 	clear: function () {
 		gl.clear(gl.COLOR_BUFFER_BIT)
 	},
+	// World coordinates
 	setxform: function (x, y, s, A) {
 		var S = A ? Math.sin(A) : 0, C = A ? Math.cos(A) : 1
 		s = s || 1
 		x = x || 0
 		y = y || 0
-		var arr = new Float32Array([
-			this.cz*this.W*C*s, this.cz*this.H*S*s, 0, 0,
-			-this.cz*this.W*S*s, this.cz*this.H*C*s, 0, 0,
-			0, 0, 1, 0,
-			(x-this.cx)*this.cz*this.W, (y-this.cy)*this.cz*this.H, 0, 1
-		])
-		gl.uniformMatrix4fv(this.xform, false, arr)
+		gl.uniformMatrix3fv(this.svars.xform, false, new Float32Array([
+			this.cz*this.W*C*s, this.cz*this.H*S*s, 0,
+			-this.cz*this.W*S*s, this.cz*this.H*C*s, 0,
+			(x-this.cx)*this.cz*this.W, (y-this.cy)*this.cz*this.H, 1
+		]))
 	},
-	sethudxform: function (x, y, sx, sy) {
+	// HUD coordinates
+	sethudxform: function (x, y, s, A) {
+		var S = A ? Math.sin(A) : 0, C = A ? Math.cos(A) : 1
+		s = s || 1
+		x = x || 0
+		y = y || 0
+		gl.uniformMatrix3fv(this.svars.xform, false, new Float32Array([
+			this.hz*this.W*C*s, this.hz*this.H*S*s, 0,
+			-this.hz*this.W*S*s, this.hz*this.H*C*s, 0,
+			x*this.hz*this.W-1, y*this.hz*this.H-1, 1
+		]))
+	},
+	// HUD coordinates that allows no rotation but different x and y stretch factors
+	setrectxform: function (x, y, sx, sy) {
 		x = x || 0
 		y = y || 0
 		sx = sx || 1
 		sy = sy || sx
-		gl.uniformMatrix4fv(this.xform, false, new Float32Array(
-			[this.hz*this.W*sx, 0, 0, 0, 0, this.hz*this.H*sy, 0, 0, 0, 0, 1, 0,
-			x*this.hz*this.W-1, y*this.hz*this.H-1, 0, 1]
-		))
+		gl.uniformMatrix3fv(this.svars.xform, false, new Float32Array([
+			this.hz*this.W*sx, 0, 0,
+			0, this.hz*this.H*sy, 0,
+			x*this.hz*this.W-1, y*this.hz*this.H-1, 1
+		]))
 	},
-	trace: function (sprite, x, y, h, A) {
-		if (this.currentbuffer !== this.imgbuffer) this.bindbuffer(this.imgbuffer)
-		this.setxform(x, y, h / sprite.height, A)
-		gl.drawArrays(gl.LINES, sprite.p0, sprite.np)
-	},
-	tracehud: function (sprite, x, y, h) {
-		if (this.currentbuffer !== this.imgbuffer) this.bindbuffer(this.imgbuffer)
-		this.sethudxform(x, y, h / sprite.height)
+	trace: function (sprite, x, y, h, A, hud) {
+		this.bindbuffer(this.imgbuffer)
+		if (hud) this.sethudxform(x, y, h / sprite.height, A)
+		else this.setxform(x, y, h / sprite.height, A)
 		gl.drawArrays(gl.LINES, sprite.p0, sprite.np)
 	},
 	draw: function (img, x, y, h, A, opts) {
@@ -104,7 +147,7 @@ var graphics = {
 		else if (img.colour) this.setcolour(img.colour)
 
 		if (img.np) {  // regular SVG
-			this.trace(img, x, y, h, A)
+			this.trace(img, x, y, h, A, opts && opts.hud)
 		} else if (img.frames) {  // AnimatedSVG
 			var frameno = Math.floor(opts.frameno / img.framelength) % img.frames.length
 			this.draw(img.frames[frameno], x, y, h, A, opts)
@@ -114,11 +157,6 @@ var graphics = {
 			this.draw(img.base, x, y, h, A, opts)
 			this.draw(img.turret, x, y, h, opts.turretbearing, opts)
 		}
-	},
-	drawhud: function (img, x, y, h, opts) {
-		if (opts && opts.colour) this.setcolour(opts.colour)
-		else if (img.colour) this.setcolour(img.colour)
-		this.tracehud(img, x, y, h)
 	},
 	drawfloor: function (cx, cy, cs) {
 		this.draw(gdata.floor, cx*cs, cy*cs, cs, 0)
@@ -133,24 +171,33 @@ var graphics = {
 	
 	// Draw procedurally-generated graphical primitives
 	primload: function (ps) {
-		if (this.currentbuffer !== this.primbuffer) this.bindbuffer(this.primbuffer)
+		this.bindbuffer(this.primbuffer)
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ps), gl.DYNAMIC_DRAW)
 	},
 	drawstrip: function (ps) {
 		this.primload(ps)
 		gl.drawArrays(gl.LINE_STRIP, 0, ps.length / 2)
 	},
+
+	// Draw one of those jagged rectangles we like so much
 	drawhudrect: function (pos, size, outline, solid) {
-		this.sethudxform(pos[0], pos[1], size[0], size[1])
-		if (this.currentbuffer !== this.rectbuffer) this.bindbuffer(this.rectbuffer)
+		this.setrectxform(pos[0], pos[1], size[0], size[1])
+		this.bindbuffer(this.rectbuffer)
 		if (solid) {
 			this.setcolour(solid)
-			gl.drawArrays(gl.TRIANGLE_FAN, 0, 42)
+			gl.drawArrays(gl.TRIANGLE_FAN, 4, 42)
 		}
 		if (outline) {
 			this.setcolour(outline)
-			gl.drawArrays(gl.LINE_LOOP, 1, 40)
+			gl.drawArrays(gl.LINE_LOOP, 5, 41)
 		}
+	},
+	// For textures (basically, text)
+	tracehudrect: function (pos, size) {
+		this.setrectxform(pos[0], pos[1], size[0], size[1])
+		this.bindbuffer(this.rectbuffer)
+		this.bindtexbuffer(this.texbuffer)
+		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
 	},
 }
 
