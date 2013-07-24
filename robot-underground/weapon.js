@@ -188,7 +188,7 @@ function makeWeapon(type, args, mods) {
 // projdata
 
 function Explosion(mission, pos, blast, number) {
-	this.init(mission. pos, blast, number)
+	this.init(mission, pos, blast, number)
 }
 Explosion.prototype = extend(Entity.prototype, {
 	init: function (mission, pos, blast, number) {
@@ -197,7 +197,6 @@ Explosion.prototype = extend(Entity.prototype, {
 		this.age = 0
 	},
 	tick: function () {
-		this.age++
 		this.r += 0.1 * (this.blast - this.r)
 		if (UFX.random() < EXPLOSION_BRANCH_P) {
 			var r = UFX.random(this.blast - this.r)
@@ -205,10 +204,10 @@ Explosion.prototype = extend(Entity.prototype, {
 				var A = UFX.random(360)
 				var x = this.r * Math.cos(A) + this.pos[0]
 				var y = this.r * Math.sin(A) + this.pos[1]
-				this.mission.entities.add(new Explosion(this.mission, [x,y], r, UFX.random() < 0.5))
+				this.mission.entities.add(new Explosion(this.mission, [x,y], r, (UFX.random() < 0.5 ? 1 : 0)))
 			}
 		}
-		if (this.age > EXPLOSION_TIME) this.die()
+		if (++this.age > EXPLOSION_TIME) this.die()
 	},
 })
 

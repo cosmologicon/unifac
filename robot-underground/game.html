@@ -39,6 +39,11 @@ void main(void) {
 </script>
 <h1 style="font-family: 'Hockey'">Robot Underground</h1>
 <canvas id="canvas" style="background:black"></canvas>
+<form id="DEBUG" style="display:none">
+<p><input type="checkbox" onchange="DEBUG.entitycircle=this.checked">Entity circles</input>
+<p><input type="checkbox" onchange="DEBUG.textblock=this.checked;text.clear()">Text block</input>
+</form>
+
 <script src="../UFX/src/resource.js"></script>
 <script src="../UFX/src/ticker.js"></script>
 <script src="../UFX/src/scene.js"></script>

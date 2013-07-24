@@ -1,9 +1,16 @@
 // settings for the js version
 var settings = {
-	DEBUG: location.href.indexOf("DEBUG") > -1,
 	scr_w: 854,
 	scr_h: 480,
 }
+
+var DEBUG = {}
+if (location.href.indexOf("DEBUG") > -1) {
+	DEBUG.expose = true // expose convenience methods, eg zoomout and zoomin
+	var DEBUGform = document.getElementById("DEBUG")
+	DEBUGform.style.display = "block"
+}
+
 
 
 /// TEXTMENU DEFAULTS ///

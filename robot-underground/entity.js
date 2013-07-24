@@ -113,11 +113,15 @@ Entity.prototype = {
 		this.name = name || "???"
 		this.visible = true
 	},
+
 	setPos: function (newpos) {
 		for (var j = 0 ; j < this.indices.length ; ++j) {
 			this.indices[j].moveEntity(this, this.pos, newpos)
 		}
 		this.pos = newpos
+	},
+
+	tick: function () {
 	},
 	
 	describe: function () {

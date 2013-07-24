@@ -4,7 +4,7 @@ function Treasure(mission, pos, radius, name) {
 }
 Treasure.prototype = extend(Entity.prototype, {
 	init: function (mission, pos, radius, name) {
-		Entity.prototype.init.call(this, mission, pos, radius, 0, name || "???", false)
+		Entity.prototype.init.call(this, mission, pos, radius, 0, false, name || "???")
 		this.mission.born[this.id] = this
 		this.pickUpScript = null
 	},
