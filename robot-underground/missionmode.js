@@ -71,7 +71,6 @@ UFX.scenes.missionmode = {
 		this.desired_zoom = 1.0
 		this.current_hud_zoom = 1.0
 		this.desired_hud_zoom = 1.0
-		this.debug_circles = false
 		this.area_mode = false
 		
 		this.drag_to_move = false
@@ -308,20 +307,17 @@ UFX.scenes.missionmode = {
 	},
 
 	draw_entity: function (e, pos) {
+		if (!e.r) return  // size 0 explosions cause graphical glitches
 		pos = pos || e.pos
 		var opts = { frameno: this.frameno, state: e.anim_state, turretbearing: e.turretbearing }
 		try {  // TODO
-			graphics.draw(gdata.sprites[e.name], pos[0], pos[1], e.r, e.bearing/57.3, opts)
+			graphics.draw(gdata.sprites[e.name], pos[0], pos[1], Math.round(e.r), e.bearing/57.3, opts)
 		} catch (err) {
 			throw err + " ::: " + e.name
 		}
-		if (settings.DEBUG) {
-			var r = e.r
-			graphics.setcolour([1,1,1])
-			graphics.draw(gdata.debug_iface_circle, pos[0]-r, pos[1]-r, r*2)
-			r += CURSOR_RADIUS
-			graphics.setcolour([0.6,0.6,0.6])
-			graphics.draw(gdata.debug_iface_circle, pos[0]-r, pos[1]-r, r*2)
+		if (DEBUG.entitycircle) {
+			graphics.debugcircle(pos[0], pos[1], e.r, [1,1,1])
+			graphics.debugcircle(pos[0], pos[1], e.r + CURSOR_RADIUS, [0.6,0.6,0.6])
 		}
 	},
 	draw_entities: function (minx, miny, maxx, maxy) {

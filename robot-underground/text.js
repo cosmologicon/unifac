@@ -31,7 +31,7 @@ var text = {
 		while (h < h1) h <<= 1
 		can.width = w ; can.height = h
 		con.font = fontsize + "px 'Hockey'"
-		if (settings.DEBUG) {
+		if (DEBUG.textblock) {
 			con.fillStyle = "rgba(255,0,0,0.06)"
 			con.fillRect(0, 0, w, h)
 			con.fillStyle = "rgba(255,255,0,0.08)"
@@ -138,6 +138,10 @@ var text = {
 	//   to remove any unused textures.
 	cleanup: function () {
 		// Naive implementation: remove everything every frame
+		this.clear()
+	},
+
+	clear: function () {
 		for (var t in this.textures) {
 			this.textotal -= this.textures[t].s
 			delete this.textures[t]

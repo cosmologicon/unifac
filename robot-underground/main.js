@@ -7,14 +7,11 @@ UFX.resource.onload = function () {
 	UFX.mouse.capture.wheel = true
 	UFX.mouse.init(canvas)
 	UFX.key.init(canvas)
-	UFX.scene.init()
+	UFX.scene.init({fps: 50})
 	UFX.scene.push("missionmode")
 
-	if (settings.DEBUG) {
+	if (DEBUG.expose) {
 		mode = UFX.scenes.missionmode
-		//mission = mode.mission
-		//protag = mission.protag
-		
 		zoomout = function () {	mode.desired_zoom /= 4 }
 		zoomin = function () { mode.desired_zoom *= 4 }
 	}
