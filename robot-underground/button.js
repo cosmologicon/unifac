@@ -5,18 +5,18 @@ function Button(fn, x, y, width, height, icon, color, border, box) {
 	this.width = width
 	this.height = height
 	this.icon = icon
-	this.color = color || [1, 1, 1]
-	this.border = border || [1, 1, 1]
+	this.color = color || [1, 1, 1, 1]
+	this.border = border || [1, 1, 1, 1]
 	this.box = box === undefined ? true : box
 	this.fn = fn
 }
 Button.prototype = {
 	draw: function () {
-		if (this.boox) {
-			graphics.drawrect([this.x, this.y], [this.width, this.height], this.border, [0, 0, 0, 0.8])
+		if (this.box) {
+			graphics.drawhudrect([this.x, this.y], [this.width, this.height], this.border, [0, 0, 0, 0.8])
 		}
 		if (this.icon) {
-			graphics.draw(this.icon, this.x, this.y, this.height, 0, { colour: this.color })
+			graphics.draw(this.icon, this.x, this.y, this.height, 0, { colour: this.colour, hud: true })
 		}
 	},
 	activate: function () {

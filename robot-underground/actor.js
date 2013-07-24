@@ -240,9 +240,7 @@ Protag.prototype = extend(Actor.prototype, {
 				var temptarg = this.targ && this.targ.hostile ? this.targ : null
 			}
 			if (temptarg && w.canFire(this, temptarg) && this.currentEnergy > w.getEnergyUse()) {
-				console.log("firing", temptarg.currenthp)
 				w.fire(this, temptarg)
-				console.log(temptarg.currenthp)
 				this.currentEnergy -= w.getEnergyUse()
 			}
 		}

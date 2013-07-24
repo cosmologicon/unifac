@@ -100,6 +100,12 @@ var graphics = {
 	clear: function () {
 		gl.clear(gl.COLOR_BUFFER_BIT)
 	},
+	worldtoscreen: function (x, y) {
+		return [
+			Math.round((x - this.cx) * this.cz + settings.scr_w/2),
+			Math.round((y - this.cy) * this.cz + settings.scr_h/2),
+		]
+	},
 	// World coordinates
 	setxform: function (x, y, s, A) {
 		var S = A ? Math.sin(A) : 0, C = A ? Math.cos(A) : 1
@@ -125,15 +131,16 @@ var graphics = {
 		]))
 	},
 	// HUD coordinates that allows no rotation but different x and y stretch factors
-	setrectxform: function (x, y, sx, sy) {
+	setrectxform: function (x, y, sx, sy, z) {
 		x = x || 0
 		y = y || 0
 		sx = sx || 1
 		sy = sy || sx
+		z = z || this.hz
 		gl.uniformMatrix3fv(this.svars.xform, false, new Float32Array([
-			this.hz*this.W*sx, 0, 0,
-			0, this.hz*this.H*sy, 0,
-			x*this.hz*this.W-1, y*this.hz*this.H-1, 1
+			z*this.W*sx, 0, 0,
+			0, z*this.H*sy, 0,
+			x*z*this.W-1, y*z*this.H-1, 1
 		]))
 	},
 	trace: function (sprite, x, y, h, A, hud) {
@@ -175,6 +182,7 @@ var graphics = {
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ps), gl.DYNAMIC_DRAW)
 	},
 	drawstrip: function (ps) {
+		this.setxform()
 		this.primload(ps)
 		gl.drawArrays(gl.LINE_STRIP, 0, ps.length / 2)
 	},
@@ -193,11 +201,16 @@ var graphics = {
 		}
 	},
 	// For textures (basically, text)
-	tracehudrect: function (pos, size) {
-		this.setrectxform(pos[0], pos[1], size[0], size[1])
+	// Set z to 1 to override hud zoom and use screen coordinates
+	tracehudrect: function (pos, size, z) {
+		this.setrectxform(pos[0], pos[1], size[0], size[1], z)
 		this.bindbuffer(this.rectbuffer)
 		this.bindtexbuffer(this.texbuffer)
 		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+	},
+
+	debugcircle: function (x, y, r, colour, hud) {
+		this.draw(gdata.debug_iface_circle, x-r, y-r, 2*r, 0, {colour: colour, hud: hud})
 	},
 }
 
