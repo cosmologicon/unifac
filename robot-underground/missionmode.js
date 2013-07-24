@@ -3,10 +3,8 @@ UFX.scenes.missionmode = {
 	start: function () {
 		var scr_h = settings.scr_h, scr_w = settings.scr_w
 
-		// TODO: dialogue boxes dialogue_text_l/r speaker_text_l/r dialogue_menu_l/r
-		// TODO: hud_targetinfo_text hud_mouseover_text hud_metal_text 
-		this.old_metal = []
-		// TODO: hud_stats_text hud_timer_text
+		// dialogue box positions and HUD constants moved into the individual draw_* methods where
+		//   they're used.
 		
 		this.inventory_mode = false
 		// TODO this.inventory_menu = new ScrollingInventoryMenu(...)
@@ -52,8 +50,8 @@ UFX.scenes.missionmode = {
 
 		this.lasers = {}
 		this.lightnings = {}
-		this.live_floaties = {}
-		this.dead_floaties = {}
+		// I don't reuse textures so there's no reason for dead_floaties as far as I'm concerned.
+		this.floaties = []
 		this.bullets = []
 		this.claws = {}
 		this.trails = []
@@ -82,7 +80,7 @@ UFX.scenes.missionmode = {
 		this.cursor = new GameCursor(this)
 		
 		if (this.mission.startScript) {
-			// TODO: this.mission.runScript(this.mission.startScript)
+			// TODO this.mission.runScript(this.mission.startScript)
 		}
 	},
 	
@@ -110,12 +108,12 @@ UFX.scenes.missionmode = {
 			if (btn.point_within(mx, my)) {
 				if (idx == robotstate.weaponry.length) break
 				var wpn = robotstate.weaponry[idx]
-				if (wpn) return wpn.description
+				if (wpn) return wpn.description()
 			}
 		}
 		
 		if (this.armour_icon.point_within(mx, my) && robotstate.armoury)
-			return robotstate.armoury.description
+			return robotstate.armoury.description()
 		
 		if (this.eject_icon.point_within(mx, my) && this.mission.canEject) {
 			return this.eject_mode ? "Eject (click to confirm)" : "Eject (click twice to activate)"
@@ -141,7 +139,14 @@ UFX.scenes.missionmode = {
     	})
 	},
 	
-	// TODO: draw_mouseover
+	draw_mouseover: function () {
+		var s = this.get_hud_mouseover_message()
+		if (!s) return
+		var x = 0.5 * settings.scr_w, y = 0.25 * settings.scr_h, p = MOUSEOVER_PAD * settings.scr_h
+		var tw = HUD_MOUSEOVER_WIDTH * settings.scr_h
+		var fontsize = Math.round(HUD_FONT_SMALL * settings.scr_h)
+		text.drawhudborder(s, x, y, fontsize, "white", p, "center", "middle", tw, "center")
+	},
 	
 	draw_portrait: function () {
 		var protag = this.mission.protag
@@ -150,14 +155,14 @@ UFX.scenes.missionmode = {
 		var health = protag.currenthp / robotstate.getMaxHP()
 		graphics.drawhudrect([px, py], [sx, sy], [1, 1, 1, 1], [0, 0, 0, 0.8])
 		var colour = [1.0 - health, health, 0.0]
-		graphics.draw(gdata.portraits.Camden, px, py, sy, {colour: colour, hud: true})
+		graphics.draw(gdata.portraits.Camden, px, py, sy, 0, {colour: colour, hud: true})
 	},
 	
 	draw_stats: function () {
 		var protag = this.mission.protag
 		var hp = Math.max(0, protag.currenthp), maxhp = robotstate.getMaxHP()
 		var energy = Math.ceil(protag.currentEnergy * 100 / robotstate.getMaxEnergy())
-		var level = robotstate.level, xp = robotstate.xp  // TODO: helpers.format_xp
+		var level = robotstate.level, xp = this.format_xp(robotstate.xp)
 		
 		var x = settings.scr_w - HUD_MARGIN * settings.scr_h
 		var y = (HUD_PORTRAIT_BOTTOM - HUD_SPACING) * settings.scr_h
@@ -195,15 +200,26 @@ UFX.scenes.missionmode = {
 	},
 	
 	draw_hud: function () {
-		var scr_w = settings.scr_w, scr_h = settings.scr_h
-		// TODO
-		//this.draw_mouseover()
+		this.draw_mouseover()
 		this.draw_portrait()
 		this.draw_stats()
 		this.draw_metal()
 		this.draw_targetinfo()
 		
-		//TODO: mission timer
+		// Mission timer
+		if (this.mission.isTimed) {
+			var ticks = ROBOT_DUNGEON_TIME_LIMIT - this.mission.protag.numticks
+			var seconds = Math.floor(ticks / MAX_FRAME_RATE)
+			if (seconds <= 0) {
+				var timer_text = "0:00"
+			} else {
+				var mins = Math.floor(seconds / 60), secs = seconds - mins * 60
+				var timer_text = mins + (secs < 10 ? ":0" : ":") + secs
+			}
+			var x = 0.5 * settings.scr_w, y = (1 - HUD_MARGIN) * settings.scr_h
+			var fontsize = Math.round(HUD_FONT_LARGE * settings.scr_h)
+			text.drawhud(timer_text, x, y, fontsize, "white", "center", "top")
+		}
 		
 		this.weapon_icons.forEach(function (b) { b.draw() })
 		this.armour_icon.draw()
@@ -294,7 +310,11 @@ UFX.scenes.missionmode = {
 	draw_entity: function (e, pos) {
 		pos = pos || e.pos
 		var opts = { frameno: this.frameno, state: e.anim_state, turretbearing: e.turretbearing }
-		graphics.draw(gdata.sprites[e.name], pos[0], pos[1], e.r, e.bearing/57.3, opts)
+		try {  // TODO
+			graphics.draw(gdata.sprites[e.name], pos[0], pos[1], e.r, e.bearing/57.3, opts)
+		} catch (err) {
+			throw err + " ::: " + e.name
+		}
 		if (settings.DEBUG) {
 			var r = e.r
 			graphics.setcolour([1,1,1])
@@ -313,14 +333,16 @@ UFX.scenes.missionmode = {
 	},
 	
 	draw_weapon_fx: function () {
-		var es = this.mission.ei.es
+		var es = this.mission.entities.es
 		for (var s in this.lasers) {
 			var ids = s.split(","), e0 = es[ids[0]], e1 = es[ids[1]]
+			if (!e0 || !e1) continue  // TODO: can I get these guys' position after they're dead?
 			graphics.setcolour(e0 === this.mission.protag ? [1,0,0] : [0,0,1])
 			graphics.drawstrip([e0.pos[0], e0.pos[1], e1.pos[0], e1.pos[1]])
 		}
 		for (var s in this.ligthnings) {
 			var ids = s.split(","), e0 = es[ids[0]], e1 = es[ids[1]]
+			if (!e0 || !e1) continue
 			this.draw_lightning(e0.pos, e1.pos)
 		}
 		for (var s in this.bullets) {
@@ -336,7 +358,16 @@ UFX.scenes.missionmode = {
 		}
 	},
 
-	// TODO: draw_floaties
+	draw_floaties: function () {
+		for (var j = 0 ; j < this.floaties.length ; ++j) {
+			var f = this.floaties[j]
+			if (f.offset < 0) continue
+			text.drawworld(
+				f.text, f.x0, f.y0 + f.offset, Math.floor(FLOATY_FONT_SIZE * settings.scr_h),
+				f.colour, "center", "middle"
+			)
+		}
+	},
 	
 	draw_cursor_shadows: function () {
 		var p = this.mission.protag
@@ -353,22 +384,42 @@ UFX.scenes.missionmode = {
 	// TODO draw_inventory
 	
 	draw_script: function () {
-		var m = this.mission, s = m.currentScript
+		var m = this.mission, s = m.currentScript, isLeft = s.speakerIsLeft
+
 		// draw portraits
 		if (s.currentLeftPortrait) {
 			var px = this.portrait_l_xpos, py = this.portrait_ypos
 			var sx = this.portrait_height * PORTRAIT_ASPECT, sy = this.portrait_height
-			graphics.drawrect([px, py], [sx, sy], [1,1,1], [0,0,0,0.8])
-			graphics.draw(gdata.portraits[s.currentLeftPortrait], px, py, sy)
+			graphics.drawhudrect([px, py], [sx, sy], [1,1,1], [0,0,0,0.8])
+			graphics.draw(gdata.portraits[s.currentLeftPortrait], px, py, sy, 0, {hud: true})
 		}
 		if (s.currentRightPortrait) {
 			var px = this.portrait_r_xpos, py = this.portrait_ypos
 			var sx = this.portrait_height * PORTRAIT_ASPECT, sy = this.portrait_height
-			graphics.drawrect([px, py], [sx, sy], [1,1,1], [0,0,0,0.8])
-			graphics.draw(gdata.portraits[s.currentRightPortrait], px, py, sy)
+			graphics.drawhudrect([px, py], [sx, sy], [1,1,1], [0,0,0,0.8])
+			graphics.draw(gdata.portraits[s.currentRightPortrait], px, py, sy, 0, {hud: true})
 		}
 		
-		// TODO: handle dialogue
+		var dtext = s.currentDialogue, stext = s.currentSpeaker && s.currentSpeaker.name
+		var W = settings.scr_w, H = settings.scr_h
+        var gutter = Math.round(BOX_GUTTER * H)
+        var fontsize = Math.round(DIALOGUE_FONT_SIZE * H)
+		
+		if (s.isQuestion) {
+			// TODO
+		} else if (dtext) {
+			var tx = Math.round((isLeft ? DIALOGUE_BOX_PAD : (1 - DIALOGUE_BOX_PAD - DIALOGUE_BOX_WIDTH)) * W)
+			var ty = Math.round(DIALOGUE_BOX_TOP * H)
+			var tw = Math.round(DIALOGUE_BOX_WIDTH * W)
+			text.drawhudborder(dtext, tx, ty, fontsize, "white", gutter, "left", "top", tw, "left")
+		}
+		
+		if (stext) {
+			var tx = Math.round((isLeft ? NAME_BOX_PAD : 1 - NAME_BOX_PAD) * W)
+			var ty = Math.round(NAME_BOX_BOTTOM * H)
+			var hanchor = isLeft ? "left" : "right"
+			text.drawhudborder(stext, tx, ty, fontsize, "white", gutter, hanchor, "bottom")
+		}
 	},
 
 	// ported from MissionMode.ondraw
@@ -384,8 +435,8 @@ UFX.scenes.missionmode = {
 			this.draw_world(minx, miny, maxx, maxy)
 			this.draw_entities(minx, miny, maxx, maxy)
 			// TODO
-			//this.draw_weapon_fx()
-			//this.draw_floaties()
+			this.draw_weapon_fx()
+			this.draw_floaties()
 			this.draw_cursor_shadows()
 			this.cursor.draw()  // I'm guessing this is called automatically in pyglet
 
@@ -394,7 +445,7 @@ UFX.scenes.missionmode = {
 		if (this.inventory_mode) {
 			this.draw_inventory()
 		} else if (this.mission.currentScript && this.mission.currentScript.state != "terminated") {
-			//this.draw_script()  // TODO
+			this.draw_script()
 		} else {
 			this.draw_hud()
 		}
@@ -419,9 +470,30 @@ UFX.scenes.missionmode = {
 		if (mstate.right.drag) this.on_mouse_drag(mstate.pos, mstate.right.drag, true)
 	},
 	on_mouse_press: function (pos, targetonly) {
+		// Note that pos here is in screen coordinates - Y-coordinate is flipped from HUD coordinates
 		this.drag_to_move = false
+		if (this.mouse_protected > 0) return
+		// TODO: choice mode and dialogue menu
+		// TODO: inventory mode
 		var m = this.mission
-		// TODO: script and HUD stuff
+		if (m.currentScript && m.currentScript.state == "waitKey") {
+			m.currentScript.state = "running"
+			return
+		}
+		if (m.currentScript && m.currentScript.state == "frozen") {
+			return
+		}
+		if (m.isCutscene) {
+			return
+		}
+		for (var j = 0 ; j < this.weapon_icons.length ; ++j) {
+			var b = this.weapon_icons[j]
+			if (b.icon && b.on_mouse_press(this.mouse_x, this.mouse_y)) {
+				return
+			}
+		}
+		
+		// HUD stuff
 		var e = this.cursor.entity_under_cursor
 		if (e && (e instanceof Actor) && e !== m.protag) {
 			m.protag.targ = e
@@ -589,7 +661,13 @@ UFX.scenes.missionmode = {
 	},
 	add_floaty: function (text, pos, colour, delay) {
 		delay = delay || 0
-		// TODO: labels, how do they work?
+		this.floaties.push({
+			text: text,
+			colour: colour,
+			x0: pos[0] + UFX.random.rand(-FLOAT_SCATTER, FLOAT_SCATTER+1),
+			y0: pos[1] + UFX.random.rand(-FLOAT_SCATTER, FLOAT_SCATTER+1),
+			offset: -delay,
+		})
 	},
 	
 	thinkargs: function (dt) {
@@ -609,7 +687,7 @@ UFX.scenes.missionmode = {
 		if (this.new_xp_delay > 0) {
 			this.new_xp_delay--
 			if (this.new_xp_delay <= 0) {
-				var s = "+" + helpers.format_xp(this.new_xp) + " XPs"
+				var s = "+" + this.format_xp(this.new_xp) + " XPs"
 				this.add_floaty(s, this.mission.protag.pos, FLOATY_XP_COLOUR)
 			}
 		}
@@ -619,10 +697,17 @@ UFX.scenes.missionmode = {
 			for (var s in this.claws) if (!--this.claws[s]) delete this.claws[s]
 			for (var s in this.lightnings) if (!--this.lightnings[s]) delete this.lightnings[s]
 			this.trails = this.trails.filter(function (t) { return --t[3] })
-			// TODO: update this.live_floaties
+			this.floaties = this.floaties.filter(function (f) { return (f.offset += FLOAT_SPEED) < FLOAT_DIST })
 		}
 		this.bullets = []
 		this.mission.tick()
+	},
+
+	// From helpers.format_xp
+	format_xp: function (xp) {
+		if (xp > 16777216) return (xp >> 20) + "M"
+		if (xp > 16384) return (xp >> 10) + "K"
+		return xp.toFixed(0)
 	},
 }
 

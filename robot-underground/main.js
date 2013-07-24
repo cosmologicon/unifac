@@ -1,5 +1,4 @@
 
-
 UFX.resource.onload = function () {
 	initPlotState(plotstate)
 	robotstate.init(null)

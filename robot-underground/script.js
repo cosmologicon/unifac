@@ -35,8 +35,7 @@ Script.prototype = {
 	},
 
 	// TODO: choose, clearDialogue, setQuestion
-	// TODO: setLeftPortrait, setRightPortrait
-	speaker_l: function (svg) {  // setLeftPortrait
+	speaker_l: function (svg) {  // calls setLeftPortrait
 		this.currentLeftPortrait = svg
 		this.leftSpeaker = gdata.portraits[svg]
 		this.mission.dispatch_event("on_portrait_change")
@@ -84,6 +83,9 @@ Script.prototype = {
 		this.last_choice = null
 		this.deny = false
 		// TODO: this.generator = ...
+	},
+	sound: function (sfx) {
+		playsound(sfx)
 	},
 	change_music: function (song) {
 		if (!song) stopmusic()
