@@ -1,6 +1,6 @@
 
 function Script(spec, mission, actor) {
-	this.spec = spec.splice(0)  // replaces runmethod
+	this.spec = spec.slice()  // replaces runmethod
 	this.mission = mission
 	this.actor = actor || null
 	this.restart()
@@ -9,6 +9,14 @@ function Script(spec, mission, actor) {
 	this.waitingOn = []
 }
 Script.prototype = {
+	counters: {},
+
+	blank: function (blank) {
+		this.blankScreen = blank === undefined ? true : blank
+	},
+
+	// TODO save_log save load
+
 	say_l: function (text, speaker) {
 		this.currentDialogue = text
 		if (speaker) this.leftSpeaker = speaker
@@ -34,7 +42,6 @@ Script.prototype = {
 		return this.say_r(text)
 	},
 
-	// TODO: choose, clearDialogue, setQuestion
 	speaker_l: function (svg) {  // calls setLeftPortrait
 		this.currentLeftPortrait = svg
 		this.leftSpeaker = gdata.portraits[svg]
@@ -45,45 +52,84 @@ Script.prototype = {
 		this.rightSpeaker = gdata.portraits[svg]
 		this.mission.dispatch_event("on_portrait_change")
 	},
-	// clearLeftPortrait, clearRightPortrait, clearAll
-	// TODO: setBlank
+	
+	clear_l: function () {
+		this.currentLeftPortrait = null
+		this.leftSpeaker = ""
+		this.mission.dispatch_event("on_portrait_change")
+	},
+	clear_r: function () {
+		this.currentRightPortrait = null
+		this.rightSpeaker = ""
+		this.mission.dispatch_event("on_portrait_change")
+	},
+	
+	clearAll: function () {
+		this.currentSpeaker = ""
+		this.currentDiaolgue = ""
+		this.speakerIsLeft = true
+		this.isQuestion = false
+		this.mission.dispatch_event("on_dialogue_change")
+		this.clear_l()
+		this.clear_r()
+	},
+
+	// options needs to be an array, not separate arguments
+	ask_l: function (text, options, defaultOption) {
+		this.options = options.slice()
+		this.defaultOption = defaultOption
+		this.setDialogue(text, true)
+		this.isQuestion = true
+		this.state = "waitChoice"
+	},
+	ask_r: function (text, options, defaultOption) {
+		this.options = options.slice()
+		this.defaultOption = defaultOption
+		this.setDialogue(text, false)
+		this.isQuestion = true
+		this.state = "waitChoice"
+	},
+
 	heal: function (num) {
 		this.actor.heal(num)
 	},
 	addXp: function (num) {
 		this.mission.protag.addXp(num)
 	},
-	setDeny:  function (flag) {
-		this.deny = flag
+	deny: function (flag) {
+		this.denyFlag = true
 	},
 	die: function () {
 		this.actor.die()
 	},
-	dieNoDrop: function () {
+	die_no_drop: function () {
 		this.actor.die(false)
 	},
-	// TODO: dropMetal, dropItem, setNextScene, inventory
-	setZoom: function (zoom) {
-		this.mission.dsipact_event("on_set_zoom", zoom)
+	drop_metal: function (metal, amount) {
+		// NB: this was originally assigned to last_choice, which seems pointless to me.
+		new Metal(this.mission, metal, amount, this.actor.pos)
 	},
-	setFreeze: function (ticks) {
-		this.freezeTicks = ticks
+	// replaces drop_item. TODO: Is the item dropped always a weapon?
+	drop_weapon: function (wspec, sspec) {
+		var t = new DroppedEquippable(this.mission, makeWeapon(wspec), this.actor.pos)
+		if (sspec) t.setPickUpScript(sspec)
 	},
-	wait: function (ticks) {
-		this.mission.runScript(this, ticks)
+	
+	// Logic operations. Feels a little weird using if as a method name, huh? I say embrace the weird.
+	if: function (condition, ifspec, elsespec) {
+		if (condition) {
+			if (ifspec) this.spec = ifspec.concat(this.spec)
+		} else {
+			if (elsespec) this.spec = elsespec.concat(this.spec)
+		}
 	},
-	waitUntilMoved: function (actors) {
-		this.waitingOn = actors
-		this.mission.isCutScene = true
-		this.mission.runScript(this, 1)
+
+	// replaces is_first
+	if_first: function (key, ifspec, elsespec) {
+		this.if(plotstate[key], ifspec, elsespec)
+		plotstate[key] = "done"
 	},
-	restart: function () {
-		//TODO: this.clearAll()
-		this.state = "running"
-		this.last_choice = null
-		this.deny = false
-		// TODO: this.generator = ...
-	},
+
 	sound: function (sfx) {
 		playsound(sfx)
 	},
@@ -91,6 +137,59 @@ Script.prototype = {
 		if (!song) stopmusic()
 		else playmusic(song)
 	},
+
+	change_scene: function (next) {
+		// TODO: save_log()
+		plotstate.nextScene = next
+		this.state = "endMission"
+	},
+
+	inventory: function () {
+		this.mission.dispatch_event("on_inventory")
+	},
+
+	freeze: function (ticks) {
+		this.freezeTicks = ticks
+	},
+
+	set_zoom: function (zoom) {
+		this.mission.dispatch_event("on_set_zoom", zoom)
+	},
+	
+	wait: function (ticks) {
+		this.mission.runScript(this, ticks)
+		this.state = "endConversation"
+	},
+	wait_until_moved: function (actors) {
+		this.waitingOn = actors
+		this.mission.isCutScene = true
+		this.mission.runScript(this, 1)
+		this.state = "endConversation"
+	},
+
+	// TODO log_record
+
+	restart: function () {
+		this.clearAll()
+		this.state = "running"
+		this.last_choice = null
+		this.denyFlag = false
+		// TODO: this.generator = ...
+	},
+
+	// Handle shared counters
+	increment: function (countname, amount) {
+		if (amount === undefined) amount = 1
+		this.counters[countname] = (this.counters[countname] || 0) + amount
+	},
+	ifeq: function (countname, amount, ifspec, elsespec) {
+		this.if((this.counters[countname] || 0) == amount, ifspec, elsespec)
+	},
+
+	canEject: function () {
+		this.mission.canEject = true
+	},
+
 	advance: function () {
 		
 		this.waitingOn = this.waitingOn.filter(function (a) { return a.scriptNodes })
@@ -106,7 +205,7 @@ Script.prototype = {
 				var state = this.spec.shift()
 				if (state.pop) {
 					if (!this[state[0]]) throw "Unimplemented method " + state[0]
-					this[state[0]].apply(this, state.splice(1))
+					this[state[0]].apply(this, state.slice(1))
 				} else {
 					this.state = state
 				}

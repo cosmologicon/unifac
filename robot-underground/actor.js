@@ -17,7 +17,7 @@ Actor.prototype = extend(Entity.prototype, {
 		this.name = name
 		this.deathScript = null
 		this.talkScript = null
-		this.areaScripts = {}
+		this.areaScripts = []
 		var r = this.resistances = {}
 		mod.rskeys.forEach(function (rskey) { r[Damage[rskey]] = 0 })
 		
@@ -31,13 +31,23 @@ Actor.prototype = extend(Entity.prototype, {
 		this.talkScript = new Script(spec, this.mission, this)
 	},
 	addAreaScript: function (spec, pos, size, multifire) {
-		this.areaScripts.push([pos, size, multifire, new Script(spec, this.mission, this)])
+		this.areaScripts.push({
+			pos: pos,
+			size: size,
+			x0: pos[0],
+			y0: pos[1],
+			x1: pos[0] + size[0],
+			y1: pos[1] + size[1],
+			multifire: multifire,
+			script: new Script(spec, this.mission, this),
+		})
 	},
 	setDeathScript: function (spec) {
 		this.deathScript = new Script(spec, this.mission, this)
 	},
 
 	takeDamage: function (amount, type) {
+		if (DEBUG.onehit && this.mission.protag !== this) amount *= 1000000
 		if (this.currenthp <= 0) return
 		if (!this.hostile && this.mission.protag !== this) return
 		amount /= this.getDefence() * (1 + this.getResistance(type)/100)
@@ -112,7 +122,18 @@ Actor.prototype = extend(Entity.prototype, {
 			return
 		}
 		var denied = false
-		// TODO: handle areaScripts
+		if (this.areaScripts.length) {
+			var nx = newpos[0], ny = newpos[1]
+			for (var j = 0 ; j < this.areaScripts.length ; ++j) {
+				var ascr = this.areaScripts[j]
+				if (ascr.x0 <= nx && nx <= ascr.x1 && ascr.y0 <= ny && ny <= ascr.y1) {
+					this.mission.runScript(ascr.script)
+					if (ascr.script.denyFlag) denied = true
+					if (!ascr.multifire) ascr.fired = true
+				}
+			}
+			this.areaScripts = this.areaScripts.filter(function (a) { return !a.fired })
+		}
 		if (denied) {
 			this.dest = null
 		} else {
@@ -186,9 +207,9 @@ Protag.prototype = extend(Actor.prototype, {
 		}
 		Actor.prototype.move.call(this, tripScripts)
 		var localStuff = this.mission.entities.entitiesWithin(this.pos, this.r)
-		for (var j = 0 ; j < localStuff.length ; ++j) {
-			var thing = localStuff[j]
-			if (thing instanceof Treasure) {
+		for (var id in localStuff) {
+			var thing = localStuff[id]
+			if (thing.pickUp) {
 				thing.pickUp()
 				if (thing.pickUpScript) {
 					this.mission.runScript(thing.pickUpScript)

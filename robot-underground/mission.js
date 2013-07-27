@@ -53,7 +53,7 @@ Mission.prototype = {
 	
 	runScript: function (myScript, delay) {
 		if (delay || this.currentScript) {
-			this.scriptQueue.push([delay, myScript])
+			this.scriptQueue.push([delay || 0, myScript])
 		} else {
 			this.currentScript = myScript
 			if (myScript.state !== "endConversation") {
@@ -178,11 +178,11 @@ Mission.prototype = {
 		this.entities.add(e)
 		return e.setTalkScript
 	},
-	enemyDeathScript: function (etype, pos, bearing) {
+	enemyDeathScript: function (spec, etype, pos, bearing) {
 		var e = makeEnemy(etype, this, pos)
 		if (bearing !== undefined) e.bearing = bearing
 		this.entities.add(e)
-		return e.setDeathScript
+		e.setDeathScript(spec)
 	},
 	setStartScript: function (script) {
 		this.startScript = new Script(script, this)
@@ -196,6 +196,9 @@ Mission.prototype = {
 
 	// I guess this is what this thing does in pyglet
 	dispatch_event: function (type) {
+		// Not sure if this is necessary, but events handled during the mission's constructor
+		//   can fail otherwise if they reference this.mission
+		if (this.handler.mission !== this) return
 		if (!this.handler[type]) throw "Unable to handle " + type
 		var args = Array.prototype.splice.call(arguments, 1)
 		this.handler[type].apply(this.handler, args)
