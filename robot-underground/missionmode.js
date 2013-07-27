@@ -71,7 +71,6 @@ UFX.scenes.missionmode = {
 		this.desired_zoom = 1.0
 		this.current_hud_zoom = 1.0
 		this.desired_hud_zoom = 1.0
-		this.area_mode = false
 		
 		this.drag_to_move = false
 		this.mouse_protected = 0
@@ -79,7 +78,7 @@ UFX.scenes.missionmode = {
 		this.cursor = new GameCursor(this)
 		
 		if (this.mission.startScript) {
-			// TODO this.mission.runScript(this.mission.startScript)
+			this.mission.runScript(this.mission.startScript)
 		}
 	},
 	
@@ -325,28 +324,36 @@ UFX.scenes.missionmode = {
 		for (var id in es) {
 			if (es[id].visible) this.draw_entity(es[id])
 		}
-		// TODO: area_mode
+		if (DEBUG.areamode) {
+			var p = this.mission.protag
+			for (var j = 0 ; j < p.areaScripts.length ; ++j) {
+				var a = p.areaScripts[j]
+				if (a.multifire) {
+					graphics.drawworldrect(a.pos, a.size, [1,1,0,1], [1,1,0,0.1])
+				} else {
+					graphics.drawworldrect(a.pos, a.size, [0,1,0,1], [0,1,0,0.1])
+				}
+			}
+		}
 	},
 	
 	draw_weapon_fx: function () {
 		var es = this.mission.entities.es
 		for (var s in this.lasers) {
-			var ids = s.split(","), e0 = es[ids[0]], e1 = es[ids[1]]
-			if (!e0 || !e1) continue  // TODO: can I get these guys' position after they're dead?
+			var e0 = this.lasers[s][1], e1 = this.lasers[s][2]
 			graphics.setcolour(e0 === this.mission.protag ? [1,0,0] : [0,0,1])
 			graphics.drawstrip([e0.pos[0], e0.pos[1], e1.pos[0], e1.pos[1]])
 		}
 		for (var s in this.ligthnings) {
-			var ids = s.split(","), e0 = es[ids[0]], e1 = es[ids[1]]
-			if (!e0 || !e1) continue
+			var e0 = this.lightnings[s][1], e1 = this.lightnings[s][2]
 			this.draw_lightning(e0.pos, e1.pos)
 		}
 		for (var s in this.bullets) {
-			var ids = s.split(","), e0 = es[ids[0]], e1 = es[ids[1]]
+			var e0 = this.bullets[s][0], e1 = this.bullets[s][1]
 			this.draw_bullet(e0.pos, e1.pos)
 		}
 		for (var s in this.claws) {
-			var ids = s.split("|"), target = es[ids[0]], left = +ids[1]
+			var target = this.claws[s][1], left = this.claws[s][2]
 			this.draw_claw(target.pos, left)
 		}
 		for (var j = 0 ; j < this.trails.length ; ++j) {
@@ -476,18 +483,16 @@ UFX.scenes.missionmode = {
 			m.currentScript.state = "running"
 			return
 		}
-		if (m.currentScript && m.currentScript.state == "frozen") {
-			return
-		}
-		if (m.isCutscene) {
-			return
-		}
+		if (m.currentScript && m.currentScript.state == "frozen") return
+		if (m.isCutscene) return
+
 		for (var j = 0 ; j < this.weapon_icons.length ; ++j) {
 			var b = this.weapon_icons[j]
-			if (b.icon && b.on_mouse_press(this.mouse_x, this.mouse_y)) {
-				return
-			}
+			if (b.icon && b.on_mouse_press(this.mouse_x, this.mouse_y)) return
 		}
+		if (this.armour_icon.point_within(this.mouse_x, this.mouse_y)) return
+		
+		if (this.mission.canEject && this.eject_icon.on_mouse_press(this.mouse_x, this.mouse_y)) return
 		
 		// HUD stuff
 		var e = this.cursor.entity_under_cursor
@@ -520,7 +525,7 @@ UFX.scenes.missionmode = {
 		var id = shooter.id + "," + target.id
 		switch (weapon.effectname) {
 			case Damage.electric:
-				this.lightnings[id] = weapon.basecooldown
+				this.lightnings[id] = [weapon.basecooldown, shooter, target]
 				playsound("lightning")
 				break
 			case Damage.physical:
@@ -537,12 +542,12 @@ UFX.scenes.missionmode = {
 				break
 			case Damage.laser:
 				playsound("shot")
-				this.lasers[id] = 5
+				this.lasers[id] = [5, shooter, target]
 				break
 			case Damage.claw:
 				var hand = UFX.random() < 0.5 ? 1 : 0, id = target.id + "|" + hand
 				if (id in this.claws) id = target.id + "|" + (1 - hand)
-				this.claws[id] = 5
+				this.claws[id] = [5, target, hand]
 				break
 		}
 	},
@@ -689,12 +694,17 @@ UFX.scenes.missionmode = {
 		}
 		if (!this.mission.currentScript) {
 			this.frameno++
-			for (var s in this.lasers) if (!--this.lasers[s]) delete this.lasers[s]
-			for (var s in this.claws) if (!--this.claws[s]) delete this.claws[s]
-			for (var s in this.lightnings) if (!--this.lightnings[s]) delete this.lightnings[s]
+			for (var s in this.lasers) if (!--this.lasers[s][0]) delete this.lasers[s]
+			for (var s in this.claws) if (!--this.claws[s][0]) delete this.claws[s]
+			for (var s in this.lightnings) if (!--this.lightnings[s][0]) delete this.lightnings[s]
 			this.trails = this.trails.filter(function (t) { return --t[3] })
 			this.floaties = this.floaties.filter(function (f) { return (f.offset += FLOAT_SPEED) < FLOAT_DIST })
 		}
+
+		if (this.mission.currentScript && this.mission.currentScript.state == "waitKey" && DEBUG.skipcutscenes) {
+			this.mission.currentScript.state = "running"
+		}
+
 		this.bullets = []
 		this.mission.tick()
 	},

@@ -53,7 +53,7 @@ DroppedEquippable.prototype = extend(Treasure.prototype, {
 	},
 	
 	describe: function () {
-		return this.item.fullname
+		return this.item.fullname()
 	},
 })
 

@@ -171,7 +171,7 @@ function makeWeapon(type, args, mods) {
 		w = new ProjectileWeapon()
 		w.init.apply(w, projweapondata[type])
 	}
-
+	// TODO: more weaponz
 
 	if (mods) {
 		for (var j = 1 ; j < mods.length ; j += 2) {

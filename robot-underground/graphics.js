@@ -188,8 +188,8 @@ var graphics = {
 	},
 
 	// Draw one of those jagged rectangles we like so much
-	drawhudrect: function (pos, size, outline, solid) {
-		this.setrectxform(pos[0], pos[1], size[0], size[1])
+	drawhudrect: function (pos, size, outline, solid, z) {
+		this.setrectxform(pos[0], pos[1], size[0], size[1], z)
 		this.bindbuffer(this.rectbuffer)
 		if (solid) {
 			this.setcolour(solid)
@@ -199,6 +199,10 @@ var graphics = {
 			this.setcolour(outline)
 			gl.drawArrays(gl.LINE_LOOP, 5, 41)
 		}
+	},
+	drawworldrect: function (pos, size, outline, solid) {
+		var spos = this.worldtoscreen(pos[0], pos[1]), ssize = [size[0] * this.cz, size[1] * this.cz]
+		this.drawhudrect(spos, ssize, outline, solid, 1)
 	},
 	// For textures (basically, text)
 	// Set z to 1 to override hud zoom and use screen coordinates

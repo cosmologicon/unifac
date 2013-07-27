@@ -49,6 +49,7 @@ Enemy.prototype = extend(Actor.prototype, {
 var enemyinfo = {
 	"Spider": [["WimpyClaw"], [1, 2, 5, 4], 4, 15, 8, 1, 1, BlindAI, [], [50, 0, -50, 0, 0]],
 	"Scorpion": [["WimpyClaw"], [2, 3, 5, 3], 4, 25, 8, 1, 1, StupidAI, [], [50, 0, -50, 0, 0]],
+	"IntimidatingScorpion": [["PopGun"], [4, 4, 10, 2], 6, 40, 64, 2, 3, RangedAI, [], [20, 0, 0, 0, 0]],
 }
 for (var etype in enemyinfo) {
 	enemyinfo[etype][0] = enemyinfo[etype][0].map(makeWeapon)
