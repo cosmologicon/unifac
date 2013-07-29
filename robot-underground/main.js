@@ -6,9 +6,11 @@ UFX.resource.onload = function () {
 	UFX.mouse.capture.right = true
 	UFX.mouse.capture.wheel = true
 	UFX.mouse.init(canvas)
-	UFX.key.init(canvas)
-	UFX.scene.init({fps: 50})
-	UFX.scene.push("missionmode")
+	UFX.key.watchlist = "up down left right enter space tab esc".split(" ")
+	UFX.key.init()
+	UFX.scene.init({fps: 30})
+//	UFX.scene.push("missionmode")
+	UFX.scene.push("mainmenu")
 
 	if (DEBUG.expose) {
 		mode = UFX.scenes.missionmode

@@ -121,14 +121,14 @@ var text = {
 
 
 	// Draw text with one of those jagged borders around it
-	drawhudborder: function (text, x, y, fontsize, colour, gutter, hanchor, vanchor, twidth, talign) {
+	drawhudborder: function (text, x, y, fontsize, colour, gutter, hanchor, vanchor, twidth, talign, ocolour, scolour) {
 		hanchor = hanchor ? hanchor.trim ? {left: 0, center: 0.5, right: 1}[hanchor] : hanchor : 0
 		vanchor = vanchor ? vanchor.trim ? {bottom: 0, middle: 0.5, top: 1}[vanchor] : vanchor : 0
 		var ttex = this.gettexture(text, fontsize, colour, twidth, talign)
 		var px = Math.round(x - hanchor * ttex.w0 - gutter)
 		var py = Math.round(y - vanchor * ttex.h0 - gutter)
 		var size = [ttex.w0 + 2 * gutter, ttex.h0 + 2 * gutter]
-		graphics.drawhudrect([px, py], size, [1,1,1,1], [0,0,0,0.8])
+		graphics.drawhudrect([px, py], size, ocolour || [1,1,1,1], scolour || [0,0,0,0.8])
 		ttex.drawhud(x, y, hanchor, vanchor)
 		//graphics.draw(gdata.debug_iface_circle, px-4, py-4, 8, 0, {colour: [1,0,1], hud: true})
 	},
@@ -144,6 +144,7 @@ var text = {
 	clear: function () {
 		for (var t in this.textures) {
 			this.textotal -= this.textures[t].s
+			gl.deleteTexture(this.textures[t])
 			delete this.textures[t]
 		}
 	},

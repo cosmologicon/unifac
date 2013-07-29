@@ -1,6 +1,6 @@
 
 function Script(spec, mission, actor) {
-	this.spec = spec.slice()  // replaces runmethod
+	this.spec0 = spec
 	this.mission = mission
 	this.actor = actor || null
 	this.restart()
@@ -43,13 +43,13 @@ Script.prototype = {
 	},
 
 	speaker_l: function (svg) {  // calls setLeftPortrait
-		this.currentLeftPortrait = svg
-		this.leftSpeaker = gdata.portraits[svg]
+		this.currentLeftPortrait = gdata.portraits[svg]
+		this.leftSpeaker = svg
 		this.mission.dispatch_event("on_portrait_change")
 	},
 	speaker_r: function (svg) {  // setRightPortrait
-		this.currentRightPortrait = svg
-		this.rightSpeaker = gdata.portraits[svg]
+		this.currentRightPortrait = gdata.portraits[svg]
+		this.rightSpeaker = svg
 		this.mission.dispatch_event("on_portrait_change")
 	},
 	
@@ -75,19 +75,45 @@ Script.prototype = {
 	},
 
 	// options needs to be an array, not separate arguments
-	ask_l: function (text, options, defaultOption) {
-		this.options = options.slice()
-		this.defaultOption = defaultOption
-		this.setDialogue(text, true)
+	ask_l: function (text, choices, defaultOption) {
+		this.say_l(text)
+		// isQuestion seems pretty useless. Isn't it always the same as this.state == "waitChoice"?
 		this.isQuestion = true
 		this.state = "waitChoice"
+		var x = DIALOGUE_BOX_PAD * settings.scr_w, y = DIALOGUE_BOX_TOP * settings.scr_h
+		this.menu = this.makemenu(text, choices, x, y, defaultOption || 0)
 	},
-	ask_r: function (text, options, defaultOption) {
-		this.options = options.slice()
-		this.defaultOption = defaultOption
-		this.setDialogue(text, false)
+	ask_r: function (text, choices, defaultOption) {
+		this.say_r(text)
 		this.isQuestion = true
 		this.state = "waitChoice"
+		var x = (1 - DIALOGUE_BOX_PAD - DIALOGUE_BOX_WIDTH) * settings.scr_w
+		var y = DIALOGUE_BOX_TOP * settings.scr_h
+		this.menu = this.makemenu(text, choices, x, y, defaultOption || 0)
+	},
+	makemenu: function (header, choices, x, y, defaultOption) {
+		return new Menu(this.makechoices(choices), x, y, {
+			header: header,
+			fontsize: DIALOGUE_FONT_SIZE * settings.scr_h,
+			gutter: BOX_GUTTER * settings.scr_h,
+			scolour: [0,0,0,0.8],
+			ocolour: [1,1,1,1],
+			defaultOption: defaultOption,
+			spacing: DIALOGUE_BOX_SPACING * settings.scr_h,
+			vanchor: 1,
+		})
+	},
+	makechoices: function (choices) {
+		var that = this
+		return choices.map(function (choice) {
+			return [choice[0], that.answer.bind(that, choice.slice(1))]
+		})
+	},
+	// Callback for the menu to invoke when a selection is made
+	answer: function (newspec) {
+		this.insert(newspec)
+		this.menu = null
+		this.state = "running"
 	},
 
 	heal: function (num) {
@@ -114,19 +140,23 @@ Script.prototype = {
 		var t = new DroppedEquippable(this.mission, makeWeapon(wspec), this.actor.pos)
 		if (sspec) t.setPickUpScript(sspec)
 	},
-	
+
+
+	insert: function (newspec) {
+		this.spec = newspec.concat(this.spec)
+	},
 	// Logic operations. Feels a little weird using if as a method name, huh? I say embrace the weird.
 	if: function (condition, ifspec, elsespec) {
 		if (condition) {
-			if (ifspec) this.spec = ifspec.concat(this.spec)
+			if (ifspec) this.insert(ifspec)
 		} else {
-			if (elsespec) this.spec = elsespec.concat(this.spec)
+			if (elsespec) this.insert(elsespec)
 		}
 	},
 
 	// replaces is_first
 	if_first: function (key, ifspec, elsespec) {
-		this.if(plotstate[key], ifspec, elsespec)
+		this.if(!plotstate[key], ifspec, elsespec)
 		plotstate[key] = "done"
 	},
 
@@ -174,7 +204,7 @@ Script.prototype = {
 		this.state = "running"
 		this.last_choice = null
 		this.denyFlag = false
-		// TODO: this.generator = ...
+		this.spec = this.spec0.slice()
 	},
 
 	// Handle shared counters

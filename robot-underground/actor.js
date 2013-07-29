@@ -4,6 +4,7 @@ function Actor(mission, pos, stats, radius, bearing, hostile, name) {
 	this.init(mission, pos, stats, radius, bearing, hostile, name)
 }
 Actor.prototype = extend(Entity.prototype, {
+	isactor: true,
 	init: function (mission, pos, stats, radius, bearing, hostile, name) {
 		if (bearing === undefined) bearing = UFX.random(360)
 		if (radius === undefined) radius = 15
@@ -237,6 +238,8 @@ Protag.prototype = extend(Actor.prototype, {
 					// TODO: gamelog
 					this.mission.runScript(this.targ.talkScript)
 				}
+				this.targ = null
+				this.dest = null
 			} else {
 				if (!this.dest || this.dest !== this.targ.pos) {
 					// Have hit a wall and failed, or changed mind

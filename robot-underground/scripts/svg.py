@@ -63,9 +63,12 @@ class SVG(object):
         self.parse_doc()
 
         self.paths = filter(None, self.paths)
+        self.shifted = False
 
     def shiftcenter(self):
-        self.paths = [[x - 0.5*self.height for x in path] for path in self.paths]
+    	if not self.shifted:
+	        self.paths = [[x - 0.5*self.height for x in path] for path in self.paths]
+        self.shifted = True
 
 
     def parse_float(self, txt):

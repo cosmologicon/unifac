@@ -172,11 +172,14 @@ Mission.prototype = {
 	registerScript: function (script) {
 		this.scripts.push(script)
 	},
-	// TODO: is this actually the right way to do this?
-	actorTalkScript: function (pos, name, stats, bearing, radius) {
-		var e = new Actor(pos, stats, radius, bearing, false, name)
+
+	actorTalkScript: function (spec, pos, name, stats, bearing, radius) {
+		stats = stats || CombatStats(1, 1, 1, 1)
+		bearing = bearing || 0
+		radius = radius === undefined ? 15 : radius
+		var e = new Actor(this, pos, stats, radius, bearing, false, name)
 		this.entities.add(e)
-		return e.setTalkScript
+		e.setTalkScript(spec)
 	},
 	enemyDeathScript: function (spec, etype, pos, bearing) {
 		var e = makeEnemy(etype, this, pos)

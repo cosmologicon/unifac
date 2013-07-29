@@ -17,12 +17,10 @@ function setupFirstMission(ps, m) {
 	m.map = makeDungeon2({
 		top: "controlroom",
 		bottom: "3rooms",
-// TODO		maxrooms: 6,
-		maxrooms: 1,
+		maxrooms: 6,
 	})
 	var camden = m.addProtag(m.map.bottomPos([150, 150]))
-// TODO	m.placeEnemiesRandomlyAnywhere({ Spider: 12, Scorpion: 8 })
-	m.placeEnemiesRandomlyAnywhere({ Spider: 1, Scorpion: 1 })
+	m.placeEnemiesRandomlyAnywhere({ Spider: 12, Scorpion: 8 })
 	m.setStartScript([
 		["change_music", null],
 		["speaker_l", "Camden"],
@@ -40,6 +38,31 @@ function setupFirstMission(ps, m) {
 		["say_r", "You will keep moving towards the cursor until you let go of the button, and then keep going to the latest target."],
 		["say_r", "Try this now by moving into the room to your right."],
 	])
+
+	m.actorTalkScript([
+		["speaker_r", "Putney"],
+		["speaker_l", "Camden"],
+		["if_first", "act1.putney.intro", [
+			["say_r", "Everyone else seems to be doing such important things."],
+			["say_r", "Do you think there's room in life for everyone to make an important contribution in their own way?"],
+			["ask_l", "What should I say?", [
+				["Absolutely.",
+					["say_r", "Sometimes I wonder."],
+				],
+				["Life is what you make of it.", 
+					["say_r", "I don't know whether I should be pleased to hear that, or terrified."],
+				],
+				["What a philosophical question.",
+					["say_r", "Sorry."],
+					["say_r", "You probably aren't interested at all."],
+				],
+			]],
+		], [
+			["say_r","What a funny old world it is."],
+		]],
+	], m.map.bottomPos([50, 250]), "Putney", null, 240)
+
+
 	
 	camden.addAreaScript([
 		["wait", 25],
