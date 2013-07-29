@@ -13,8 +13,10 @@ def pathstolines(paths):
 			mps += path[j:j+4]
 	return mps
 
-def loadsvg(img):
+def loadsvg(img, shift=False):
 	if isinstance(img, svg.SVG):
+		if shift:
+			img.shiftcenter()
 		if img.filename not in indices:
 			mps = pathstolines(img.paths)
 			indices[img.filename] = len(ps) // 2, len(mps) // 2
@@ -22,16 +24,16 @@ def loadsvg(img):
 		offset, plen = indices[img.filename]
 		return { "p0": offset, "np": plen, "height": img.height }
 	if isinstance(img, svg.AnimatedSVG):
-		return { "frames": map(loadsvg, img.frames), "framelength": img.framelength }
+		return { "frames": [loadsvg(f, shift) for f in img.frames], "framelength": img.framelength }
 	if isinstance(img, svg.TurretSVG):
-		return { "base": loadsvg(img.basesvg), "turret": loadsvg(img.turretsvg) }
+		return { "base": loadsvg(img.basesvg, shift), "turret": loadsvg(img.turretsvg, shift) }
 	if isinstance(img, svg.StatefulSVG):
-		return { "states": { sname: loadsvg(simg) for sname, simg in img.stateanims.items() } }
+		return { "states": { sname: loadsvg(simg, shift) for sname, simg in img.stateanims.items() } }
 
-def loadimgmap(imgmap):
+def loadimgmap(imgmap, shift=False):
 	s = {}
 	for name, (img, color) in imgmap.items():
-		s[name] = loadsvg(img)
+		s[name] = loadsvg(img, shift)
 		s[name]["colour"] = color
 	return s
 
@@ -44,7 +46,7 @@ def loadportraits(imgmap):
 	return s
 
 for name in "sprites cursors".split():
-	gdata[name] = loadimgmap(getattr(graphics, name))
+	gdata[name] = loadimgmap(getattr(graphics, name), True)
 
 gdata["portraits"] = loadportraits(graphics.portraits)
 

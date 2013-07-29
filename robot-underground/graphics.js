@@ -172,8 +172,8 @@ var graphics = {
 	drawwall: function (code, cx, cy, cs) {
 		this.draw(gdata.walls[code], cx*cs, cy*cs, cs, 0)
 	},
-	drawcursor: function (mode, x, y) {
-		this.draw(gdata.cursors[mode], x-20, y-20, 40, 0)
+	drawcursor: function (mode, x, y, opts) {
+		this.draw(gdata.cursors[mode], x, y, 40, 0, opts)
 	},
 	
 	// Draw procedurally-generated graphical primitives

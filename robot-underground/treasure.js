@@ -3,6 +3,7 @@ function Treasure(mission, pos, radius, name) {
 	this.init(mission, pos, radius, name)
 }
 Treasure.prototype = extend(Entity.prototype, {
+	istreasure: true,
 	init: function (mission, pos, radius, name) {
 		Entity.prototype.init.call(this, mission, pos, radius, 0, false, name || "???")
 		this.mission.born[this.id] = this

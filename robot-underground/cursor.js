@@ -19,7 +19,7 @@ GameCursor.prototype = {
 		var broken = false
 		for (var id in es) {
 			var e = es[id]
-			if (e instanceof Actor) {
+			if (e.isactor) {
 				anactor = e
 				if (e.hostile) {
 					this.entity_under_cursor = e
@@ -32,9 +32,8 @@ GameCursor.prototype = {
 					this.mode = "talk"
 				}
 			}
-			if (e instanceof Treasure) {
+			if (e.istreasure) {
 				sometreasure = e
-				
 			}
 			if (e !== this.modehandler.mission.protag) {
 				anentity = e

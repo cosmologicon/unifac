@@ -30,7 +30,7 @@ UFX.scenes.missionmode = {
 		// TODO: current_dialogue_menu
 		this.portrait_ypos = PORTRAIT_BOTTOM * scr_h
 		this.portrait_height = (PORTRAIT_TOP - PORTRAIT_BOTTOM) * scr_h
-		this.portrait_width = this.portait_height * PORTRAIT_ASPECT
+		this.portrait_width = this.portrait_height * PORTRAIT_ASPECT
 		this.portrait_l_xpos = PORTRAIT_PAD * scr_h
 		this.portrait_r_xpos = scr_w - (PORTRAIT_PAD * scr_h) - this.portrait_width
 		this.dialogue_changed = true
@@ -181,8 +181,7 @@ UFX.scenes.missionmode = {
 		if (!target || !target.hostile) return
 		var txt = target.describe()
 		var fontsize = HUD_FONT_SMALL * settings.scr_h
-		// TODO: I think the info wraps with a width of HUD_TARGETINFO_WIDTH*scr_h
-		var infotext = text.gettexture(txt, fontsize, "white")
+		var infotext = text.gettexture(txt, fontsize, "white", HUD_TARGETINFO_WIDTH*settings.scr_h)
 		var r = Math.max(target.r, infotext.w1 / 2)
 		var p = HUD_TARGETINFO_PAD * settings.scr_h
 		var w = 2 * (r + p)
@@ -309,8 +308,8 @@ UFX.scenes.missionmode = {
 		if (!e.r) return  // size 0 explosions cause graphical glitches
 		pos = pos || e.pos
 		var opts = { frameno: this.frameno, state: e.anim_state, turretbearing: e.turretbearing }
-		try {  // TODO
-			graphics.draw(gdata.sprites[e.name], pos[0], pos[1], Math.round(e.r), e.bearing/57.3, opts)
+		try {
+			graphics.draw(gdata.sprites[e.name], pos[0], pos[1], Math.round(2 * e.r), e.bearing/57.3, opts)
 		} catch (err) {
 			throw err + " ::: " + e.name
 		}
@@ -394,22 +393,73 @@ UFX.scenes.missionmode = {
 			var px = this.portrait_l_xpos, py = this.portrait_ypos
 			var sx = this.portrait_height * PORTRAIT_ASPECT, sy = this.portrait_height
 			graphics.drawhudrect([px, py], [sx, sy], [1,1,1], [0,0,0,0.8])
-			graphics.draw(gdata.portraits[s.currentLeftPortrait], px, py, sy, 0, {hud: true})
+			graphics.draw(s.currentLeftPortrait, px, py, sy, 0, {hud: true})
 		}
 		if (s.currentRightPortrait) {
 			var px = this.portrait_r_xpos, py = this.portrait_ypos
 			var sx = this.portrait_height * PORTRAIT_ASPECT, sy = this.portrait_height
 			graphics.drawhudrect([px, py], [sx, sy], [1,1,1], [0,0,0,0.8])
-			graphics.draw(gdata.portraits[s.currentRightPortrait], px, py, sy, 0, {hud: true})
+			graphics.draw(s.currentRightPortrait, px, py, sy, 0, {hud: true})
 		}
 		
-		var dtext = s.currentDialogue, stext = s.currentSpeaker && s.currentSpeaker.name
+		var dtext = s.currentDialogue, stext = s.currentSpeaker
 		var W = settings.scr_w, H = settings.scr_h
         var gutter = Math.round(BOX_GUTTER * H)
         var fontsize = Math.round(DIALOGUE_FONT_SIZE * H)
+/*
+        # Dialogue text left
+        self.dialogue_text_l = text.Label(
+            "",
+            font_name=DIALOGUE_FONT,
+            font_size=DIALOGUE_FONT_SIZE*scr_h,
+            x=DIALOGUE_BOX_PAD*scr_w,
+            y=DIALOGUE_BOX_TOP*scr_h,
+            halign="left", valign="top"
+        )
+        self.dialogue_text_l.width = DIALOGUE_BOX_WIDTH * scr_w
+        self.dialogue_text_l.multiline = True
+
+        # Dialogue text right
+        self.dialogue_text_r = text.Label(
+            "",
+            font_name=DIALOGUE_FONT,
+            font_size=DIALOGUE_FONT_SIZE*scr_h,
+            x=(1 - DIALOGUE_BOX_PAD - DIALOGUE_BOX_WIDTH)*scr_w,
+            y=DIALOGUE_BOX_TOP*scr_h,
+            halign="left", valign="top"
+        )
+        self.dialogue_text_r.width = DIALOGUE_BOX_WIDTH * scr_w
+        self.dialogue_text_r.multiline = True
+
+
+        # Dialogue menu left
+        self.dialogue_menu_l = menu.MenuObject(
+            font_name=DIALOGUE_FONT,
+            font_size=DIALOGUE_FONT_SIZE,
+            x=DIALOGUE_BOX_PAD*scr_w,
+            y=DIALOGUE_BOX_TOP*scr_h,
+            width=DIALOGUE_BOX_WIDTH*scr_w,
+            spacing=DIALOGUE_BOX_SPACING*scr_h,
+        )
+
+        # Dialogue menu right
+        self.dialogue_menu_r = menu.MenuObject(
+            font_name=DIALOGUE_FONT,
+            font_size=DIALOGUE_FONT_SIZE,
+            x=(1-DIALOGUE_BOX_PAD-DIALOGUE_BOX_WIDTH)*scr_w,
+            y=DIALOGUE_BOX_TOP*scr_h,
+            width=DIALOGUE_BOX_WIDTH*scr_w,
+            spacing=DIALOGUE_BOX_SPACING*scr_h,
+        )
+		if (s && s.state === "waitChoice") {
+			this.mouse_protected = DIALOGUE_CLICK_PROTECTION_FRAMES
+			this.choice_mode = true
+//			this.current_dialogue_menu = s.speakerIsLeft ? this.dialogue_menu_l : this.dialogue_menu_r
+*/
+
 		
-		if (s.isQuestion) {
-			// TODO
+		if (s.menu) {
+			s.menu.draw()
 		} else if (dtext) {
 			var tx = Math.round((isLeft ? DIALOGUE_BOX_PAD : (1 - DIALOGUE_BOX_PAD - DIALOGUE_BOX_WIDTH)) * W)
 			var ty = Math.round(DIALOGUE_BOX_TOP * H)
@@ -471,6 +521,12 @@ UFX.scenes.missionmode = {
 
 		if (mstate.left.drag) this.on_mouse_drag(mstate.pos, mstate.left.drag, kstate.pressed.ctrl)
 		if (mstate.right.drag) this.on_mouse_drag(mstate.pos, mstate.right.drag, true)
+		
+		var s = this.mission.currentScript
+		if (s && s.menu) {
+			s.menu.handlemouse(this.mouse_x, this.mouse_y, mstate.left.down)
+			// TODO handle keys as well
+		}
 	},
 	on_mouse_press: function (pos, targetonly) {
 		// Note that pos here is in screen coordinates - Y-coordinate is flipped from HUD coordinates
@@ -478,12 +534,13 @@ UFX.scenes.missionmode = {
 		if (this.mouse_protected > 0) return
 		// TODO: choice mode and dialogue menu
 		// TODO: inventory mode
-		var m = this.mission
-		if (m.currentScript && m.currentScript.state == "waitKey") {
-			m.currentScript.state = "running"
+		var m = this.mission, s = m.currentScript
+		if (s && s.state == "waitKey") {
+			s.state = "running"
 			return
 		}
-		if (m.currentScript && m.currentScript.state == "frozen") return
+		if (s && s.state == "frozen") return
+		if (s && s.menu) return  // handled elsewhere
 		if (m.isCutscene) return
 
 		for (var j = 0 ; j < this.weapon_icons.length ; ++j) {
@@ -575,7 +632,7 @@ UFX.scenes.missionmode = {
 		this.add_floaty(amount.toFixed(1), pos, FLOATY_DAMAGE_COLOUR)
 	},
 	on_heal: function (pos, amount) {
-		this.add_floaty(amount.toFixed(0), pos, FLOATY_HEALING_COLOR, FLOAT_HEAL_DELAY)
+		this.add_floaty(amount.toFixed(0), pos, FLOATY_HEALING_COLOUR, FLOAT_HEAL_DELAY)
 	},
 	on_pick_up: function () {
 		playsound("pickup")
@@ -600,7 +657,7 @@ UFX.scenes.missionmode = {
 		if (s && s.state === "waitChoice") {
 			this.mouse_protected = DIALOGUE_CLICK_PROTECTION_FRAMES
 			this.choice_mode = true
-			this.current_dialogue_menu = s.speakerIsLeft ? this.dialogue_menu_l : this.dialogue_menu_r
+//			this.current_dialogue_menu = s.speakerIsLeft ? this.dialogue_menu_l : this.dialogue_menu_r
 			// TODO: dialogue options
 		} else {
 			this.choice_mode = false
@@ -690,6 +747,7 @@ UFX.scenes.missionmode = {
 			if (this.new_xp_delay <= 0) {
 				var s = "+" + this.format_xp(this.new_xp) + " XPs"
 				this.add_floaty(s, this.mission.protag.pos, FLOATY_XP_COLOUR)
+				this.new_xp = 0
 			}
 		}
 		if (!this.mission.currentScript) {
