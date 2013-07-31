@@ -53,7 +53,7 @@ gdata["portraits"] = loadportraits(graphics.portraits)
 for name in "weapon_icons armour_icons walls".split():
 	gdata[name] = { name: loadsvg(img) for name, img in getattr(graphics, name).items() }
 
-for name in "cross drop weapondrop splash leftclaw rightclaw trail eject eject_confirm floor triup tridown appraised equipped title debug_iface_circle".split():
+for name in "cross drop weapondrop splash leftclaw rightclaw trail eject eject_confirm floor triup tridown appraised equipped title debug_iface_circle armour".split():
 	gdata[name] = loadsvg(getattr(graphics, name))
 
 

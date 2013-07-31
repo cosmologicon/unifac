@@ -1,0 +1,14 @@
+- my cursor's too small
+- trail too bright
+? HUD stats too bright?
+- HP doesn't appear on enemy data
+- Enemy drawing too small
+Dialogue boxes should extend all the way to the right
+- Floaties too big
+- Metal output about a line too low
+- Weapons listed as unappraised
+- Repair kit doesn't do a damn thing
+Intimidating Scorpion faces the wrong way
+
+Monsters don't face you when they claw you
+Double GET! sometimes

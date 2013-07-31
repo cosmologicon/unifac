@@ -142,7 +142,11 @@ Actor.prototype = extend(Entity.prototype, {
 		}
 	},
 	
-	// TODO: scriptMove, setScriptPath, describe
+	// TODO: scriptMove, setScriptPath
+	
+	describe: function () {
+		return this.name + (this.hostile ? " (" + Math.ceil(this.currenthp) + ")" : "")
+	},
 	
 	tick: function () {
 		if (this.scriptNodes.length) {
@@ -275,7 +279,7 @@ Protag.prototype = extend(Actor.prototype, {
 	
 	heal: function (amount) {
 		Actor.prototype.heal.call(this, amount)
-		this.currenthp = Math.min(currenthp, this.getMaxHP())
+		this.currenthp = Math.min(this.currenthp, this.getMaxHP())
 	},
 	
 	getAttack: function () { return this.robotstate.getAttack() },

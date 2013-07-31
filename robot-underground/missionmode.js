@@ -123,7 +123,7 @@ UFX.scenes.missionmode = {
 
 	draw_metal: function () {
 		var fontsize = HUD_FONT_SMALL * settings.scr_h, dy = Math.round(fontsize * 1.3)
-        var x = HUD_MARGIN * settings.scr_h, y = (HUD_MARGIN + HUD_ICON_SIZE) * settings.scr_h
+        var x = HUD_MARGIN * settings.scr_h, y = (HUD_MARGIN + HUD_ICON_SIZE) * settings.scr_h + dy
         var texts = []
         for (var j = 0 ; j < METALS.length ; ++j) {
         	var metal_name = METALS[j], amount = robotstate.metal[j]
@@ -192,7 +192,7 @@ UFX.scenes.missionmode = {
 		
 		graphics.drawhudrect([x,y-h-p], [w,h+w], [1,1,1,1], [0,0,0,0.8])
 		var opts = { frameno: this.frameno, state: target.anim_state, turretbearing: target.turretbearing, hud: true }
-		graphics.draw(gdata.sprites[target.name], x+r+p, y+r, target.r, target.bearing/57.3, opts)
+		graphics.draw(gdata.sprites[target.name], x+r+p, y+r, 2*target.r, target.bearing/57.3, opts)
 		text.drawhud(txt, tx, ty, fontsize, "white", "left", "top")
 	},
 	
@@ -375,10 +375,10 @@ UFX.scenes.missionmode = {
 		var p = this.mission.protag
 		if (p.scriptNodes.length) return
 		if (p.dest) {
-			graphics.drawcursor("walk", p.dest[0], p.dest[1], [0.5, 0.5, 0])
+			graphics.drawcursor("walk", p.dest[0], p.dest[1], { colour: [0.5, 0.5, 0] })
 		}
 		if (p.targ) {
-			graphics.drawcursor("fire", p.targ.pos[0], p.targ.pos[1], [0.5, 0, 0])
+			graphics.drawcursor("fire", p.targ.pos[0], p.targ.pos[1], { colour: [0.5, 0, 0] })
 		}
 		// TODO: edit_npc
 	},
@@ -464,7 +464,7 @@ UFX.scenes.missionmode = {
 			var tx = Math.round((isLeft ? DIALOGUE_BOX_PAD : (1 - DIALOGUE_BOX_PAD - DIALOGUE_BOX_WIDTH)) * W)
 			var ty = Math.round(DIALOGUE_BOX_TOP * H)
 			var tw = Math.round(DIALOGUE_BOX_WIDTH * W)
-			text.drawhudborder(dtext, tx, ty, fontsize, "white", gutter, "left", "top", tw, "left")
+			text.drawhudborder(dtext, tx, ty, fontsize, "white", gutter, "left", "top", tw, "left", true)
 		}
 		
 		if (stext) {
@@ -491,7 +491,6 @@ UFX.scenes.missionmode = {
 			this.draw_weapon_fx()
 			this.draw_floaties()
 			this.draw_cursor_shadows()
-			this.cursor.draw()  // I'm guessing this is called automatically in pyglet
 
 		}
 		graphics.hz = this.current_hud_zoom
@@ -502,6 +501,7 @@ UFX.scenes.missionmode = {
 		} else {
 			this.draw_hud()
 		}
+		this.cursor.draw()  // I'm guessing this is called automatically in pyglet
 	},
 
 	can_click: function () {
@@ -553,7 +553,7 @@ UFX.scenes.missionmode = {
 		
 		// HUD stuff
 		var e = this.cursor.entity_under_cursor
-		if (e && (e instanceof Actor) && e !== m.protag) {
+		if (e && e.isactor && e !== m.protag) {
 			m.protag.targ = e
 			if (!e.hostile) m.protag.set_dest(e.pos)
 		} else if (!targetonly) {
@@ -709,7 +709,7 @@ UFX.scenes.missionmode = {
 			}
 			this.weapon_icons.push(icon)
 		}
-		this.armour_icon = this.equip_icons[idx + 1]
+		this.armour_icon = this.equip_icons[idx]
 		this.armour_icon.icon = gdata.armour
 	},
 	close_inventory: function () {

@@ -9,7 +9,7 @@ Weapon.prototype = extend(Equippable.prototype, {
 		this.baserange = WEAPON_RANGE_MULTIPLIER * range
 		this.basecooldown = cooldowntime
 		this.basedamage = damage
-		this.cooldotn = this.basecooldown
+		this.cooldown = this.basecooldown
 		this.baseenergydrain = energydrain === undefined ? 1 : energydrain
 		var pc = this.percentages = {}
 		mod.wpckeys.forEach(function (key) {

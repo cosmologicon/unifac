@@ -27,7 +27,7 @@ var robotstate = {
 			// TODO: cheat code
 		}
 		this.armoury.isIdentified = true
-		// TODO (identify weapons)
+		this.weaponry.forEach(function (weap) { weap.isIdentified = true })
 		this.inventory = []
 		this.metal = [0,0,0,0,0]
 	},

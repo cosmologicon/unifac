@@ -11,8 +11,8 @@ var text = {
 	//   per frame at 60fps continuously for over 4000 years.
 	tick: 0,  // for keeping track of which textures were used most recently
 
-	gettexture: function (text, fontsize, colour, twidth, talign) {
-		var key = text + ":" + fontsize + ":" + colour + ":" + twidth + ":" + talign
+	gettexture: function (text, fontsize, colour, twidth, talign, tfull) {
+		var key = text + ":" + fontsize + ":" + colour + ":" + twidth + ":" + talign + ":" + tfull
 		if (this.textures[key]) return this.textures[key]
 
 		var d = Math.ceil(0.2 * fontsize), lh = Math.ceil(1.25 * fontsize)
@@ -24,6 +24,8 @@ var text = {
 			texts = [].concat.apply([], texts.map(function(t) { return wordwrap(t, twidth, con) }))
 		}
 		var w0 = Math.max.apply(null, texts.map(function (t) { return con.measureText(t).width }))
+		if (tfull && twidth) w0 = twidth
+		
 		var h0 = fontsize + lh * (texts.length - 1)  // size of text box itself
 		var w1 = w0 + 2 * d, h1 = h0 + 2 * d  // size of text box with buffer
 		var w = 2, h = 2  // size of texture (must be power of 2)
@@ -75,13 +77,13 @@ var text = {
 	// Draw text in HUD coordinates
 	// (hanchor, vanchor) is anchor point: (0,0) = bottom left, (1, 1) = top right
 	// Can be specified as either a number or string: left/center/right, bottom/middle/top
-	drawhud: function (text, x, y, fontsize, colour, hanchor, vanchor, twidth, talign) {
-		this.gettexture(text, fontsize, colour, twidth, talign).drawhud(x, y, hanchor, vanchor)
+	drawhud: function (text, x, y, fontsize, colour, hanchor, vanchor, twidth, talign, tfull) {
+		this.gettexture(text, fontsize, colour, twidth, talign, tfull).drawhud(x, y, hanchor, vanchor)
 	},
 	
-	drawworld: function (text, x, y, fontsize, colour, hanchor, vanchor, twidth, talign) {
+	drawworld: function (text, x, y, fontsize, colour, hanchor, vanchor, twidth, talign, tfull) {
 		fontsize = Math.round(fontsize * graphics.cz)
-		this.gettexture(text, fontsize, colour, twidth, talign).drawworld(x, y, hanchor, vanchor)
+		this.gettexture(text, fontsize, colour, twidth, talign, tfull).drawworld(x, y, hanchor, vanchor)
 	},
 	
 	// apply this to a texture object before calling
@@ -121,10 +123,10 @@ var text = {
 
 
 	// Draw text with one of those jagged borders around it
-	drawhudborder: function (text, x, y, fontsize, colour, gutter, hanchor, vanchor, twidth, talign, ocolour, scolour) {
+	drawhudborder: function (text, x, y, fontsize, colour, gutter, hanchor, vanchor, twidth, talign, tfull, ocolour, scolour) {
 		hanchor = hanchor ? hanchor.trim ? {left: 0, center: 0.5, right: 1}[hanchor] : hanchor : 0
 		vanchor = vanchor ? vanchor.trim ? {bottom: 0, middle: 0.5, top: 1}[vanchor] : vanchor : 0
-		var ttex = this.gettexture(text, fontsize, colour, twidth, talign)
+		var ttex = this.gettexture(text, fontsize, colour, twidth, talign, tfull)
 		var px = Math.round(x - hanchor * ttex.w0 - gutter)
 		var py = Math.round(y - vanchor * ttex.h0 - gutter)
 		var size = [ttex.w0 + 2 * gutter, ttex.h0 + 2 * gutter]
