@@ -124,7 +124,11 @@ Mission.prototype = {
 			hostiles.push(e)
 		}
 		if (!hostiles.length) return null
-		hostiles.sort(function (item) { return distanceBetween(pos, item.pos) })
+		var px = pos[0], py = pos[1]
+		hostiles.sort(function (item) {
+			var dx = px - item.pos[0], dy = py - item.pos[1]
+			return dx * dx + dy * dy
+		})
 		if (!requireLOS) return hostiles[0]
 		for (var j = 0 ; j < hostiles.length ; ++j) {
 			if (this.map.hasLOS(pos, hostiles[j].pos)) {

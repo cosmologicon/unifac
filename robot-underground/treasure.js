@@ -35,7 +35,7 @@ Metal.prototype = extend(Treasure.prototype, {
 	},
 	
 	describe: function () {
-		return this.name + "(" + this.amount + ")"
+		return this.name + " (" + this.amount + ")"
 	},
 })
 

@@ -46,8 +46,8 @@ GameCursor.prototype = {
 		}
 	},
 	draw: function () {
-		var p = this.modehandler.get_mouse_world_coordinates()
-		graphics.drawcursor(this.mode, p[0], p[1])
+		var x = this.modehandler.mouse_x, y = this.modehandler.mouse_y
+		graphics.drawcursor(this.mode, x, y, {hud: true})
 	},
 }
 

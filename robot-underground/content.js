@@ -24,6 +24,7 @@ function setupFirstMission(ps, m) {
 	m.setStartScript([
 		["change_music", null],
 		["speaker_l", "Camden"],
+		["say_l", "This is it ... I've had it."],
 		["say_l", "How did I get myself into this mess? My first proper mission, and I'm going to die alone in this wasteland."],
 		["say_l", "Dammit!"],
 		["sound", "radio"],
