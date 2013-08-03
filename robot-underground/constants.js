@@ -1,13 +1,27 @@
 // settings for the js version
+
+var qopts = {}
+window.location.search.slice(1).split("&").forEach(function (qstr) {
+    var a = qstr.split("=")
+    qopts[a[0]] = a.length == 1 ? true : decodeURIComponent(a[1])
+})
+
 var settings = {
-	scr_w: 640,
-	scr_h: 480,
+	scr_w: 800,
+	scr_h: 600,
 	gamename: "Robot Underground",
 	version: "0",
+	music: true,
+	sfx: true,
+	cursor: true,
+}
+if (qopts.h) {
+	settings.scr_h = +qopts.h
+	settings.scr_w = Math.round(+qopts.h * 4 / 3)
 }
 
 var DEBUG = {}
-if (location.href.indexOf("DEBUG") > -1) {
+if (qopts.DEBUG) {
 	DEBUG.expose = true // expose convenience methods, eg zoomout and zoomin
 	var DEBUGform = document.getElementById("DEBUG")
 	DEBUGform.style.display = "block"

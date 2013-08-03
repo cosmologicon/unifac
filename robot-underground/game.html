@@ -37,11 +37,9 @@ void main(void) {
     gl_FragColor = texture2D(sampler, vtcoord) * tfac + colour * (1.0 - tfac);
 }
 </script>
-<h1 style="font-family: 'Hockey'">Robot Underground</h1>
-<canvas id="canvas" style="background:black"></canvas>
+<canvas id="loadcanvas" style="background:black"></canvas>
+<canvas id="canvas" style="background:black;display:none;cursor:none"></canvas>
 <form id="DEBUG" style="display:none">
-<p><input type="checkbox" onchange="setsfx(this.checked)" checked>Sound effects</input>
-<p><input type="checkbox" onchange="setmusic(this.checked)" checked>Music</input>
 <p><input type="checkbox" onchange="DEBUG.skipcutscenes=this.checked">Skip cutscenes</input>
 <p><input type="checkbox" onchange="DEBUG.onehit=this.checked">One-hit kills</input>
 <p><input type="checkbox" onchange="DEBUG.areamode=this.checked">Show area scripts</input>
@@ -55,6 +53,7 @@ void main(void) {
 <script src="../UFX/src/random.js"></script>
 <script src="../UFX/src/key.js"></script>
 <script src="../UFX/src/mouse.js"></script>
+<script src="../UFX/src/draw.js"></script>
 <script src="constants.js"></script>
 <script src="content.js"></script>
 <script src="state.js"></script>

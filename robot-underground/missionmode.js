@@ -527,6 +527,7 @@ UFX.scenes.missionmode = {
 			s.menu.handlemouse(this.mouse_x, this.mouse_y, mstate.left.down)
 			// TODO handle keys as well
 		}
+		if (kstate.down.esc) UFX.scene.push("pause")
 	},
 	on_mouse_press: function (pos, targetonly) {
 		// Note that pos here is in screen coordinates - Y-coordinate is flipped from HUD coordinates
