@@ -1,29 +1,58 @@
 
-UFX.resource.onload = function () {
-	initPlotState(plotstate)
-	robotstate.init(null)
-	"shot1 shot2 shot3".split(" ").forEach(function (s) {
-		UFX.resource.sounds[s] = UFX.resource.Multisound(UFX.resource.sounds[s], 10)
-	})
-	UFX.resource.mergesounds("shot", "destroy", "pickup", "bullet", "lightning", "railgun")
-	graphics.clear()
-	UFX.mouse.capture.right = true
-	UFX.mouse.capture.wheel = true
-	UFX.mouse.init(canvas)
-	UFX.key.watchlist = "up down left right enter space tab esc".split(" ")
-	UFX.key.init()
-	UFX.scene.init({fps: 30})
-//	UFX.scene.push("missionmode")
-	UFX.scene.push("mainmenu")
+UFX.scenes.load = {
+	start: function () {
+		this.canvas = document.getElementById("loadcanvas")
+		this.canvas.width = settings.scr_w ; this.canvas.height = settings.scr_h
+		this.context = loadcanvas.getContext("2d")
+		this.progress = 0
+		this.loaded = false
+	},
+	stop: function () {
+		this.canvas.style.display = "none"
+		canvas.style.display = "block"
+	},
+	onloading: function (f) {
+		this.progress = f
+	},
+	onload: function () {
+		graphics.init()
+		initPlotState(plotstate)
+		robotstate.init(null)
+		"shot1 shot2 shot3".split(" ").forEach(function (s) {
+			UFX.resource.sounds[s] = UFX.resource.Multisound(UFX.resource.sounds[s], 10)
+		})
+		UFX.resource.mergesounds("shot", "destroy", "pickup", "bullet", "lightning", "railgun")
+		graphics.clear()
+		UFX.mouse.capture.right = true
+		UFX.mouse.capture.wheel = true
+		UFX.mouse.init(canvas)
+		UFX.key.watchlist = "up down left right enter space tab esc".split(" ")
+		UFX.key.init()
 
-	if (DEBUG.expose) {
-		mode = UFX.scenes.missionmode
-		zoomout = function () {	mode.desired_zoom /= 4 }
-		zoomin = function () { mode.desired_zoom *= 4 }
-	}
-
+		if (DEBUG.expose) {
+			mode = UFX.scenes.missionmode
+			zoomout = function () {	mode.desired_zoom /= 4 }
+			zoomin = function () { mode.desired_zoom *= 4 }
+		}
+		this.loaded = true
+		this.canvas.style.cursor = "pointer"
+		this.canvas.onclick = UFX.scene.swap.bind(UFX.scene, "mainmenu")
+	},
+	draw: function () {
+		var s = this.loaded ? "Click~to~begin" : "Loading~(" + (this.progress * 100).toFixed(0) + "%)..."
+		UFX.draw(this.context,
+			"fs black f0",
+			"font 48px~Hockey textalign center [ t", this.canvas.width/2, this.canvas.height/2 - 40,
+			"fs yellow ft0 Robot~Underground",
+			"t 0 60 ft0", s,
+			"]"
+		)
+	},
 }
-
+UFX.scene.init({fps: 30})
+UFX.scene.push("load")
+UFX.resource.onloading = UFX.scenes.load.onloading.bind(UFX.scenes.load)
+UFX.resource.onload = UFX.scenes.load.onload.bind(UFX.scenes.load)
 
 // christopher@palimpsest:~/Downloads/robot-underground-1.0.4$ grep "\.wav" lib/sound.py | sed 's|.*\ "||;s|\..*||' | xargs -n 1 -I xxx oggenc data/sfx/xxx.wav -o ~/projects/unifac/robot-underground/data/sfx/xxx.ogg
 // radio.wav is weird - had to convert it with audacity
@@ -43,7 +72,6 @@ songnames.forEach(function (sname) { res[sname] = "data/music/" + sname + ".ogg"
 soundnames.forEach(function (sname) { res[sname] = "data/sfx/" + sname + ".ogg" })
 mapnames.forEach(function (mname) { res[mname] = "data/maps/" + mname + ".bmp" })
 UFX.resource.load(res)
-graphics.init()
 
 
 function clip(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
@@ -51,14 +79,13 @@ function clip(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
 function splitcap(s) { return s.replace(/([A-Z])/g, ' $1').substr(1) }
 
 var musicplaying = null
-var musicon = true, sfxon = true
 var musicvolume = 1, sfxvolume = 1
 function setsfx(on) {
-	sfxon = on
+	settings.sfx = on
 }
 function setmusic(on) {
-	musicon = on
-	if (musicplaying) musicplaying.volume = musicon ? musicvolume : 0
+	settings.music = on
+	if (musicplaying) musicplaying.volume = settings.music ? musicvolume : 0
 }
 
 function playsound(name) {
@@ -66,7 +93,7 @@ function playsound(name) {
 		console.log("missing sound: " + name)
 		return
 	}
-	if (!sfxon) return
+	if (!settings.sfx) return
 	UFX.resource.sounds[name].volume = sfxvolume
 	UFX.resource.sounds[name].play()
 }
@@ -84,7 +111,7 @@ function playmusic(songname) {
 	if (m === musicplaying) return
 	if (musicplaying) musicplaying.pause()
 	// TODO: actually don't play the music if it's not on?
-	m.volume = musicon ? musicvolume : 0
+	m.volume = settings.music ? musicvolume : 0
 	m.currentTime = 0
 	m.play()
 	m.loop = true

@@ -46,8 +46,19 @@ GameCursor.prototype = {
 		}
 	},
 	draw: function () {
-		var x = this.modehandler.mouse_x, y = this.modehandler.mouse_y
-		graphics.drawcursor(this.mode, x, y, {hud: true})
+		if (settings.cursor) {
+			var x = this.modehandler.mouse_x, y = this.modehandler.mouse_y
+			graphics.drawcursor(this.mode, x, y, {hud: true})
+			canvas.style.cursor = "none"
+		} else {
+			canvas.style.cursor = {
+				"walk": "crosshair",
+				"fire": "pointer",
+				"inactive": "progress",
+				"talk": "pointer",
+			}[this.mode]
+		
+		}
 	},
 }
 
