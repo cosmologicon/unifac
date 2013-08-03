@@ -121,6 +121,7 @@ MenuScene.prototype = {
 
 	start: function () {
 		this.menu = new Menu(this.choices, this.x, this.y, this.opts)
+		playmusic(MENU_MUSIC)
 	},
 	
 	thinkargs: function (dt) {

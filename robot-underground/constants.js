@@ -231,13 +231,13 @@ var Damage = {
 }
 
 // Musics
-MENU_MUSIC = "How it Begins.ogg"
-TOWN_MUSIC = "Radio Martini.ogg"
-OZ_MUSIC = "Long Time Coming.ogg"
-MISSION_MUSIC = "Electro Sketch.ogg"
-CAMP_MUSIC = "Klockworx.ogg"
-LO_BOSS_MUSIC ="Long Time Coming.ogg"
-HI_BOSS_MUSIC = "Chase.ogg"
+MENU_MUSIC = "HowItBegins"
+TOWN_MUSIC = "RadioMartini"
+OZ_MUSIC = "LongTimeComing"
+MISSION_MUSIC = "ElectroSketch"
+CAMP_MUSIC = "Klockworx"
+LO_BOSS_MUSIC ="LongTimeComing"
+HI_BOSS_MUSIC = "Chase"
 
 
 
