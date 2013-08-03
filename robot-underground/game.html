@@ -40,6 +40,8 @@ void main(void) {
 <h1 style="font-family: 'Hockey'">Robot Underground</h1>
 <canvas id="canvas" style="background:black"></canvas>
 <form id="DEBUG" style="display:none">
+<p><input type="checkbox" onchange="setsfx(this.checked)" checked>Sound effects</input>
+<p><input type="checkbox" onchange="setmusic(this.checked)" checked>Music</input>
 <p><input type="checkbox" onchange="DEBUG.skipcutscenes=this.checked">Skip cutscenes</input>
 <p><input type="checkbox" onchange="DEBUG.onehit=this.checked">One-hit kills</input>
 <p><input type="checkbox" onchange="DEBUG.areamode=this.checked">Show area scripts</input>
