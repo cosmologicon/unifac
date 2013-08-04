@@ -63,14 +63,9 @@ var soundnames = (
 var songnames = "Chase ElectroSketch HowItBegins Klockworx LongTimeComing RadioMartini".split(" ")
 //var songnames = "ElectroSketch HowItBegins".split(" ")
 
-var mapnames = "3rooms controlroom dollis".split(" ")
-
-
-
 var res = {}
 songnames.forEach(function (sname) { res[sname] = "data/music/" + sname + ".ogg" })
 soundnames.forEach(function (sname) { res[sname] = "data/sfx/" + sname + ".ogg" })
-mapnames.forEach(function (mname) { res[mname] = "data/maps/" + mname + ".bmp" })
 UFX.resource.load(res)
 
 
