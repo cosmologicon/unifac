@@ -10,6 +10,8 @@ Dialogue boxes should extend all the way to the right
 - Repair kit doesn't do a damn thing
 Intimidating Scorpion faces the wrong way
 Why does it take so long for the repair kit to work?
+Pause on dialogue start
+Music loop
 
 Monsters don't face you when they claw you
 Double GET! sometimes

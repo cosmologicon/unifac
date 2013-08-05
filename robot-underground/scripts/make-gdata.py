@@ -62,6 +62,6 @@ gdata["ps"] = map(int, map(round, ps))
 s = json.dumps(gdata, separators=(',', ':'))
 print len(s)
 
-open("../data/gdata.js", "w").write("var gdata = %s\n" % s)
+open("../data/gdata.json", "w").write(s)
 
 

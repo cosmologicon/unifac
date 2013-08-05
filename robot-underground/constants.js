@@ -23,6 +23,7 @@ if (qopts.h) {
 var DEBUG = {}
 if (qopts.DEBUG) {
 	DEBUG.expose = true // expose convenience methods, eg zoomout and zoomin
+	DEBUG.testdialogue = true  // put Putney by the starting position
 	var DEBUGform = document.getElementById("DEBUG")
 	DEBUGform.style.display = "block"
 }

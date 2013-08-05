@@ -40,29 +40,30 @@ function setupFirstMission(ps, m) {
 		["say_r", "Try this now by moving into the room to your right."],
 	])
 
-	m.actorTalkScript([
-		["speaker_r", "Putney"],
-		["speaker_l", "Camden"],
-		["if_first", "act1.putney.intro", [
-			["say_r", "Everyone else seems to be doing such important things."],
-			["say_r", "Do you think there's room in life for everyone to make an important contribution in their own way?"],
-			["ask_l", "What should I say?", [
-				["Absolutely.",
-					["say_r", "Sometimes I wonder."],
-				],
-				["Life is what you make of it.", 
-					["say_r", "I don't know whether I should be pleased to hear that, or terrified."],
-				],
-				["What a philosophical question.",
-					["say_r", "Sorry."],
-					["say_r", "You probably aren't interested at all."],
-				],
+	if (DEBUG.testdialogue) {
+		m.actorTalkScript([
+			["speaker_r", "Putney"],
+			["speaker_l", "Camden"],
+			["if_first", "act1.putney.intro", [
+				["say_r", "Everyone else seems to be doing such important things."],
+				["say_r", "Do you think there's room in life for everyone to make an important contribution in their own way?"],
+				["ask_l", "What should I say?", [
+					["Absolutely.",
+						["say_r", "Sometimes I wonder."],
+					],
+					["Life is what you make of it.", 
+						["say_r", "I don't know whether I should be pleased to hear that, or terrified."],
+					],
+					["What a philosophical question.",
+						["say_r", "Sorry."],
+						["say_r", "You probably aren't interested at all."],
+					],
+				]],
+			], [
+				["say_r","What a funny old world it is."],
 			]],
-		], [
-			["say_r","What a funny old world it is."],
-		]],
-	], m.map.bottomPos([50, 250]), "Putney", null, 240)
-
+		], m.map.bottomPos([50, 250]), "Putney", null, 240)
+	}
 
 	
 	camden.addAreaScript([
@@ -135,7 +136,8 @@ function setupFirstMission(ps, m) {
 	m.setEjectScript([
 		["set_zoom", 0.1],
 		["freeze", 25],
-		["change_scene", "act1.town"],
+		["end_game"],
+// TODO		["change_scene", "act1.town"],
 	])
 
 }

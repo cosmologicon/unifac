@@ -1,6 +1,11 @@
 
 UFX.scenes.missionmode = {
 	start: function () {
+		// TODO: this should be removed when we have more than one mission
+		initPlotState(plotstate)
+		robotstate.init(null)
+
+
 		var scr_h = settings.scr_h, scr_w = settings.scr_w
 
 		// dialogue box positions and HUD constants moved into the individual draw_* methods where
@@ -27,7 +32,6 @@ UFX.scenes.missionmode = {
 		this.eject_mode = false
 		
 		this.choice_mode = false
-		// TODO: current_dialogue_menu
 		this.portrait_ypos = PORTRAIT_BOTTOM * scr_h
 		this.portrait_height = (PORTRAIT_TOP - PORTRAIT_BOTTOM) * scr_h
 		this.portrait_width = this.portrait_height * PORTRAIT_ASPECT
@@ -80,6 +84,8 @@ UFX.scenes.missionmode = {
 		if (this.mission.startScript) {
 			this.mission.runScript(this.mission.startScript)
 		}
+		
+		
 	},
 	
 	get_mouse_world_coordinates: function () {
@@ -679,6 +685,7 @@ UFX.scenes.missionmode = {
 	},
 	on_set_zoom: function (zoom) {
 		this.desired_zoom = zoom
+		console.log(zoom)
 	},
 	on_stop_mode: function () {
 		this.cursor.modehandler = null
