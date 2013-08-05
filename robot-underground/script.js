@@ -174,12 +174,17 @@ Script.prototype = {
 		this.state = "endMission"
 	},
 
+	end_game: function (next) {
+		this.state = "endGame"
+	},
+
 	inventory: function () {
 		this.mission.dispatch_event("on_inventory")
 	},
 
 	freeze: function (ticks) {
 		this.freezeTicks = ticks
+		this.state = "frozen"
 	},
 
 	set_zoom: function (zoom) {

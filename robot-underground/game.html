@@ -40,11 +40,11 @@ void main(void) {
 <canvas id="loadcanvas" style="background:black"></canvas>
 <canvas id="canvas" style="background:black;display:none;cursor:none"></canvas>
 <form id="DEBUG" style="display:none">
-<p><input type="checkbox" onchange="DEBUG.skipcutscenes=this.checked">Skip cutscenes</input>
-<p><input type="checkbox" onchange="DEBUG.onehit=this.checked">One-hit kills</input>
-<p><input type="checkbox" onchange="DEBUG.areamode=this.checked">Show area scripts</input>
-<p><input type="checkbox" onchange="DEBUG.entitycircle=this.checked">Entity circles</input>
-<p><input type="checkbox" onchange="DEBUG.textblock=this.checked;text.clear()">Text blocks</input>
+<label><input type="checkbox" onchange="DEBUG.skipcutscenes=this.checked"/>Skip cutscenes</label>
+<label><input type="checkbox" onchange="DEBUG.onehit=this.checked"/>One-hit kills</label>
+<label><input type="checkbox" onchange="DEBUG.areamode=this.checked"/>Show area scripts</label>
+<label><input type="checkbox" onchange="DEBUG.entitycircle=this.checked"/>Entity circles</label>
+<label><input type="checkbox" onchange="DEBUG.textblock=this.checked;text.clear()"/>Text blocks</label>
 </form>
 
 <script src="../UFX/src/resource.js"></script>
@@ -77,7 +77,5 @@ void main(void) {
 <script src="graphics.js"></script>
 <script src="text.js"></script>
 <script src="menu.js"></script>
-<script src="data/gdata.js"></script>
-<script src="data/mapdata.js"></script>
 <script src="main.js"></script>
 

@@ -15,9 +15,9 @@ UFX.scenes.load = {
 		this.progress = f
 	},
 	onload: function () {
+		gdata = UFX.resource.data.gdata
+		mapdata = UFX.resource.data.mapdata
 		graphics.init()
-		initPlotState(plotstate)
-		robotstate.init(null)
 		"shot1 shot2 shot3".split(" ").forEach(function (s) {
 			UFX.resource.sounds[s] = UFX.resource.Multisound(UFX.resource.sounds[s], 10)
 		})
@@ -63,7 +63,10 @@ var soundnames = (
 var songnames = "Chase ElectroSketch HowItBegins Klockworx LongTimeComing RadioMartini".split(" ")
 //var songnames = "ElectroSketch HowItBegins".split(" ")
 
-var res = {}
+var res = {
+	mapdata: "data/mapdata.json",
+	gdata: "data/gdata.json",
+}
 songnames.forEach(function (sname) { res[sname] = "data/music/" + sname + ".ogg" })
 soundnames.forEach(function (sname) { res[sname] = "data/sfx/" + sname + ".ogg" })
 UFX.resource.load(res)
