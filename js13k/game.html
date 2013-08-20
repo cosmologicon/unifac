@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<canvas id=c></canvas>
+<script src="../UFX/src/draw.js"></script>
+<script>
+with (Math) R = random, S = sin, C = cos, A = abs, F = floor, tau = 2*PI
+D = Date.now
+
+
+// V: the main canvas. K: the main context
+K = (V = document.getElementById("c")).getContext("2d")
+W = V.width = 1200
+H = V.height = 800
+UFX.draw.setcontext(K)
+// Subwindow bounds
+Ax = 8 ; Ay = 8 ; Aw = W - 16 ; Ah = F(H/3)
+
+
+// draw a die face
+function die(n) {
+	UFX.draw("z .2 .2 b rr -5 -5 10 10 1 fs #fff f b")
+	if (n % 2) UFX.draw("o 0 0 1")
+	if (n > 1 && n - 3) UFX.draw("o 3 3 1 o -3 -3 1")
+	if (n > 2) UFX.draw("o 3 -3 1 o -3 3 1")
+	if (n > 5) UFX.draw("o 3 0 1 o -3 0 1")
+	UFX.draw("fs #000 f")
+}
+
+// draw sword wielder
+function dS() {
+}
+
+t0 = D()
+avgdt = 0
+function think() {
+	t0 += dt = D() - t0
+
+	// DRAW
+	
+	UFX.draw("fs #033 f0") 
+	
+	// Draw battlefield
+
+
+	UFX.draw("[ t", Ax, Ay, "rr 0 0", Aw, Ah, "9 [ clip")
+	
+	// sky
+	UFX.draw("fs lg~0~0~0~"+Ah+"~0~#40b~1~#a44 f0")
+
+	px0 = 10 + Aw/20, dpx = Aw
+	py0 = Ah * 0.4, dpy = Ah * 0.5
+
+	// Hillside
+	UFX.draw("( m", px0-dpx/4, py0+dpy)
+	for (j = 0 ; j < 11 ; ++j) {
+		UFX.draw("l", px0+dpx*j/10, py0+dpy*j/10-5*S(j*2)-10)
+	}
+	UFX.draw("l 0 9999 )")
+	UFX.draw("[ z", Aw/2, Ah/2, "t 1 1")
+	for (j = 0 ; j < 4 ; ++j) {
+		UFX.draw("fs lg~0~-1~0~1~0~#000~.2~#771~.4~#321~.6~#750~.8~#111~1~#888 f alpha .4 r", j*2+t0/1234567%tau)
+	}
+	UFX.draw("]")
+
+
+	// Rain
+	wind = -5
+	v = 43211.23456789101112
+	nrain = 18
+	t = t0/2
+	for (z = 0, k = 0 ; z < 3 ; ++z) {
+		UFX.draw("b")
+		for (j = 0 ; j < 3*nrain ; ++j, ++k) {
+			x = ((v*k*k+(t/2+k*t/100)*wind/10)%Aw+Aw)%Aw
+			y = ((v*v*k*k+t/2+k*t/100)%Ah+Ah)%Ah
+			UFX.draw("m", x, y, "l", x-4*wind, y-40)
+		}
+		UFX.draw("lw .5 ss", ["#00a", "#22c", "#44f"][z], "s")
+	}
+
+	// Water level
+	UFX.draw("[ alpha .2 t 0", Ah-80)
+	for (z = 0 ; z < 10 ; ++z) {
+		UFX.draw("( m -200 0")
+		xs = [], ys = [], dx = Aw/10
+		for (x = -2 ; x < 7 ; ++x) {
+			theta = x*3.6 + t0/1000 + z*5
+			xs.push(Aw*(x/4+S(t0/1777+z*4)/9) + dx*S(theta)/4)
+			ys.push(Ah*C(theta)/25)
+		}
+		for (j = 1 ; j < 9 ; ++j) UFX.draw("c", xs[j-1]+dx, ys[j-1], xs[j]-dx, ys[j], xs[j], ys[j])
+//		UFX.draw("l 9999 999 l -999 999 ) fs #"+["44f","22d","00b","009","006"][z]+" f t 0 5")
+		color = "rgb(" + (45-5*z) + "," + (45-5*z) + "," + (200-20*z) + ")"
+		UFX.draw("l 9999 999 l -999 999 ) fs", color, "f t 0 5")
+	//	for (j = 1 ; j < 9 ; ++j) UFX.draw("b o", xs[j], ys[j], "2 fs white f")
+	}
+	UFX.draw("]")
+
+	// Path
+//	UFX.draw("b m", px0, py0, "l", px0+dpx, py0+dpy, "ss red lw 1 s b o", px0, py0, "2 o", px0+dpx, py0+dpy, "2 fs white f")
+
+	// outline
+	UFX.draw("] rr 0 0", Aw, Ah, "9 ss #000 lw 2 s ]")
+
+	// FPS counter
+	UFX.draw("fs white ft", (1000 / (avgdt += (dt - avgdt) * 0.05)).toPrecision(3) + "fps", 20, 20)
+
+	requestAnimationFrame(think)
+}
+requestAnimationFrame(think)
+
+
+think()
+
+
+</script>
