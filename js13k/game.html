@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <canvas id=c></canvas>
 <script src="../UFX/src/draw.js"></script>
+<script src="../UFX/src/maximize.js"></script>
 <script>
 with (Math) R = random, S = sin, C = cos, A = abs, F = floor, tau = 2*PI
 D = Date.now
@@ -8,11 +9,15 @@ D = Date.now
 
 // V: the main canvas. K: the main context
 K = (V = document.getElementById("c")).getContext("2d")
-W = V.width = 1200
-H = V.height = 800
 UFX.draw.setcontext(K)
-// Subwindow bounds
-Ax = 8 ; Ay = 8 ; Aw = W - 16 ; Ah = F(H/3)
+
+UFX.maximize.onadjust = function (V, w, h) {
+	W = w
+	H = h
+	// Subwindow bounds
+	Ax = 8 ; Ay = 8 ; Aw = W - 16 ; Ah = F(H/3)
+}
+UFX.maximize.fill(V, "total")
 
 
 // draw a die face
@@ -27,12 +32,83 @@ function die(n) {
 
 // draw sword wielder
 function dS() {
+	w = S(t0/150)
+	//v = C(t0/150)
+	UFX.draw("[ t 0", -A(w)*2, "fs #bfb ss #000 lw 0.5")
+	// sword
+	UFX.draw("( m 10 -7 l 6 -15 l 6.2 -20 l 10 -8 ) f s")
+	// arms
+	UFX.draw("b m 10 -7 q 4 -4 -2 -7 m -5 -5 q -12 -5 -10 2 lw 1.5 s ss #bfb lw 0.5 s ss #000")
+	// hands
+	UFX.draw("b o 10 -7 2 f s b o -10 2 2 f s")
+	// noggin
+	UFX.draw("[ t -6 -12 r -0.4 z 2 3.5 b o 0 0 1 ] f s")
+	// torso
+	UFX.draw("( m 0 0 q 2 -5 0 -10 l -7 -5 q -2 -3 0 0 ) f s")
+	// front leg
+	w = Math.min(Math.max(w,-.7),.7)
+	UFX.draw("[ r", w-.3, "( m 0 6 c 8 3 8 2 0 0 c 10 0 10 4 1 10 ) f s ]")
+	// front leg
+	UFX.draw("[ r", -w+.3, "( m 0 6 c 8 3 8 2 0 0 c 10 0 10 4 1 10 ) f s ]")
+	UFX.draw("]")
 }
 
-t0 = D()
+// draw spear wielder
+function dA() {
+	w = S(t0/150)
+	//v = C(t0/150)
+	UFX.draw("[ t 0", -A(w)*2, "fs #bbf ss #000 lw 0.5")
+	// spear
+	UFX.draw("( m -3 -7 l 15 -22 l 8 -20 l 10 -19 l -3 -8 ) f s")
+	// arms
+	UFX.draw("b m 3 -13 q 7 -7 3 -7 m -5 0 q -12 0 -4 -5 lw 1.5 s ss #bbf lw 0.5 s ss #000")
+	// hands
+	UFX.draw("b o 3 -13 2 f s b o -5 0 2 f s")
+	// hair
+	UFX.draw("( m -6 -13 c -16 -18 -6 -3 -18 -8 l -17 -4 c -3 -3 -13 -10 -6 -13 ) f s")
+	// noggin
+	UFX.draw("[ t -4 -11 r -0.4 z 2 3.5 b o 0 0 1 ] f s")
+	// torso
+	UFX.draw("( m 0 0 c 3 -6 5 -5 1 -9 l -5 -5 q -1 -4 0 0 ) f s")
+	// front leg
+	w = Math.min(Math.max(w,-.7),.7)
+	UFX.draw("[ r", w-.3, "( m 0 6 c 8 3 8 2 0 0 c 10 0 10 4 1 10 ) f s ]")
+	// front leg
+	UFX.draw("[ r", -w+.3, "( m 0 6 c 8 3 8 2 0 0 c 10 0 10 4 1 10 ) f s ]")
+	UFX.draw("]")
+}
+
+
+t0 = g0 = D()
 avgdt = 0
+
+// sprite zoom factor (should adjust based on screen resolution)
+sz = 1
+
+units = [
+	{
+		p: 0.2,  // progress
+		v: 5,  // speed (relative, will scale)
+		d: dS,  // draw function
+		h: 5,  // health
+	},
+	{
+		p: 0,  // progress
+		v: 5,  // speed (relative, will scale)
+		d: dA,  // draw function
+		h: 5,  // health
+	},
+]
+
 function think() {
 	t0 += dt = D() - t0
+
+
+	units.forEach(function (u) {
+		u.p += dt * u.v / 1000000
+	})
+	
+
 
 	// DRAW
 	
@@ -61,6 +137,14 @@ function think() {
 	}
 	UFX.draw("]")
 
+	// Units
+	sz = 1.2
+	units.forEach(function (u) {
+		UFX.draw("[ t", px0+u.p*dpx, py0+u.p*dpy, "z", sz, sz)
+		u.d()
+		UFX.draw("]")
+	})
+
 
 	// Rain
 	wind = -5
@@ -78,7 +162,7 @@ function think() {
 	}
 
 	// Water level
-	UFX.draw("[ alpha .2 t 0", Ah-80)
+	UFX.draw("[ alpha .3 t 0", Ah-40)
 	for (z = 0 ; z < 10 ; ++z) {
 		UFX.draw("( m -200 0")
 		xs = [], ys = [], dx = Aw/10
@@ -104,9 +188,14 @@ function think() {
 	// FPS counter
 	UFX.draw("fs white ft", (1000 / (avgdt += (dt - avgdt) * 0.05)).toPrecision(3) + "fps", 20, 20)
 
-	requestAnimationFrame(think)
+	// hourglass
+	UFX.draw("[ t", Aw - 50, Ah - 20, "( m -5 -10 c -5 0 5 0 5 10 l -5 10 c -5 0 5 0 5 -10 ) ss #fff lw 1 s",
+		"t 15 3 fs #fff ft0", ((t0-g0)/1000).toFixed(0), "]")
+
+	raf(think)
 }
-requestAnimationFrame(think)
+raf = window.requestAnimationFrame || window.mozRequestAnimationFrame
+raf(think)
 
 
 think()
