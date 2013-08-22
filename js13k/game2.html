@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<title>Fortuna's Dice - by Christopher Night</title>
+<canvas id=canvas></canvas>
+<script src="../UFX/src/draw.js"></script>
+<script src="../UFX/src/mouse.js"></script>
+<script src="../UFX/src/maximize.js"></script>
+<script>
+// Snippets
+function rmod(x,z){return(x%z+z)%z}
+function clip(x,a,b){return x>b?b:x<a?a:x}
+function extend(obj, attribs) {
+	var ret = Object.create(obj)
+	for (var x in attribs) ret[x] = attribs[x]
+	return ret
+}
+var tau = 2 * Math.PI
+
+// Polyfill
+window.requestAnimationFrame = window.requestAnimationFrame ||
+	window.mozRequestAnimationFrame ||  
+	window.webkitRequestAnimationFrame ||
+	window.msRequestAnimationFrame
+
+// Setup - not bothering with a loading screen since we don't have any assets! >:D
+var canvas = document.getElementById("canvas")
+var context = canvas.getContext("2d")
+UFX.draw.setcontext(context)
+// Update screen dimensions
+UFX.maximize.onadjust = function (canvas, w, h) {
+	sx = w
+	sy = h
+}
+
+UFX.maximize.fill(canvas, "total")
+UFX.mouse.init(canvas)
+
+var t0 = Date.now()
+function think() {
+	var dt = (Date.now() - t0) * 0.001
+	t0 = Date.now()
+	var mstate = UFX.mouse.state()
+	var mpos = mstate.pos, clicked = mstate.left.down
+
+	// Main game loop
+	thinkgame(dt, mpos, clicked)
+
+	requestAnimationFrame(think)
+}
+requestAnimationFrame(think)
+
+
+// Main game loop
+level = 0
+function startgame() {
+	gclock = 0  // game clock
+	units = [new Sworder()]
+	monsters = []
+	selected = null
+	buttons = [
+		new Button(0, 0),
+		new Button(1, 0),
+	]
+	mechanics = [
+		new Mechanic(0, 0, "pop", [1,1,1], 0, "population"),
+		new Mechanic(0, 1, "wwind", [1,1], 0, "west wind"),
+		new Mechanic(1, 0, "scost", [6,6,6], 7, "sword cost"),
+		new Mechanic(1, 1, "ewind", [6,6], 0, "east wind"),
+	]
+}
+function thinkgame(dt, mpos, clicked) {
+	UFX.draw("fs #333 f0")
+	gclock += dt
+
+	// Set up screen positions of objects
+	// Endpoints of the game path (monsters can extend off the right)
+	pathx0 = 100, pathy0 = 100
+	dpathx = sx - 200, dpathy = 100
+	szoom = 1
+	buttonsize = 50
+	buttonx0 = 10, buttony0 = 300
+
+	mechs = {}
+	mechanics.forEach(function (mech) { mechs[mech.name] = mech.value() })
+	mechs.wind = mechs.wwind - mechs.ewind
+
+	function tfunc(obj) { obj.think(dt) }
+	function dfunc(obj) { context.save() ; obj.draw() ; context.restore() }
+	units.forEach(tfunc)
+
+	var target = (function (pos) {
+		if (!pos) return null
+		for (var j = 0 ; j < buttons.length ; ++j) {
+			if (buttons[j].contains(pos)) return buttons[j]
+		}
+		for (var j = 0 ; j < units.length ; ++j) {
+		
+		}
+		return null
+	})(mpos)
+
+
+	var pointp = mpos && clip((mpos[0] - pathx0) / dpathx, 0, 1)
+	if (clicked) {
+		units[0].target = pointp
+	}
+	
+	// debug - draw path
+	UFX.draw("[ fs white ss red t", pathx0, pathy0, "b m 0 0 l", dpathx, dpathy, "s",
+		"b o 0 0 3 f b o", dpathx, dpathy, "3 f ]")
+	// Blurred path for selecting
+	UFX.draw("[ t", pathx0, pathy0, "b m 0 0 l", dpathx, dpathy,
+		"shadowblur 3 shadowcolor white ss white alpha 0.05 lw 12 s lw 8 s lw 4 s ]")
+
+	// pointer arrow along path
+	if (pointp !== null) {
+		UFX.draw("[ fs yellow ss orange t", pathx0 + pointp * dpathx, pathy0 + pointp * dpathy,
+			"( m 0 0 l 10 -10 l 3 -8 l 5 -25 l -5 -25 l -3 -8 l -10 -10 ) f s ]")
+	}
+	
+	units.forEach(dfunc)
+	buttons.forEach(dfunc)
+
+}
+
+
+
+// Units
+var UnitProto = {
+	start: 0,
+	h: 10, // height for purpose of clicking
+	init: function () {
+		this.p = this.start
+		this.hp = this.hp0
+	},
+	screenpos: function () {
+		return [pathx0 + dpathx * this.p, pathy0 + dpathy * this.p]
+	},
+	draw: function () {
+		UFX.draw("[ t", this.screenpos(), "z", szoom, szoom)
+		this.draw0()
+		UFX.draw("]")
+	},
+	vel: function () {
+		return this.v0 * (1 + mechs.wind * (this.right ? 1 : -1) / 30)
+	},
+	move: function (dt) {
+		if (this.target === null) return
+		this.right = this.target > this.p
+		var dp = this.vel() * dt * 0.001
+		if (Math.abs(this.target - this.p) < dp) {
+			this.p = this.target
+			this.target = null
+		} else {
+			this.p += this.target > this.p ? dp : -dp
+		}
+	},
+	think: function (dt) {
+		this.move(dt)
+	},
+}
+
+function Sworder() {
+	this.init()
+}
+Sworder.prototype = extend(UnitProto, {
+	hp0: 5,
+	v0: 100,
+	target: 0.5,
+	draw0: function () {
+		UFX.draw("t 0 -10 b o 0 0 15 fs blue ss white f s")
+	},
+})
+
+
+function Button(x, y) {
+	this.x = x
+	this.y = y
+}
+Button.prototype = {
+	screenpos: function () {
+		return [buttonx0 + buttonsize * this.x, buttony0 + buttonsize * this.y]
+	},
+	contains: function (pos) {
+		var p = this.screenpos()
+		var dx = pos[0] - p[0], dy = pos[1] - p[1]
+		return 0 <= dx && dx < buttonsize && 0 <= dy && dy < buttonsize
+	},
+	draw: function () {
+		UFX.draw("t", this.screenpos(), "z", buttonsize, buttonsize, "rr 0.05 0.05 0.9 0.9 0.1",
+			"fs #840 ss #f80 lw 0.02 f s")
+	},
+}
+
+
+function Mechanic(board, j, name, state0, extra, text) {
+	this.board = board
+	this.j = j
+	this.name = name
+	this.state = state0.slice(0)
+	this.n = this.state.length
+	this.extra = extra
+	this.text = text
+}
+Mechanic.prototype = {
+	value: function () {
+		var r = this.extra
+		for (var j = 0 ; j < this.n ; ++j) r += this.state[j]
+		return r
+	},
+	draw: function () {
+	
+	},
+}
+
+startgame()
+
+</script>
