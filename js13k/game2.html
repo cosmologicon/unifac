@@ -1,10 +1,15 @@
 <!DOCTYPE html>
 <title>Fortuna's Dice - by Christopher Night</title>
+<link href='http://fonts.googleapis.com/css?family=Russo+One|Homenaje|Imprima|Passion+One|Trochut|Changa+One|Joti+One' rel='stylesheet' type='text/css'>
 <canvas id=canvas></canvas>
 <script src="../UFX/src/draw.js"></script>
 <script src="../UFX/src/mouse.js"></script>
 <script src="../UFX/src/maximize.js"></script>
 <script>
+// Good fonts to use:
+// Russo One, Homenaje, Imprima, Passion One, Trochut, Changa One, Joti One
+
+
 // Snippets
 function rmod(x,z){return(x%z+z)%z}
 function clip(x,a,b){return x>b?b:x<a?a:x}
@@ -61,10 +66,10 @@ function startgame() {
 		new Button(1, 0),
 	]
 	mechanics = [
-		new Mechanic(0, 0, "pop", [1,1,1], 0, "population"),
-		new Mechanic(0, 1, "wwind", [1,1], 0, "west wind"),
-		new Mechanic(1, 0, "scost", [6,6,6], 7, "sword cost"),
-		new Mechanic(1, 1, "ewind", [6,6], 0, "east wind"),
+		new Mechanic(0, 0, "pop", [1,1,1], 0, "0123456789"),
+		new Mechanic(0, 1, "wwind", [1,1], 0, "west~wind"),
+		new Mechanic(1, 0, "scost", [6,6,6], 7, "sword~cost"),
+		new Mechanic(1, 1, "ewind", [6,6], 0, "east~wind"),
 	]
 }
 function thinkgame(dt, mpos, clicked) {
@@ -78,6 +83,13 @@ function thinkgame(dt, mpos, clicked) {
 	szoom = 1
 	buttonsize = 50
 	buttonx0 = 10, buttony0 = 300
+	
+	mechanicsx = [0.25 * sx, 0.75 * sx]
+	mechanicsy0 = 30
+	mechanicsdy = 50
+	mechanicsfsize = 28
+	diesize = 44
+	
 
 	mechs = {}
 	mechanics.forEach(function (mech) { mechs[mech.name] = mech.value() })
@@ -86,6 +98,7 @@ function thinkgame(dt, mpos, clicked) {
 	function tfunc(obj) { obj.think(dt) }
 	function dfunc(obj) { context.save() ; obj.draw() ; context.restore() }
 	units.forEach(tfunc)
+	mechanics.forEach(tfunc)
 
 	var target = (function (pos) {
 		if (!pos) return null
@@ -119,6 +132,7 @@ function thinkgame(dt, mpos, clicked) {
 	
 	units.forEach(dfunc)
 	buttons.forEach(dfunc)
+	mechanics.forEach(dfunc)
 
 }
 
@@ -200,6 +214,7 @@ function Mechanic(board, j, name, state0, extra, text) {
 	this.n = this.state.length
 	this.extra = extra
 	this.text = text
+	this.rolling = this.state.map(function () { return 0 })
 }
 Mechanic.prototype = {
 	value: function () {
@@ -208,9 +223,48 @@ Mechanic.prototype = {
 		return r
 	},
 	draw: function () {
-	
+		UFX.draw("t", mechanicsx[this.board], mechanicsy0 + this.j * mechanicsdy)
+		UFX.draw("[ font " + mechanicsfsize + "px~'Russo~One' fs white shadow black 2 2 0")
+		UFX.draw("textbaseline middle textalign left ft0 =~" + this.value())
+		UFX.draw("ft", this.text, 3.3 * mechanicsfsize, 0)
+		if (this.extra) UFX.draw("textalign right ft ~(+" + this.extra + ") -12 0")
+		UFX.draw("]")
+		for (var j = 0 ; j < this.n ; ++j) {
+			UFX.draw("[ t", -2.5 * diesize, 0, "z", diesize, diesize)
+			UFX.draw("t", j - (this.n + 1) / 2, 0)
+			if (this.rolling[j]) {
+				UFX.draw("r", Math.random() * 100, "z", Math.exp(Math.random() * 2 - 1), Math.exp(Math.random() * 2 - 1))
+				drawdie(Math.floor(Math.random() * 6 + 1))
+			} else {
+				drawdie(this.state[j])
+			}
+			UFX.draw("]")
+		}
+	},
+	roll: function (j) {
+		this.rolling[j] = 0.5
+	},
+	think: function (dt) {
+		for (var j = 0 ; j < this.n ; ++j) {
+			if (!this.rolling[j]) continue
+			this.rolling[j] -= dt
+			if (this.rolling[j] > 0) continue
+			this.rolling[j] = 0
+			this.state[j] = Math.floor(Math.random() * 6 + 1)
+		}
 	},
 }
+
+function drawdie(n) {
+	UFX.draw("z .08 .08 b rr -5 -5 10 10 1 fs #fff f b")
+	if (n % 2) UFX.draw("o 0 0 1")
+	if (n > 1 && n - 3) UFX.draw("o 3 3 1 o -3 -3 1")
+	if (n > 2) UFX.draw("o 3 -3 1 o -3 3 1")
+	if (n > 5) UFX.draw("o 3 0 1 o -3 0 1")
+	UFX.draw("fs #000 f")
+}
+
+
 
 startgame()
 
