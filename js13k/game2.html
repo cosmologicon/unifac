@@ -56,9 +56,19 @@ requestAnimationFrame(think)
 
 // Main game loop
 level = 0
+// Constants
+elbowroom = 0.05
+
 function startgame() {
 	gclock = 0  // game clock
-	units = [new Sworder()]
+	units = [
+		new Sworder(),
+		new Sworder(),
+		new Sworder(),
+		new Sworder(),
+		new Sworder(),
+		new Sworder(),
+	]
 	monsters = []
 	selected = null
 	buttons = [
@@ -77,6 +87,12 @@ function thinkgame(dt, mpos, clicked) {
 	gclock += dt
 
 	// Set up screen positions of objects
+	// Sub-windows
+	var b = 8  // border size
+	Ax = b ; Aw = sx - 2 * b ; Ay = b ; Ah = sy / 3 - b
+	Bx = b ; Bw = (sx - 3 * b) / 2 ; By = Ah + 2 * b ; Bh = sy - By - b
+	Cx = Bx + Bw + b ; Cw = sx - Cx - b ; Cy = By ; Ch = Bh
+
 	// Endpoints of the game path (monsters can extend off the right)
 	pathx0 = 100, pathy0 = 100
 	dpathx = sx - 200, dpathy = 100
@@ -84,8 +100,8 @@ function thinkgame(dt, mpos, clicked) {
 	buttonsize = 50
 	buttonx0 = 10, buttony0 = 300
 	
-	mechanicsx = [0.25 * sx, 0.75 * sx]
-	mechanicsy0 = 30
+	mechanicsx = [0.22 * sx, 0.72 * sx]
+	mechanicsy0 = 40 + By
 	mechanicsdy = 50
 	mechanicsfsize = 28
 	diesize = 44
@@ -97,7 +113,15 @@ function thinkgame(dt, mpos, clicked) {
 
 	function tfunc(obj) { obj.think(dt) }
 	function dfunc(obj) { context.save() ; obj.draw() ; context.restore() }
+
+	// Draw battlefield
 	units.forEach(tfunc)
+
+	UFX.draw("b rr", Ax, Ay, Aw, Ah, "9 ss black lw 4 s")
+	UFX.draw("b rr", Bx, By, Bw, Bh, "9 fs #242 f s")
+	UFX.draw("b rr", Cx, Cy, Cw, Ch, "9 fs #422 f s")
+
+	// Draw HUD and mechanics
 	mechanics.forEach(tfunc)
 
 	var target = (function (pos) {
@@ -168,8 +192,32 @@ var UnitProto = {
 			this.p += this.target > this.p ? dp : -dp
 		}
 	},
+	spreadout: function () {
+		if (this.target !== null) return
+		if (Math.random() < 0.2) return
+		var minp = 0, maxp = 1, me = this, nless = 0
+		units.forEach(function (u, j) {
+			var p = u.target === null ? u.p : u.target
+			if (p < me.p) ++nless
+			if (u === me) return
+			if (p < me.p) minp = Math.max(minp, p + elbowroom)
+			else maxp = Math.min(maxp, p - elbowroom)
+		})
+		minp = Math.max(minp, nless * elbowroom * 1.1)
+		maxp = Math.min(maxp, 1 - (units.length - nless - 1) * elbowroom * 1.1)
+		if (minp < maxp && minp < this.p && this.p < maxp) return
+		minp += elbowroom * 0.1
+		maxp -= elbowroom * 0.1
+		if (minp >= maxp) this.target = (minp + maxp) / 2
+		else if (minp > this.p) this.target = minp
+		else this.target = maxp
+		this.target = clip(this.target, 0, 1)
+//		if (this.target == this.p) this.target += 0.00001
+	},
 	think: function (dt) {
 		this.move(dt)
+		this.spreadout()
+		
 	},
 }
 
@@ -178,10 +226,10 @@ function Sworder() {
 }
 Sworder.prototype = extend(UnitProto, {
 	hp0: 5,
-	v0: 100,
-	target: 0.5,
+	v0: 40,
+	target: 0.1,
 	draw0: function () {
-		UFX.draw("t 0 -10 b o 0 0 15 fs blue ss white f s")
+		UFX.draw("t 0 -10 b o 0 0 15 fs", (this.target === null ? "blue" : "green"), "ss white f s")
 	},
 })
 
@@ -224,7 +272,7 @@ Mechanic.prototype = {
 	},
 	draw: function () {
 		UFX.draw("t", mechanicsx[this.board], mechanicsy0 + this.j * mechanicsdy)
-		UFX.draw("[ font " + mechanicsfsize + "px~'Russo~One' fs white shadow black 2 2 0")
+		UFX.draw("[ font " + mechanicsfsize + "px~'Russo~One' fs white sh black 2 2 0")
 		UFX.draw("textbaseline middle textalign left ft0 =~" + this.value())
 		UFX.draw("ft", this.text, 3.3 * mechanicsfsize, 0)
 		if (this.extra) UFX.draw("textalign right ft ~(+" + this.extra + ") -12 0")
