@@ -10,9 +10,13 @@ UFX.scenes.game = {
 		you = new You()
 		backeffects = []  // stuff written on ground, etc.
 		people = []
+		frontscenery = []  // trees, houses
 		fronteffects = []  // speech bubbles, etc.
 
 		for (var q in quests) quests[q].init()
+
+		new Tree(15, -15, 2)
+		new House(-25, 25, 15, 10)
 
 		this.ground = UFX.texture.patchygrass()
 		camera.think(0)
@@ -33,7 +37,7 @@ UFX.scenes.game = {
 
 		this.runscripts()
 
-		colliders = [you].concat(people)
+		colliders = [you].concat(people, frontscenery)
 		function think(obj) { obj.think(dt) }
 		think(you)
 		people.forEach(think)
@@ -80,6 +84,8 @@ UFX.scenes.game = {
 		// Draw people
 		draw(you)
 		people.forEach(draw)
+
+		frontscenery.forEach(draw)
 		fronteffects.forEach(draw)
 		UFX.draw("]")
 
@@ -134,7 +140,7 @@ UFX.scenes.kazoo = {
 	},
 	think: function (dt) {
 		this.t += dt
-		if (this.t > 2) {
+		if (this.t > 1.2) {
 			UFX.scene.pop()
 			UFX.scene.swap("game")
 		}

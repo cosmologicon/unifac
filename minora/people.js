@@ -1,18 +1,4 @@
 
-var IsRound = {  // for the purposes of collision detection, anyway.
-	init: function (r) {
-		this.r = r || 1
-		this.collides = true
-	},
-	scootch: function (obj) {
-		var dx = obj.x - this.x, dy = obj.y - this.y, dr = this.r + obj.r
-		if (dx * dx + dy * dy >= dr * dr) return
-		var d = Math.sqrt(dx * dx + dy * dy), dd = dr * 1.01 - d
-		obj.x += dx * dd / d
-		obj.y += dy * dd / d
-	},
-}
-
 var DrawCircle = {
 	draw: function () {
 		UFX.draw("z 0.1 0.1 b o 0 0", this.r * 10, "lw 1 fs blue ss black lw 1 f s")
