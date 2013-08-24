@@ -23,7 +23,42 @@ UFX.maximize.onadjust = function (canvas) {
 			hanchor: 0.5,
 			vanchor: 1,
 			color: "white",
-			bcolor: "black"
+			bcolor: "black",
+		},
+		bubble: {
+			size: 13,
+			font: "Mouse Memoirs",
+			hanchor: 0.5,
+			vanchor: 1,
+			color: "black",
+			width: 140,
+		},
+		chat: {
+			size: s0*2,
+			font: "Maiden Orange",
+			hanchor: 0.5,
+			vanchor: 0,
+			color: "white",
+			bcolor: "black",
+			width: sx*0.5,
+			boxcolor: "#fca",
+			boxbcolor: "#f80",
+		},
+		chattip: {
+			size: s0*4,
+			font: "Mouse Memoirs",
+			hanchor: 0.5,
+			vanchor: 0.5,
+			color: "white",
+			bcolor: "black",
+		},
+		gobacktip: {
+			size: s0*2,
+			font: "Mouse Memoirs",
+			hanchor: 1,
+			vanchor: 0,
+			color: "#ccf",
+			bcolor: "black",
 		},
 	}
 }
@@ -31,6 +66,7 @@ UFX.maximize.onadjust = function (canvas) {
 var mechanics = {
 	walkspeed: 12,
 	runspeed: 30,
+	chatradius: 3,
 }
 
 
