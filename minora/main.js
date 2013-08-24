@@ -30,6 +30,10 @@ function extend(obj, attribs) {
 	for (var x in attribs) ret[x] = attribs[x]
 	return ret
 }
+function dist(obj0, obj1) {
+	var dx = obj0.x - obj1.x, dy = obj0.y - obj1.y
+	return Math.sqrt(dx * dx + dy * dy)
+}
 
 function wordwrap(text, twidth, con) {
     con = con || context

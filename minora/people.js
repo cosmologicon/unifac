@@ -144,5 +144,65 @@ Runner.prototype = UFX.Thing()
 	})
 
 
+// Dog owner
+function DogOwner(x, y) {
+	this.x = x
+	this.y = y
+}
+DogOwner.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(IsRound)
+	.addcomp(Steps)
+	.addcomp(SaysStuff)
+	.addcomp(Responds)
+	.addcomp(SeeksTarget)
+	.addcomp(DrawCircle)
+	.addcomp({
+		think: function (dt) {
+			if (!quests.lostdog.done && dist(this, quests.lostdog.dog) < 4) {
+				quests.lostdog.done = true
+			}
+		},
+		response: function () {
+			if (quests.lostdog.done) {
+				return "Sweet I got my dog back!"
+			}
+			return "Have you seen my lost dog? She loves the smell of raw meat!"
+		},
+		canchat: function () {
+			return quests.lostdog.done && !items.cereal
+		},
+		chat: function () {
+			items.cereal = true
+			return "Wow you brought my dog to me! And no wonder, you smell terrible! Here, have some cereal!"
+		},
+	})
+
+function Dog(x, y) {
+	this.x = x
+	this.y = y
+	this.t = 0
+}
+Dog.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(IsRound)
+	.addcomp(Steps)
+	.addcomp(SaysStuff)
+	.addcomp(SeeksTarget, 3)
+	.addcomp(DrawCircle)
+	.addcomp({
+		think: function (dt) {
+			if (!this.target && !quests.lostdog.done && items.meat && dist(this, you) < 4) {
+				this.target = [you.x, you.y]
+				this.v = 15
+			} else if (!this.target) {
+				this.target = [this.x + UFX.random(-4, 4), this.y + UFX.random(-4, 4)]
+			}
+			this.t += dt
+			this.say(this.t % 3 < 1 ? "arf!" : "")
+		},
+	})
+
+
 
 
