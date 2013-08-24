@@ -2,6 +2,7 @@
 var gamestate = {}
 var items = {
 	kazoo: true,
+	meat: true,
 }
 
 function savegame() {
@@ -44,6 +45,16 @@ quests.runners = {
 			"textalign center textbaseline top fs rgba(0,0,0,0.4) font 22px~'Luckiest~Guy' ft FINISH 0 5 ]"
 		])
 		this.finished = 0
+	},
+}
+
+quests.lostdog = {
+	init: function () {
+		this.done = false
+		this.owner = new DogOwner(10, 0)
+		this.dog = new Dog(-10, 0)
+		people.push(this.owner)
+		people.push(this.dog)
 	},
 }
 

@@ -18,7 +18,9 @@ UFX.scenes.game = {
 		new Tree(15, -15, 2)
 		new House(-25, 25, 15, 10)
 
-		this.ground = UFX.texture.patchygrass()
+		this.ground = UFX.texture.patchygrass({ size: 64 })
+		UFX.draw(this.ground.context, "fs rgba(255,255,255,0.6) f0")
+		
 		camera.think(0)
 	},
 	thinkargs: function (dt) {
@@ -76,8 +78,14 @@ UFX.scenes.game = {
 			write("23:59:50 on the last day\n10 seconds remain", 0.5, 0.5, settings.tstyles.open)
 			return
 		}
-		UFX.draw("fs white f0 [")
+		UFX.draw("fs #aca f0")
+		UFX.draw("[")
 		camera.draw()
+		for (var x = Math.floor(camera.xmin/64) ; x*64 < camera.xmax ; ++x) {
+			for (var y = Math.floor(camera.ymin/64) ; y*64 < camera.ymax ; ++y) {
+				//UFX.draw("drawimage", this.ground, x*64, y*64)
+			}
+		}
 		function draw(obj) { context.save() ; obj.draw() ; context.restore() }
 		// Draw stuff on the ground
 		backeffects.forEach(draw)
@@ -97,7 +105,7 @@ UFX.scenes.game = {
 	},
 	
 	runscripts: function () {
-		if (you.x * you.x + you.y * you.y < 2 * 2) {
+		if (!items.kazoo && you.x * you.x + you.y * you.y < 2 * 2) {
 			you.say("This does not look good. I better get the hell out of here using the arrow keys!")
 		} else {
 			you.shutup()
