@@ -19,7 +19,8 @@ UFX.resource.onload = function () {
 	UFX.scene.init()
 	UFX.scene.push("game")
 }
-UFX.resource.loadwebfonts("New Rocker", "Just Me Again Down Here", "Mouse Memoirs")
+UFX.resource.loadwebfonts("Unkempt", "New Rocker", "Maiden Orange", "Just Me Again Down Here", "Mouse Memoirs",
+	"Boogaloo", "Kavoon", "Luckiest Guy", "Freckle Face", "Mystery Quest", "Slackey", "Mountains of Christmas")
 
 function clip(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
 function rmod(x,z){return(x%z+z)%z}
@@ -43,8 +44,9 @@ function wordwrap(text, twidth, con) {
     return texts
 }
 
-function write(text, x, y, tstyle, opts) {
-	var style = opts ? extend(tstyle, opts) : tstyle
+// Also return the width and height, and lineheight
+function splittext(text, style) {
+
 	context.font = style.size + "px '" + style.font + "'"
 	var texts = text.split("\n")
 	if (style.width) {
@@ -52,20 +54,38 @@ function write(text, x, y, tstyle, opts) {
 	}
 
 	var lh = Math.ceil(1.25 * style.size)
-	var w0 = Math.max.apply(null, texts.map(function (t) { return context.measureText(t).width }))
-	var h0 = style.size + lh * (texts.length - 1)
+	var w = Math.max.apply(null, texts.map(function (t) { return context.measureText(t).width }))
+	var h = style.size + lh * (texts.length - 1)
+
+	return [texts, w, h, lh]
+}
+
+function write(text, x, y, tstyle, opts) {
+	var style = opts ? extend(tstyle, opts) : tstyle
+	var metrics = splittext(text, style)
+	var texts = metrics[0], w0 = metrics[1], h0 = metrics[2], lh = metrics[3]
 	
 	context.save()
-	if (style.color) context.fillStyle = style.color
-	if (style.bcolor) {
-		context.strokeStyle = style.bcolor
-		context.lineWidth = Math.ceil(0.05 * style.size)
-	}
 	var hanchor = style.hanchor || 0, vanchor = style.vanchor || 0
 	context.textAlign = {0: "left", 0.5: "center", 1: "right"}[hanchor]
 	context.textBaseline = {0: "top", 0.5: "middle", 1: "bottom"}[vanchor]
 
 	context.translate(x * settings.sx, y * settings.sy)
+	if (style.boxcolor || style.boxbcolor) {
+		var bw = w0 + 0.8 * lh, bh = h0 + 0.7 * lh, bx = -bw * hanchor, by = -bh * vanchor
+		UFX.draw("tr", bx, by, bw, bh)
+		if (style.boxcolor) {
+			UFX.draw("fs", style.boxcolor, "f")
+		}
+		if (style.boxbcolor) {
+			UFX.draw("lw", Math.ceil(0.1 * style.size), "ss", style.boxbcolor, "s")
+		}
+	}
+	if (style.color) context.fillStyle = style.color
+	if (style.bcolor) {
+		context.strokeStyle = style.bcolor
+		context.lineWidth = Math.ceil(0.05 * style.size)
+	}
 	texts.forEach(function (text, j) {
 		context.save()
 		context.translate(0, Math.round((j + 0.5) * lh - h0 * vanchor))
@@ -75,4 +95,12 @@ function write(text, x, y, tstyle, opts) {
 	})
 	context.restore()
 }
+
+function worldwrite(text, tstyle, opts) {
+	context.save()
+	context.scale(0.1, 0.1)
+	write(text, 0, 0, tstyle, opts)
+	context.restore()
+}
+
 
