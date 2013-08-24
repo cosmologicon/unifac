@@ -15,7 +15,7 @@ var IsRound = {  // for the purposes of collision detection, anyway.
 
 var DrawCircle = {
 	draw: function () {
-		UFX.draw("z 0.1 0.1 b o 0 0", this.r * 10, "lw 1 fs blue ss black f s")
+		UFX.draw("z 0.1 0.1 b o 0 0", this.r * 10, "lw 1 fs blue ss black lw 1 f s")
 	},
 }
 
@@ -33,7 +33,6 @@ var Steps = {
 
 var MovesWithArrows = {
 	init: function () {
-		this.v = mechanics.walkspeed
 	},
 	move: function (kdown) {
 		var dx = (kdown.right || 0) - (kdown.left || 0)
@@ -43,6 +42,7 @@ var MovesWithArrows = {
 			dx *= 0.707
 			dy *= 0.707
 		}
+		this.v = items.sneakers ? mechanics.runspeed : mechanics.walkspeed
 		this.vx = dx * this.v
 		this.vy = dy * this.v
 	},
@@ -117,11 +117,12 @@ You.prototype = UFX.Thing()
 	.addcomp(DrawCircle)
 
 // Race runner
-function Runner(x, y, targetx, targety) {
+function Runner(x, y, targetx, targety, cheater) {
 	this.x = x
 	this.y = y
 	this.seek(targetx, targety)
 	this.name = "Runner"
+	this.cheater = cheater
 }
 Runner.prototype = UFX.Thing()
 	.addcomp(WorldBound)
@@ -132,14 +133,26 @@ Runner.prototype = UFX.Thing()
 	.addcomp(SeeksTarget)
 	.addcomp(DrawCircle)
 	.addcomp({
+		think: function (dt) {
+			if (!this.target && !this.finished) {
+				this.finished = true
+				if (quests.runners.finished++ == 0) {
+					this.winner = true
+				}
+			}
+		},
 		response: function () {
-			return this.target ? "Get out of my way! I'm racing here!" : ""
+			if (this.target) return "Get out of my way! I'm racing here!"
+			if (this.cheater && this.finished) {
+				if (this.winner) return "That's right, I won fair and square!"
+				return "I can't believe I lost! Why did you let me lose??"
+			}
 		},
 		canchat: function () {
-			return !this.target
+			return this.cheater && this.winner && !items.sneakers
 		},
 		chat: function () {
-			// You get shoes!
+			items.sneakers = true
 			return "Thanks for helping me cheat, you big cheater! I like your style. Take my lucky sneakers, Cheaty McCheaterson. And hey... keep on cheating!"
 		},
 	})

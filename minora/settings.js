@@ -2,6 +2,7 @@ var settings = {
 	sx: null,
 	sy: null,
 	fonts: {},
+	easymode: window.location.href.indexOf("EASY") > -1,
 }
 
 // Size of objects and text for any canvas size

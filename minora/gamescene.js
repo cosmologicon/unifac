@@ -8,14 +8,12 @@ UFX.scenes.game = {
 		
 		this.clock = 10
 		you = new You()
-		this.runner1 = new Runner(5, 10, -20, 10)
-		this.runner2 = new Runner(6, 8, -20, 8)
+		backeffects = []  // stuff written on ground, etc.
+		people = []
+		fronteffects = []  // speech bubbles, etc.
 
-		people = [
-			this.runner1,
-			this.runner2,
-		]
-		fronteffects = []  // speech bubbles
+		for (var q in quests) quests[q].init()
+
 		this.ground = UFX.texture.patchygrass()
 		camera.think(0)
 	},
@@ -26,8 +24,10 @@ UFX.scenes.game = {
 	think: function (dt, kstate) {
 		if (this.opentime > 0) {
 			this.opentime -= dt
-			return
+			if (this.opentime > 0) return
 		}
+		
+		if (settings.easymode) dt *= 0.4
 
 		you.move(kstate.pressed)
 
@@ -53,6 +53,9 @@ UFX.scenes.game = {
 		if (this.chatter && kstate.down.space) {
 			UFX.scene.push("chat", this.chatter)
 		}
+		if (items.kazoo && kstate.down.backspace) {
+			UFX.scene.push("kazoo")
+		}
 		
 		function isalive(obj) { return !obj.dead }
 		fronteffects = fronteffects.filter(isalive)
@@ -73,8 +76,7 @@ UFX.scenes.game = {
 		camera.draw()
 		function draw(obj) { context.save() ; obj.draw() ; context.restore() }
 		// Draw stuff on the ground
-		UFX.draw("[ lw 1 ss rgba(255,0,0,0.2) b o 0 0 0.5 s b o 0 0 2 s b o 0 0 3.5 s ]")
-		UFX.draw("[ r -0.3 t 0 8 z 0.1 0.1 fs rgba(255,0,0,0.2) textalign center font 40px~'Mouse~Memoirs' ft0 ATTACK~HERE ]")
+		backeffects.forEach(draw)
 		// Draw people
 		draw(you)
 		people.forEach(draw)
@@ -83,7 +85,9 @@ UFX.scenes.game = {
 
 		if (this.chatter) write("Space: talk", 0.5, 0.3, settings.tstyles.chattip)
 		write(this.clock.toFixed(1), 0.5, 0.99, settings.tstyles.timer)
-		write("Backspace: use kazoo", 0.99, 0, settings.tstyles.gobacktip)
+		if (items.kazoo) {
+			write("Backspace: use kazoo", 0.99, 0, settings.tstyles.gobacktip)
+		}
 	},
 	
 	runscripts: function () {
@@ -99,6 +103,7 @@ UFX.scenes.game = {
 UFX.scenes.chat = {
 	start: function (chatter) {
 		this.chatter = chatter
+		this.chatname = this.chatter.name
 		this.text = chatter.chat()
 		this.t = 0
 	},
@@ -113,10 +118,31 @@ UFX.scenes.chat = {
 	},
 	draw: function () {
 		UFX.scenes.game.draw()
-		write(this.text, 0.5, 0.2, settings.tstyles.chat)
+		UFX.draw("fs rgba(0,0,0,0.7) f0 [")
+		if (this.t < 0.15) UFX.draw("alpha", this.t / 0.15)
+		if (this.chatname) {
+			write(this.chatname, 0.5, 0.05, settings.tstyles.chat)
+		}
+		write(this.text, 0.5, 0.25, settings.tstyles.chat)
+		UFX.draw("]")
 	},
 }
 
-
+UFX.scenes.kazoo = {
+	start: function () {
+		this.t = 0
+	},
+	think: function (dt) {
+		this.t += dt
+		if (this.t > 2) {
+			UFX.scene.pop()
+			UFX.scene.swap("game")
+		}
+	},
+	draw: function () {
+		UFX.scenes.game.draw()
+		UFX.draw("fs rgba(0,0,0,0.7) f0")
+	},
+}
 
 

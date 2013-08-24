@@ -61,7 +61,7 @@ SpeechBubble.prototype = UFX.Thing()
 		draw: function () {
 			var metrics = splittext(this.text, settings.tstyles.bubble)
 			var w = metrics[1] + 20, h = metrics[2] + 12, r = 8, x = -w/2, y = -h
-			UFX.draw("[ t 2 -2 [ z 0.1 0.1 fs white ss black",
+			UFX.draw("[ t 2 -2 [ z 0.1 0.1 fs white ss black lw 1",
 				"( m", x+r, y,
 				"arcto", x+w, y, x+w, y+h, r,
 				"arcto", x+w, y+h, 5, y+h, r,
