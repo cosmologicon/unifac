@@ -12,10 +12,10 @@ var items = {
 }
 
 function savegame() {
-	localStorage["minora-savegame"] = [gamestate, items]
+	localStorage["flajora-savegame"] = [gamestate, items]
 }
 function loadgame() {
-	var state = JSON.parse(localStorage["minora-savegame"])
+	var state = JSON.parse(localStorage["flajora-savegame"])
 	gamestate = state[0]
 	items = state[1]
 }
@@ -85,7 +85,7 @@ quests.lostdog = {
 	},
 }
 
-quests.minora = {
+quests.flajora = {
 	init: function () {
 		if (!items.kazoo && you.x * you.x + you.y * you.y < 2 * 2) {
 			you.say("This does not look good. I better get the hell out of here using the arrow keys!")
@@ -242,13 +242,13 @@ var desertquest = {
 }
 var shipquest = {
 	init: function () {
-		new Placename("Minora's Spaceship")
+		new Placename("Flajora's Spaceship")
 		new Marker(0, 3, [
 			"[ z 0.2 0.2 fs rgba(255,0,0,0.3) ss rgba(255,0,0,0.3)",
 			"( m 25 0 l 0 -15 l -25 0 ) f",
 			"textalign center textbaseline top",
 			"font 18px~'Mouse~Memoirs' ft This~way~to 0 0",
-			"font 30px~'Mouse~Memoirs' ft Minora's~Flask 0 25",
+			"font 30px~'Mouse~Memoirs' ft Flajora's~Flask 0 25",
 		"]"])
 		new Marker(0, -40, [
 			"[ ss rgba(255,255,255,0.3) lw 3 sr -6 -6 12 12 ]",
