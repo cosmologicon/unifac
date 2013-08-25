@@ -1,10 +1,11 @@
 
 var gamestate = {}
+var allitems = "kazoo sneakers meat airbag ladder ticket redgem greengem bluegem flask".split(" ")
 var items = {
 	kazoo: true,
 //	meat: true,
 	ticket: true,
-	sneakers: true,
+//	sneakers: true,
 	redgem: true,
 	bluegem: true,
 	greengem: true,
@@ -20,7 +21,7 @@ var itemnames = {
 	sneakers: "Enchanted Sneakers",
 	redgem: "The Red Gem of Rolanda",
 	bluegem: "The Blue Gem of Betsy",
-	greengem: "The Green Gem of Gladys",
+	greengem: "The Green Gem of Gertrude",
 	ladder: "A Rope Ladder",
 	airbag: "A Bag of Air",
 	flask: "Flajora's Flask",
@@ -28,13 +29,19 @@ var itemnames = {
 
 var iteminfo = {
 	kazoo: "It doesn't look like much, but this kazoo is actually a time machine! It's not a very good one, though. You'll only go back a few seconds. Hope that's enough. Press Backspace to use it at any time.",
-	ticket: "A ticket for a train that's already left the station.",
+	ticket: "What the heck are you going to do with an expired train ticket? Oh right, time travel. This whole business opens up all sorts of ethical quandries, doesn't it?",
+	sneakers: "These have flashy colors and the name of your favorite athlete, so they'll be sure to give you an edge. Also they're enchanted by a powerful sorcerer so there's that.",
+	meat: "No snacking, you're on an adventure. You'll have time for eating later. Well, actually, not, since the world's ending in a few seconds. Oh well.",
+	airbag: "It looks like an empty bag, but in fact it's quite full! Full of air! You scoff, but you need that stuff to breathe. Now you can take your air with you.",
 	ladder: "I know what you're thinking, but no, you can not use this ladder to climb to space and stop Flajora. You keep thinking outside the box, though. You'll go far.",
 	flask: "An old whiskey flask hidden under Flajora's pillow. It's currently half-full of grape Kool-Aid, and appears to have great sentimental value.",
+	redgem: "Yay, plot coupon collected.",
+	bluegem: "Yep... that's a MacGuffin all right.",
+	greengem: "Among the junk strewn in the corner of the treehouse you find this ancient artifact. Also some pretty cool limited edition pogs, but we'll save that for another time.",
 }
 
 function savegame() {
-	localStorage["flajora-savegame"] = [gamestate, items]
+	localStorage["flajora-savegame"] = JSON.stringify([gamestate, items])
 }
 function loadgame() {
 	var state = JSON.parse(localStorage["flajora-savegame"])
@@ -130,7 +137,7 @@ quests.flajora = {
 			"font 20px~'Mouse~Memoirs' ft is~that~way 0 25",
 			"font 14px~'Mouse~Memoirs' ft just~so~you~know 0 45",
 		"]"])
-		this.teleporter = new Teleporter(15, 45)
+		this.teleporter = new Teleporter(15, 40)
 		new House(-25, -42, 25, 15)
 		new House(-18, -65, 28, 15)
 		new House(30, 18, 20, 10)
@@ -152,6 +159,9 @@ quests.train = {
 	init: function () {
 		this.train = new Train(30, 10)
 		this.traveller = new Traveller(50, -80)
+		// Only make this quest available after you have the sneakers
+		// so you don't get caught in the desert
+		if (!items.sneakers) this.traveller.y -= 5000
 		people.push(this.traveller)
 
 		// train tracks

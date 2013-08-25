@@ -34,7 +34,7 @@ UFX.scenes.game = {
 		}
 		you = new You()
 		backeffects = []  // stuff written on ground, etc.
-		backscenery = []  // stuff written on ground, etc.
+		backscenery = []  // objects on ground, etc.
 		people = []
 		frontscenery = []  // trees, houses
 		fronteffects = []  // speech bubbles, etc.
@@ -50,6 +50,7 @@ UFX.scenes.game = {
 		
 		camera.think(0)
 		this.nextscene = null
+		this.toget = null
 	},
 	thinkargs: function (dt) {
 		var kstate = UFX.key.state()
@@ -68,6 +69,10 @@ UFX.scenes.game = {
 			if (this.fadetime >= 1) {
 				UFX.scene.swap("game", this.nextscene)
 			}
+		}
+		if (this.toget) {
+			UFX.scene.push("get", this.toget)
+			this.toget = null
 		}
 
 		you.move(kstate.pressed)
@@ -146,11 +151,18 @@ UFX.scenes.game = {
 		fronteffects.forEach(draw)
 		UFX.draw("]")
 		hudeffects.forEach(draw)
+		UFX.draw("[ z", settings.sy/2000, settings.sy/2000)
+		for (var j = 0 ; j < 10 ; ++j) {
+			if (items[allitems[j]]) {
+				UFX.draw("drawimage", UFX.resource.images[allitems[j]], 0, 200*j)
+			}
+		}
+		UFX.draw("]")
 
 		if (this.chatter || this.canwin) write("Space: talk", 0.5, 0.3, settings.tstyles.chattip)
 		write(this.clock.toFixed(1), 0.5, 0.99, settings.tstyles.timer)
 		if (items.kazoo) {
-			write("Backspace: use kazoo", 0.99, 0, settings.tstyles.gobacktip)
+			write("Backspace: use kazoo", 0.99, 1, settings.tstyles.gobacktip)
 		}
 		if (this.nextscene) {
 			UFX.draw("[ alpha", clip(this.fadetime, 0, 1), "fs white f0 ]")
@@ -199,6 +211,7 @@ UFX.scenes.get = {
 	start: function (thing) {
 		this.thing = thing
 		items[this.thing] = true
+		this.t = 0
 	},
 	thinkargs: function (dt) {
 		return [dt, UFX.key.state()]
@@ -207,6 +220,9 @@ UFX.scenes.get = {
 		this.t += dt
 		if (this.t > 0.4 && kstate.down.space) {
 			UFX.scene.pop()
+		}
+		if (items.kazoo && kstate.down.backspace) {
+			UFX.scene.swap("kazoo")
 		}
 	},
 	draw: function () {
@@ -218,6 +234,9 @@ UFX.scenes.get = {
 		UFX.draw("[ t", settings.sx, 0, "z", settings.sx/1200, settings.sx/1200,
 			"drawimage", UFX.resource.images[this.thing], -200, 0, "]")
 		UFX.draw("]")
+		if (items.kazoo) {
+			write("Backspace: use kazoo", 0.99, 1, settings.tstyles.gobacktip)
+		}
 	},
 }
 
@@ -225,6 +244,8 @@ UFX.scenes.get = {
 UFX.scenes.kazoo = {
 	start: function () {
 		this.t = 0
+		this.dots = UFX.random.spread(6)
+		savegame()
 	},
 	think: function (dt) {
 		this.t += dt
@@ -235,7 +256,18 @@ UFX.scenes.kazoo = {
 	},
 	draw: function () {
 		UFX.scenes.game.draw()
-		UFX.draw("fs rgba(0,0,0,0.7) f0")
+		UFX.draw("fs rgba(255,255,255,0.7) f0")
+		var sx = settings.sx, sy = settings.sy
+		for (var y = 0.3 ; y < 0.55 ; y += 0.05) {
+			UFX.draw("b m", sx*0.2, sy*y, "l", sx*0.8, sy*y, "lw 4 ss black s")
+		}
+		var r = sy / 50
+		this.dots.forEach(function (dot) {
+			UFX.draw("b o", sx * (0.2 + 0.6 * dot[0]), sy * (0.25 + 0.4 * dot[1]), r, "fs black f")
+		})
+		write("Let's    go    back    in    time!", 0.5, 0.7, settings.tstyles.backintime)
+		UFX.draw("b o", sx * (this.t), sy * (0.66 - 0.1 * Math.abs(Math.sin(40*this.t))), r, "fs red f")
+		write("Progress saved", 0.5, 0.9, settings.tstyles.saved)
 	},
 }
 
@@ -306,11 +338,12 @@ UFX.scenes.win = {
 		this.texts = [
 			"-Flajora! Look what I've got!",
 			"+Hey that's my flask! I paid for it with my own money.",
-//			"+You can't just go taking people's things, you know. Give it back.",
-//			"-You can't get ye flask.",
-//			"+Ugh, what if I don't destroy your planet?",
-//			"-Aaaaaand....?",
-//			"+Whatever. I'm out of here. Your planet is too lame to destroy anyway.",
+			"+You can't just go taking other people's things, you know. Give it back.",
+			"-You can't get ye flask.",
+			"+Ugh, I hate you! I'd blow up your whole stupid planet if it wouldn't also destroy my flask!",
+			"-Let this be a lesson to you. People don't like their planets being threatened with destruction!",
+			"+Whatever. I'm out of here.",
+			"+Your planet is too lame to destroy anyway.",
 		]
 		this.h = 0
 	},
@@ -374,7 +407,7 @@ UFX.scenes.thanks = {
 	},
 	draw: function () {
 		UFX.draw("fs white f0")
-		write("Flajora has not destroyed the world.\n\nThanks for playing.", 0.5, 0.5, settings.tstyles.fail, {color: "#009"})
+		write("Flajora did not destroy the world.\n\nThanks for playing.", 0.5, 0.5, settings.tstyles.fail, {color: "#009"})
 	},
 }
 
