@@ -52,6 +52,7 @@ var MovesWithArrows = {
 var SeeksTarget = {
 	init: function (v) {
 		this.v = v || 10
+		this.vx = this.vy = 0
 	},
 	seek: function (x, y) {
 		this.target = [x, y]
@@ -62,12 +63,15 @@ var SeeksTarget = {
 		var d = Math.sqrt(dx * dx + dy * dy)
 		var step = this.v * dt
 		if (d <= step) {
+			this.vx = this.vy = 0
 			this.x = this.target[0]
 			this.y = this.target[1]
 			this.target = null
 			return
 		}
 		this.step(step * dx / d, step * dy / d)
+		this.vx = this.v * dx / d
+		this.vy = this.v * dy / d
 	},
 }
 
@@ -102,6 +106,45 @@ var Responds = {
 	},
 }
 
+var SwingsArms = {
+	init: function (hcolor, scolor, pcolor) {
+		this.hcolor = hcolor || "#a80"
+		this.scolor = scolor || "#0a0"
+		this.pcolor = pcolor || "brown"
+		this.walkt = 0
+	},
+	setrandomcolors: function (name) {
+		var s = UFX.random.seed
+		UFX.random.setseed(name)
+		this.hcolor = UFX.random.choice("#000 #333 #666 #999 #a80 #a77 #955".split(" "))
+		this.scolor = UFX.random.choice("red blue brown orange green pink".split(" "))
+		this.pcolor = UFX.random.choice("brown black gray".split(" "))
+		UFX.random.setseed(s)
+	},
+	think: function (dt) {
+		if (this.facing === undefined) this.facing = UFX.random(tau)
+		if (this.vx || this.vy) {
+			this.facing = Math.atan2(-this.vx, this.vy)
+			this.walkt += dt * Math.sqrt(this.vx * this.vx + this.vy * this.vy)
+		} else {
+			this.walkt = 0
+		}
+	},
+	draw: function () {
+		var a = Math.sin(this.walkt * 0.5)
+		UFX.draw("z 0.1 0.1 r", this.facing)
+		UFX.draw("[ t 4.5", -5*a, "z 3 3 b o 0 0 2 fs", this.pcolor, "f ]")
+		UFX.draw("[ t -4.5", 5*a, "z 3 3 b o 0 0 2 fs", this.pcolor, "f ]")
+		UFX.draw("[ r", 0.3*a, "z 2 1 b o 0 -1 6 fs", this.scolor, "f ]")
+		UFX.draw("[ r", 0.4*a, "t 11 4 z 1 1.5 b o 0 0 4 fs", this.scolor, "f ]")
+		UFX.draw("[ r", 0.4*a, "t -11 4 z 1 1.5 b o 0 0 4 fs", this.scolor, "f ]")
+		UFX.draw("[ z 1 1.2 b o 0 0 6 fs", this.hcolor, "f ]")
+//		UFX.draw("b m 0 0 l 0 20 lw 1 ss white s")
+	},
+
+}
+
+
 
 function You() {
 }
@@ -111,33 +154,67 @@ You.prototype = UFX.Thing()
 	.addcomp(Steps)
 	.addcomp(MovesWithArrows)
 	.addcomp(SaysStuff)
-	.addcomp(DrawCircle)
+	.addcomp(SwingsArms)
 
 // Generic responder, for giving clues
 function Responder(x, y, text) {
 	this.x = x
 	this.y = y
 	this.text = text
+	this.setrandomcolors(this.text)
 }
 Responder.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(IsRound)
 	.addcomp(SaysStuff)
 	.addcomp(Responds)
-	.addcomp(DrawCircle)
+	.addcomp(SwingsArms)
 	.addcomp({
 		response: function () {
 			return this.text
 		},
 	})
 
+// Someone who just gives you an item
+function Giver(x, y, item, name, nohaveresp, haveresp, chattext) {
+	this.x = x
+	this.y = y
+	this.item = item
+	this.name = name
+	this.nohaveresp = nohaveresp
+	this.haveresp = haveresp
+	this.chattext = chattext
+	this.setrandomcolors(this.name)
+}
+Giver.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(IsRound)
+	.addcomp(SaysStuff)
+	.addcomp(Responds)
+	.addcomp(SwingsArms)
+	.addcomp({
+		response: function () {
+			return items[this.item] ? this.haveresp : this.nohaveresp
+		},
+		canchat: function () {
+			return !items[this.item]
+		},
+		chat: function () {
+			UFX.scenes.game.toget = this.item
+			return this.chattext
+		},
+	})
+
+
+
 // Race runner
 function Runner(x, y, targetx, targety, cheater) {
 	this.x = x
 	this.y = y
 	this.seek(targetx, targety)
-	this.name = "Runner"
 	this.cheater = cheater
+	this.name = cheater ? "Vince" : "Vance"
+	this.setrandomcolors(this.name)
 }
 Runner.prototype = UFX.Thing()
 	.addcomp(WorldBound)
@@ -146,7 +223,7 @@ Runner.prototype = UFX.Thing()
 	.addcomp(SaysStuff)
 	.addcomp(Responds)
 	.addcomp(SeeksTarget, 12)
-	.addcomp(DrawCircle)
+	.addcomp(SwingsArms)
 	.addcomp({
 		think: function (dt) {
 			if (!this.target && !this.finished) {
@@ -177,6 +254,8 @@ Runner.prototype = UFX.Thing()
 function DogOwner(x, y) {
 	this.x = x
 	this.y = y
+	this.name = "Timmy"
+	this.setrandomcolors(this.name)
 }
 DogOwner.prototype = UFX.Thing()
 	.addcomp(WorldBound)
@@ -185,7 +264,7 @@ DogOwner.prototype = UFX.Thing()
 	.addcomp(SaysStuff)
 	.addcomp(Responds)
 	.addcomp(SeeksTarget)
-	.addcomp(DrawCircle)
+	.addcomp(SwingsArms)
 	.addcomp({
 		think: function (dt) {
 			if (!quests.lostdog.done && dist(this, quests.lostdog.dog) < 4) {
@@ -240,6 +319,8 @@ function Traveller(x, y) {
 	var train = quests.train.train
 	this.target = [train.x + train.w/2, train.y + train.h/2]
 	this.hasticket = true
+	this.name = "Emmett"
+	this.setrandomcolors(this.name)
 }
 Traveller.prototype = UFX.Thing()
 	.addcomp(WorldBound)
@@ -248,7 +329,7 @@ Traveller.prototype = UFX.Thing()
 	.addcomp(SaysStuff)
 	.addcomp(Responds)
 	.addcomp(SeeksTarget, 13.3)
-	.addcomp(DrawCircle)
+	.addcomp(SwingsArms)
 	.addcomp({
 		response: function () {
 			if (this.target) {
@@ -271,6 +352,7 @@ function Squirrel(trees) {
 	this.x = tree.x + tree.r + this.r
 	this.y = tree.y + tree.r + this.r
 	this.name = "Skwirlle"
+	this.setrandomcolors(this.name)
 }
 Squirrel.prototype = UFX.Thing()
 	.addcomp(WorldBound)
@@ -279,7 +361,7 @@ Squirrel.prototype = UFX.Thing()
 	.addcomp(SaysStuff)
 	.addcomp(Responds)
 	.addcomp(SeeksTarget, 40)
-	.addcomp(DrawCircle)
+	.addcomp(SwingsArms)
 	.addcomp({
 		think: function (dt) {
 			if (this.target) {

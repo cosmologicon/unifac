@@ -111,6 +111,11 @@ quests.lostdog = {
 		people.push(this.owner)
 		people.push(this.dog)
 		new House(-38, 25, 12, 35)
+		people.push(new Giver(65, -25, "meat", "Linda",
+			"And remember you never heard of me.",
+			"Meat! Free raw meat!",
+			"Hey you. I'm looking to dispose of some incriminating evidence. You want a slab of raw meat?")
+		)
 	},
 }
 
@@ -122,8 +127,12 @@ quests.flajora = {
 			you.shutup()
 		}
 
-		people.push(new Responder(-15, 5, "You want a kazoo? I know where to get one. Go straight to the north of here. Just mention me!"))
-		people.push(new Responder(60, 25, "Fine, here's your damn kazoo!"))
+		people.push(new Responder(-15, 5, "I've got a hot tip on where you can get some enchanted instruments. Go straight to the north of here."))
+		people.push(new Giver(60, 25, "kazoo", "Raven",
+			"Why didn't I go into the enchanted charm business instead?",
+			"Psst hey you. You want an enchanted kazoo?",
+			"I'm trying to get pepole hooked on enchanted novelty instruments. The market's just not there yet. Here, the first one's free. Use it frivolously!")
+		)
 
 		new Marker(0, 0, [
 			"[ z 2 2 lw 1 ss rgba(255,0,0,0.2) b o 0 0 0.5 s b o 0 0 2 s b o 0 0 3.5 s ]",
