@@ -144,6 +144,54 @@ House.prototype = UFX.Thing()
 		}
 	})
 
+function Train(x, y) {
+	this.x = x - this.w / 2
+	this.y = y - this.h / 2
+	this.leaving = false
+	this.vx = 0
+	this.t = 0
+	frontscenery.push(this)
+}
+Train.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp({
+		init: function () {
+			this.setmethodmode("scootch", "any")
+		},
+		draw: function () {
+			UFX.draw("[ fs darkgrey ss black lw 0.2",
+				"b rr -0.5 -0.5", this.w+1, this.h+1, "0.5 f s",
+				"b rr", this.w/3, -1, this.w/3, this.h+2, "0.1 f s",
+			"]")
+		},
+		scootch: function (obj) {
+			return this.leaving || obj.hasticket || (obj === you && items.ticket)
+		},
+		contains: function (obj) {
+			var dx = obj.x - this.x, dy = obj.y - this.y
+			return 0.5 < dx && dx < this.w - 0.5 && 0.5 < dy && dy < this.h - 0.5
+		},
+		think: function (dt) {
+			this.t += dt
+			if (!this.leaving) {
+				if (this.contains(quests.train.traveller)) {
+					this.leaving = true
+					quests.train.traveller.x = 100000
+					quests.train.traveller.target = null
+				} else if (this.contains(you)) {
+					this.leaving = true
+				} else if (this.t > 7) {
+					this.leaving = true
+				}
+			}
+			if (this.leaving) {
+				this.vx += 50 * dt
+				this.x += this.vx * dt
+			}
+		},
+	})
+	.addcomp(IsRectangular, 20, 6)
+
 
 function SpeechBubble(who, text) {
 	this.person = who

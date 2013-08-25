@@ -2,7 +2,7 @@
 
 UFX.scenes.game = {
 	start: function () {
-		this.opentime = 0.5
+		this.opentime = 2.5
 		this.draw()  // so the opening is showing while we load
 		// loading screen
 		
@@ -44,6 +44,9 @@ UFX.scenes.game = {
 		think(you)
 		people.forEach(think)
 		fronteffects.forEach(think)
+		for (var q in quests) {
+			if (quests[q].think) quests[q].think(dt)
+		}
 
 		var d2max = mechanics.chatradius * mechanics.chatradius
 		this.chatter = null  // closest person who can chat
@@ -58,9 +61,10 @@ UFX.scenes.game = {
 		
 		if (this.chatter && kstate.down.space) {
 			UFX.scene.push("chat", this.chatter)
-		}
-		if (items.kazoo && kstate.down.backspace) {
+		} else if (items.kazoo && kstate.down.backspace) {
 			UFX.scene.push("kazoo")
+		} else if (kstate.down.esc) {
+			UFX.scene.push("pause")
 		}
 		
 		function isalive(obj) { return !obj.dead }
@@ -75,7 +79,7 @@ UFX.scenes.game = {
 	draw: function () {
 		if (this.opentime > 0) {
 			UFX.draw("fs black f0")
-			write("23:59:50 on the last day\n10 seconds remain", 0.5, 0.5, settings.tstyles.open)
+			write("23:59:50 on\nThe Final Day\n\n- 10 seconds remain -", 0.5, 0.5, settings.tstyles.open)
 			return
 		}
 		UFX.draw("fs #aca f0")
@@ -105,11 +109,6 @@ UFX.scenes.game = {
 	},
 	
 	runscripts: function () {
-		if (!items.kazoo && you.x * you.x + you.y * you.y < 2 * 2) {
-			you.say("This does not look good. I better get the hell out of here using the arrow keys!")
-		} else {
-			you.shutup()
-		}
 	},
 }
 
@@ -159,4 +158,19 @@ UFX.scenes.kazoo = {
 	},
 }
 
+
+UFX.scenes.pause = {
+	start: function () {
+	},
+	thinkargs: function (dt) {
+		return [dt, UFX.key.state()]
+	},
+	think: function (dt, kstate) {
+		if (kstate.down.esc) UFX.scene.pop()
+	},
+	draw: function () {
+		UFX.scenes.game.draw()
+		UFX.draw("fs rgba(0,0,0,0.7) f0")
+	},
+}
 

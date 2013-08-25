@@ -20,7 +20,8 @@ UFX.resource.onload = function () {
 	UFX.scene.push("game")
 }
 UFX.resource.loadwebfonts("Unkempt", "New Rocker", "Maiden Orange", "Just Me Again Down Here", "Mouse Memoirs",
-	"Boogaloo", "Kavoon", "Luckiest Guy", "Freckle Face", "Mystery Quest", "Slackey", "Mountains of Christmas")
+	"Boogaloo", "Kavoon", "Luckiest Guy", "Freckle Face", "Mystery Quest", "Slackey", "Mountains of Christmas",
+	"Special Elite", "Piedra", "Alfa Slab One")
 
 function clip(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
 function rmod(x,z){return(x%z+z)%z}

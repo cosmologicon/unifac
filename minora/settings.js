@@ -12,8 +12,8 @@ UFX.maximize.onadjust = function (canvas) {
 	var s0 = Math.min(0.04 * sy, 0.025 * sx)
 	settings.tstyles = {
 		open: {
-			size: Math.min(0.2 * sy, 0.13 * sx),
-			font: "Mouse Memoirs",
+			size: 3*s0,
+			font: "Alfa Slab One",
 			hanchor: 0.5,
 			vanchor: 0.5,
 			color: "white",
