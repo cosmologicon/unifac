@@ -190,6 +190,45 @@ Bulkhead.prototype = UFX.Thing()
 	})
 	.addcomp(IsRectangular)
 
+function WindTunnel(x, y, w, h) {
+	this.x = x
+	this.y = y
+	this.w = w
+	this.h = h
+	this.vy = UFX.random(0, 40)
+	this.t = 0
+	this.p = 0
+	this.dots = UFX.random.spread(10)
+}
+WindTunnel.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp({
+		scootch: function (obj) {
+		},
+		draw: function () {
+			if (this.vy < 5) return
+			var p = this.p, w = this.w, h = this.h
+			UFX.draw("fs #afa")
+			this.dots.forEach(function (dot) {
+				var x = dot[0] * w, y = (p + dot[1] * h) % h
+				UFX.draw("b o", x, y, "0.2 f")
+			})
+		},
+		think: function (dt) {
+			this.p += dt * this.vy
+			this.t += dt
+			while (this.t > 1) {
+				this.t -= 1
+				this.vy = UFX.random(0, 40)
+				if (this.vy < 10) this.vy = 0
+			}
+			var dx = you.x - this.x, dy = you.y - this.y
+			if (0 <= dx && dx < this.w && 0 <= dy && dy < this.h) {
+				you.y += dt * this.vy
+			}
+		},
+	})
+
 
 
 function House(x, y, w, h) {
