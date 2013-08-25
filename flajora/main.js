@@ -11,7 +11,7 @@ var context = canvas.getContext("2d")
 UFX.draw.setcontext(context)
 UFX.key.init()
 UFX.key.remaparrows(true)
-UFX.key.watchlist = "up down left right 1 2 3 4 5 6 7 space enter tab esc backspace".split(" ")
+UFX.key.watchlist = "up down left right space esc backspace".split(" ")
 UFX.maximize.fill(canvas, "total")
 
 
@@ -21,7 +21,10 @@ UFX.scenes.load = {
 	},
 	think: function (dt) {
 		var kstate = UFX.key.state()
-		if (kstate.down.space) UFX.scene.push("game")
+		if (kstate.down.space) {
+			UFX.scene.push("game")
+			loadgame()
+		}
 	},
 	draw: function () {
 		if (this.f >= 1) {
@@ -31,6 +34,7 @@ UFX.scenes.load = {
 		}
 		UFX.draw("fs white f0")
 		write(text, 0.5, 0.5, settings.tstyles.title)
+		write("by Christopher Night, Universe Factory Games", 0.5, 0.45, settings.tstyles.subtitle)
 	},
 }
 UFX.scene.init()
@@ -38,18 +42,30 @@ UFX.scene.push("load")
 
 
 UFX.resource.onload = function () {
+	var music = UFX.resource.music = document.getElementById("music")
+	music.addEventListener("ended", function() {
+		this.currentTime = 0
+		this.play()
+	}, false)
+	music.play()
+	stopmusic()
+	for (var s in UFX.resource.sounds) {
+		UFX.resource.sounds[s] = UFX.resource.Multisound(UFX.resource.sounds[s])
+	}
+	UFX.resource.mergesounds("die", "get", "hiss", "note", "talk", "teleport")
 	UFX.scenes.load.f = 1
 }
 UFX.resource.onloading = function (f) {
 	UFX.scenes.load.f = f
 }
-UFX.resource.loadwebfonts("Unkempt", "New Rocker", "Maiden Orange", "Just Me Again Down Here", "Mouse Memoirs",
-	"Boogaloo", "Kavoon", "Luckiest Guy", "Freckle Face", "Mystery Quest", "Slackey", "Mountains of Christmas",
-	"Special Elite", "Piedra", "Alfa Slab One")
+UFX.resource.loadwebfonts("Unkempt", "Maiden Orange", "Mouse Memoirs",
+	"Boogaloo", "Kavoon", "Luckiest Guy", "Mystery Quest",
+	"Alfa Slab One")
 var res = {
 	ship: "img/ship.png",
 }
 allitems.forEach(function (item) { res[item] = "img/" + item + ".png" })
+"die0 die1 die2 die3 get0 get1 hiss0 hiss1 hiss2 hiss3 hiss4 note0 note1 note2 note3 note4 note5 note6 note7 note8 talk0 talk1 talk2 teleport0 teleport1 teleport2".split(" ").forEach(function (sound) { res[sound] = "sound/" + sound + ".ogg" })
 UFX.resource.load(res)
 
 
@@ -121,6 +137,10 @@ function write(text, x, y, tstyle, opts) {
 		context.strokeStyle = style.bcolor
 		context.lineWidth = Math.ceil(0.05 * style.size)
 	}
+	if (style.shadow) {
+		context.shadowColor = style.shadow
+		context.shadowOffsetX = context.shadowOffsetY = Math.ceil(0.03 * style.size)
+	}
 	texts.forEach(function (text, j) {
 		context.save()
 		context.translate(0, Math.round((j + 0.5) * lh - h0 * vanchor))
@@ -136,6 +156,16 @@ function worldwrite(text, tstyle, opts) {
 	context.scale(0.1, 0.1)
 	write(text, 0, 0, tstyle, opts)
 	context.restore()
+}
+
+function playsound(sname) {
+	UFX.resource.sounds[sname].play()
+}
+function playmusic() {
+	UFX.resource.music.volume = 1
+}
+function stopmusic() {
+	UFX.resource.music.volume = 0
 }
 
 
