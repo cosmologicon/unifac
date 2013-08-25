@@ -26,6 +26,19 @@ var Fades = {
 		UFX.draw("alpha", this.ftrans)
 	},
 }
+var Expires = {
+	init: function (lifetime) {
+		this.lifetime = lifetime || 1
+		this.tlife = lifetime
+	},
+	think: function (dt) {
+		if (this.tlife <= 0) return
+		this.tlife -= dt
+		if (this.tlife <= 0) {
+			this.die()
+		}
+	},
+}
 
 
 var WorldBound = {
@@ -46,7 +59,7 @@ var IsRound = {  // for the purposes of collision detection, anyway.
 	scootch: function (obj) {
 		var dx = obj.x - this.x, dy = obj.y - this.y, dr = this.r + obj.r
 		if (dx * dx + dy * dy >= dr * dr) return
-		var d = Math.sqrt(dx * dx + dy * dy), dd = dr * 1.01 - d
+		var d = Math.sqrt(dx * dx + dy * dy), dd = dr * 1.001 - d
 		obj.x += dx * dd / d
 		obj.y += dy * dd / d
 	},
@@ -60,11 +73,11 @@ var IsRectangular = {
 	},
 	scootch: function (obj) {
 		var dx = obj.x - this.x, dy = obj.y - this.y
-		if (dx < -obj.r || dx > this.w + obj.r || dy < -obj.r || dy > this.h + obj.r) return
-		if (0 <= dx && dx < this.w) {
+		if (dx <= -obj.r || dx >= this.w + obj.r || dy <= -obj.r || dy >= this.h + obj.r) return
+		if (0 < dx && dx < this.w) {
 			if (dy < this.h/2) obj.y = Math.min(obj.y, this.y - obj.r)
 			else obj.y = Math.max(obj.y, this.y + this.h + obj.r)
-		} else if (0 <= dy && dy < this.h) {
+		} else if (0 < dy && dy < this.h) {
 			if (dx < this.w/2) obj.x = Math.min(obj.x, this.x - obj.r)
 			else obj.x = Math.max(obj.x, this.x + this.w + obj.r)
 		} else {
@@ -119,6 +132,65 @@ Tree.prototype = UFX.Thing()
 		}
 	})
 
+function Rock(x, y, r, vx, vy) {
+	this.x = this.x0 = x
+	this.y = this.y0 = y
+	this.A = UFX.random(tau)
+	this.phi = UFX.random(2, 4)
+	this.r = r
+	this.vx = vx
+	this.vy = vy
+	this.t = 0
+}
+Rock.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(IsRound)
+	.addcomp({
+		draw: function () {
+			UFX.draw("b o 0 0", this.r, "lw 0.5 fs red ss darkred f s")
+		},
+		think: function (dt) {
+			this.A += dt * this.phi
+			this.t += dt
+			this.x = this.x0 + this.vx * this.t
+			this.y = this.y0 + this.vy * this.t - 4 * Math.abs(Math.sin(this.A))
+		},
+	})
+
+function Bulkhead(x, y, w, h, dx, dy, A) {
+	this.x = this.x0 = x - w/2
+	this.y = this.y0 = y - h/2
+	this.w = w
+	this.h = h
+	this.dx = dx
+	this.dy = dy
+	this.A = A
+	this.phi = UFX.random(2, 4)
+	this.t = 0
+}
+Bulkhead.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp({
+		init: function () {
+			this.setmethodmode("scootch", "any")
+		},
+		// Don't push players up, that makes it too easy
+		scootch: function (obj) {
+			if (-Math.sin(this.A) * this.dy < 0) return true
+		},
+		draw: function () {
+			UFX.draw("[ b rr", -0.5, -0.5, this.w + 1, this.h + 1, 0.5, "fs gray ss darkgray f s ]")
+		},
+		think: function (dt) {
+			this.A += dt * this.phi
+			this.t += dt
+			this.x = this.x0 + Math.sin(this.A) * this.dx
+			this.y = this.y0 + Math.cos(this.A) * this.dy
+		},
+	})
+	.addcomp(IsRectangular)
+
+
 
 function House(x, y, w, h) {
 	this.x = x
@@ -143,6 +215,32 @@ House.prototype = UFX.Thing()
 			"]")
 		}
 	})
+
+function Lake(x, y, r) {
+	this.x = x
+	this.y = y
+	this.r = r
+	backscenery.push(this)
+	this.color = UFX.draw.radgrad(0, 0, 0, 0, 0, this.r + 1, 0, "#00f", 1, "#88f")
+}
+Lake.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp({
+		init: function () {
+			this.setmethodmode("scootch", "any")
+		},
+		draw: function () {
+			UFX.draw(
+				"[ b o 0 0", this.r + 1, "fs", this.color, "f ]"
+			)
+		},
+		scootch: function (obj) {
+			return (obj === you && items.airbag)
+		},
+	})
+	.addcomp(IsRound)
+
+
 
 function Train(x, y) {
 	this.x = x - this.w / 2
@@ -179,6 +277,8 @@ Train.prototype = UFX.Thing()
 					quests.train.traveller.x = 100000
 					quests.train.traveller.target = null
 				} else if (this.contains(you)) {
+					you.invisible = true
+					UFX.scenes.game.fadeto("desert")
 					this.leaving = true
 				} else if (this.t > 7) {
 					this.leaving = true
@@ -216,6 +316,23 @@ SpeechBubble.prototype = UFX.Thing()
 				") [", (this.full ? "shadow black 4 4 0 f" : "f"), "] lw 0.5 s ]")
 			worldwrite(this.text, settings.tstyles.bubble)
 			UFX.draw("]")
+		},
+	})
+
+
+
+function Placename(text) {
+	this.text = text
+	hudeffects.push(this)
+	this.ttrans = 1
+}
+Placename.prototype = UFX.Thing()
+	.addcomp(Transitions)
+	.addcomp(Fades)
+	.addcomp(Expires, 1)
+	.addcomp({
+		draw: function () {
+			write(this.text, 0.5, 0.8, settings.tstyles.place)
 		},
 	})
 
