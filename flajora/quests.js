@@ -5,10 +5,10 @@ var items = {
 	kazoo: true,
 //	meat: true,
 	ticket: true,
-//	sneakers: true,
-	redgem: true,
-	bluegem: true,
-	greengem: true,
+	sneakers: true,
+//	redgem: true,
+//	bluegem: true,
+//	greengem: true,
 	ladder: true,
 	airbag: true,
 //	flask: true,
@@ -63,6 +63,27 @@ Marker.prototype = UFX.Thing()
 		draw: function () {
 			UFX.draw(this.dstring)
 		}
+	})
+
+function GemHold(x, y, color) {
+	this.x = x
+	this.y = y
+	this.color = color || "white"
+	this.t = 0
+	backeffects.push(this)
+}
+GemHold.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp({
+		think: function (dt) {
+			this.t += dt
+		},
+		draw: function () {
+			for (var j = 0 ; j < 4 ; ++j) {
+				var a = (this.t + j/4) % 1
+				UFX.draw("[ b o 0 0", 7 * a, "fs", this.color, "alpha", 0.2 * (1-a), "f ]")
+			}
+		},
 	})
 
 function Teleporter(x, y) {
@@ -223,6 +244,34 @@ quests.tree = {
 }
 
 
+quests.extra = {
+	init: function () {
+		;[[-75,-38],[-40,-30],[-35,-70],[26,-45],[56,-70],[-95,40],[-70,55],
+		[-50,20],[-38,80],[38,72],[50,33]].forEach(function (p) {
+			frontscenery.push(new Tree(p[0], p[1], 2))
+		})
+		;[[-135,-40,20,14],[-72,-72,15,22],[6,-95,22,17],[65,-60,22,28],
+		[80,-15,26,13],[-5,70,15,22],[22,35,17,21]].forEach(function (p) {
+			frontscenery.push(new House(p[0],p[1],p[2],p[3]))
+		})
+		people.push(new Responder(-125, -15, "Flajora's ship is said to be powered by special gemstones. If you can find three gems of different colors, you may be able to attack it!"))
+		people.push(new Responder(-55, -35, "These trees are big enough that someone could be hiding underneath and you wouldn't know unless you walked right up to them!"))
+		people.push(new Responder(-50, -75, "The only way to get Flajora's attention is to stand right at ground zero just before the attack."))
+		people.push(new Responder(-5, -74, "You'd think we would have known better than to call our town Doomberg. Nobody ever listens to me though!"))
+		people.push(new Responder(-5, -10, "Alien attack! Flajora's coming to get us! We'll all be toast! Hey, I could go for some toast...."))
+		people.push(new Responder(72, -70, "If only we had something that Flajora wanted!"))
+		people.push(new Responder(92, -22, "I swear I saw some squirelly-looking guy climing up one of these trees!"))
+		people.push(new Responder(-83, 48, "I wish I could take the train out of town, but it's sold out. Maybe I could steal a ticket!"))
+		people.push(new Responder(-45, 70, "It's pointless trying to talk to Flajora unless you have some leverage."))
+		people.push(new Responder(22, 72, "You think it's hard to go underwater? You just need something that can hold air!"))
+		people.push(new Responder(60, 45, "Taking the train out to the desert is cool. You have to watch out for rockslides but it's worth it."))
+		people.push(new Responder(90, 15, "If I wasn't worried about breathing I'd just walk right into the lake! Who knows what you could find!"))
+
+		people.push(new Conversator(18, -55, "Bechdel", tau*3/4, false))
+		people.push(new Conversator(23, -55, "Tess", tau/4, true))
+	},
+}
+
 
 // New scene quests, boss fights
 var lakequest = {
@@ -238,30 +287,36 @@ var lakequest = {
 		new Marker(0, -40, [
 			"[ ss rgba(0,0,0,0.3) lw 3 b o 0 0 5 s ]",
 		])
-		new Marker(0, -60, [
+		new Marker(0, -70, [
 			"[ ss rgba(0,0,0,0.3) lw 3 b o 0 0 5 s ]",
 		])
-		new Marker(0, -80, [
+		new Marker(0, -100, [
 			"[ ss rgba(0,0,0,0.3) lw 3 b o 0 0 5 s ]",
 		])
 
 		this.vortices = []
 		for (var j = 0 ; j < 80 ; ++j) {
-			var x = 0, y = -120, r = UFX.random(8, 16)
+			var x = 0, y = -120, r = UFX.random(5, 10)
 			var A = UFX.random(tau), R = 15 + 90 * Math.sqrt(UFX.random())
 			var phi = (UFX.random() < 0.5 ? 1 : -1) * UFX.random(14, 30) / R
 			var vortex = new Vortex(x, y, r, A, R, phi)
 			this.vortices.push(vortex)
 			frontscenery.push(vortex)
 		}
+		this.target = new GemHold(0, -120)
 	},
 	think: function (dt) {
 		this.vortices.forEach(function (vortex) { vortex.think(dt) })
+		this.target.think(dt)
+		var dx = you.x - this.target.x, dy = you.y - this.target.y
+		if (!items.bluegem && dx * dx + dy * dy < 5 * 5) {
+			UFX.scenes.game.toget = "bluegem"
+		}
 	},
 }
 var desertquest = {
 	init: function () {
-		new Placename("Tostito Desert")
+		new Placename("Rockslide Desert")
 		new Marker(0, 3, [
 			"[ z 0.2 0.2 fs rgba(255,0,0,0.3) ss rgba(255,0,0,0.3)",
 			"( m 25 0 l 0 -15 l -25 0 ) f",
@@ -276,17 +331,16 @@ var desertquest = {
 		new Marker(0, -90, [
 			"[ z 1 2 r", tau/8, "ss rgba(255,0,0,0.3) lw 3 sr -6 -6 12 12 ]",
 		])
-		new Marker(0, -130, [
-			"[ b o 0 0 5 ss red s ]",
-		])
 
 
 		this.rocks = []
 		while (this.rocks.length < 20) this.addrock()
 		this.t = 0
+
+		this.target = new GemHold(0, -130, "black")
 	},
 	addrock: function () {
-		var x0 = you.x, y0 = you.y - 30
+		var x0 = you.x, y0 = Math.max(you.y - 30, -60)
 		var rock = UFX.random() < 0.5 ? new Rock(
 			x0 + UFX.random(20, 40), y0 + UFX.random(-30, -70),
 			UFX.random(5, 8),
@@ -301,14 +355,18 @@ var desertquest = {
 	},
 	think: function (dt) {
 		this.t += dt
-		while (this.t > 0.05) {
-			this.t -= 0.05
+		while (this.t > 0.1) {
+			this.t -= 0.1
 			this.addrock()
 		}
 		this.rocks.forEach(function (rock) { rock.think(dt) })
+		this.target.think(dt)
+		var dx = you.x - this.target.x, dy = you.y - this.target.y
+		if (!items.redgem && dx * dx + dy * dy < 5 * 5) {
+			UFX.scenes.game.toget = "redgem"
+		}
 	},
 }
-// New scene quests, boss fights
 var treequest = {
 	init: function () {
 		new Placename("Hoarder's Treehouse")
@@ -334,9 +392,15 @@ var treequest = {
 			this.windtunnels.push(tunnel)
 			backscenery.push(tunnel)
 		}
+		this.target = new GemHold(0, -120)
 	},
 	think: function (dt) {
 		this.windtunnels.forEach(function (tunnel) { tunnel.think(dt) })
+		this.target.think(dt)
+		var dx = you.x - this.target.x, dy = you.y - this.target.y
+		if (!items.greengem && dx * dx + dy * dy < 5 * 5) {
+			UFX.scenes.game.toget = "greengem"
+		}
 	},
 }
 
@@ -368,6 +432,7 @@ var shipquest = {
 			this.addbulkhead(60, -y, 18, 8, 20, 0)
 		}
 		for (var x = -100 ; x < 100 ; x += 10) this.addbulkhead(x, -50, 8, 18, 0, 30)
+		this.target = new GemHold(0, -130)
 	},
 	addbulkhead: function (x, y, w, h, dx, dy) {
 		var bulkhead = new Bulkhead(x, y, w, h, dx, dy, UFX.random(tau))
@@ -376,6 +441,11 @@ var shipquest = {
 	},
 	think: function (dt) {
 		this.bulkheads.forEach(function (rock) { rock.think(dt) })
+		this.target.think(dt)
+		var dx = you.x - this.target.x, dy = you.y - this.target.y
+		if (!items.flask && dx * dx + dy * dy < 5 * 5) {
+			UFX.scenes.game.toget = "flask"
+		}
 	},
 }
 

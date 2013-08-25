@@ -131,6 +131,7 @@ var SwingsArms = {
 		}
 	},
 	draw: function () {
+		if (!camera.onscreen(this.x, this.y, this.r + 2)) return
 		var a = Math.sin(this.walkt * 0.5)
 		UFX.draw("z 0.1 0.1 r", this.facing)
 		UFX.draw("[ t 4.5", -5*a, "z 3 3 b o 0 0 2 fs", this.pcolor, "f ]")
@@ -278,7 +279,7 @@ DogOwner.prototype = UFX.Thing()
 			return "Have you seen my lost dog? I tried calling her, but her hearing is much worse than her sense of smell...."
 		},
 		canchat: function () {
-			return quests.lostdog.done && !items.cereal
+			return quests.lostdog.done && !items.airbag
 		},
 		chat: function () {
 			UFX.scenes.toget = "airbag"
@@ -290,6 +291,7 @@ function Dog(x, y) {
 	this.x = x
 	this.y = y
 	this.t = 0
+	this.facing = UFX.random(tau)
 }
 Dog.prototype = UFX.Thing()
 	.addcomp(WorldBound)
@@ -297,19 +299,24 @@ Dog.prototype = UFX.Thing()
 	.addcomp(Steps)
 	.addcomp(StopOnBump)
 	.addcomp(SaysStuff)
-	.addcomp(SeeksTarget, 3)
-	.addcomp(DrawCircle)
+	.addcomp(SeeksTarget, 1)
 	.addcomp({
+		draw: function () {
+			UFX.draw("r", this.facing, "z 0.1 0.1 rr -4 -6 8 12 3 fs #666 ss #999 f s")
+		},
 		think: function (dt) {
 			if (!this.target && !quests.lostdog.done && items.meat && dist(this, you) < 14) {
 				this.target = [you.x, you.y]
 				this.v = 10
 			} else if (!this.target) {
 				this.target = [this.x + UFX.random(-4, 4), this.y + UFX.random(-4, 4)]
-				this.v = 3
+				this.v = 1
 			}
 			this.t += dt
 			this.say(this.t % 3 < 1 ? "arf!" : "")
+			if (this.vx || this.vy) {
+				this.facing = Math.atan2(-this.vx, this.vy)
+			}
 		},
 	})
 
@@ -393,6 +400,45 @@ Squirrel.prototype = UFX.Thing()
 		},
 		chat: function () {
 			return "You scared me! Look, would you take this ladder for me? It's just slowing me down. You can use it to reach my treehouse... er... I forget which tree it's in."
+		},
+	})
+
+function Conversator(x, y, name, angle, even) {
+	this.x = x
+	this.y = y
+	this.name = name
+	this.setrandomcolors(this.name)
+	this.facing = angle
+	this.even = even
+	this.t = 0
+}
+Conversator.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(IsRound)
+	.addcomp(SaysStuff)
+	.addcomp(SwingsArms)
+	.addcomp({
+		think: function (dt) {
+			this.t += dt
+			var j = clip(Math.floor(this.t / 2), 0, 4)
+			var conversation = [
+				"",
+				"testing 2",
+				"testing 3",
+				"testing 4",
+				"testing 5",
+			]
+			if ((j % 2 == 0) == this.even) {
+				this.say(conversation[j])
+			} else {
+				this.shutup()
+			}
+		},
+		canchat: function () {
+			return true
+		},
+		chat: function () {
+			return "Can't you see we're having a conversation?"
 		},
 	})
 
