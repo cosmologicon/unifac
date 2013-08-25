@@ -160,6 +160,35 @@ quests.lake = {
 var lakequest = {
 	init: function () {
 		new Placename("Lake Blubb")
+		new Marker(0, 3, [
+			"[ z 0.2 0.2 fs rgba(0,0,0,0.3) ss rgba(0,0,0,0.3)",
+			"( m 25 0 l 0 -15 l -25 0 ) f",
+			"textalign center textbaseline top",
+			"font 18px~'Mouse~Memoirs' ft This~way~to~the 0 0",
+			"font 30px~'Mouse~Memoirs' ft Blue~Gem 0 25",
+		"]"])
+		new Marker(0, -40, [
+			"[ ss rgba(0,0,0,0.3) lw 3 b o 0 0 5 s ]",
+		])
+		new Marker(0, -60, [
+			"[ ss rgba(0,0,0,0.3) lw 3 b o 0 0 5 s ]",
+		])
+		new Marker(0, -80, [
+			"[ ss rgba(0,0,0,0.3) lw 3 b o 0 0 5 s ]",
+		])
+
+		this.vortices = []
+		for (var j = 0 ; j < 80 ; ++j) {
+			var x = 0, y = -120, r = UFX.random(8, 16)
+			var A = UFX.random(tau), R = 15 + 90 * Math.sqrt(UFX.random())
+			var phi = (UFX.random() < 0.5 ? 1 : -1) * UFX.random(14, 30) / R
+			var vortex = new Vortex(x, y, r, A, R, phi)
+			this.vortices.push(vortex)
+			frontscenery.push(vortex)
+		}
+	},
+	think: function (dt) {
+		this.vortices.forEach(function (vortex) { vortex.think(dt) })
 	},
 }
 var desertquest = {
