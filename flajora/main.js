@@ -15,13 +15,42 @@ UFX.key.watchlist = "up down left right 1 2 3 4 5 6 7 space enter tab esc backsp
 UFX.maximize.fill(canvas, "total")
 
 
+UFX.scenes.load = {
+	start: function () {
+		this.f = 0
+	},
+	think: function (dt) {
+		var kstate = UFX.key.state()
+		if (kstate.down.space) UFX.scene.push("game")
+	},
+	draw: function () {
+		if (this.f >= 1) {
+			var text = "Flajora's Flask\n\nPress Space"
+		} else {
+			text = "Flajora's Flask\n\nLoading (" + (100 * this.f).toFixed(0) + "%)"
+		}
+		UFX.draw("fs white f0")
+		write(text, 0.5, 0.5, settings.tstyles.title)
+	},
+}
+UFX.scene.init()
+UFX.scene.push("load")
+
+
 UFX.resource.onload = function () {
-	UFX.scene.init()
-	UFX.scene.push("game")
+	UFX.scenes.load.f = 1
+}
+UFX.resource.onloading = function (f) {
+	UFX.scenes.load.f = f
 }
 UFX.resource.loadwebfonts("Unkempt", "New Rocker", "Maiden Orange", "Just Me Again Down Here", "Mouse Memoirs",
 	"Boogaloo", "Kavoon", "Luckiest Guy", "Freckle Face", "Mystery Quest", "Slackey", "Mountains of Christmas",
 	"Special Elite", "Piedra", "Alfa Slab One")
+UFX.resource.load({
+	"ship": "img/ship.png",
+	"flask": "img/flask.png",
+})
+
 
 function clip(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
 function rmod(x,z){return(x%z+z)%z}
