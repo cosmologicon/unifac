@@ -10,10 +10,20 @@ var Steps = {
 	step: function (dx, dy) {
 		this.x += dx
 		this.y += dy
+		var x0 = this.x, y0 = this.y
 		for (var j = 0 ; j < colliders.length ; ++j) {
 			if (colliders[j] === this) continue
 			colliders[j].scootch(this)
 		}
+		if (this.x !== x0 || this.y !== y0) this.bumped()
+	},
+	bumped: function () {
+	},
+}
+
+var StopOnBump = {
+	bumped: function () {
+		this.target = null
 	},
 }
 
@@ -102,6 +112,25 @@ You.prototype = UFX.Thing()
 	.addcomp(SaysStuff)
 	.addcomp(DrawCircle)
 
+// Generic responder, for giving clues
+function Responder(x, y, text) {
+	this.x = x
+	this.y = y
+	this.text = text
+}
+Responder.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(IsRound)
+	.addcomp(SaysStuff)
+	.addcomp(Responds)
+	.addcomp(DrawCircle)
+	.addcomp({
+		response: function () {
+			return this.text
+		},
+	})
+
+
 // Race runner
 function Runner(x, y, targetx, targety, cheater) {
 	this.x = x
@@ -116,7 +145,7 @@ Runner.prototype = UFX.Thing()
 	.addcomp(Steps)
 	.addcomp(SaysStuff)
 	.addcomp(Responds)
-	.addcomp(SeeksTarget)
+	.addcomp(SeeksTarget, 12)
 	.addcomp(DrawCircle)
 	.addcomp({
 		think: function (dt) {
@@ -187,22 +216,54 @@ Dog.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(IsRound)
 	.addcomp(Steps)
+	.addcomp(StopOnBump)
 	.addcomp(SaysStuff)
 	.addcomp(SeeksTarget, 3)
 	.addcomp(DrawCircle)
 	.addcomp({
 		think: function (dt) {
-			if (!this.target && !quests.lostdog.done && items.meat && dist(this, you) < 4) {
+			if (!this.target && !quests.lostdog.done && items.meat && dist(this, you) < 14) {
 				this.target = [you.x, you.y]
-				this.v = 15
+				this.v = 10
 			} else if (!this.target) {
 				this.target = [this.x + UFX.random(-4, 4), this.y + UFX.random(-4, 4)]
+				this.v = 3
 			}
 			this.t += dt
 			this.say(this.t % 3 < 1 ? "arf!" : "")
 		},
 	})
 
+function Traveller(x, y) {
+	this.x = x
+	this.y = y
+	var train = quests.train.train
+	this.target = [train.x + train.w/2, train.y + train.h/2]
+	this.hasticket = true
+}
+Traveller.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(IsRound)
+	.addcomp(Steps)
+	.addcomp(SaysStuff)
+	.addcomp(Responds)
+	.addcomp(SeeksTarget, 13.3)
+	.addcomp(DrawCircle)
+	.addcomp({
+		response: function () {
+			if (this.target) {
+				return "Excuse me, I have to catch the last train out of town!"
+			}
+			return "Well I hope you're happy! I missed the train!"
+		},
+		canchat: function () {
+			return !items.ticket && !this.target
+		},
+		chat: function () {
+			items.ticket = true
+			return "I missed the train thanks to you! My ticket is worthless now! You take it, jerk!"
+		},
+	})
 
 
 
