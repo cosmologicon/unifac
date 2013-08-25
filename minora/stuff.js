@@ -240,7 +240,39 @@ Lake.prototype = UFX.Thing()
 	})
 	.addcomp(IsRound)
 
-
+function Vortex(x, y, r, A, R, phi) {
+	this.x0 = this.x = x
+	this.y0 = this.y = y
+	this.r = r
+	this.A = A
+	this.R = R
+	this.phi = phi
+	this.color = UFX.draw.radgrad(0, 0, 0, 0, 0, this.r + 1, 0, "black", 1, "rgba(0,0,0,0)")
+}
+Vortex.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp({
+		think: function (dt) {
+			this.A += this.phi * dt
+			this.x = this.x0 + this.R * Math.sin(this.A)
+			this.y = this.y0 + this.R * Math.cos(this.A)
+			
+			var dx = you.x - this.x, dy = you.y - this.y
+			if (dx * dx + dy * dy < this.r * this.r) {
+				var d = Math.sqrt(dx * dx + dy * dy)
+				var v = 20 * (2 - d / this.r)
+				you.x -= dt * v * dx / d
+				you.y -= dt * v * dy / d
+			}
+		},
+		draw: function () {
+			UFX.draw(
+				"[ b o 0 0", this.r + 1, "fs", this.color, "f ]"
+			)
+		},
+		scootch: function (obj) {
+		},
+	})
 
 function Train(x, y) {
 	this.x = x - this.w / 2
