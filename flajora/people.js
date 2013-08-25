@@ -131,7 +131,6 @@ Responder.prototype = UFX.Thing()
 		},
 	})
 
-
 // Race runner
 function Runner(x, y, targetx, targety, cheater) {
 	this.x = x
@@ -168,7 +167,7 @@ Runner.prototype = UFX.Thing()
 			return this.cheater && this.winner && !items.sneakers
 		},
 		chat: function () {
-			items.sneakers = true
+			UFX.scenes.game.toget = "sneakers"
 			return "Thanks for helping me cheat, you big cheater! I like your style. Take my lucky sneakers, Cheaty McCheaterson. And hey... keep on cheating!"
 		},
 	})
@@ -195,16 +194,16 @@ DogOwner.prototype = UFX.Thing()
 		},
 		response: function () {
 			if (quests.lostdog.done) {
-				return "Sweet I got my dog back!"
+				return "Ah, got my dog back. Now to go sell her on the puppy black market."
 			}
-			return "Have you seen my lost dog? She loves the smell of raw meat!"
+			return "Have you seen my lost dog? I tried calling her, but her hearing is much worse than her sense of smell...."
 		},
 		canchat: function () {
 			return quests.lostdog.done && !items.cereal
 		},
 		chat: function () {
-			items.cereal = true
-			return "Wow you brought my dog to me! And no wonder, you smell terrible! Here, have some cereal!"
+			UFX.scenes.toget = "airbag"
+			return "Wow you brought my dog to me! And no wonder, you smell terrible! I wish I could give you something valuable. Oh wait, no I don't. But you can have this bag."
 		},
 	})
 

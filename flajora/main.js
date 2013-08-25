@@ -46,10 +46,11 @@ UFX.resource.onloading = function (f) {
 UFX.resource.loadwebfonts("Unkempt", "New Rocker", "Maiden Orange", "Just Me Again Down Here", "Mouse Memoirs",
 	"Boogaloo", "Kavoon", "Luckiest Guy", "Freckle Face", "Mystery Quest", "Slackey", "Mountains of Christmas",
 	"Special Elite", "Piedra", "Alfa Slab One")
-UFX.resource.load({
-	"ship": "img/ship.png",
-	"flask": "img/flask.png",
-})
+var res = {
+	ship: "img/ship.png",
+}
+allitems.forEach(function (item) { res[item] = "img/" + item + ".png" })
+UFX.resource.load(res)
 
 
 function clip(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
