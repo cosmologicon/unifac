@@ -71,7 +71,7 @@ UFX.scenes.game = {
 			}
 		}
 		if (this.toget) {
-			UFX.scene.push("get", this.toget)
+			if (!items[this.toget]) UFX.scene.push("get", this.toget)
 			this.toget = null
 		}
 

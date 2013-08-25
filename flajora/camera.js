@@ -11,7 +11,7 @@ var camera = {
 	},
 	onscreen: function (x, y, r) {
 		r = r || 0
-		return x > this.xmin - r && x < this.xmax + r && y > this.ymxn - r && y < this.ymax + r 
+		return x > this.xmin - r && x < this.xmax + r && y > this.ymin - r && y < this.ymax + r 
 	},
 	draw: function () {
 		UFX.draw("t", settings.sx/2, settings.sy/2, "z", this.zoom, this.zoom, "t", -this.x, -this.y)

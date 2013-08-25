@@ -122,6 +122,7 @@ Tree.prototype = UFX.Thing()
 	.addcomp(IsRound)
 	.addcomp({
 		draw: function () {
+			if (!camera.onscreen(this.x, this.y, 4 * this.r + 4)) return
 			var xs = this.xs, ys = this.ys
 			UFX.draw("[ z", 4 * this.r, 4 * this.r, "( m", xs[0], ys[0])
 			for (var j = 0 ; j < 7 ; ++j) {
@@ -147,6 +148,7 @@ Rock.prototype = UFX.Thing()
 	.addcomp(IsRound)
 	.addcomp({
 		draw: function () {
+			if (!camera.onscreen(this.x, this.y, this.r + 2)) return
 			UFX.draw("b o 0 0", this.r, "lw 0.5 fs red ss darkred f s")
 		},
 		think: function (dt) {
@@ -237,16 +239,21 @@ function House(x, y, w, h) {
 	this.w = w
 	this.h = h
 	frontscenery.push(this)
+	var s = UFX.random.seed
+	UFX.random.setseed([x, y, w, h])
+	this.color = UFX.random.choice(["red", "white", "gray", "blue", "green", "orange", "pink"])
+	UFX.random.setseed(s)
 }
 House.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(IsRectangular)
 	.addcomp({
 		draw: function () {
+			if (!camera.onscreen(this.x, this.y, this.w + this.h)) return
 			var a = Math.min(this.w, this.h) / 2
 			UFX.draw(
 				"[ b rr", -0.5, -0.5, this.w + 1, this.h + 1, 0.5, "clip",
-				"fs red fr -1 -1", this.w + 2, this.h + 2,
+				"fs", this.color, "fr -1 -1", this.w + 2, this.h + 2,
 				"( m -1", this.h + 1, "l", a, this.h - a, "l", this.w - a, a, "l", this.w + 1, -1,
 				"l", this.w + 1, this.h + 1, ") fs rgba(0,0,0,0.3) f",
 				"( m", this.w + 1, this.h + 1, "l", this.w - a, this.h - a, "l", a, a, "l", -1, -1,
