@@ -18,6 +18,13 @@ UFX.maximize.onadjust = function (canvas) {
 			vanchor: 0.5,
 			color: "white",
 		},
+		title: {
+			size: 5*s0,
+			font: "Boogaloo",
+			hanchor: 0.5,
+			vanchor: 0.5,
+			color: "black",
+		},
 		timer: {
 			size: 3*s0,
 			font: "Mouse Memoirs",
@@ -53,6 +60,25 @@ UFX.maximize.onadjust = function (canvas) {
 			color: "white",
 			bcolor: "black",
 		},
+		iteminfo: {
+			size: s0*2,
+			font: "Maiden Orange",
+			hanchor: 0.5,
+			vanchor: 0,
+			color: "white",
+			bcolor: "black",
+			width: sx*0.5,
+			boxcolor: "#fca",
+			boxbcolor: "#f80",
+		},
+		itemname: {
+			size: s0*4,
+			font: "Mouse Memoirs",
+			hanchor: 0,
+			vanchor: 0.5,
+			color: "white",
+			bcolor: "black",
+		},
 		gobacktip: {
 			size: s0*2,
 			font: "Mouse Memoirs",
@@ -68,6 +94,14 @@ UFX.maximize.onadjust = function (canvas) {
 			vanchor: 0.5,
 			color: "orange",
 			bcolor: "black",
+		},
+		fail: {
+			size: 3*s0,
+			font: "Kavoon",
+			hanchor: 0.5,
+			vanchor: 0.5,
+			color: "#400",
+			width: sx*0.8,
 		},
 	}
 }

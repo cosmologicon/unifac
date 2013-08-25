@@ -8,7 +8,29 @@ var items = {
 	redgem: true,
 	bluegem: true,
 	greengem: true,
+	ladder: true,
 	airbag: true,
+//	flask: true,
+}
+
+var itemnames = {
+	kazoo: "The Spacetime Kazoo",
+	meat: "A Big Thing of Meat",
+	ticket: "Train Ticket",
+	sneakers: "Enchanted Sneakers",
+	redgem: "The Red Gem of Rolanda",
+	bluegem: "The Blue Gem of Betsy",
+	greengem: "The Green Gem of Gladys",
+	ladder: "A Rope Ladder",
+	airbag: "A Bag of Air",
+	flask: "Flajora's Flask",
+}
+
+var iteminfo = {
+	kazoo: "It doesn't look like much, but this kazoo is actually a time machine! It's not a very good one, though. You'll only go back a few seconds. Hope that's enough. Press Backspace to use it at any time.",
+	ticket: "A ticket for a train that's already left the station.",
+	ladder: "I know what you're thinking, but no, you can not use this ladder to climb to space and stop Flajora. You keep thinking outside the box, though. You'll go far.",
+	flask: "An old whiskey flask hidden under Flajora's pillow. It's currently half-full of grape Kool-Aid, and appears to have great sentimental value.",
 }
 
 function savegame() {
