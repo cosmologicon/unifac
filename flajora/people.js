@@ -266,5 +266,54 @@ Traveller.prototype = UFX.Thing()
 		},
 	})
 
+function Squirrel(trees) {
+	this.trees = trees.slice(0)
+	var tree = this.trees.shift()
+	this.x = tree.x + tree.r + this.r
+	this.y = tree.y + tree.r + this.r
+	this.name = "Skwirlle"
+}
+Squirrel.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(IsRound)
+	.addcomp(Steps)
+	.addcomp(SaysStuff)
+	.addcomp(Responds)
+	.addcomp(SeeksTarget, 40)
+	.addcomp(DrawCircle)
+	.addcomp({
+		think: function (dt) {
+			if (this.target) {
+				this.say("Aaaaah!")
+				var dx = this.target[0] - this.x, dy = this.target[1] - this.y, dr = this.r + 2
+				if (dx * dx + dy * dy < 1.1 * dr * dr) {
+					this.target = null
+					this.shutup()
+				}
+			} else {
+				if (this.trees.length) {
+					var dx = you.x - this.x, dy = you.y - this.y, dr = 6
+					if (dx * dx + dy * dy < dr * dr) {
+						var tree = this.trees.shift()
+						this.target = [tree.x, tree.y]
+					}
+				}
+			}
+		},
+		response: function () {
+			if (!this.trees.length && !this.target) {
+				return "Fine, you caught me."
+			} else {
+				return "Aaaaah!"
+			}
+		},
+		canchat: function () {
+			return !this.trees.length && !this.target && !items.ladder
+		},
+		chat: function () {
+			return "You scared me! Look, would you take this ladder for me? It's just slowing me down. You can use it to reach my treehouse... er... I forget which tree it's in."
+		},
+	})
+
 
 

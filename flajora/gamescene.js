@@ -21,6 +21,11 @@ UFX.scenes.game = {
 				desert: desertquest
 			}
 			this.gcolor = "#ffa"
+		} else if (scene === "tree") {
+			this.quests = {
+				tree: treequest
+			}
+			this.gcolor = "#6a6"
 		} else if (scene === "ship") {
 			this.quests = {
 				ship: shipquest

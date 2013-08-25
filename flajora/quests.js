@@ -178,6 +178,33 @@ quests.lake = {
 	},
 }
 
+
+quests.tree = {
+	init: function () {
+		this.tree0 = new Tree(15, -15, 3.5)
+		this.trees = [
+			new Tree(3, 52, 2),
+			new Tree(50, -10, 2),
+			new Tree(-45, -55, 2),
+		]
+		frontscenery.push(this.tree0)
+		frontscenery.push(this.trees[0])
+		frontscenery.push(this.trees[1])
+		frontscenery.push(this.trees[2])
+
+		this.squirrel = new Squirrel(this.trees)
+		people.push(this.squirrel)
+	},
+	think: function (dt) {
+		var dx = this.tree0.x - you.x, dy = this.tree0.y - you.y
+		if (items.ladder && dx * dx + dy * dy < 5 * 5) {
+			UFX.scenes.game.fadeto("tree")
+		}
+	},
+}
+
+
+
 // New scene quests, boss fights
 var lakequest = {
 	init: function () {
@@ -262,6 +289,38 @@ var desertquest = {
 		this.rocks.forEach(function (rock) { rock.think(dt) })
 	},
 }
+// New scene quests, boss fights
+var treequest = {
+	init: function () {
+		new Placename("Hoarder's Treehouse")
+		new Marker(0, 3, [
+			"[ z 0.2 0.2 fs rgba(255,255,255,0.3) ss rgba(255,255,255,0.3)",
+			"( m 25 0 l 0 -15 l -25 0 ) f",
+			"textalign center textbaseline top",
+			"font 18px~'Mouse~Memoirs' ft This~way~to~the 0 0",
+			"font 30px~'Mouse~Memoirs' ft Green~Gem 0 25",
+		"]"])
+		new Marker(0, -40, [
+			"[ ss rgba(0,0,0,0.3) lw 3 ( m 0 -6 l -8 6 l 8 6 ) s ]",
+		])
+		new Marker(0, -60, [
+			"[ ss rgba(0,0,0,0.3) lw 3 ( m 0 -6 l -8 6 l 8 6 ) s ]",
+		])
+		new Marker(0, -80, [
+			"[ ss rgba(0,0,0,0.3) lw 3 ( m 0 -6 l -8 6 l 8 6 ) s ]",
+		])
+		this.windtunnels = []
+		for (var x = -160 ; x < 160 ; x += 5) {
+			var tunnel = new WindTunnel(x, -100, 5, 80)
+			this.windtunnels.push(tunnel)
+			backscenery.push(tunnel)
+		}
+	},
+	think: function (dt) {
+		this.windtunnels.forEach(function (tunnel) { tunnel.think(dt) })
+	},
+}
+
 var shipquest = {
 	init: function () {
 		new Placename("Flajora's Spaceship")
