@@ -3,7 +3,12 @@ var gamestate = {}
 var items = {
 	kazoo: true,
 //	meat: true,
-//	sneakers: true,
+	ticket: true,
+	sneakers: true,
+	redgem: true,
+	bluegem: true,
+	greengem: true,
+	airbag: true,
 }
 
 function savegame() {
@@ -29,6 +34,26 @@ Marker.prototype = UFX.Thing()
 		draw: function () {
 			UFX.draw(this.dstring)
 		}
+	})
+
+function Teleporter(x, y) {
+	this.x = x
+	this.y = y
+	backeffects.push(this)
+	this.t = 0
+}
+Teleporter.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp({
+		draw: function () {
+			var a = this.t * 2, da = tau/3
+			if (items.redgem) UFX.draw("[ t", 5*Math.sin(a), 5*Math.cos(a), "alpha 0.5 fs #faa b o 0 0 8 f ]")
+			if (items.bluegem) UFX.draw("[ t", 5*Math.sin(a+da), 5*Math.cos(a+da), "alpha 0.5 fs #aaf b o 0 0 8 f ]")
+			if (items.greengem) UFX.draw("[ t", 5*Math.sin(a+2*da), 5*Math.cos(a+2*da), "alpha 0.5 fs #afa b o 0 0 8 f ]")
+		},
+		think: function (dt) {
+			this.t += dt
+		},
 	})
 
 
@@ -83,11 +108,22 @@ quests.minora = {
 			"font 20px~'Mouse~Memoirs' ft is~that~way 0 25",
 			"font 14px~'Mouse~Memoirs' ft just~so~you~know 0 45",
 		"]"])
+		this.teleporter = new Teleporter(15, 45)
 		new House(-25, -42, 25, 15)
 		new House(-18, -65, 28, 15)
 		new House(30, 18, 20, 10)
+		new Placename("Doomburg")
 
-	}
+	},
+	think: function (dt) {
+		this.teleporter.think(dt)
+		if (items.redgem && items.bluegem && items.greengem) {
+			var dx = this.teleporter.x - you.x, dy = this.teleporter.y - you.y
+			if (dx * dx + dy * dy < 5 * 5) {
+				UFX.scenes.game.fadeto("ship")
+			}
+		}
+	},
 }
 
 quests.train = {
@@ -105,8 +141,118 @@ quests.train = {
 	think: function (dt) {
 		this.train.think(dt)
 	},
-
 }
+
+
+quests.lake = {
+	init: function () {
+		this.lake = new Lake(-90, 0, 36)
+	},
+	think: function (dt) {
+		var dx = this.lake.x - you.x, dy = this.lake.y - you.y
+		if (dx * dx + dy * dy < 33 * 33) {
+			UFX.scenes.game.fadeto("lake")
+		}
+	},
+}
+
+// New scene quests, boss fights
+var lakequest = {
+	init: function () {
+		new Placename("Lake Blubb")
+	},
+}
+var desertquest = {
+	init: function () {
+		new Placename("Tostito Desert")
+		new Marker(0, 3, [
+			"[ z 0.2 0.2 fs rgba(255,0,0,0.3) ss rgba(255,0,0,0.3)",
+			"( m 25 0 l 0 -15 l -25 0 ) f",
+			"textalign center textbaseline top",
+			"font 18px~'Mouse~Memoirs' ft This~way~to~the 0 0",
+			"font 30px~'Mouse~Memoirs' ft Red~Gem 0 25",
+		"]"])
+
+		new Marker(0, -40, [
+			"[ z 1 2 r", tau/8, "ss rgba(255,0,0,0.3) lw 3 sr -6 -6 12 12 ]",
+		])
+		new Marker(0, -90, [
+			"[ z 1 2 r", tau/8, "ss rgba(255,0,0,0.3) lw 3 sr -6 -6 12 12 ]",
+		])
+		new Marker(0, -130, [
+			"[ b o 0 0 5 ss red s ]",
+		])
+
+
+		this.rocks = []
+		while (this.rocks.length < 20) this.addrock()
+		this.t = 0
+	},
+	addrock: function () {
+		var x0 = you.x, y0 = you.y - 30
+		var rock = UFX.random() < 0.5 ? new Rock(
+			x0 + UFX.random(20, 40), y0 + UFX.random(-30, -70),
+			UFX.random(5, 8),
+			UFX.random(-30, -15), UFX.random(10, 20)
+		) : new Rock(
+			x0 + UFX.random(-40, -20), y0 + UFX.random(-70, -30),
+			UFX.random(5, 8),
+			UFX.random(15, 30), UFX.random(10, 20)
+		)
+		this.rocks.push(rock)
+		frontscenery.push(rock)
+	},
+	think: function (dt) {
+		this.t += dt
+		while (this.t > 0.05) {
+			this.t -= 0.05
+			this.addrock()
+		}
+		this.rocks.forEach(function (rock) { rock.think(dt) })
+	},
+}
+var shipquest = {
+	init: function () {
+		new Placename("Minora's Spaceship")
+		new Marker(0, 3, [
+			"[ z 0.2 0.2 fs rgba(255,0,0,0.3) ss rgba(255,0,0,0.3)",
+			"( m 25 0 l 0 -15 l -25 0 ) f",
+			"textalign center textbaseline top",
+			"font 18px~'Mouse~Memoirs' ft This~way~to 0 0",
+			"font 30px~'Mouse~Memoirs' ft Minora's~Flask 0 25",
+		"]"])
+		new Marker(0, -40, [
+			"[ ss rgba(255,255,255,0.3) lw 3 sr -6 -6 12 12 ]",
+		])
+		new Marker(0, -60, [
+			"[ ss rgba(255,255,255,0.3) lw 3 sr -6 -6 12 12 ]",
+		])
+		new Marker(0, -80, [
+			"[ ss rgba(255,255,255,0.3) lw 3 sr -6 -6 12 12 ]",
+		])
+		this.bulkheads = []
+		for (var y = 20 ; y < 100 ; y += 10) {
+			this.addbulkhead(-60, -y, 18, 8, 20, 0)
+			this.addbulkhead(-30, -y, 18, 8, 20, 0)
+			this.addbulkhead(0, -y, 18, 8, 20, 0)
+			this.addbulkhead(30, -y, 18, 8, 20, 0)
+			this.addbulkhead(60, -y, 18, 8, 20, 0)
+		}
+		for (var x = -100 ; x < 100 ; x += 10) this.addbulkhead(x, -50, 8, 18, 0, 30)
+	},
+	addbulkhead: function (x, y, w, h, dx, dy) {
+		var bulkhead = new Bulkhead(x, y, w, h, dx, dy, UFX.random(tau))
+		this.bulkheads.push(bulkhead)
+		frontscenery.push(bulkhead)
+	},
+	think: function (dt) {
+		this.bulkheads.forEach(function (rock) { rock.think(dt) })
+	},
+}
+
+
+
+
 
 
 

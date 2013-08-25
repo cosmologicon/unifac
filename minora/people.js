@@ -1,6 +1,7 @@
 
 var DrawCircle = {
 	draw: function () {
+		if (this.invisible) return
 		UFX.draw("z 0.1 0.1 b o 0 0", this.r * 10, "lw 1 fs blue ss black lw 1 f s")
 	},
 }

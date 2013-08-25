@@ -61,6 +61,14 @@ UFX.maximize.onadjust = function (canvas) {
 			color: "#ccf",
 			bcolor: "black",
 		},
+		place: {
+			size: s0*3.5,
+			font: "Mystery Quest",
+			hanchor: 0.5,
+			vanchor: 0.5,
+			color: "orange",
+			bcolor: "black",
+		},
 	}
 }
 
