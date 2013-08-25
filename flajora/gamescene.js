@@ -1,8 +1,7 @@
 
 
 UFX.scenes.game = {
-	start: function (scene) {
-		
+	start: function (scene) {		
 		this.opentime = 0
 		this.scene = scene
 		if (!scene) {
@@ -11,6 +10,7 @@ UFX.scenes.game = {
 			this.opentime = 2.5
 			this.draw()  // so the opening is showing while we load
 			this.gcolor = "#afc"
+			playsound("hiss")
 		} else if (scene === "lake") {
 			this.quests = {
 				lake: lakequest
@@ -61,10 +61,12 @@ UFX.scenes.game = {
 			this.opentime -= dt
 			if (this.opentime > 0) return
 		}
+		playmusic()
 		
-		if (settings.easymode) dt *= 0.4
+		var clockdt = dt / (settings.EASY || 1)
 		
 		if (this.nextscene) {
+			if (this.fadetime == 0) playsound("teleport")
 			this.fadetime += 2 * dt
 			if (this.fadetime >= 1) {
 				UFX.scene.swap("game", this.nextscene)
@@ -75,7 +77,11 @@ UFX.scenes.game = {
 			this.toget = null
 		}
 
-		you.move(kstate.pressed)
+		if (this.nextscene) {
+			you.vx = you.vy = 0
+		} else {
+			you.move(kstate.pressed)
+		}
 
 		this.runscripts()
 
@@ -103,8 +109,10 @@ UFX.scenes.game = {
 		if (this.chatter && kstate.down.space) {
 			UFX.scene.push("chat", this.chatter)
 		} else if (items.kazoo && kstate.down.backspace) {
+			stopmusic()
 			UFX.scene.push("kazoo")
 		} else if (kstate.down.esc) {
+			stopmusic()
 			UFX.scene.push("pause")
 		}
 		
@@ -114,21 +122,28 @@ UFX.scenes.game = {
 		hudeffects = hudeffects.filter(isalive)
 		
 		
-		this.clock -= dt
+		this.clock -= clockdt
 		camera.think(dt)
 		camera.x = you.x
 		camera.y = you.y
 		
-		this.canwin = items.flask && you.x * you.x + you.y * you.y < 25
+		this.canwin = items.flask && you.x * you.x + you.y * you.y < 25 && this.clock < 5
 		if (this.canwin && kstate.down.space) {
+			stopmusic()
 			UFX.scene.swap("win")
+		}
+		if (this.clock <= 0) {
+			this.clock = 0
+			stopmusic()
+			UFX.scene.swap("die")
 		}
 		
 	},
 	draw: function () {
 		if (this.opentime > 0) {
 			UFX.draw("fs black f0")
-			write("23:59:50 on\nThe Final Day\n\n- 10 seconds remain -", 0.5, 0.5, settings.tstyles.open)
+			write("\n23:59:50 on\n\n\n\n- 10 seconds remain -", 0.5, 0.5, settings.tstyles.open)
+			write("The Final Day", 0.5, 0.5, settings.tstyles.subopen)
 			return
 		}
 		UFX.draw("fs", this.gcolor, "f0")
@@ -140,11 +155,9 @@ UFX.scenes.game = {
 			}
 		}
 		function draw(obj) { context.save() ; obj.draw() ; context.restore() }
-		// Draw stuff on the ground
 		backeffects.forEach(draw)
 		backscenery.forEach(draw)
-		// Draw people
-		draw(you)
+		if (!this.nextscene) draw(you)
 		people.forEach(draw)
 
 		frontscenery.forEach(draw)
@@ -159,11 +172,10 @@ UFX.scenes.game = {
 		}
 		UFX.draw("]")
 
-		if (this.chatter || this.canwin) write("Space: talk", 0.5, 0.3, settings.tstyles.chattip)
+		if (this.chatter || this.canwin) write("Space: talk", 0.5, 0.7, settings.tstyles.chattip)
 		write(this.clock.toFixed(1), 0.5, 0.99, settings.tstyles.timer)
-		if (items.kazoo) {
-			write("Backspace: use kazoo", 0.99, 1, settings.tstyles.gobacktip)
-		}
+		var text = "Esc: pause" + (items.kazoo ? "\nBackspace: use kazoo" : "")
+		write(text, 0.99, 1, settings.tstyles.gobacktip)
 		if (this.nextscene) {
 			UFX.draw("[ alpha", clip(this.fadetime, 0, 1), "fs white f0 ]")
 		}
@@ -185,6 +197,7 @@ UFX.scenes.chat = {
 		this.chatname = this.chatter.name
 		this.text = chatter.chat()
 		this.t = 0
+		playsound("talk")
 	},
 	thinkargs: function (dt) {
 		return [dt, UFX.key.state()]
@@ -212,6 +225,7 @@ UFX.scenes.get = {
 		this.thing = thing
 		items[this.thing] = true
 		this.t = 0
+		playsound("get")
 	},
 	thinkargs: function (dt) {
 		return [dt, UFX.key.state()]
@@ -222,6 +236,7 @@ UFX.scenes.get = {
 			UFX.scene.pop()
 		}
 		if (items.kazoo && kstate.down.backspace) {
+			stopmusic()
 			UFX.scene.swap("kazoo")
 		}
 	},
@@ -246,12 +261,18 @@ UFX.scenes.kazoo = {
 		this.t = 0
 		this.dots = UFX.random.spread(6)
 		savegame()
+		this.notet = 0.2
 	},
 	think: function (dt) {
 		this.t += dt
 		if (this.t > 1.2) {
 			UFX.scene.pop()
 			UFX.scene.swap("game")
+		}
+		this.notet += dt
+		while (this.notet > 0.2) {
+			playsound("note")
+			this.notet -= 0.2
 		}
 	},
 	draw: function () {
@@ -279,11 +300,15 @@ UFX.scenes.pause = {
 		return [dt, UFX.key.state()]
 	},
 	think: function (dt, kstate) {
-		if (kstate.down.esc) UFX.scene.pop()
+		if (kstate.down.esc) {
+			UFX.scene.pop()
+			playmusic()
+		}
 	},
 	draw: function () {
 		UFX.scenes.game.draw()
 		UFX.draw("fs rgba(0,0,0,0.7) f0")
+		write("Esc: resume", 0.5, 0.7, settings.tstyles.chattip)
 	},
 }
 
@@ -292,6 +317,7 @@ UFX.scenes.die = {
 	start: function () {
 		this.t = 0
 		this.stars = UFX.random.spread(100)
+		playsound("die")
 	},
 	thinkargs: function (dt) {
 		return [dt, UFX.key.state()]
@@ -324,8 +350,8 @@ UFX.scenes.die = {
 		if (this.t > 1.5) {
 			write("Flajora has destroyed the world.\n\nThe End", 0.5, 0.5, settings.tstyles.fail)
 		}
-		if (this.t > 2.5) {
-			UFX.scene.swap("game")
+		if (this.t > 3) {
+			UFX.scene.pop()
 		}
 	},
 }
@@ -389,6 +415,7 @@ UFX.scenes.win = {
 			UFX.draw("[ t", sx/2, sy * (this.youtalk ? 0.7 : 0.4), "z 16 16")
 			this.bubble.draw()
 			UFX.draw("]")
+			write("Space: next", 0.99, 1, settings.tstyles.gobacktip)
 		}
 	},
 }

@@ -2,15 +2,15 @@
 var gamestate = {}
 var allitems = "kazoo sneakers meat airbag ladder ticket redgem greengem bluegem flask".split(" ")
 var items = {
-	kazoo: true,
+//	kazoo: true,
 //	meat: true,
-	ticket: true,
-	sneakers: true,
+//	ticket: true,
+//	sneakers: true,
 //	redgem: true,
 //	bluegem: true,
 //	greengem: true,
-	ladder: true,
-	airbag: true,
+//	ladder: true,
+//	airbag: true,
 //	flask: true,
 }
 
@@ -30,13 +30,13 @@ var itemnames = {
 var iteminfo = {
 	kazoo: "It doesn't look like much, but this kazoo is actually a time machine! It's not a very good one, though. You'll only go back a few seconds. Hope that's enough. Press Backspace to use it at any time.",
 	ticket: "What the heck are you going to do with an expired train ticket? Oh right, time travel. This whole business opens up all sorts of ethical quandries, doesn't it?",
-	sneakers: "These have flashy colors and the name of your favorite athlete, so they'll be sure to give you an edge. Also they're enchanted by a powerful sorcerer so there's that.",
+	sneakers: "These have flashy colors and the name of your favorite athlete on them, so they'll be sure to give you an edge. Also they're enchanted by a powerful sorcerer so there's that.",
 	meat: "No snacking, you're on an adventure. You'll have time for eating later. Well, actually, not, since the world's ending in a few seconds. Oh well.",
-	airbag: "It looks like an empty bag, but in fact it's quite full! Full of air! You scoff, but you need that stuff to breathe. Now you can take your air with you.",
-	ladder: "I know what you're thinking, but no, you can not use this ladder to climb to space and stop Flajora. You keep thinking outside the box, though. You'll go far.",
+	airbag: "It looks like an empty bag, but in fact it's full of air! You scoff, but you need that stuff to breathe. Now you can take your air with you anywhere! Thanks, bag!",
+	ladder: "I know what you're thinking, but no, you cannot use this ladder to climb to space and stop Flajora. You keep thinking outside the box, though. You'll go far.",
 	flask: "An old whiskey flask hidden under Flajora's pillow. It's currently half-full of grape Kool-Aid, and appears to have great sentimental value.",
-	redgem: "Yay, plot coupon collected.",
-	bluegem: "Yep... that's a MacGuffin all right.",
+	redgem: "There's a funny story about how this gem wound up here when it's obviously very valuable. Well, not so much funny as long and tedious.",
+	bluegem: "Yep... that's a MacGuffin all right. A real plot coupon.",
 	greengem: "Among the junk strewn in the corner of the treehouse you find this ancient artifact. Also some pretty cool limited edition pogs, but we'll save that for another time.",
 }
 
@@ -44,10 +44,17 @@ function savegame() {
 	localStorage["flajora-savegame"] = JSON.stringify([gamestate, items])
 }
 function loadgame() {
-	var state = JSON.parse(localStorage["flajora-savegame"])
+	var state = JSON.parse(localStorage["flajora-savegame"] || "[{},{}]")
 	gamestate = state[0]
 	items = state[1]
 }
+function resetgame() {
+	gamestate = {}
+	items = {}
+	savegame()
+}
+
+if (settings.RESET) resetgame()
 
 
 // hints drawn on the ground
@@ -132,9 +139,9 @@ quests.lostdog = {
 		people.push(this.owner)
 		people.push(this.dog)
 		new House(-38, 25, 12, 35)
-		people.push(new Giver(65, -25, "meat", "Linda",
-			"And remember you never heard of me.",
+		people.push(new Giver(65, -25, "meat", "Donna",
 			"Meat! Free raw meat!",
+			"If anyone comes looking for my husband just remember... I've never heard of him.",
 			"Hey you. I'm looking to dispose of some incriminating evidence. You want a slab of raw meat?")
 		)
 	},
@@ -142,17 +149,12 @@ quests.lostdog = {
 
 quests.flajora = {
 	init: function () {
-		if (!items.kazoo && you.x * you.x + you.y * you.y < 2 * 2) {
-			you.say("This does not look good. I better get the hell out of here using the arrow keys!")
-		} else {
-			you.shutup()
-		}
 
 		people.push(new Responder(-15, 5, "I've got a hot tip on where you can get some enchanted instruments. Go straight to the north of here."))
 		people.push(new Giver(60, 25, "kazoo", "Raven",
-			"Why didn't I go into the enchanted charm business instead?",
 			"Psst hey you. You want an enchanted kazoo?",
-			"I'm trying to get pepole hooked on enchanted novelty instruments. The market's just not there yet. Here, the first one's free. Use it frivolously!")
+			"Why didn't I go into the enchanted amulet business instead? Amulets are where it's at.",
+			"I'm trying to get people hooked on enchanted novelty instruments. There's just not a market here like in Hyrule. Here, the first one's free. Use it frivolously!")
 		)
 
 		new Marker(0, 0, [
@@ -181,6 +183,11 @@ quests.flajora = {
 			if (dx * dx + dy * dy < 5 * 5) {
 				UFX.scenes.game.fadeto("ship")
 			}
+		}
+		if (!items.kazoo && (you.x * you.x + you.y * you.y < 2 * 2)) {
+			you.say("This does not look good. I better get the hell out of here using the arrow keys!")
+		} else {
+			you.shutup()
 		}
 	},
 }
@@ -255,13 +262,13 @@ quests.extra = {
 			frontscenery.push(new House(p[0],p[1],p[2],p[3]))
 		})
 		people.push(new Responder(-125, -15, "Flajora's ship is said to be powered by special gemstones. If you can find three gems of different colors, you may be able to attack it!"))
-		people.push(new Responder(-55, -35, "These trees are big enough that someone could be hiding underneath and you wouldn't know unless you walked right up to them!"))
-		people.push(new Responder(-50, -75, "The only way to get Flajora's attention is to stand right at ground zero just before the attack."))
-		people.push(new Responder(-5, -74, "You'd think we would have known better than to call our town Doomberg. Nobody ever listens to me though!"))
+		people.push(new Responder(-55, -35, "These trees are big enough that someone could be hiding underneath and you wouldn't know unless you walked right up to them."))
+		people.push(new Responder(-50, -75, "The only way to get Flajora's attention is to stand right at ground zero just before the attack. That's the target in the middle of town."))
+		people.push(new Responder(-5, -74, "You'd think we would have known better than to call our town Doomberg. Seriously, how dumb is that? Nobody ever listens to me though!"))
 		people.push(new Responder(-5, -10, "Alien attack! Flajora's coming to get us! We'll all be toast! Hey, I could go for some toast...."))
 		people.push(new Responder(72, -70, "If only we had something that Flajora wanted!"))
-		people.push(new Responder(92, -22, "I swear I saw some squirelly-looking guy climing up one of these trees!"))
-		people.push(new Responder(-83, 48, "I wish I could take the train out of town, but it's sold out. Maybe I could steal a ticket!"))
+		people.push(new Responder(92, -22, "I saw something in the big tree in the middle of town but I couldn't reach it. Also I didn't care that much."))
+		people.push(new Responder(-83, 48, "I wish I could take the train out of town, but it's sold out. Maybe I could steal a ticket."))
 		people.push(new Responder(-45, 70, "It's pointless trying to talk to Flajora unless you have some leverage."))
 		people.push(new Responder(22, 72, "You think it's hard to go underwater? You just need something that can hold air!"))
 		people.push(new Responder(60, 45, "Taking the train out to the desert is cool. You have to watch out for rockslides but it's worth it."))
@@ -334,7 +341,7 @@ var desertquest = {
 
 
 		this.rocks = []
-		while (this.rocks.length < 20) this.addrock()
+		while (this.rocks.length < 15) this.addrock()
 		this.t = 0
 
 		this.target = new GemHold(0, -130, "black")
@@ -355,8 +362,8 @@ var desertquest = {
 	},
 	think: function (dt) {
 		this.t += dt
-		while (this.t > 0.1) {
-			this.t -= 0.1
+		while (this.t > 0.14) {
+			this.t -= 0.14
 			this.addrock()
 		}
 		this.rocks.forEach(function (rock) { rock.think(dt) })
@@ -424,15 +431,15 @@ var shipquest = {
 			"[ ss rgba(255,255,255,0.3) lw 3 sr -6 -6 12 12 ]",
 		])
 		this.bulkheads = []
-		for (var y = 20 ; y < 100 ; y += 10) {
+		for (var y = 20 ; y < 100 ; y += 20) {
 			this.addbulkhead(-60, -y, 18, 8, 20, 0)
 			this.addbulkhead(-30, -y, 18, 8, 20, 0)
 			this.addbulkhead(0, -y, 18, 8, 20, 0)
 			this.addbulkhead(30, -y, 18, 8, 20, 0)
 			this.addbulkhead(60, -y, 18, 8, 20, 0)
 		}
-		for (var x = -100 ; x < 100 ; x += 10) this.addbulkhead(x, -50, 8, 18, 0, 30)
-		this.target = new GemHold(0, -130)
+		for (var x = -100 ; x < 100 ; x += 8) this.addbulkhead(x, -50, 8, 18, 0, 30)
+		this.target = new GemHold(0, -100)
 	},
 	addbulkhead: function (x, y, w, h, dx, dy) {
 		var bulkhead = new Bulkhead(x, y, w, h, dx, dy, UFX.random(tau))
