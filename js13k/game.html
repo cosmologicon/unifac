@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<canvas id=c></canvas>
+<script src="../UFX/src/draw.js"></script>
+<script src="../UFX/src/maximize.js"></script>
+<script>
+with (Math) R = random, S = sin, C = cos, A = abs, F = floor, tau = 2*PI
+D = Date.now
+
+
+// V: the main canvas. K: the main context
+K = (V = document.getElementById("c")).getContext("2d")
+UFX.draw.setcontext(K)
+
+UFX.maximize.onadjust = function (V, w, h) {
+	W = w
+	H = h
+	// Subwindow bounds
+	Ax = 8 ; Ay = 8 ; Aw = W - 16 ; Ah = F(H/3)
+}
+UFX.maximize.fill(V, "total")
+
+
+// draw a die face
+function die(n) {
+	UFX.draw("z .2 .2 b rr -5 -5 10 10 1 fs #fff f b")
+	if (n % 2) UFX.draw("o 0 0 1")
+	if (n > 1 && n - 3) UFX.draw("o 3 3 1 o -3 -3 1")
+	if (n > 2) UFX.draw("o 3 -3 1 o -3 3 1")
+	if (n > 5) UFX.draw("o 3 0 1 o -3 0 1")
+	UFX.draw("fs #000 f")
+}
+
+// draw sword wielder
+function dS() {
+	w = S(t0/150)
+	//v = C(t0/150)
+	UFX.draw("[ t 0", -A(w)*2, "fs #bfb ss #000 lw 0.5")
+	// sword
+	UFX.draw("( m 10 -7 l 6 -15 l 6.2 -20 l 10 -8 ) f s")
+	// arms
+	UFX.draw("b m 10 -7 q 4 -4 -2 -7 m -5 -5 q -12 -5 -10 2 lw 1.5 s ss #bfb lw 0.5 s ss #000")
+	// hands
+	UFX.draw("b o 10 -7 2 f s b o -10 2 2 f s")
+	// noggin
+	UFX.draw("[ t -6 -12 r -0.4 z 2 3.5 b o 0 0 1 ] f s")
+	// torso
+	UFX.draw("( m 0 0 q 2 -5 0 -10 l -7 -5 q -2 -3 0 0 ) f s")
+	// front leg
+	w = Math.min(Math.max(w,-.7),.7)
+	UFX.draw("[ r", w-.3, "( m 0 6 c 8 3 8 2 0 0 c 10 0 10 4 1 10 ) f s ]")
+	// front leg
+	UFX.draw("[ r", -w+.3, "( m 0 6 c 8 3 8 2 0 0 c 10 0 10 4 1 10 ) f s ]")
+	UFX.draw("]")
+}
+
+// draw spear wielder
+function dA() {
+	w = S(t0/150)
+	//v = C(t0/150)
+	UFX.draw("[ t 0", -A(w)*2, "fs #bbf ss #000 lw 0.5")
+	// spear
+	UFX.draw("( m -3 -7 l 15 -22 l 8 -20 l 10 -19 l -3 -8 ) f s")
+	// arms
+	UFX.draw("b m 3 -13 q 7 -7 3 -7 m -5 0 q -12 0 -4 -5 lw 1.5 s ss #bbf lw 0.5 s ss #000")
+	// hands
+	UFX.draw("b o 3 -13 2 f s b o -5 0 2 f s")
+	// hair
+	UFX.draw("( m -6 -13 c -16 -18 -6 -3 -18 -8 l -17 -4 c -3 -3 -13 -10 -6 -13 ) f s")
+	// noggin
+	UFX.draw("[ t -4 -11 r -0.4 z 2 3.5 b o 0 0 1 ] f s")
+	// torso
+	UFX.draw("( m 0 0 c 3 -6 5 -5 1 -9 l -5 -5 q -1 -4 0 0 ) f s")
+	// front leg
+	w = Math.min(Math.max(w,-.7),.7)
+	UFX.draw("[ r", w-.3, "( m 0 6 c 8 3 8 2 0 0 c 10 0 10 4 1 10 ) f s ]")
+	// front leg
+	UFX.draw("[ r", -w+.3, "( m 0 6 c 8 3 8 2 0 0 c 10 0 10 4 1 10 ) f s ]")
+	UFX.draw("]")
+}
+
+
+t0 = g0 = D()
+avgdt = 0
+
+// sprite zoom factor (should adjust based on screen resolution)
+sz = 1
+
+units = [
+	{
+		p: 0.2,  // progress
+		v: 5,  // speed (relative, will scale)
+		d: dS,  // draw function
+		h: 5,  // health
+	},
+	{
+		p: 0,  // progress
+		v: 5,  // speed (relative, will scale)
+		d: dA,  // draw function
+		h: 5,  // health
+	},
+]
+
+function think() {
+	t0 += dt = D() - t0
+
+
+	units.forEach(function (u) {
+		u.p += dt * u.v / 1000000
+	})
+	
+
+
+	// DRAW
+	
+	UFX.draw("fs #033 f0") 
+	
+	// Draw battlefield
+
+
+	UFX.draw("[ t", Ax, Ay, "rr 0 0", Aw, Ah, "9 [ clip")
+	
+	// sky
+	UFX.draw("fs lg~0~0~0~"+Ah+"~0~#40b~1~#a44 f0")
+
+	px0 = 10 + Aw/20, dpx = Aw
+	py0 = Ah * 0.4, dpy = Ah * 0.5
+
+	// Hillside
+	UFX.draw("( m", px0-dpx/4, py0+dpy)
+	for (j = 0 ; j < 11 ; ++j) {
+		UFX.draw("l", px0+dpx*j/10, py0+dpy*j/10-5*S(j*2)-10)
+	}
+	UFX.draw("l 0 9999 )")
+	UFX.draw("[ z", Aw/2, Ah/2, "t 1 1")
+	for (j = 0 ; j < 4 ; ++j) {
+		UFX.draw("fs lg~0~-1~0~1~0~#000~.2~#771~.4~#321~.6~#750~.8~#111~1~#888 f alpha .4 r", j*2+t0/1234567%tau)
+	}
+	UFX.draw("]")
+
+	// Units
+	sz = 1.2
+	units.forEach(function (u) {
+		UFX.draw("[ t", px0+u.p*dpx, py0+u.p*dpy, "z", sz, sz)
+		u.d()
+		UFX.draw("]")
+	})
+
+
+	// Rain
+	wind = -5
+	v = 43211.23456789101112
+	nrain = 18
+	t = t0/2
+	for (z = 0, k = 0 ; z < 3 ; ++z) {
+		UFX.draw("b")
+		for (j = 0 ; j < 3*nrain ; ++j, ++k) {
+			x = ((v*k*k+(t/2+k*t/100)*wind/10)%Aw+Aw)%Aw
+			y = ((v*v*k*k+t/2+k*t/100)%Ah+Ah)%Ah
+			UFX.draw("m", x, y, "l", x-4*wind, y-40)
+		}
+		UFX.draw("lw .5 ss", ["#00a", "#22c", "#44f"][z], "s")
+	}
+
+	// Water level
+	UFX.draw("[ alpha .3 t 0", Ah-40)
+	for (z = 0 ; z < 10 ; ++z) {
+		UFX.draw("( m -200 0")
+		xs = [], ys = [], dx = Aw/10
+		for (x = -2 ; x < 7 ; ++x) {
+			theta = x*3.6 + t0/1000 + z*5
+			xs.push(Aw*(x/4+S(t0/1777+z*4)/9) + dx*S(theta)/4)
+			ys.push(Ah*C(theta)/25)
+		}
+		for (j = 1 ; j < 9 ; ++j) UFX.draw("c", xs[j-1]+dx, ys[j-1], xs[j]-dx, ys[j], xs[j], ys[j])
+//		UFX.draw("l 9999 999 l -999 999 ) fs #"+["44f","22d","00b","009","006"][z]+" f t 0 5")
+		color = "rgb(" + (45-5*z) + "," + (45-5*z) + "," + (200-20*z) + ")"
+		UFX.draw("l 9999 999 l -999 999 ) fs", color, "f t 0 5")
+	//	for (j = 1 ; j < 9 ; ++j) UFX.draw("b o", xs[j], ys[j], "2 fs white f")
+	}
+	UFX.draw("]")
+
+	// Path
+//	UFX.draw("b m", px0, py0, "l", px0+dpx, py0+dpy, "ss red lw 1 s b o", px0, py0, "2 o", px0+dpx, py0+dpy, "2 fs white f")
+
+	// outline
+	UFX.draw("] rr 0 0", Aw, Ah, "9 ss #000 lw 2 s ]")
+
+	// FPS counter
+	UFX.draw("fs white ft", (1000 / (avgdt += (dt - avgdt) * 0.05)).toPrecision(3) + "fps", 20, 20)
+
+	// hourglass
+	UFX.draw("[ t", Aw - 50, Ah - 20, "( m -5 -10 c -5 0 5 0 5 10 l -5 10 c -5 0 5 0 5 -10 ) ss #fff lw 1 s",
+		"t 15 3 fs #fff ft0", ((t0-g0)/1000).toFixed(0), "]")
+
+	raf(think)
+}
+raf = window.requestAnimationFrame || window.mozRequestAnimationFrame
+raf(think)
+
+
+think()
+
+
+</script>

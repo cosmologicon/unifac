@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<style type="text/css">
+@font-face {
+    font-family: "Hockey";
+    src: url(data/fonts/hockey.ttf) format("truetype");
+}
+</style>
+<script id="2d-vertex-shader" type="x-shader/x-vertex">
+// (x,y) position
+attribute vec2 pos;
+// texture coordinate
+attribute vec2 tcoord;
+// 3x3 transformation matrix for position (x,y,1) -> (x',y',0)
+uniform mat3 xform;
+
+// to pass the texture coordinate to the fragment shader
+varying vec2 vtcoord;
+
+void main(void) {
+    gl_Position = vec4(xform * vec3(pos, 1.0), 1.0);
+    vtcoord = tcoord;
+}
+</script>
+<script id="2d-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+// texture fraction: 0 = use color, 1 = use texture
+uniform float tfac;
+// texture itself
+uniform sampler2D sampler;
+// rgba colour
+uniform vec4 colour;
+
+// passed in from vertex shader
+varying vec2 vtcoord;
+
+void main(void) {
+    gl_FragColor = texture2D(sampler, vtcoord) * tfac + colour * (1.0 - tfac);
+}
+</script>
+<canvas id="loadcanvas" style="background:black"></canvas>
+<canvas id="canvas" style="background:black;display:none;cursor:none"></canvas>
+<form id="DEBUG" style="display:none">
+<label><input type="checkbox" onchange="DEBUG.skipcutscenes=this.checked"/>Skip cutscenes</label>
+<label><input type="checkbox" onchange="DEBUG.onehit=this.checked"/>One-hit kills</label>
+<label><input type="checkbox" onchange="DEBUG.killme=this.checked"/>Kill me</label>
+<label><input type="checkbox" onchange="DEBUG.areamode=this.checked"/>Show area scripts</label>
+<label><input type="checkbox" onchange="DEBUG.entitycircle=this.checked"/>Entity circles</label>
+<label><input type="checkbox" onchange="DEBUG.textblock=this.checked;text.clear()"/>Text blocks</label>
+</form>
+
+<script src="../UFX/src/resource.js"></script>
+<script src="../UFX/src/ticker.js"></script>
+<script src="../UFX/src/scene.js"></script>
+<script src="../UFX/src/random.js"></script>
+<script src="../UFX/src/key.js"></script>
+<script src="../UFX/src/mouse.js"></script>
+<script src="../UFX/src/draw.js"></script>
+<script src="constants.js"></script>
+<script src="content.js"></script>
+<script src="state.js"></script>
+<script src="entity.js"></script>
+<script src="actor.js"></script>
+<script src="treasure.js"></script>
+<script src="equippable.js"></script>
+<script src="armour.js"></script>
+<script src="weapon.js"></script>
+<script src="mod.js"></script>
+<script src="ai.js"></script>
+<script src="enemies.js"></script>
+<script src="cursor.js"></script>
+<script src="treasuretables.js"></script>
+<script src="mission.js"></script>
+<script src="missionmode.js"></script>
+<script src="script.js"></script>
+<script src="world.js"></script>
+<script src="worldgen.js"></script>
+<script src="button.js"></script>
+<script src="graphics.js"></script>
+<script src="text.js"></script>
+<script src="menu.js"></script>
+<script src="inventory.js"></script>
+<script src="main.js"></script>
+

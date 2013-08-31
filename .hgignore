@@ -1,0 +1,9 @@
+syntax: glob
+
+*.pyc
+*.pyo
+*~
+a.out
+data/login.json
+data/bosscode.txt
+

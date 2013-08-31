@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Skeletal animation test</title>
+<link href='http://fonts.googleapis.com/css?family=Viga' rel='stylesheet' type='text/css'>
+<style>
+body {
+    background: black; color: white;
+    font-family: 'Viga';
+    font-size: 110%;
+}
+h1 {
+    font-size: 160%;
+    text-align: center;
+    margin: 0.5em auto;
+}
+* {
+    margin: auto;
+    text-align: center;
+}
+
+input {
+    font-family: inherit; font-size: inherit;
+    width: 20em;
+}
+td {
+    text-align: right
+}
+</style>
+
+<!-- UFX libraries -->
+<script src="../../UFX/src/ticker.js"></script>
+<script src="../../UFX/src/resource.js"></script>
+<script src="../../UFX/src/key.js"></script>
+<script src="../../UFX/src/mouse.js"></script>
+<script src="../../UFX/src/Thing.js"></script>
+
+<script src="skeleton/data.js"></script>
+
+<body>
+<h1>Skeletal animation test</h1>
+<canvas id=canvas style="border: thin gray solid"></canvas>
+
+<input type=text id=animname></input>
+<button onclick="addanim()">Add animation</button>
+<button onclick="getdata()">Get data</button>
+
+<script>
+var canvas = document.getElementById("canvas")
+canvas.width = 600 ; canvas.height = 600
+var context = canvas.getContext("2d")
+
+
+function getdata() {
+    for (nname in nodes) {
+        data.anchors[nname] = nodes[nname].anchor
+    }
+    window.open("data:text/plain;charset=utf-8," + "var data = " + JSON.stringify(data))
+}
+
+function Node(name, parent) {
+    this.name = name
+    this.parent = null
+    this.children = []
+    if (parent) this.attachto(parent)
+}
+Node.prototype = {
+    attachto: function (parent) {
+        this.parent = parent
+        parent.children.push(this)
+    },
+}
+
+var nodes = {}, nodenames = []
+data.structure.forEach(function (spec) {
+    if (spec.indexOf(">") > -1) {
+        var words = spec.split(">")
+        nodes[words[0]] = new Node(words[0], nodes[words[1]])
+        nodenames.push(words[0])
+    } else {
+        nodes[spec] = new Node(spec)
+        nodenames.push(spec)
+    }
+})
+
+data.anchors = data.anchors || {}
+for (var nname in nodes) {
+    if (!(nname in data.anchors)) {
+        data.anchors[nname] = { x: 0, y: 0, r: 0 }
+    }
+    nodes[nname].anchor = data.anchors[nname]
+}
+
+function drawdot(x, y) {
+    context.beginPath()
+    context.arc(x, y, 4, 0, 6.3)
+    context.fillStyle = "white"
+    context.fill()
+}
+
+function newkframe(name) {
+    var kframe = {
+        name: name,
+        t: 0,
+        disp: {},
+    }
+    for (var nname in nodes) {
+        kframe.disp[nname] = { x: 0, y: 0, r: 0 }
+    }
+    return kframe
+}
+var frame0 = newkframe()
+
+function combineframes(frame0, frame1, f, t) {
+    var frame = {
+        name: "",
+        t: t,
+        disp: {}
+    }
+    for (var nname in nodes) {
+        frame.disp[nname] = {
+            x: frame0.disp[nname].x * (1-f) + frame1.disp[nname].x,
+            y: frame0.disp[nname].y * (1-f) + frame1.disp[nname].y,
+            r: frame0.disp[nname].r * (1-f) + frame1.disp[nname].r,
+        }
+    }
+    return frame
+}
+
+function addanim(name) {
+    var aname = document.getElementById('animname').value
+    data.anims.push({
+        name: aname,
+        duration: 1.0,
+        kframes: [],
+    })
+}
+
+function getframe(anim, t) {
+    if (!anim.kframes.length) return frame0
+    var lastj = anim.kframes.length - 1, nextj = 0
+    for (var j = 0 ; j < anim.kframes.length ; ++j) {
+        var tf = anim.kframes[j].t
+        if (tf == t) return anim.kframes[j]
+        if (tf < t && tf > anim.kframes[lastj]) {
+            lastj = j
+        } else if (t < tf && tf < anim.kframes[nextj]) {
+            nextj = j
+        }
+    }
+    var f0 = anim.kframes[lastj], f1 = anim.kframes[nextj]
+    var dt = t - f0.t, dt0 = f1.t - f0.t
+    if (dt < 0) dt += anim.duration
+    if (dt0 < 0) dt0 += anim.duration
+    return combineframes(f0, f1, 1 - dt / dt0, t)
+}
+
+function addkframe(anim, t) {
+    var frame = getframe(anim, t)
+    var kframe = {
+        name: anim.name + t,
+        t: t,
+        disp: {},
+    }
+    for (var nname in frame.disp) {
+        var disp = frame.disp[nname]
+        kframe.disp[nname] = { x: disp.x, y: disp.y, r: disp.r }
+    }
+    anim.kframes.push(kframe)
+    anim.kframes.sort(function (f0, f1) { return f0.t - f1.t })
+}
+
+function nearestkframe(anim, t) {
+    if (!anim.kframes.length) return null
+    var mindt = 1000, jmin = 0
+    for (var j = 0 ; j < anim.kframes.length ; ++j) {
+        var dt = Math.abs(anim.kframes[j].t - t)
+        if (dt < mindt) {
+            dt = mindt ; jmin = j
+        }
+    }
+    return anim.kframes[jmin]
+}
+
+function nextkframet(anim, t) {
+    if (anim.kframes.length == 0) return t
+    for (var j = 1 ; j < anim.kframes.length ; ++j) {
+        if (anim.kframes[j].t > t) return anim.kframes[j].t
+    }
+    return anim.kframes[0].t
+}
+
+
+
+data.anims = data.anims || []
+
+
+UFX.key.init()
+UFX.mouse.init(canvas)
+UFX.key.watchlist = "up down left right space enter tab shift 1 2 backspace F1 F2 F3 F5 openbracket closebracket K".split(" ")
+var t = 0
+var currentt = 0, playing = false, playfactor = 1.0
+var jnode = 0
+var janim = 0
+var jkframe = 0
+var mode = "control"  // control: set control points, pose: pose nodes, anim: view animation, add frames
+
+var currentanim = data.anims[0]
+
+function think(dt) {
+    t += dt
+    var rangle = 0.4 * Math.sin(7 * t)
+
+    UFX.key.events().forEach(function (event) {
+        if (event.type !== "down") return
+        var factor = UFX.key.ispressed.shift ? 0.1 : 1
+        if (event.name === "F1") mode = "control"
+        if (event.name === "F2") mode = "anim"
+        if (event.name === "F3") {
+            currentkframe = nearestkframe(currentanim, currentt)
+            if (currentkframe) {
+                currentt = currentkframe.t
+                mode = "pose"
+            }
+        }
+        if (mode === "control" || mode === "pose") {
+            if (event.name === "tab") {
+                jnode = (jnode + 1) % nodenames.length
+                currentnode = nodes[nodenames[jnode]]
+            }
+        }
+        if (mode === "anim") {
+            if (event.name === "F5") playing = !playing
+            if (event.name === "left") currentt -= 0.02 * factor
+            if (event.name === "right") currentt += 0.02 * factor
+            if (event.name === "closebracket") currentt = nextkframet(currentanim, currentt)
+            if (event.name === "tab") janim = (janim + 1) % data.anims.length
+            if (event.name === "K") addkframe(currentanim, currentt)
+        }
+        if (mode === "pose") {
+            var disp = currentkframe.disp[currentnode.name]
+            if (event.name === "up") disp.y -= 10 * factor
+            if (event.name === "down") disp.y += 10 * factor
+            if (event.name === "left") disp.x -= 10 * factor
+            if (event.name === "right") disp.x += 10 * factor
+            if (event.name === "1") disp.r -= 0.1 * factor
+            if (event.name === "2") disp.r += 0.1 * factor
+            if (event.name === "backspace") disp.x = disp.y = disp.r = 0
+        }
+    })
+    UFX.mouse.events().forEach(function (event) {
+        if (event.type == "up") {
+            if (mode === "control") {
+                currentnode.anchor.x = event.pos[0] / 0.5
+                currentnode.anchor.y = event.pos[1] / 0.5
+            }
+        }
+    })
+
+    context.fillStyle = "#333"
+    context.fillRect(0, 0, 600, 600)
+    context.save()
+    context.scale(0.5, 0.5)
+
+
+    if (mode === "control" || mode === "pose") currentnode = nodes[nodenames[jnode]]
+    if (mode === "anim" || mode === "pose") currentanim = data.anims[janim]
+
+    if (mode === "anim" && playing) {
+        currentt += dt * playfactor
+        while (currentt >= currentanim.duration)
+            currentt -= currentanim.duration
+        while (currentt < 0)
+            currentt += currentanim.duration
+    }
+
+
+    var currentframe = frame0
+    if (mode === "anim") {
+        currentframe = getframe(currentanim, currentt)
+    } else if (mode === "pose") {
+        currentframe = currentkframe
+    }
+    
+
+    function drawnode(node) {
+        context.save()
+        if (mode === "control") {
+            context.translate(node.anchor.x, node.anchor.y)
+            if (node === currentnode) context.rotate(rangle)
+            context.translate(-node.anchor.x, -node.anchor.y)
+        } else {
+            var disp = currentframe.disp[node.name]
+            context.translate(node.anchor.x, node.anchor.y)
+            context.rotate(disp.r)
+            context.translate(-node.anchor.x, -node.anchor.y)
+            context.translate(disp.x, disp.y)
+        }
+        context.globalAlpha = node === currentnode ? 1 : 0.5
+        context.drawImage(UFX.resource.images[node.name], 0, 0)
+        node.children.forEach(drawnode)
+        drawdot(node.anchor.x, node.anchor.y)
+        context.restore()
+    }
+    drawnode(nodes.bod)
+
+    context.restore()
+
+    context.textAlign = "right"
+    context.textBaseline = "top"
+    context.font = "24px Viga"
+    context.fillStyle = "#AAF"
+    var ty = 4
+    function printtext(text) {
+        context.fillText(text, 590, ty)
+        ty += 26
+    }
+    
+    printtext(mode + " mode")
+    if (mode === "anim" || mode === "pose") {
+        printtext("animation: " + currentanim.name)
+        printtext(Math.floor(currentt*1000) + "ms / "
+                + Math.floor(currentanim.duration*1000) + "ms")
+
+        context.save()
+        context.globalAlpha = 0.2
+        context.fillStyle = "white"
+        context.fillRect(20, 560, 240 * currentanim.duration, 10)
+        context.restore()
+        function lineat(x, color) {
+            context.strokeStyle = color
+            context.lineWidth = 3
+            context.beginPath()
+            context.moveTo(x, 550)
+            context.lineTo(x, 580)
+            context.stroke()
+        }
+        currentanim.kframes.forEach(function (frame) {
+            lineat(20 + 240 * frame.t, "white")
+        })
+        lineat(20 + 240 * currentt, "yellow")
+    }
+    if (mode === "control" || mode === "pose") {
+        printtext("node: " + currentnode.name)
+    }
+
+    document.title = UFX.ticker.getfpsstr()
+}
+
+
+UFX.resource.onload = function () {
+    UFX.ticker.register(think, null, {maxups: 60})
+}
+UFX.resource.base = "skeleton"
+UFX.resource.load({
+    bod: "bod.png",
+    noggin: "noggin.png",
+    ruparm: "ruparm.png",
+    rlowarm: "rlowarm.png",
+    rhand: "rhand.png",
+})
+
+</script>
+
