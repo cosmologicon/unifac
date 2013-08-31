@@ -3,6 +3,7 @@ syntax: glob
 *.pyc
 *.pyo
 *~
+*-HGIGNORE
 a.out
 data/login.json
 data/bosscode.txt
