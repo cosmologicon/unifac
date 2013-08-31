@@ -1,4 +1,10 @@
 
+if (DEBUG.failhard) {
+	window.onerror = function (error, url, line) {
+		document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>"
+	}
+}
+
 UFX.scenes.load = {
 	start: function () {
 		this.canvas = document.getElementById("loadcanvas")
@@ -18,8 +24,8 @@ UFX.scenes.load = {
 		gdata = UFX.resource.data.gdata
 		mapdata = UFX.resource.data.mapdata
 		graphics.init()
-		"shot1 shot2 shot3".split(" ").forEach(function (s) {
-			UFX.resource.sounds[s] = UFX.resource.Multisound(UFX.resource.sounds[s], 10)
+		"shot1 shot2 shot3 bullet4 radio".split(" ").forEach(function (s) {
+			UFX.resource.sounds[s] = UFX.resource.Multisound(UFX.resource.sounds[s], 3)
 		})
 		UFX.resource.mergesounds("shot", "destroy", "pickup", "bullet", "lightning", "railgun")
 		graphics.clear()
@@ -60,8 +66,8 @@ var soundnames = (
 	"shot1 shot2 shot3 destroy1 destroy2 destroy3 destroy4 pickup1 fanfare bullet4 radio click roar " +
 	"lightning1 lightning2 lightning3 explosion eject railgun1 44magnum click plasma fireball gunshot1"
 ).split(" ")
-var songnames = "Chase ElectroSketch HowItBegins Klockworx LongTimeComing RadioMartini".split(" ")
-//var songnames = "ElectroSketch HowItBegins".split(" ")
+//var songnames = "Chase ElectroSketch HowItBegins Klockworx LongTimeComing RadioMartini".split(" ")
+var songnames = "ElectroSketch HowItBegins".split(" ")
 
 var res = {
 	mapdata: "data/mapdata.json",
@@ -111,8 +117,8 @@ function playmusic(songname) {
 	// TODO: actually don't play the music if it's not on?
 	m.volume = settings.music ? musicvolume : 0
 	m.currentTime = 0
-	m.play()
 	m.loop = true
+	m.play()
 	musicplaying = m
 }
 

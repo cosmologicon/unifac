@@ -1,19 +1,20 @@
 - my cursor's too small
 - trail too bright
-? HUD stats too bright?
 - HP doesn't appear on enemy data
 - Enemy drawing too small
-Dialogue boxes should extend all the way to the right
+- Dialogue boxes should extend all the way to the right
 - Floaties too big
 - Metal output about a line too low
 - Weapons listed as unappraised
 - Repair kit doesn't do a damn thing
-Intimidating Scorpion faces the wrong way
-Why does it take so long for the repair kit to work?
-Pause on dialogue start
-Music loop
+- Intimidating Scorpion faces the wrong way
+- Why does it take so long for the repair kit to work?
+- Pause on dialogue start
+- Music loop
+- death script
+- word wrap on target info
 
-Monsters don't face you when they claw you
+-np Monsters don't face you when they claw you
 Double GET! sometimes
 - Space in COBALT(4)
 

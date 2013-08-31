@@ -95,7 +95,7 @@ var RangedAI = {
 				var y = py + (this.pos[1] - py) * scale
 				this.set_dest([x, y])
 			}
-			this.bearing = 57.3 * Math.atan2(px - this.pos[1], py - this.pos[0])
+			this.bearing = 57.3 * Math.atan2(py - this.pos[1], px - this.pos[0])
 		}
 	},
 }

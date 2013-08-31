@@ -23,8 +23,8 @@ Script.prototype = {
 		this.currentSpeaker = this.leftSpeaker
 		this.speakerIsLeft = true
 		this.isQuestion = false
-		this.mission.dispatch_event("on_dialogue_change")
 		this.state = "waitKey"
+		this.mission.dispatch_event("on_dialogue_change")
 	},
 	say_l_unlabelled: function (text) {
 		return this.say_l(text)
@@ -35,8 +35,8 @@ Script.prototype = {
 		this.currentSpeaker = this.rightSpeaker
 		this.speakerIsLeft = false
 		this.isQuestion = false
-		this.mission.dispatch_event("on_dialogue_change")
 		this.state = "waitKey"
+		this.mission.dispatch_event("on_dialogue_change")
 	},
 	say_r_unlabelled: function (text) {
 		return this.say_r(text)
@@ -221,8 +221,8 @@ Script.prototype = {
 		this.if((this.counters[countname] || 0) == amount, ifspec, elsespec)
 	},
 
-	canEject: function () {
-		this.mission.canEject = true
+	canEject: function (can) {
+		this.mission.canEject = can === undefined ? true : can
 	},
 
 	advance: function () {

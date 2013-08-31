@@ -10,6 +10,8 @@ function initPlotState(ps) {
 function setupMission(ps, m) {
 	if (ps.nextScene == "act1.firstmission") {
 		setupFirstMission(ps, m)
+	} else if (ps.nextScene == "gameover") {
+		setupGameOver(ps, m)
 	}
 }
 
@@ -65,6 +67,23 @@ function setupFirstMission(ps, m) {
 		], m.map.bottomPos([50, 250]), "Putney", null, 240)
 	}
 
+	if (DEBUG.testinventory) {
+		m.actorTalkScript([
+			["speaker_l", "Camden"],
+			["speaker_r", "Hammersmith"],
+			["say_l", "Hello!"],
+			["say_r", "Hello there, son."],
+			["ask_r", "Need anything?", [
+				["Inventory",
+					["inventory"],
+				],
+				["Leave",
+				],
+			]],
+			["say_r", "Come back any time."],
+		], m.map.bottomPos([50, 50]), "Hammersmith", null, 270)
+	}
+
 	
 	camden.addAreaScript([
 		["wait", 25],
@@ -75,7 +94,8 @@ function setupFirstMission(ps, m) {
 		["say_r", "If you click on an enemy, it becomes your current target, and you'll continue to attack it until you select a different target or it dies."],
 		["say_r", "You can move around while attacking, as long as you keep the target in sight and within range of your weapons, and as long as you have at least one active weapon."],
 		["say_r", "You have a longer range than this enemy, so keep your distance and he can't hit you."],
-		["say_r", "You can activate and deactivate your weapons by clicking the weapon icons on the lower left, or pressing the number key corresponding to their position."],
+//TODO		["say_r", "You can activate and deactivate your weapons by clicking the weapon icons on the lower left, or pressing the number key corresponding to their position."],
+		["say_r", "You can activate and deactivate your weapons by clicking the weapon icons on the lower left."],
 		["say_r", "Right now you only have one weapon, though, so probably best to keep it on."],
 		["say_r", "Good luck, soldier."],
 	], [300 + m.map.bottom_offs[0], 0 + m.map.bottom_offs[1]], [300, 300])	
@@ -141,5 +161,20 @@ function setupFirstMission(ps, m) {
 	])
 
 }
+
+function setupGameOver(ps, m) {
+	m.map = new DungeonGrid(100)
+	m.addProtag([0, 0])
+	m.setStartScript([
+		["blank"],
+		["say_l", "Camden was never seen again."],
+		["say_l", "The world was destroyed in flames."],
+		["say_l", "Your game is over."],
+		["end_game"],
+		// TODO: option to load saved game
+	])
+}
+
+
 
 

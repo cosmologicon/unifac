@@ -2,7 +2,7 @@
 var canvas = document.getElementById("canvas")
 canvas.width = settings.scr_w
 canvas.height = settings.scr_h
-var gl = canvas.getContext("experimental-webgl", { antialias: true })
+var gl = canvas.getContext("experimental-webgl", { antialias: settings.antialias })
 
 var graphics = {
 	init: function () {
@@ -28,6 +28,8 @@ var graphics = {
 			sampler: gl.getUniformLocation(program, "sampler"),
 			colour: gl.getUniformLocation(program, "colour"),
 		}
+
+		this.setlinewidth(settings.linewidth)
 		
 		gl.clearColor(0, 0, 0, 1)
 		gl.enable(gl.BLEND)
@@ -69,6 +71,7 @@ var graphics = {
 		this.bindtexbuffer(this.texbuffer)
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,1,1,1,1,0,0,0]), gl.STATIC_DRAW)
 	},
+
 	// Set the vertex array buffer
 	bindbuffer: function (buffer) {
 		if (this.currentbuffer === buffer) return
@@ -96,6 +99,10 @@ var graphics = {
 		gl.enableVertexAttribArray(this.svars.tcoord)
 		gl.vertexAttribPointer(this.svars.tcoord, 2, gl.FLOAT, false, 0, 0)
 		gl.uniform1f(this.svars.tfac, 1)
+	},
+	setlinewidth: function (lw) {
+		settings.linewidth = lw
+		gl.lineWidth(lw)
 	},
 	clear: function () {
 		gl.clear(gl.COLOR_BUFFER_BIT)

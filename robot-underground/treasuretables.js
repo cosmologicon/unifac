@@ -5,8 +5,8 @@ var treasuretables = {
 		if (UFX.random() < this.getMetalChance(dropLevel)) {
 			this.dropMetal(mission, pos, dropLevel)
 		} else {
-			var item = UFX.random() < 0.75 ? this.getRandomWeapon(dropLevel) : this.getRandomArmour(dropLevel)
-			makeTreasure(mission, item, pos)
+//TODO			var item = UFX.random() < 0.75 ? this.getRandomWeapon(dropLevel) : this.getRandomArmour(dropLevel)
+//			makeTreasure(mission, item, pos)
 		}
 	},
 	

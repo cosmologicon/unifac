@@ -54,7 +54,7 @@ GameCursor.prototype = {
 			canvas.style.cursor = {
 				"walk": "crosshair",
 				"fire": "pointer",
-				"inactive": "progress",
+				"inactive": "wait",
 				"talk": "pointer",
 			}[this.mode]
 		

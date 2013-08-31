@@ -29,6 +29,11 @@ var robotstate = {
 		this.armoury.isIdentified = true
 		this.weaponry.forEach(function (weap) { weap.isIdentified = true })
 		this.inventory = []
+
+		if (DEBUG.testinventory) {
+			for (var j = 0 ; j < 50 ; ++j) this.addItem(makeWeapon("LightLaser"))
+		}
+
 		this.metal = [0,0,0,0,0]
 	},
 	addXP: function (amt) {

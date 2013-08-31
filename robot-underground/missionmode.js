@@ -1,18 +1,13 @@
 
 UFX.scenes.missionmode = {
 	start: function () {
-		// TODO: this should be removed when we have more than one mission
-		initPlotState(plotstate)
-		robotstate.init(null)
-
-
 		var scr_h = settings.scr_h, scr_w = settings.scr_w
 
 		// dialogue box positions and HUD constants moved into the individual draw_* methods where
 		//   they're used.
 		
 		this.inventory_mode = false
-		// TODO this.inventory_menu = new ScrollingInventoryMenu(...)
+		this.inventory_menu = new ScrollingInventoryMenu(this.close_inventory.bind(this))
 		
 		var equipment_icons = []
 		while (equipment_icons.length < MAX_NUM_WEAPONS + 1) {
@@ -199,7 +194,7 @@ UFX.scenes.missionmode = {
 		graphics.drawhudrect([x,y-h-p], [w,h+w], [1,1,1,1], [0,0,0,0.8])
 		var opts = { frameno: this.frameno, state: target.anim_state, turretbearing: target.turretbearing, hud: true }
 		graphics.draw(gdata.sprites[target.name], x+r+p, y+r, 2*target.r, target.bearing/57.3, opts)
-		text.drawhud(txt, tx, ty, fontsize, "white", "left", "top")
+		infotext.drawhud(tx, ty, "left", "top")
 	},
 	
 	draw_hud: function () {
@@ -388,8 +383,12 @@ UFX.scenes.missionmode = {
 		}
 		// TODO: edit_npc
 	},
-	
-	// TODO draw_inventory
+
+	draw_inventory: function () {
+		// NB: the original seems to reimplement this method?
+		this.draw_metal()
+		this.inventory_menu.draw()
+	},
 	
 	draw_script: function () {
 		var m = this.mission, s = m.currentScript, isLeft = s.speakerIsLeft
@@ -484,6 +483,7 @@ UFX.scenes.missionmode = {
 	// ported from MissionMode.ondraw
 	draw: function () {
 		graphics.clear()
+		//if (this.frameno % 1000 == 0) text.cleanup()
 		var w = settings.scr_w, h = settings.scr_h, m = this.mission
 		if (!m.currentScript || !m.currentScript.blankScreen) {
 			graphics.cx = m.protag.pos[0]
@@ -507,12 +507,17 @@ UFX.scenes.missionmode = {
 		} else {
 			this.draw_hud()
 		}
+		if (DEBUG.showfps) {
+			if (!this.fpscount || this.frameno % 15 == 0)
+				this.fpscount = UFX.ticker.wfps.toPrecision(2) + "fps"
+			text.drawhud(this.fpscount, settings.scr_w/2, 8, 18, "#AAFFFF", "center", "bottom")
+		}
 		this.cursor.draw()  // I'm guessing this is called automatically in pyglet
 	},
 
 	can_click: function () {
 		var m = this.mission
-		return !(this.mouse_protected > 0 || m.isCutscene || m.currentScript && m.currentScript.state == "frozen")
+		return !(this.mouse_protected > 0 || m.isCutscene || m.currentScript && m.currentScript.state === "frozen")
 	},
 	
 	
@@ -521,6 +526,9 @@ UFX.scenes.missionmode = {
 	handle_input: function (mstate, kstate) {
 		if (mstate.pos) this.set_mouse(mstate.pos[0], settings.scr_h - mstate.pos[1])
 		this.cursor.update(this.mouse_x, this.mouse_y)
+
+		if (this.inventory_mode)
+			return this.inventory_menu.handle_input(mstate, kstate)
 
 		if (mstate.left.down) this.on_mouse_press(mstate.pos, kstate.pressed.ctrl)
 		if (mstate.right.down) this.on_mouse_press(mstate.pos, true)
@@ -664,8 +672,6 @@ UFX.scenes.missionmode = {
 		if (s && s.state === "waitChoice") {
 			this.mouse_protected = DIALOGUE_CLICK_PROTECTION_FRAMES
 			this.choice_mode = true
-//			this.current_dialogue_menu = s.speakerIsLeft ? this.dialogue_menu_l : this.dialogue_menu_r
-			// TODO: dialogue options
 		} else {
 			this.choice_mode = false
 			if (s && s.state === "waitKey") {
@@ -685,7 +691,6 @@ UFX.scenes.missionmode = {
 	},
 	on_set_zoom: function (zoom) {
 		this.desired_zoom = zoom
-		console.log(zoom)
 	},
 	on_stop_mode: function () {
 		this.cursor.modehandler = null
@@ -765,6 +770,7 @@ UFX.scenes.missionmode = {
 			for (var s in this.lightnings) if (!--this.lightnings[s][0]) delete this.lightnings[s]
 			this.trails = this.trails.filter(function (t) { return --t[3] })
 			this.floaties = this.floaties.filter(function (f) { return (f.offset += FLOAT_SPEED) < FLOAT_DIST })
+			if (DEBUG.killme) this.mission.protag.takeDamage(4, "physical")
 		}
 
 		if (this.mission.currentScript && this.mission.currentScript.state == "waitKey" && DEBUG.skipcutscenes) {

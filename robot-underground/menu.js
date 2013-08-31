@@ -174,7 +174,11 @@ function swapscene(name) {
 }
 
 UFX.scenes.mainmenu = new MenuScene([
-	["Play Intro Mission", pushscene("missionmode")],
+	["Play Intro Mission", function () {
+		initPlotState(plotstate)
+		robotstate.init(null)
+		UFX.scene.push("missionmode")
+	}],
 	["Options", pushscene("options")],
 	["Credits", pushscene("credits")],
 ], {
@@ -188,6 +192,7 @@ UFX.scenes.options = new MenuScene([
 	[function () { return "Music: " + (settings.music ? "On" : "Off") }, function () { setmusic(!settings.music) }],
 	[function () { return "Sound effects: " + (settings.sfx ? "On" : "Off") }, function () { setsfx(!settings.sfx) }],
 	[function () { return "Soft Cursor: " + (settings.cursor ? "On" : "Off") }, function () { settings.cursor = !settings.cursor }],
+	[function () { return "Line Width: " + settings.linewidth }, function () { graphics.setlinewidth(settings.linewidth % 3 + 1) }],
 	["Back", UFX.scene.pop.bind(UFX.scene)],
 ])
 

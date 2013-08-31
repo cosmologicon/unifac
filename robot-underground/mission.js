@@ -77,7 +77,7 @@ Mission.prototype = {
 		switch (this.currentScript.state) {
 			case "waitKey": case "waitChoice": break
 			case "terminated": case "endConversation": this.currentScript = null ; break
-			case "endMission": start_mode("game.mission", true) ; break
+			case "endMission": UFX.scene.swap("missionmode") ; break
 			case "endGame": UFX.scene.pop() ; break
 		}
 	},

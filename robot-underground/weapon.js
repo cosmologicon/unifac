@@ -2,6 +2,7 @@
 function Weapon() {
 }
 Weapon.prototype = extend(Equippable.prototype, {
+	isweapon: true,
 	init: function (damagetype, range, cooldowntime, damage, energydrain, name, effectname) {
 		Equippable.prototype.init.call(this, name || "???")
 		this.effectname = effectname || damagetype

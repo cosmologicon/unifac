@@ -23,6 +23,8 @@ var text = {
 		if (twidth) {
 			texts = [].concat.apply([], texts.map(function(t) { return wordwrap(t, twidth, con) }))
 		}
+		// Remove trailing empty lines. Not sure if pyglet does this automatically?
+		while (texts.length > 1 && !texts[texts.length-1]) texts.splice(texts.length - 1)
 		var w0 = Math.max.apply(null, texts.map(function (t) { return con.measureText(t).width }))
 		if (tfull && twidth) w0 = twidth
 		

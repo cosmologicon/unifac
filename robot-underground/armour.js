@@ -9,6 +9,7 @@ function Armour() {
 	this.init()
 }
 Armour.prototype = extend(Equippable.prototype, {
+	isarmour: true,
 	init: function () {
 		Equippable.prototype.init.call(this, UFX.random.choice(armournames))
 		var pc = this.percentages = {}

@@ -14,6 +14,8 @@ var settings = {
 	music: true,
 	sfx: true,
 	cursor: true,
+	antialias: true,
+	linewidth: 1,
 }
 if (qopts.h) {
 	settings.scr_h = +qopts.h
@@ -23,7 +25,10 @@ if (qopts.h) {
 var DEBUG = {}
 if (qopts.DEBUG) {
 	DEBUG.expose = true // expose convenience methods, eg zoomout and zoomin
-	DEBUG.testdialogue = true  // put Putney by the starting position
+	DEBUG.testdialogue = qopts.testdialogue  // put Putney by the starting position
+	DEBUG.testinventory = qopts.testinventory  // put Hammersmith by the starting position
+	DEBUG.failhard = true  // shut down with error mesasge on throw
+	DEBUG.showfps = true
 	var DEBUGform = document.getElementById("DEBUG")
 	DEBUGform.style.display = "block"
 }

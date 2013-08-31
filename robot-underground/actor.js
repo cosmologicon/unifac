@@ -145,7 +145,7 @@ Actor.prototype = extend(Entity.prototype, {
 	// TODO: scriptMove, setScriptPath
 	
 	describe: function () {
-		return this.name + (this.hostile ? " (" + Math.ceil(this.currenthp) + ")" : "")
+		return this.name + (this.hostile ? " (" + Math.ceil(this.currenthp) + " HP)" : "")
 	},
 	
 	tick: function () {
@@ -201,7 +201,13 @@ Protag.prototype = extend(Actor.prototype, {
 		this.explosions = 2
 		this.anim_state = "static"
 		
-		// TODO: setDeathScript
+		this.setDeathScript([
+			["die"],
+			["canEject", false],
+			["set_zoom", 3],
+			["wait", 50],
+			["change_scene", "gameover"],
+		])
 	},
 	move: function (tripScripts) {
 		if (tripScripts === undefined) tripScripts = true
@@ -267,7 +273,7 @@ Protag.prototype = extend(Actor.prototype, {
 			} else {
 				var temptarg = this.targ && this.targ.hostile ? this.targ : null
 			}
-			if (temptarg && w.canFire(this, temptarg) && this.currentEnergy > w.getEnergyUse()) {
+			if (w.canFire(this, temptarg) && this.currentEnergy > w.getEnergyUse()) {
 				w.fire(this, temptarg)
 				this.currentEnergy -= w.getEnergyUse()
 			}
