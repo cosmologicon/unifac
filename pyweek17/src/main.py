@@ -1,9 +1,11 @@
-import pygame
+import pygame, math
 from pygame.constants import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 import scene, settings, scenes.game, graphics
+
+math.tau = 2 * math.pi
 
 pygame.init()
 pygame.display.set_mode(settings.ssize, OPENGL)

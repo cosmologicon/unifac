@@ -6,6 +6,7 @@ from OpenGL.GLUT import *
 from OpenGL.arrays import vbo
 from collections import namedtuple
 import scene, settings, random
+from vec import vec
 
 
 
@@ -87,7 +88,7 @@ def initmoon():
 		random.uniform(-2, 2),
 		random.uniform(0.3, 0.6),
 		random.uniform(-0.1, 0.1),
-	) for _ in range(10000)]
+	) for _ in range(100)]
 	colors = []
 	for x, y, z in ps:
 		color = 0.4
@@ -95,20 +96,47 @@ def initmoon():
 			d2 = (x-hx)**2 + (y-hy)**2 + (z-hz)**2
 			color += hc * hr * math.exp(-d2 / (hr * hr))
 		color = min(max(color, 0), 1)
+		color = random.uniform(0.2, 0.5)
+		color = 0.4
 		colors.append((color, color, color))
-	vertexdata, colordata = [], []
+	vertexdata, colordata, normaldata = [], [], []
 	for face in faces:
 		for j in face:
 			vertexdata += ps[j]
 			colordata += colors[j]
-	moon = makedrawable(GL_TRIANGLES, vertexdata, colordata, None)
+			p = vec(*ps[j])
+			dp = vec(math.sin(17*p.y), math.sin(19*p.z), math.sin(21*p.x)).times(0.1)
+			normaldata += p.plus(dp).norm()
+			
+	moon = makedrawable(GL_TRIANGLES, vertexdata, colordata, normaldata)
 
+def inittower():
+	global tower
+	vertexdata = []
+	colordata = []
+	normaldata = []
+	ps = (2, -2.5), (1, 1.6), (0.4, 1.8), (0.4, 4), (1.2, 4.7), (0, 6)
+
+	for k in range(len(ps)-1):
+		r0, z0 = ps[k]
+		r1, z1 = ps[k+1]
+		nr, nz = r1 - r0, z1 - z0
+		n = math.sqrt(nr * nr + nz * nz)
+		nr, nz = nz/n, -nr/n
+		for j in range(12):
+			A0, A1 = math.tau * j / 12, math.tau * (j+1) / 12
+			S0, C0, S1, C1 = math.sin(A0), math.cos(A0), math.sin(A1), math.cos(A1)
+			vertexdata += [r0*S0, r0*C0, z0, r1*S0, r1*C0, z1, r1*S1, r1*C1, z1, r0*S1, r0*C1, z0]
+			colordata += ([0, 0.4, 0.6] if j % 2 else [0, 0.5, 0.5]) * 4
+			normaldata += [nr*S0, nr*C0, nz, nr*S0, nr*C0, nz, nr*S1, nr*C1, nz, nr*S1, nr*C1, nz]
+	tower = makedrawable(GL_QUADS, vertexdata, colordata, normaldata)
 
 
 def init():
 	global vertexbuff
 	initstars()	
 	initmoon()
+	inittower()
 	vertexbuff = vbo.VBO(numpy.array(vbodata, dtype="f"), usage=GL_STATIC_DRAW)
 	
 
@@ -126,6 +154,11 @@ def draw(obj):
 	if obj.coff is not None:
 		glEnableClientState(GL_COLOR_ARRAY)
 		glColorPointer(3, GL_FLOAT, 0, vertexbuff + obj.coff)
+	if obj.noff is not None:
+		glEnableClientState(GL_NORMAL_ARRAY)
+		glNormalPointer(GL_FLOAT, 0, vertexbuff + obj.noff)
+	else:
+		glDisableClientState(GL_NORMAL_ARRAY)
 	glDrawArrays(obj.dtype, 0, obj.n)
 #	glDisableClientState(GL_COLOR_ARRAY)
 #	glDisableClientState(GL_VERTEX_ARRAY)

@@ -3,42 +3,32 @@ from pygame.constants import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-import scene, settings, random, graphics
+import scene, settings, random, graphics, camera
+from vec import vec
 
-cam = 1.0, 0.0, 0.0
-up = 0.0, 0.0, 1.0
-def times((x,y,z), f):
-	return x*f, y*f, z*f
-def plus((x0, y0, z0), (x1, y1, z1)):
-	return x0+x1, y0+y1, z0+z1
-def norm((x, y, z), a=1):
-	d = a/math.sqrt(x**2 + y**2 + z**2)
-	return x*d, y*d, z*d
-def dot((x0,y0,z0), (x1,y1,z1)):
-	return x0*x1 + y0*y1 + z0*z1
-def cross((x0,y0,z0), (x1,y1,z1)):
-	return y0*z1-y1*z0, z0*x1-z1*x0, x0*y1-x1*y0
-def proj(a, b):
-	return times(b, dot(a, b) / dot(b, b))
-def rej(a, b):
-	return plus(a, times(b, -dot(a, b) / dot(b, b)))
+
+def init():
+	glEnable(GL_COLOR_MATERIAL)
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE)
+	glEnable(GL_LIGHT0)
+	glEnable(GL_AUTO_NORMAL)
+
+	glLight(GL_LIGHT0, GL_AMBIENT, [0.2,0.2,0.2,1])
+	glLight(GL_LIGHT0, GL_DIFFUSE, [1,1,1,1])
+	glLight(GL_LIGHT0, GL_SPECULAR, [0,0,0,1])
+
 
 
 def think(dt, events, kpress):
-	global cam, up
 	for event in events:
 		if event.type == MOUSEBUTTONDOWN:
 			scene.pop()
 	dx = (kpress[K_RIGHT]) - (kpress[K_LEFT])
 	dy = (kpress[K_UP]) - (kpress[K_DOWN])
-	
-	if dx:
-		dcam = times(cross(up, cam), 0.3*dt*dx)
-		cam = norm(plus(cam, dcam))
-	if dy:
-		cam = norm(plus(cam, times(up, 0.3*dt*dy)))
-		up = norm(rej(up, cam))
+	dr = (kpress[K_e]) - (kpress[K_a])
+	dA = (kpress[K_COMMA]) - (kpress[K_o])
 
+	camera.move(1 * dt * dx, 1 * dt * dy, 0.7 * dt * dr, 0.7 * dt * dA)
 
 
 def draw():
@@ -49,12 +39,18 @@ def draw():
 	glMatrixMode(GL_PROJECTION)
 	glLoadIdentity()
 	gluPerspective(30,float(settings.sx) / settings.sy,0.01,10000)
-	gluLookAt(5*cam[0], 5*cam[1], 5*cam[2], 0, 0, 0, up[0], up[1], up[2])
-	glColor(0.3, 0.3, 0.3)
+	camera.look()
 	
-#	glutSolidSphere(1, 20, 20)
+	glDisable(GL_LIGHTING)
 	graphics.draw(graphics.stars)
+	glEnable(GL_LIGHTING)
+
 	graphics.draw(graphics.moon)
+	glPushMatrix()
+	glTranslate(0, 0, 1)
+	glScale(0.02, 0.02, 0.02)
+	graphics.draw(graphics.tower)
+	glPopMatrix()
 	
 
 

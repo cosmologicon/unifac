@@ -6,6 +6,7 @@ def top():
 
 def push(newscene):
 	stack.append(newscene)
+	newscene.init()
 
 def pop():
 	return stack.pop() if stack else None
