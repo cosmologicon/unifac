@@ -96,6 +96,7 @@ def look():
 	lightpos = p.plus(a).plus(b.times(6))
 
 	glLight(GL_LIGHT0, GL_POSITION, lightpos)
+	glLight(GL_LIGHT1, GL_POSITION, lightpos)
 
 
 def worldtoscreen(r):

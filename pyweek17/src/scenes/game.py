@@ -3,11 +3,9 @@ from pygame.constants import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-import scene, settings, random, graphics, camera, text, things, state
+import scene, settings, random, graphics, camera, text, things, state, cursor, hud
 from vec import vec
 
-
-t = 0
 
 def init():
 	glEnable(GL_COLOR_MATERIAL)
@@ -18,36 +16,40 @@ def init():
 	glLight(GL_LIGHT0, GL_AMBIENT, [0.2,0.2,0.2,1])
 	glLight(GL_LIGHT0, GL_DIFFUSE, [1,1,1,1])
 	glLight(GL_LIGHT0, GL_SPECULAR, [0,0,0,1])
-	
-	global t, towers
-	t = 0
-	towers = [things.Car() for _ in range(4)]
-	towers += [things.Mine() for _ in range(4)]
-	
-	t0 = things.Tower(vec(0, 0, 1))
-	t1 = things.Tower(vec(0.5, 0, 1).norm())
-	t2 = things.Tower(vec(1, 0, 1).norm())
-	t3 = things.Tower(vec(1, 0.3, 0.8).norm())
-	towers += [t0, t1, t2, t3]
-	towers += [
-		things.Wire(t0.u, t1.u),
-		things.Wire(t1.u, t2.u),
-		things.Wire(t2.u, t3.u),
-	]
+
+	glLight(GL_LIGHT1, GL_AMBIENT, [0.5,0,0,1])
+	glLight(GL_LIGHT1, GL_DIFFUSE, [0.5,0,0,1])
+	glLight(GL_LIGHT1, GL_SPECULAR, [0,0,0,1])
+
+	state.init()
+	hud.init()
+	cursor.tobuild = None
+		
 
 def think(dt, events, kpress):
-	global t
-	t += dt
+	state.t += dt
 	for event in events:
 		if event.type == MOUSEBUTTONDOWN:
-			camera.seek((0, 0, 1))
+			if event.button == 4:
+				camera.zoom /= 1.1
+			elif event.button == 5:
+				camera.zoom *= 1.1
+			else:
+				px, py = pygame.mouse.get_pos()
+				if hud.click((px, settings.sy - py)):
+					continue
+				p = camera.screentoworld((settings.sx - px, settings.sy - py))
+				if p and cursor.tobuild:
+					if state.canbuild(cursor.tobuild, p.norm()):
+						state.build(cursor.tobuild(p.norm()))
+						cursor.tobuild = None
+#			camera.seek((0, 0, 1))
 		if event.type == KEYDOWN and event.key == K_F12:
-			data = glReadPixels(0, 0, settings.sx, settings.sy, GL_RGB, GL_UNSIGNED_BYTE)
-			data = numpy.fromstring(data, dtype=numpy.uint8).reshape((settings.sy, settings.sx, 3))
-			data = numpy.transpose(data, (1, 0, 2))[:,::-1,:]
-			surf = pygame.Surface((settings.sx, settings.sy)).convert_alpha()
-			pygame.surfarray.pixels3d(surf)[:] = data
-			pygame.image.save(surf, "screenshot.png")
+			graphics.screenshot()
+		if event.type == KEYDOWN and event.key == K_1:
+			cursor.tobuild = things.Tower
+		if event.type == KEYDOWN and event.key == K_2:
+			cursor.tobuild = things.Mine
 			
 	if kpress[K_ESCAPE]:
 		scene.pop()
@@ -56,11 +58,17 @@ def think(dt, events, kpress):
 	dr = (kpress[K_e]) - (kpress[K_a])
 	dA = (kpress[K_COMMA]) - (kpress[K_o])
 
+	px, py = pygame.mouse.get_pos()
+	hud.point((px, settings.sy - py))
+
+
 	camera.move(1 * dt * dx, 1 * dt * dy, 0.7 * dt * dr, 0.7 * dt * dA)
 	camera.think(dt)
 
-	for tower in towers:
-		tower.think(dt)
+	for s in state.structures:
+		s.think(dt)
+
+	hud.think(dt)
 
 	#x, y = camera.screentoworld(pygame.mouse.get_pos())
 	#print x, y, math.sqrt(x*x + y*y)
@@ -84,30 +92,40 @@ def draw():
 	glPopMatrix()
 
 
-	for tower in towers:
+	for s in state.structures:
 		glPushMatrix()
-		tower.draw()
+		s.draw()
 		glPopMatrix()
 
 	px, py = pygame.mouse.get_pos()
 	p = camera.screentoworld((settings.sx - px, settings.sy - py))
 	
-	if p:
-		tower = things.Tower(p.norm())
+	if p and cursor.tobuild:
+		darken = not state.canbuild(cursor.tobuild, p.norm())
+		if darken:
+			glDisable(GL_LIGHT0)
+			glEnable(GL_LIGHT1)
+		tower = cursor.tobuild(p.norm())
+		tower.t = 100
 		glPushMatrix()
 		tower.draw()
 		glPopMatrix()
+		if darken:
+			glEnable(GL_LIGHT0)
+			glDisable(GL_LIGHT1)
 
 
 
 	text.setup()
 
-	if t < 1:
-		text.write("Moony moony moons!", None, 54, (255, 255, 0), (settings.sx/2, 100), (0, 0, 0))
+	hud.draw()
 
-	text.write("O", None, 8, (255, 0, 0), camera.worldtoscreen(vec(0, 0, state.R)), (0, 0, 0))
-	
-	camera.screentoworld(camera.worldtoscreen(vec(0, 0, state.R)))
+#	if state.t < 1:
+#		text.write("Moony moony moons!", None, 54, (255, 255, 0), (settings.sx/2, 100), (0, 0, 0))
+#	text.write("Moony moony moons!", None, 54, (255, 255, 0), (settings.sx/2, 100), (0, 0, 0))
+#	text.write("Moony moony moonzzzz!", None, 54, (255, 255, 0), (settings.sx/2, 200), (0, 0, 0))
+
+#	text.write("O", None, 8, (255, 0, 0), camera.worldtoscreen(vec(0, 0, state.R)), (0, 0, 0))
 	
 	glDisable(GL_TEXTURE_2D)
 
