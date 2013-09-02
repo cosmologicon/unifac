@@ -1,4 +1,4 @@
-import sys
+import sys, math
 
 
 ssize = sx, sy = 854, 480
@@ -9,6 +9,7 @@ if fullscreen:
 fps = 60
 
 fov = 30
+cotB = 1 / math.tan(math.radians(0.5 * fov))
 
 gamename = "Luna whatever"
 

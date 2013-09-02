@@ -1,11 +1,11 @@
-import pygame, math, numpy
+import pygame, math, numpy, random
 from pygame.constants import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 from OpenGL.arrays import vbo
 from collections import namedtuple
-import scene, settings, random
+import scene, settings, state
 from vec import vec
 
 
@@ -131,12 +131,78 @@ def inittower():
 			normaldata += [nr*S0, nr*C0, nz, nr*S0, nr*C0, nz, nr*S1, nr*C1, nz, nr*S1, nr*C1, nz]
 	tower = makedrawable(GL_QUADS, vertexdata, colordata, normaldata)
 
+def initplatform():
+	global platform
+	vertexdata = []
+	colordata = []
+	normaldata = []
+	ps = (3.5, -2.5), (3, 4.4), (2.2, 4.4), (2.2, 3.8), (0, 3.8)
+
+	for k in range(len(ps)-1):
+		r0, z0 = ps[k]
+		r1, z1 = ps[k+1]
+		nr, nz = r1 - r0, z1 - z0
+		n = math.sqrt(nr * nr + nz * nz)
+		nr, nz = nz/n, -nr/n
+		for j in range(12):
+			A0, A1 = math.tau * j / 12, math.tau * (j+1) / 12
+			S0, C0, S1, C1 = math.sin(A0), math.cos(A0), math.sin(A1), math.cos(A1)
+			vertexdata += [r0*S0, r0*C0, z0, r1*S0, r1*C0, z1, r1*S1, r1*C1, z1, r0*S1, r0*C1, z0]
+			colordata += [0.2, 0, 0] * 4
+			normaldata += [nr*S0, nr*C0, nz, nr*S0, nr*C0, nz, nr*S1, nr*C1, nz, nr*S1, nr*C1, nz]
+	platform = makedrawable(GL_QUADS, vertexdata, colordata, normaldata)
+
+def inithelmet():
+	global helmet
+	vertexdata = []
+	colordata = []
+	normaldata = []
+
+	def p(A, B, r):
+		return r * math.cos(A) * math.sin(B), r * math.cos(B), -r * math.sin(A) * math.sin(B)
+
+	for k in range(4):
+		A0 = k * math.tau / 16
+		A1 = (k+1) * math.tau / 16
+		for j in range(8):
+			B0 = j * math.tau / 16
+			B1 = (j + 1) * math.tau / 16
+			vertexdata += p(A0, B0, 2.7)
+			vertexdata += p(A0, B1, 2.7)
+			vertexdata += p(A1, B1, 2.7)
+			vertexdata += p(A1, B0, 2.7)
+			normaldata += p(A0, B0, 1)
+			normaldata += p(A0, B1, 1)
+			normaldata += p(A1, B1, 1)
+			normaldata += p(A1, B0, 1)
+			colordata += [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4]
+	helmet = makedrawable(GL_QUADS, vertexdata, colordata, normaldata)
+
+def initwire():
+	global wire
+	vertexdata = []
+	colordata = []
+	normaldata = []
+
+	r = 0.1
+	for j in range(6):
+		A0, A1 = math.tau * j / 6, math.tau * (j+1) / 6
+		S0, C0, S1, C1 = math.sin(A0), math.cos(A0), math.sin(A1), math.cos(A1)
+		vertexdata += [-1, r*S0, r*C0, 1, r*S0, r*C0, 1, r*S1, r*C1, -1, r*S1, r*C1]
+		colordata += [0.5, 0.5, 0] * 4
+		normaldata += [0, S0, C0, 0, S0, C0, 0, S1, C1, 0, S1, C1]
+
+	wire = makedrawable(GL_QUADS, vertexdata, colordata, normaldata)
+
 
 def init():
 	global vertexbuff
 	initstars()	
 	initmoon()
 	inittower()
+	initplatform()
+	inithelmet()
+	initwire()
 	vertexbuff = vbo.VBO(numpy.array(vbodata, dtype="f"), usage=GL_STATIC_DRAW)
 	
 

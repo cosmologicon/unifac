@@ -22,6 +22,6 @@ class vec(namedtuple("vec", "x y z".split())):
 		return self.plus(other.times(-self.dot(other) / other.dot(other)))
 	def length(self):
 		return math.sqrt(self.dot(self))
-	def norm(self):
-		return self.times(1/self.length())
+	def norm(self, l=1):
+		return self.times(l/self.length())
 
