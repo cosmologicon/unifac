@@ -2,12 +2,13 @@ import pygame, numpy
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-import settings
+import settings, data
 
 fonts = {}
 def getfont(fontname, size):
 	key = fontname, size
 	if key not in fonts:
+		fontname = fontname and data.filepath("fonts", "%s.ttf" % fontname)
 		fonts[key] = pygame.font.Font(fontname, size)
 	return fonts[key]
 
@@ -27,9 +28,10 @@ def getsurf(sw, sh):
 
 class Texture(object):
 	def __init__(self, text, fontname, size, color, bcolor):
+		self.text = text
 		render = getrender(text, fontname, size, color)
 		self.rw, self.rh = render.get_size()
-		self.d = round(0.05 * size) if bcolor else 0
+		self.d = round(0.03 * size) if bcolor else 0
 		self.rw += self.d
 		self.rh += self.d
 		sw = 4
@@ -48,6 +50,10 @@ class Texture(object):
 			surf.blit(brender, (2 * self.d, 2 * self.d))
 
 		surf.blit(render, (self.d, self.d))
+		self.maketexture(surf)
+
+	def maketexture(self, surf):
+		sw, sh = surf.get_size()
 		data = numpy.hstack([
 			numpy.reshape(pygame.surfarray.pixels3d(surf), [sw * sh, 3]),
 			numpy.reshape(pygame.surfarray.pixels_alpha(surf), [sw * sh, 1])
@@ -74,6 +80,41 @@ class Texture(object):
 		glVertex(x0 + self.sw, y0, 0)
 		glEnd()
 
+	def clear():
+		glDeleteTextures([self.texture])
+
+
+class Button(Texture):
+	fontname = "Homenaje"
+	def __init__(self, text, size, color, boxcolor, boxcolor1, indent, width):
+		self.text = text
+		render = getrender(text, self.fontname, size, color)
+		self.rw, self.rh = render.get_size()
+		self.rw += indent
+		self.rw = max(self.rw, width)
+		ohang = int(size * 0.3)
+		d = int(size * 0.1) if boxcolor1 else 0
+		self.rw += ohang + d
+#		self.rh += d
+		sw = 4
+		while sw < max(self.rw, self.rh):
+			sw <<= 1
+		sh = sw
+		self.sw = sw
+		self.sh = sh
+		surf = getsurf(sw, sh)
+		surf.fill((0, 0, 0, 0))
+		if boxcolor1:
+			ps = (0, d), (self.rw + ohang + d, d), (self.rw + d, self.rh + d), (0, self.rh + d)
+			pygame.draw.polygon(surf, boxcolor1, ps)
+		if boxcolor:
+			ps = (0, 0), (self.rw + ohang, 0), (self.rw, self.rh), (0, self.rh)
+			pygame.draw.polygon(surf, boxcolor, ps)
+		surf.blit(render, (indent, 0))
+		self.maketexture(surf)
+
+	def draw(self, (x, y)):
+		Texture.draw(self, (x, y), 0, 1)
 
 textures = {}
 def gettexture(text, fontname, size, color, bcolor):
@@ -82,13 +123,28 @@ def gettexture(text, fontname, size, color, bcolor):
 		textures[key] = Texture(text, fontname, size, color, bcolor)
 	return textures[key]
 
+btextures = {}
+def getbtexture(text, size, color, boxcolor, boxcolor1, indent, width):
+	key = text, size, color, boxcolor, boxcolor1, indent, width
+	if key not in btextures:
+		btextures[key] = Button(text, size, color, boxcolor, boxcolor1, indent, width)
+	return btextures[key]
+
+def clear():
+	for t in list(textures.keys()):
+		textures[t].clear()
+		del textures[t]
+	for t in list(btextures.keys()):
+		btextures[t].clear()
+		del btextures[t]
+
 
 def setup():
 	glMatrixMode(GL_PROJECTION)
 	glLoadIdentity()
 	glTranslate(-1, -1, 0)
 	glScale(2.0/settings.sx, 2.0/settings.sy, 1)
-#	glDisable(GL_DEPTH_TEST)
+	glDisable(GL_DEPTH_TEST)
 	glDisable(GL_CULL_FACE)
 	glDisable(GL_LIGHTING)
 	glEnable(GL_TEXTURE_2D)
@@ -98,4 +154,8 @@ def setup():
 def write(text, fontname, size, color, (x, y), bcolor=None, hanchor=0.5, vanchor=0.5):
 	texture = gettexture(text, fontname, size, color, bcolor)
 	texture.draw((x, y), hanchor, vanchor)
+
+def drawbutton(text, size, color, (x, y), boxcolor=None, boxcolor1=None, indent=0, width=0):
+	texture = getbtexture(text, size, color, boxcolor, boxcolor1, indent, width)
+	texture.draw((x, y))
 
