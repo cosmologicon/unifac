@@ -84,6 +84,7 @@ def gettexture(text, fontname, size, color, bcolor):
 
 
 def setup():
+	glMatrixMode(GL_PROJECTION)
 	glLoadIdentity()
 	glTranslate(-1, -1, 0)
 	glScale(2.0/settings.sx, 2.0/settings.sy, 1)
