@@ -8,8 +8,12 @@ import scene, settings, scenes.game, graphics
 math.tau = 2 * math.pi
 
 pygame.init()
-pygame.display.set_mode(settings.ssize, OPENGL)
+if not settings.ssize:
+	settings.sx, settings.sy = settings.ssize = max(pygame.display.list_modes())
+fsflag = FULLSCREEN if settings.fullscreen else 0
+pygame.display.set_mode(settings.ssize, DOUBLEBUF | OPENGL | fsflag)
 pygame.display.set_caption(settings.gamename)
+pygame.font.init()
 glutInit()
 glClearColor(0, 0, 0, 1)
 graphics.init()

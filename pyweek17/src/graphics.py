@@ -67,7 +67,7 @@ def initmoon():
 		return avgcache[key]
 
 	# subdivide this many times
-	for i in range(4):
+	for i in range(3):
 		newfaces = []
 		for j1, j2, j3 in faces:
 			j4 = avg(j2, j3)
