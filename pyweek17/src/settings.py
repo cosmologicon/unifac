@@ -9,7 +9,8 @@ if fullscreen:
 fps = 60
 
 fov = 30
-cotB = 1 / math.tan(math.radians(0.5 * fov))
+tanB = math.tan(math.radians(0.5 * fov))
+cotB = 1 / tanB
 
 gamename = "Luna whatever"
 

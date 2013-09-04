@@ -3,31 +3,22 @@ from pygame.constants import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-import scene, settings, random, graphics, camera, text, things, state, cursor, hud
+import scene, settings, random, graphics, camera, text, things, state, cursor, hud, lighting
 from vec import vec
 
 
 def init():
 	glEnable(GL_COLOR_MATERIAL)
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE)
-	glEnable(GL_LIGHT0)
 	glEnable(GL_NORMALIZE)
 
-	glLight(GL_LIGHT0, GL_AMBIENT, [0.2,0.2,0.2,1])
-	glLight(GL_LIGHT0, GL_DIFFUSE, [1,1,1,1])
-	glLight(GL_LIGHT0, GL_SPECULAR, [0,0,0,1])
-
-	glLight(GL_LIGHT1, GL_AMBIENT, [0.5,0,0,1])
-	glLight(GL_LIGHT1, GL_DIFFUSE, [0.5,0,0,1])
-	glLight(GL_LIGHT1, GL_SPECULAR, [0,0,0,1])
-
+	lighting.init()
 	state.init()
 	hud.init()
 	cursor.tobuild = None
 		
 
 def think(dt, events, kpress):
-	state.t += dt
 	for event in events:
 		if event.type == MOUSEBUTTONDOWN:
 			if event.button == 4:
@@ -65,10 +56,11 @@ def think(dt, events, kpress):
 	camera.move(1 * dt * dx, 1 * dt * dy, 0.7 * dt * dr, 0.7 * dt * dA)
 	camera.think(dt)
 
-	for s in state.structures:
-		s.think(dt)
+	for obj in state.thinkers():
+		obj.think(dt)
 
 	hud.think(dt)
+	state.think(dt)
 
 	#x, y = camera.screentoworld(pygame.mouse.get_pos())
 	#print x, y, math.sqrt(x*x + y*y)
@@ -86,33 +78,33 @@ def draw():
 	graphics.draw(graphics.stars)
 	glEnable(GL_LIGHTING)
 
+	lighting.moon()
 	glPushMatrix()
 	glScale(state.R, state.R, state.R)
 	graphics.draw(graphics.moon)
 	glPopMatrix()
 
-
-	for s in state.structures:
+	lighting.normal()
+	# wire thickness
+	w = int(math.ceil(settings.sy / (camera.zoom * settings.tanB) * 0.05))
+	glLineWidth(w)
+	for obj in state.drawers():
 		glPushMatrix()
-		s.draw()
+		obj.draw()
 		glPopMatrix()
 
 	px, py = pygame.mouse.get_pos()
 	p = camera.screentoworld((settings.sx - px, settings.sy - py))
 	
 	if p and cursor.tobuild:
-		darken = not state.canbuild(cursor.tobuild, p.norm())
-		if darken:
-			glDisable(GL_LIGHT0)
-			glEnable(GL_LIGHT1)
 		tower = cursor.tobuild(p.norm())
 		tower.t = 100
+		tower.invalid = not state.canbuild(cursor.tobuild, p.norm())
 		glPushMatrix()
 		tower.draw()
 		glPopMatrix()
-		if darken:
-			glEnable(GL_LIGHT0)
-			glDisable(GL_LIGHT1)
+		for w in state.wiresto(tower):
+			w.draw()
 
 
 
@@ -122,7 +114,8 @@ def draw():
 
 #	if state.t < 1:
 #		text.write("Moony moony moons!", None, 54, (255, 255, 0), (settings.sx/2, 100), (0, 0, 0))
-#	text.write("Moony moony moons!", None, 54, (255, 255, 0), (settings.sx/2, 100), (0, 0, 0))
+
+#	text.write("Moony moony moons!", None, 54, (255, 255, 0), (settings.sx/2, 100), (0, 0, 0), alpha=0.3)
 #	text.write("Moony moony moonzzzz!", None, 54, (255, 255, 0), (settings.sx/2, 200), (0, 0, 0))
 
 #	text.write("O", None, 8, (255, 0, 0), camera.worldtoscreen(vec(0, 0, state.R)), (0, 0, 0))
