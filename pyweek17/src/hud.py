@@ -1,17 +1,24 @@
 import random
-import text, settings, cursor, things
+from OpenGL.GL import *
+
+import text, settings, cursor, things, state
 
 
 buttons = {}
 mode = None
 
+
 class Button(object):
+	fontname = "Homenaje"
 	size0 = 2
+	# Text color in normal mode
 	color = 222, 222, 255
-	boxcolor0 = 0, 0, 255, 100
-	boxcolor1 = 255, 255, 255, 50
+	# Colors of the box in normal mode
+	boxcolor0 = 1, 1, 1, 0.1
+	boxcolor1 = 0, 0.5, 1, 0.3
 	indent0 = 1
-	width0 = 5
+	width0 = 9
+	frac = 1
 
 	point = False
 	pointcolor = 255, 255, 255, 100
@@ -29,7 +36,32 @@ class Button(object):
 			boxcolor = self.pointcolor
 		else:
 			boxcolor = self.boxcolor0
-		text.drawbutton(self.words, self.size, self.color, (self.x, self.y), boxcolor, self.boxcolor1, self.indent, self.width)
+		x, y = self.x + self.indent, self.y
+		w, h = self.width, self.size * 1.2
+		w2 = w * self.frac
+		f = h * 0.2
+		d = h * 0.1
+		boxcolor0 = self.boxcolor0
+		boxcolor1 = self.boxcolor1
+
+		glDisable(GL_TEXTURE_2D)
+		glBegin(GL_QUADS)
+		glColor(*boxcolor0)
+		glVertex(x-w, y)
+		glVertex(x+w+f, y)
+		glVertex(x+w, y-h)
+		glVertex(x-w, y-h)
+		glColor(*boxcolor1)
+		glVertex(x-w, y+d)
+		glVertex(x+w2-d+f, y+d)
+		glVertex(x+w2-d, y-h+d)
+		glVertex(x-w, y-h+d)
+		glEnd()
+
+
+		glEnable(GL_TEXTURE_2D)
+		glColor(1, 1, 1)
+		text.write(self.words, self.fontname, self.size, self.color, (x, y), None, 0, 1)
 	def seek(self, p=None):
 		self.target = p
 	def jump(self):
@@ -49,11 +81,25 @@ class Button(object):
 class SubButton(Button):
 	size0 = 1.5
 	color = 222, 222, 255
-	boxcolor0 = 0, 0, 255, 100
-	boxcolor1 = 255, 255, 255, 50
+	boxcolor0 = 1, 1, 1, 0.1
+	boxcolor1 = 0, 0, 0.8, 0.3
 	indent0 = 2
 	width0 = 6
-	
+
+
+class BuildButton(SubButton):
+	def __init__(self, btype):
+		self.btype = btype
+		name = "build" + btype.__name__.lower()
+		words = (btype.shortname or btype.__name__).upper()
+		SubButton.__init__(self, name, words)
+
+class LaunchButton(SubButton):
+	def __init__(self, ltype):
+		self.ltype = ltype
+		name = "launch" + ltype.__name__.lower()
+		words = (ltype.shortname or ltype.__name__).upper()
+		SubButton.__init__(self, name, words)
 
 def f(size):
 	return int(round(size * settings.sy / 32.0))
@@ -67,13 +113,19 @@ def init():
 	buttons.clear()
 	Button("build", "BUILD")
 	Button("launch", "LAUNCH")
-	SubButton("bsatcon", "SATCON")
-	SubButton("brelay", "RELAY")
-
-	SubButton("wsat", "W.SAT")
-	SubButton("rsat", "R.SAT")
-	SubButton("bsat", "B.SAT")
-
+	Button("unbuild", "UNBUILD")
+	Button("unlaunch", "UNLAUNCH")
+	BuildButton(things.Collector)
+	BuildButton(things.Extractor)
+	BuildButton(things.WRelay)
+	BuildButton(things.BRelay)
+	BuildButton(things.RRelay)
+	BuildButton(things.WBasin)
+	BuildButton(things.BBasin)
+	BuildButton(things.RBasin)
+	LaunchButton(things.WSat)
+	LaunchButton(things.RSat)
+	LaunchButton(things.BSat)
 
 	
 	mainmode()
@@ -93,20 +145,27 @@ def setmode(modename, bnames):
 	y = settings.sy - f(1)
 	for bname in bnames.split():
 		buttons[bname].seek((0, y))
-		y -= buttons[bname].size + f(0.5)
+		y -= buttons[bname].size * 1.2 + f(0.5)
 
 def mainmode():
-	setmode("main", "build launch")
+	setmode("main", "build launch unbuild unlaunch")
 
 def buildmode():
-	setmode("build", "build brelay bsatcon")
+	setmode("build", "build buildcollector buildextractor buildwrelay buildbrelay buildrrelay buildwbasin buildbbasin buildrbasin")
 
 def launchmode():
-	setmode("launch", "launch wsat rsat bsat")
+	setmode("launch", "launch launchwsat launchrsat launchbsat")
 
 def draw():
 	for b in buttons.values():
 		b.draw()
+
+	if state.restext[0]:
+		text.write(state.restext[0], "Homenaje", 22, (255, 255, 255), (settings.sx, settings.sy), (0, 0, 0), 1, 1)
+	if state.restext[1]:
+		text.write(state.restext[1], "Homenaje", 22, (120, 120, 255), (settings.sx, settings.sy - 30), (0, 0, 0), 1, 1)
+	if state.restext[2]:
+		text.write(state.restext[2], "Homenaje", 22, (255, 120, 120), (settings.sx, settings.sy - 60), (0, 0, 0), 1, 1)
 
 def point((x, y)):
 	for bname, button in buttons.items():
@@ -128,16 +187,16 @@ def clickon(bname):
 			buildmode()
 		elif mode == "build":
 			mainmode()
+	elif bname.startswith("build"):
+		cursor.tobuild = buttons[bname].btype
+		mainmode()
 	if bname == "launch":
 		if mode == "main":
 			launchmode()
 		elif mode == "launch":
 			mainmode()
-
-	if bname == "bsatcon":
-		cursor.tobuild = things.Tower
+	elif bname.startswith("launch"):
+		state.launch(buttons[bname].ltype)
 		mainmode()
-
-
 
 

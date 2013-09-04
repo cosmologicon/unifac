@@ -2,7 +2,7 @@ import math
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-import settings, state
+import settings, state, lighting
 from vec import vec
 
 u = vec(0, 0, 1)
@@ -93,10 +93,7 @@ def look():
 	b = f.cross(u)
 	a = p.cross(b)
 	
-	lightpos = p.plus(a).plus(b.times(6))
-
-	glLight(GL_LIGHT0, GL_POSITION, lightpos)
-	glLight(GL_LIGHT1, GL_POSITION, lightpos)
+	lighting.setpos(p.plus(a).plus(b.times(6)))
 
 
 def worldtoscreen(r):

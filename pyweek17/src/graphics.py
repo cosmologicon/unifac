@@ -65,7 +65,7 @@ def initmoon():
 		return avgcache[key]
 
 	# subdivide this many times
-	for i in range(5):
+	for i in range(3):
 		newfaces = []
 		for j1, j2, j3 in faces:
 			j4 = avg(j2, j3)
@@ -126,6 +126,22 @@ def initmoon():
 			
 	moon = makedrawable(GL_TRIANGLES, vertexdata, colordata, normaldata)
 
+def initstone():
+	global stone
+	A, B, C, D = vec(1,1,1).norm(), vec(-1,1,-1).norm(), vec(-1,-1,1).norm(), vec(1,-1,-1).norm()
+	a, b, c, d = A.times(-1), B.times(-1), C.times(-1), D.times(-1)
+	
+	def flatten(*args):
+		for arg in args:
+			for x in arg:
+				yield x
+	vertexdata = list(flatten(A,B,C, A,C,D, A,D,B, C,B,D, a,c,b, a,d,c, a,b,d, c,d,b))
+	normaldata = list(flatten(d,d,d, b,b,b, c,c,c, a,a,a, D,D,D, B,B,B, C,C,C, A,A,A))
+
+	stone = makedrawable(GL_TRIANGLES, vertexdata, None, normaldata)
+	
+
+
 # add a radial component
 def addradcomp(vdata, cdata, ndata, ps, colors, edges=None, m=12):
 	n = len(ps) - 1
@@ -157,19 +173,87 @@ def addradcomp(vdata, cdata, ndata, ps, colors, edges=None, m=12):
 			S0, C0, S1, C1 = math.sin(A0), math.cos(A0), math.sin(A1), math.cos(A1)
 			vdata.extend([r0*S0, r0*C0, z0, r1*S0, r1*C0, z1, r1*S1, r1*C1, z1, r0*S1, r0*C1, z0])
 			ndata.extend([nr0*S0, nr0*C0, nz0, nr1*S0, nr1*C0, nz1, nr1*S1, nr1*C1, nz1, nr0*S1, nr0*C1, nz0])
+		if len(colors) > n:
+			c = colors[k] + colors[k+1] + colors[k+1] + colors[k]
+			cdata.extend(c * m)
+		else:
+			cdata.extend(colors[k % len(colors)] * (4 * m))
+
+def addsphere(vdata, cdata, ndata, (x0, y0, z0), r, colors, n=12, m=12):
+	def d(A, B):
+		return math.sin(B)*math.cos(A), math.sin(B)*math.sin(A), -math.cos(B)
+	for k in range(n):
+		for j in range(m):
+			for dj,dk in ((0,0), (0,1), (1,1), (1,0)):
+				x, y, z = d((j+dj)*math.tau/m, (k+dk)*math.tau/n/2)
+				vdata.extend([x0+r*x, y0+r*y, z0+r*z])
+				ndata.extend([x, y, z])
 		cdata.extend(colors[k % len(colors)] * (4 * m))
 
 
+def addring(vdata, cdata, ndata, p0, u, r, D, color, m=12):
+	f = u.cross(vec(0, 0, 1))
+	f = f.norm() if f.length() else vec(1, 0, 0)
+	l = f.cross(u)
+	def d(A):
+		return f.times(math.sin(A)).plus(l.times(math.cos(A)))
+	for j in range(m):
+		for dj,du,dr in ((0,-0.5,0), (0,0.5,1), (1,0.5,1), (1,-0.5,0)):
+			dp = d((j+dj)*math.tau/m)
+			# outer ring
+			vdata.extend(p0.plus(dp.times(r)).plus(u.times(D*du)))
+			ndata.extend(dp)
+		for dj,du,dr in ((0,-0.5,0), (0,0.5,1), (1,0.5,1), (1,-0.5,0)):
+			dp = d((j+dj)*math.tau/m)
+			# top surface
+			vdata.extend(p0.plus(dp.times(r*dr)).plus(u.times(D*0.5)))
+			ndata.extend(u)
+		for dj,du,dr in ((0,-0.5,0), (0,0.5,1), (1,0.5,1), (1,-0.5,0)):
+			dp = d((j+dj)*math.tau/m)
+			# bottom surface
+			vdata.extend(p0.plus(dp.times(r*dr)).plus(u.times(-D*0.5)))
+			ndata.extend(u.times(-1))
+	cdata.extend(color * (12 * m))
 
-def inittower():
-	global tower
+def addtorus(vdata, cdata, ndata, p0, u, f, R, r, A0, A1, color0, color1=None, n=12, m=12):
+	color1 = color1 or color0
+	l = u.cross(f)
+	def pdp(A, B):
+		dp0hat = f.times(math.cos(A)).plus(l.times(math.sin(A)))
+		dp1hat = dp0hat.times(math.cos(B)).plus(u.times(math.sin(B)))
+		return p0.plus(dp0hat.times(R)).plus(dp1hat.times(r)), dp1hat
+	for k in range(n):
+		for j in range(m):
+			for dj,dk in ((0,0), (0,1), (1,1), (1,0)):
+				p, dp = pdp(A0+(k+dk)*(A1-A0)/n, (j+dj)*math.tau/m)
+				vdata.extend(p)
+				ndata.extend(dp)
+				cdata.extend(color1 if dk else color0)
+
+
+def initrelay():
+	global relay
 	vertexdata = []
 	colordata = []
 	normaldata = []
-	ps = (2, -2.5), (1, 1.6), (0.4, 1.8), (0.4, 4), (1.2, 4.7), (0, 6)
-
-	addradcomp(vertexdata, colordata, normaldata, ps, [(0.2, 0.4, 0.5)])
-	tower = makedrawable(GL_QUADS, vertexdata, colordata, normaldata)
+	relay = []
+	ps = [(2, -1.5), (1.8, 0.2), (1.1, 0.6), (0.9, 1.1), (0.7, 1.9), (0.3, 2), (0.3, 3.6), (0.3, 4.4),
+		(0.3, 5.5), (0.7, 5.6), (1, 6.1), (1, 6.9), (1, 7.6), (0, 9)]
+	c0, c1, c2 = (0.3, 0.3, 0.3), (0.2, 0.3, 0.2), (0.7, 0.7, 0.7)
+	colors = c0, c0, c0, c0, c0, c0, c1, c0, c2, c2, c0, c2, c2
+	edges = 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1
+	addradcomp(vertexdata, colordata, normaldata, ps, colors, edges)
+	relay.append(makedrawable(GL_QUADS, vertexdata, colordata, normaldata))
+	c2 = 0.4, 0.4, 1
+	colors = c0, c0, c0, c0, c0, c0, c1, c0, c2, c2, c0, c2, c2
+	vertexdata, colordata, normaldata = [], [], []
+	addradcomp(vertexdata, colordata, normaldata, ps, colors, edges)
+	relay.append(makedrawable(GL_QUADS, vertexdata, colordata, normaldata))
+	c2 = 1, 0.4, 0.4
+	colors = c0, c0, c0, c0, c0, c0, c1, c0, c2, c2, c0, c2, c2
+	vertexdata, colordata, normaldata = [], [], []
+	addradcomp(vertexdata, colordata, normaldata, ps, colors, edges)
+	relay.append(makedrawable(GL_QUADS, vertexdata, colordata, normaldata))
 
 def initplatform():
 	global platform
@@ -232,11 +316,13 @@ def inithelmet():
 def initsatellite():
 	global satellite
 	vertexdata = []
-	colordata = []
+	colordata0 = []
 	normaldata = []
 	ps = (0, -1), (1.5, -0.5), (1.5, 0.5), (0, 1)
 	colors = [(0.6, 0.6, 0.6)]
-	addradcomp(vertexdata, colordata, normaldata, ps, colors, m=4)
+	addradcomp(vertexdata, colordata0, normaldata, ps, colors, m=4)
+	colordata1 = [x * [0.5, 0.5, 1.5][j%3] for j,x in enumerate(colordata0)]
+	colordata2 = [x * [1.5, 0.5, 0.5][j%3] for j,x in enumerate(colordata0)]
 	m = 6
 	for k in range(m):
 		y0, y1 = 1.5 + k * 0.6, 2.1 + k * 0.6
@@ -244,11 +330,63 @@ def initsatellite():
 		vertexdata += [y0, -1, 0, y1, -1, 0, y1, 1, 0, y0, 1, 0]
 		vertexdata += [-1, -y0, 0, -1, -y1, 0, 1, -y1, 0, 1, -y0, 0]
 		vertexdata += [-y0, 1, 0, -y1, 1, 0, -y1, -1, 0, -y0, -1, 0]
-	c0, c1 = (0.4, 0.4, 0.4), (0.6, 0.6, 0.6)
-	colordata += (c0 + c1 + c1 + c0) * (m * 4)
+	c0, c1 = (0.3, 0.5, 0.5), (0.5, 0.7, 0.7)
+	colordata0 += (c0 + c1 + c1 + c0) * (m * 4)
+	colordata1 += (c0 + c1 + c1 + c0) * (m * 4)
+	colordata2 += (c0 + c1 + c1 + c0) * (m * 4)
 	normaldata += [0, 0, 1] * (4 * m * 4)
-	satellite = makedrawable(GL_QUADS, vertexdata, colordata, normaldata)
+
+
+	satellite = [
+		makedrawable(GL_QUADS, vertexdata, colordata0, normaldata),
+		makedrawable(GL_QUADS, vertexdata, colordata1, normaldata),
+		makedrawable(GL_QUADS, vertexdata, colordata2, normaldata),
+	]
 	
+def initbasin():
+	global basin
+	vdata, cdata0, cdata1, cdata2, ndata, dummy = [], [], [], [], [], []
+	addsphere(vdata, cdata0, ndata, (0, 0, 3), 2.5, [(0.8, 0.8, 0.8)], m=24)
+	addsphere(dummy, cdata1, dummy, (0, 0, 3), 2.5, [(0.5, 0.5, 1)], m=24)
+	addsphere(dummy, cdata2, dummy, (0, 0, 3), 2.5, [(1, 0.5, 0.5)], m=24)
+	for cdata in [cdata0, cdata1, cdata2]:
+		vd, nd = (vdata, ndata) if cdata is cdata0 else (dummy, dummy)
+		addring(vd, cdata, nd, vec(0, 0, 3), vec(0, 0, 1), 2.8, 0.7, (0.3, 0.3, 0.3), m=24)
+		addring(vd, cdata, nd, vec(0, 0, 3), vec(0, 1, 0), 2.8, 0.7, (0.3, 0.3, 0.3), m=24)
+		addring(vd, cdata, nd, vec(0, 0, 3), vec(1, 0, 0), 2.8, 0.7, (0.3, 0.3, 0.3), m=24)
+
+		for j in range(5):
+			A = math.tau*j/5
+			S, C = math.sin(A), math.cos(A)
+			u = vec(C, S, 0)
+			f = vec(-S, C, 0)
+			addtorus(vd, cdata, nd, vec(0, 0, 0), u, f, 2.8, 1.1, -0.3, 1.5, (0.3, 0.35, 0.35), (0.2, 0.25, 0.25))
+
+	basin = [
+		makedrawable(GL_QUADS, vdata, cdata0, ndata),
+		makedrawable(GL_QUADS, vdata, cdata1, ndata),
+		makedrawable(GL_QUADS, vdata, cdata2, ndata),
+	]
+
+def initmine():
+	global mine
+	vdata, cdata, ndata = [], [], []
+	addring(vdata, cdata, ndata, vec(2.4, 0, 0), vec(0, 1, 0), 0.8, 1, (0.5, 0.2, 0.5), m=24)
+	addring(vdata, cdata, ndata, vec(0, 2.4, 0), vec(-1, 0, 0), 0.8, 1, (0.5, 0.2, 0.5), m=24)
+	addring(vdata, cdata, ndata, vec(-2.4, 0, 0), vec(0, -1, 0), 0.8, 1, (0.5, 0.2, 0.5), m=24)
+	addring(vdata, cdata, ndata, vec(0, -2.4, 0), vec(1, 0, 0), 0.8, 1, (0.5, 0.2, 0.5), m=24)
+	
+	vdata = [x * [1, 1, 5][j%3] for j, x in enumerate(vdata)]
+
+	addtorus(vdata, cdata, ndata, vec(0, 0, -0.2), vec(0, 0, 1), vec(1, 0, 0), 2.3, 0.6, 0, math.tau, (0.7, 0.7, 0.7), n=24)
+
+	ps = (2.5, -2), (2.3, 1.7), (2.1, 3.2), (1.9, 3.8), (1.7, 3.6), (1.6, 0.5), (0, 0.5)
+	c0, c1 = (0.3, 0.3, 0.3), (0, 0, 0)
+	colors = c0, c0, c0, c0, c0, c1, c1
+	edges = 0, 0, 0, 0, 0
+	addradcomp(vdata, cdata, ndata, ps, colors, edges=edges, m=24)
+	mine = makedrawable(GL_QUADS, vdata, cdata, ndata)
+
 
 def init():
 	global vertexbuff
@@ -264,14 +402,18 @@ def quit():
 	pass
 
 
-def draw(obj, f=1):
+coloroverride = False
+def draw(obj, f=1, coloroverride=None):
 	vertexbuff.bind()
 
 	glEnableClientState(GL_VERTEX_ARRAY)
 	glVertexPointer(3, GL_FLOAT, 0, vertexbuff + obj.voff)
-	if obj.coff is not None:
+	if not coloroverride and obj.coff is not None:
 		glEnableClientState(GL_COLOR_ARRAY)
 		glColorPointer(3, GL_FLOAT, 0, vertexbuff + obj.coff)
+	else:
+		glDisableClientState(GL_COLOR_ARRAY)
+		glColor(*coloroverride)
 	if obj.noff is not None:
 		glEnableClientState(GL_NORMAL_ARRAY)
 		glNormalPointer(GL_FLOAT, 0, vertexbuff + obj.noff)

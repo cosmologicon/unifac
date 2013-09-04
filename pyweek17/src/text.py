@@ -151,11 +151,35 @@ def setup():
 	glEnable(GL_BLEND)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-def write(text, fontname, size, color, (x, y), bcolor=None, hanchor=0.5, vanchor=0.5):
+def write(text, fontname, size, color, (x, y), bcolor=None, hanchor=0.5, vanchor=0.5, alpha=1):
+	glColor(1, 1, 1, alpha)
 	texture = gettexture(text, fontname, size, color, bcolor)
 	texture.draw((x, y), hanchor, vanchor)
 
 def drawbutton(text, size, color, (x, y), boxcolor=None, boxcolor1=None, indent=0, width=0):
 	texture = getbtexture(text, size, color, boxcolor, boxcolor1, indent, width)
 	texture.draw((x, y))
+
+
+if __name__ == "__main__":
+	from pygame.locals import *
+	pygame.init()
+	pygame.display.set_mode((800, 600), DOUBLEBUF | OPENGL)
+	pygame.font.init()
+	glutInit()
+	glClearColor(0, 0, 0, 1)
+	clock = pygame.time.Clock()
+	t = 0
+	pygame.event.get()
+	while not any(e.type == KEYDOWN for e in pygame.event.get()):
+		dt = 0.001 * clock.tick(settings.fps)
+		glClear(GL_COLOR_BUFFER_BIT)
+		setup()
+		write("test %s" % t, None, 400, (255, 255, 255), (400, 300))
+		print t
+		t += 1
+		pygame.display.flip()
+	
+
+
 
