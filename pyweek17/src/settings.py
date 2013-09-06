@@ -12,6 +12,9 @@ fov = 30
 tanB = math.tan(math.radians(0.5 * fov))
 cotB = 1 / tanB
 
+swaparrows = False
+dragfactor = 2. / sy
+
 gamename = "Luna whatever"
 
 

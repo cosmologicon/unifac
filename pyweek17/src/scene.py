@@ -9,7 +9,10 @@ def push(newscene):
 	newscene.init()
 
 def pop():
-	return stack.pop() if stack else None
+	s = stack.pop() if stack else None
+	if top():
+		top().resume()
+	return s
 
 def swap(newscene):
 	oldscene = pop()
