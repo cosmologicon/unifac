@@ -16,7 +16,17 @@ renders = {}
 def getrender(text, fontname, size, color):
 	key = text, fontname, size, color
 	if key not in renders:
-		renders[key] = getfont(fontname, size).render(text, True, color)
+		if "\n" in text:
+			surfs = [getrender(t, fontname, size, color) for t in text.split("\n")]
+			w = max(surf.get_width() for surf in surfs)
+			lh = int(round(size * 1.5))
+			surf = pygame.Surface((w, lh * len(surfs))).convert_alpha()
+			surf.fill((0, 0, 0, 0))
+			for j, s in enumerate(surfs):
+				surf.blit(s, (int(0.5 * (w - s.get_width())), j * lh))
+			renders[key] = surf
+		else:
+			renders[key] = getfont(fontname, size).render(text, True, color)
 	return renders[key]
 
 surfs = {}

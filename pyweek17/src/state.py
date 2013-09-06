@@ -3,7 +3,7 @@ import things
 from vec import vec
 
 
-R = 32   # radius of the moon
+R = 9   # radius of the moon
 dots = {}
 
 structures = []
@@ -11,10 +11,12 @@ wires = []
 satellites = []
 copters = []
 stuff = []
+effects = []
 hq = None
 t = 0
 tick = 0
 reserves = [0, 0, 0]
+materials = [0, 0]
 buildable = []
 
 
@@ -29,7 +31,9 @@ def init():
 	del satellites[:]
 	del copters[:]
 	del stuff[:]
+	del effects[:]
 	reserves[:] = [0, 0, 0]
+	materials[:] = [10, 0]
 	
 	hq = things.HQ(vec(0, 0, 1))
 	hq.t = 5
@@ -63,6 +67,9 @@ def updatenetwork():
 		s.powered = False
 		s.neighbors = []
 
+	global wires
+	wires = [w for w in wires if w.s0.alive and w.s1.alive]
+
 	ws = set((w.s0.u, w.s1.u) for w in wires)
 
 	for j in range(len(structures)):
@@ -86,7 +93,8 @@ def updatenetwork():
 				s1.power = [a or (b and c) for a, b, c in zip(s1.power, s0.power, s1.pneeds)]
 				if all(a or not b for a, b in zip(s1.power, s1.pneeds)):
 					s1.powered = True
-					newpower.append(s1)
+					if s1.enabled:
+						newpower.append(s1)
 		tonetwork = newpower
 
 	# Tech tree
@@ -133,6 +141,10 @@ def think(dt):
 	while tick > 1:
 		runtick()
 		tick -= 1
+	global satellites, structures, effects
+	satellites = [s for s in satellites if s.alive]
+	structures = [s for s in structures if s.alive]
+	effects = [e for e in effects if e.alive]
 
 def thinkers():
 	for s in structures:
@@ -145,6 +157,8 @@ def thinkers():
 		yield w
 	for s in stuff:
 		yield s
+	for e in effects:
+		yield e
 
 def drawers():
 	for s in structures:
@@ -157,23 +171,35 @@ def drawers():
 		yield w
 	for s in stuff:
 		yield s
+	for e in effects:
+		yield e
 
-restext = [None, None, None]
+infotext = []
 
 def runtick():
+	del infotext[:]
 	pres = [4, 0, 0]
 	mres = [0, 0, 0]
 	cres = [0, 0, 0]
 	for j in (0, 1, 2):
 		for s in structures:
-			if not s.powered:
+			if not s.on():
 				continue
 			mres[j] += s.pneeds[j]
 			cres[j] += s.pcap[j]
 		for s in satellites:
 			pres[j] += s.gpower[j]
 		reserves[j] = min(reserves[j] + pres[j] - mres[j], cres[j])
-		restext[j] = "%s/%s (+%s-%s)" % (reserves[j], cres[j], pres[j], mres[j])
+		infotext.append("%s/%s (+%s-%s)" % (reserves[j], cres[j], pres[j], mres[j]))
+	nsat = len([s for s in satellites if s.on()])
+	satcon = sum(s.satcon for s in structures if s.on())
+	if nsat or satcon:
+		infotext.append("sat: %s/%s" % (nsat, satcon))
+	if nsat > satcon:
+		pass  # TODO: kill satellites!
+	infotext.append("M: %s" % materials[0])
+
+	
 
 
 def getdot(r):
@@ -187,6 +213,8 @@ def getdotreach(s0, s1):
 		(s1.buff + 1 if s1.reach is None else s1.reach)
 	)
 
+
+mustbepowered = False
 def canbuild(stype, pos):
 	power = False
 	for s in structures:
@@ -195,18 +223,50 @@ def canbuild(stype, pos):
 			return False
 		if d > getdotreach(stype, s):
 			power = True
-	return True
-	return power
+	return power or not mustbepowered
 
 def build(structure):
 	structures.append(structure)
+	for j in range(len(materials)):
+		materials[j] -= structure.cost[j]
 	updatenetwork()
+
+def unbuild(structure):
+	structures.remove(structure)
+	structure.alive = False
+	effects.append(things.Explosion(structure.u, structure.f))
+	updatenetwork()
+
+def toggleenable(structure):
+	if structure is hq:
+		return
+	structure.enabled = not structure.enabled
+	updatenetwork()
+
 
 def launch(stype):
 	satellites.append(stype(hq, 25))
 	updatenetwork()
 
+def unlaunch(stype):
+	for s in list(satellites):
+		if s.on() and type(s) is stype:
+			s.unlaunch()
+			return True
+	return False
+
 def collect(obj):
-	pass  # TODO
+	for j in range(len(materials)):
+		materials[j] += obj.resources[j]
+
+def pointing(p):
+	if not p:
+		return None
+	p = p.norm()
+	for s in structures:
+		if p.dot(s.u) > getdot(s.buff):
+			return s
+	return None
+
 
 

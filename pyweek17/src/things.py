@@ -1,11 +1,12 @@
 import random, math
 from OpenGL.GL import *
 from vec import vec
-import graphics, state, lighting
+import graphics, state, lighting, cursor, camera
 
 class Thing(object):
 
 	alive = True
+	enabled = True   # set explicitly by player
 
 	def __init__(self, u=None, f=None):
 		# f/l/u (front, left, up) is our x/y/z
@@ -38,8 +39,13 @@ class Thing(object):
 		self.light()
 		self.draw0()
 
+	fx = False
+	def drawfx(self):
+		self.xform()
+		self.drawfx0()
+
 	def light(self):
-		pass
+		lighting.normal()
 	
 	# http://www.codeproject.com/Articles/8499/Generating-Outlines-in-OpenGL
 	def drawoutline1(self):
@@ -71,6 +77,9 @@ class Thing(object):
 		self.u = self.u.apply(m).norm()
 		self.f = self.f.apply(m).rej(self.u).norm()
 		self.l = self.u.cross(self.f)
+	
+	def on(self):
+		return self.alive
 
 
 class Copter(Thing):
@@ -140,9 +149,8 @@ class Copter(Thing):
 			self.payload.draw0()
 
 	def draw0(self):
-		glRotate(4 * self.vx, 0, 1, 0)
-		graphics.draw(graphics.block)
-
+		glRotate(10 * math.sqrt(abs(self.vx)), 0, 1, 0)
+		graphics.draw(graphics.copter)
 
 
 class Structure(Thing):
@@ -155,20 +163,26 @@ class Structure(Thing):
 	power = False, False, False
 	powered = False
 	cost = 1, 0
+	satcon = 0
 
 
 	guy = 3  # Height at which wires are connected
 	rguy = 0
 	color = 1, 1, 1
 	shortname = None
+	tbuild = 1.0
 	
 	invalid = False
 
 	def light(self):
 		if self.invalid:
 			lighting.invalid()
-		elif not self.powered:
+		elif self is cursor.pointingto:
+			lighting.select()
+		elif not self.enabled:
 			lighting.disabled()
+		elif not self.powered:
+			lighting.unpowered()
 		else:
 			lighting.normal()
 	
@@ -176,11 +190,36 @@ class Structure(Thing):
 		r = self.buff * 0.6
 		glScale(r, r, 3*r)
 		graphics.draw(graphics.block, coloroverride=self.color)
+	
+	def drawpartial(self, model):
+		graphics.draw(model, self.t / float(self.tbuild))
 
 	copter = None
 	coptertype = Copter
 	def dispatch(self, target):
 		self.copter = self.coptertype(self, target)
+
+	helmetz = 0
+	helmetf = 0
+	opening = False
+	def thinkhelmet(self, dt):
+		self.helmetf += -3 * dt if self.opening else 3 * dt
+		self.helmetf = min(max(self.helmetf, 0), 1)
+
+	def drawhelmet(self):
+		A = 80 * min(max(self.helmetf, 0), 1) + 10
+		glTranslate(0, 0, self.helmetz)
+		glPushMatrix()
+		glRotate(-A, 0, 1, 0)
+		graphics.draw(graphics.helmet)
+		glPopMatrix()
+		glRotate(180, 0, 0, 1)
+		glRotate(-A, 0, 1, 0)
+		graphics.draw(graphics.helmet)
+	
+	def on(self):
+		return self.powered and self.enabled
+
 
 
 class HQ(Structure):
@@ -189,17 +228,8 @@ class HQ(Structure):
 	pneeds = 0, 0, 0
 	pcap = 10, 10, 10
 
-	def draw(self):
-		Structure.draw(self)
-		h = self.t % 1
-		glTranslate(0, 0, 4 + h * 20)
-		glScale(h*4, h*4, 1)
-		glColor(0, 1, 1, 1 - h)
-		glBegin(GL_LINE_LOOP)
-		for j in range(12):
-			A = j * math.tau / 12
-			glVertex(math.sin(A), math.cos(A), 0)
-		glEnd()
+	def draw0(self):
+		graphics.draw(graphics.hq)
 
 
 class Material(Thing):
@@ -266,6 +296,16 @@ class Collector(Structure):
 		if not self.copter:
 			if state.stuff:
 				self.dispatch(state.stuff[0])
+		if self.t > 1:
+			self.thinkhelmet(dt)
+		if self.copter:
+			D = self.u.cross(self.copter.u).length() * state.R
+			self.opening = D < 2
+			if self.copter.target is not self and self.copter.h > self.helmetz:
+				self.opening = False
+		else:
+			self.opening = False
+
 
 	def receive(self, copter):
 		if copter is self.copter:
@@ -273,12 +313,71 @@ class Collector(Structure):
 			state.copters.remove(copter)
 			self.copter = None
 
+	helmetz = 4
+	def draw0(self):
+		self.drawpartial(graphics.barrel)
+		if self.t > 1:
+			self.drawhelmet()
 
-class Launchpad(Structure):
-	pass
+
+class Launcher(Structure):
+
+	guy = 5
+	satcon = 2
+
+	helmetz = 5.4
+	def think(self, dt):
+		Structure.think(self, dt)
+		if self.t > self.tbuild:
+			self.opening = False
+			self.thinkhelmet(dt)
+
+	def draw0(self):
+		self.drawpartial(graphics.launchpad)
+		if self.t > self.tbuild:
+			self.drawhelmet()
+
+	def launch(self, sat):
+		self.sat = sat
+
 
 class Satcon(Structure):
-	pass
+	
+	satcon = 4
+
+	def draw0(self):
+		self.drawpartial(graphics.dish)
+
+	def draw(self):
+		Structure.draw(self)
+	
+	fx = True
+	def drawfx0(self):
+		if self.t > self.tbuild and self.on():
+			h = self.t % 1
+			glTranslate(0, 0, 3 + h * 6)
+			glScale(h*4, h*4, 1)
+			glColor(0, 1, 1, 1 - h)
+			glBegin(GL_LINE_LOOP)
+			for j in range(12):
+				A = j * math.tau / 12
+				glVertex(math.sin(A), math.cos(A), 0)
+			glEnd()
+
+
+class Cleaner(Structure):
+	
+	def think(self, dt):
+		Structure.think(self, dt)
+		if self.t > self.tbuild:
+			self.opening = False
+			self.thinkhelmet(dt)
+
+	helmetz = 3.6
+	def draw0(self):
+		self.drawpartial(graphics.trashbin)
+		if self.t > self.tbuild:
+			self.drawhelmet()
 
 
 class WRelay(Structure):
@@ -288,19 +387,19 @@ class WRelay(Structure):
 	cost = 2, 0
 
 	def draw0(self):
-		graphics.draw(graphics.relay[0], self.t/1)
+		self.drawpartial(graphics.relay[0])
 
 class BRelay(WRelay):
 	pneeds = 0, 1, 0
 
 	def draw0(self):
-		graphics.draw(graphics.relay[1], self.t/1)
+		self.drawpartial(graphics.relay[1])
 
 class RRelay(WRelay):
 	pneeds = 0, 0, 1
 
 	def draw0(self):
-		graphics.draw(graphics.relay[2], self.t/1)
+		self.drawpartial(graphics.relay[2])
 
 
 class WBasin(Structure):
@@ -310,33 +409,20 @@ class WBasin(Structure):
 	cost = 2, 0
 
 	def draw0(self):
-		graphics.draw(graphics.basin[0], self.t/1)
+		self.drawpartial(graphics.basin[0])
 
 class BBasin(WBasin):
 	pneeds = 0, 1, 0
 
 	def draw0(self):
-		graphics.draw(graphics.basin[1], self.t/1)
+		self.drawpartial(graphics.basin[1])
 
 class RBasin(WBasin):
 	pneeds = 0, 0, 1
 
 	def draw0(self):
-		graphics.draw(graphics.basin[2], self.t/1)
+		self.drawpartial(graphics.basin[2])
 
-
-class Car(Thing):
-
-	def __init__(self, *args):
-		Thing.__init__(self, *args)
-		self.h = random.uniform(10, 20)
-	
-	def draw0(self):
-		glRotate(90, 0, 1, 0)
-		graphics.draw(graphics.tower)
-
-	def think(self, dt):
-		self.travel(20 * dt)
 
 class WSat(Thing):
 	cruise = 20
@@ -352,49 +438,56 @@ class WSat(Thing):
 		self.vy = 0
 		self.t = 0
 		self.cruise = cruise or self.cruise
+		self.phi = (-1 if random.random() < 0.5 else 1) * random.uniform(40, 100)
 
 	def think(self, dt):
 		self.t += dt
-		self.h = self.cruise
-		if self.t < 3:
-			self.h *= 1 - (1 - self.t / 3) ** 2
+		if self.launched:
+			self.h = self.cruise
+			if self.t < 3:
+				self.h *= 1 - (1 - self.t / 3) ** 2
+			else:
+				self.fdeploy = min(self.fdeploy + 0.3 * dt, 1)
+		else:
+			self.vh -= 8 * dt
+			self.h += self.vh * dt
+			if self.h < 0:
+				self.alive = False
+				state.effects.append(Explosion(self.u, self.f))
+		self.f = self.f.plus(vec.randomunit(1 * dt)).rej(self.u).norm()
 		self.travel(self.vx * dt)
 
 	def xform(self):
 		Thing.xform(self)
-		glRotate(80 * self.t % 360, 0, 0, 1)
+		glRotate(self.phi * self.t % 360, 0, 0, 1)
+		if not self.launched:
+			glRotate(self.vh * 50 % 360, 0, 1, 0)
 
+	launched = True
+	def unlaunch(self):
+		self.launched = False
+		self.vh = 0
+
+	def on(self):
+		return self.launched
+
+	fdeploy = 0.35
 	def draw0(self):
-		graphics.draw(graphics.satellite[0])
+		graphics.draw(graphics.satellite[0], self.fdeploy)
 
 class BSat(WSat):
 	gpower = 0, 2, 0
 	shortname = "B-Sat"
 
 	def draw0(self):
-		graphics.draw(graphics.satellite[1])
+		graphics.draw(graphics.satellite[1], self.fdeploy)
 
 class RSat(WSat):
 	gpower = 0, 0, 2
 	shortname = "R-Sat"
 
 	def draw0(self):
-		graphics.draw(graphics.satellite[2])
-
-
-class Mine(Structure):
-
-	def draw0(self):
-		A = 90 * min(max(0.5 + math.sin(self.t * 2), 0.1), 1)
-		graphics.draw(graphics.platform)
-		glTranslate(0, 0, 4.4)
-		glPushMatrix()
-		glRotate(-A, 0, 1, 0)
-		graphics.draw(graphics.helmet)
-		glPopMatrix()
-		glRotate(180, 0, 0, 1)
-		glRotate(-A, 0, 1, 0)
-		graphics.draw(graphics.helmet)
+		graphics.draw(graphics.satellite[2], self.fdeploy)
 
 
 class Wire(Thing):
@@ -414,7 +507,7 @@ class Wire(Thing):
 		self.df1 = df.times(-self.s1.rguy)
 
 	def think(self, dt):
-		if self.s0.t > 1 and self.s1.t > 1:
+		if self.s0.t > self.s0.tbuild and self.s1.t > self.s1.tbuild:
 			self.t += dt
 
 	def draw(self):
@@ -429,4 +522,25 @@ class Wire(Thing):
 			glVertex(self.s1.u.times(state.R + self.s1.guy - dh).plus(self.df1))
 		glEnd()
 		glEnable(GL_LIGHTING)
+
+class Explosion(Thing):
+	def __init__(self, *args):
+		Thing.__init__(self, *args)
+		self.ps = [vec(0, 0, 0) for _ in range(200)]
+		self.vs = [vec.randomunit(random.uniform(5, 15)) for _ in range(200)]
+
+	def think(self, dt):
+		Thing.think(self, dt)
+		if self.t > 0.6:
+			self.alive = False
+
+	def draw0(self):
+		r, dz = 15 * self.t, 30 * self.t * self.t
+		glPointSize(int(camera.wthick() * 25))
+		glTranslate(0, 0, -dz)
+		glScale(r, r, r)
+		a = self.t / 0.6
+		graphics.draw(graphics.splode, coloroverride = (0.1 + 0.5 * a, 0.1 + 0.3 * a, 0.1 + 0.1 * a, 1 - a))
+		glPointSize(1)
+
 

@@ -3,7 +3,7 @@ from pygame.constants import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-import scene, settings, scenes.game, graphics
+import scene, settings, scenes.game, scenes.menu, graphics
 
 math.tau = 2 * math.pi
 

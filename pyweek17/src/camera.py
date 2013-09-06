@@ -12,6 +12,25 @@ zoom = 50
 
 target = None
 
+def menuinit():
+	global u, f, p, zoom
+	u = vec(0, 0, 1)
+	f = vec(1, 0, 0)
+	p = f
+	zoom = 100
+
+def init():
+	global u, f, p, zoom, target
+	u = vec(0, 0, 1)
+	f = vec(1, 0, 0)
+	p = vec(1, 0, 1).norm()
+	zoom = 50
+
+	target = None
+
+def wthick():
+	return settings.sy / (zoom * settings.tanB) * 0.05
+
 def move(dx, dy, dr, dA):
 	global u, f, p, target
 	if not (dx or dy or dr or dA):

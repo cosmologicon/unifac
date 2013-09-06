@@ -31,10 +31,10 @@ def makedrawable(dtype, vdata, cdata, ndata):
 
 def initstars():
 	global stars
-	nstar = int(settings.sx * settings.sy / 200)
+	maxstars = 20000 / 20
 	vertexdata = []
 	colordata = []
-	for star in range(nstar):
+	for star in range(maxstars):
 		x, y, z = vec.randomunit()
 		if random.random() < 0.4:
 			for _ in range(10):
@@ -296,16 +296,17 @@ def inithelmet():
 	def p(A, B, r):
 		return r * math.cos(A) * math.sin(B), r * math.cos(B), -r * math.sin(A) * math.sin(B)
 
+	R = 2
 	for k in range(4):
 		A0 = k * math.tau / 16
 		A1 = (k+1) * math.tau / 16
 		for j in range(8):
 			B0 = j * math.tau / 16
 			B1 = (j + 1) * math.tau / 16
-			vertexdata += p(A0, B0, 2.7)
-			vertexdata += p(A0, B1, 2.7)
-			vertexdata += p(A1, B1, 2.7)
-			vertexdata += p(A1, B0, 2.7)
+			vertexdata += p(A0, B0, R)
+			vertexdata += p(A0, B1, R)
+			vertexdata += p(A1, B1, R)
+			vertexdata += p(A1, B0, R)
 			normaldata += p(A0, B0, 1)
 			normaldata += p(A0, B1, 1)
 			normaldata += p(A1, B1, 1)
@@ -371,10 +372,10 @@ def initbasin():
 def initmine():
 	global mine
 	vdata, cdata, ndata = [], [], []
-	addring(vdata, cdata, ndata, vec(2.4, 0, 0), vec(0, 1, 0), 0.8, 1, (0.5, 0.2, 0.5), m=24)
-	addring(vdata, cdata, ndata, vec(0, 2.4, 0), vec(-1, 0, 0), 0.8, 1, (0.5, 0.2, 0.5), m=24)
-	addring(vdata, cdata, ndata, vec(-2.4, 0, 0), vec(0, -1, 0), 0.8, 1, (0.5, 0.2, 0.5), m=24)
-	addring(vdata, cdata, ndata, vec(0, -2.4, 0), vec(1, 0, 0), 0.8, 1, (0.5, 0.2, 0.5), m=24)
+	addring(vdata, cdata, ndata, vec(2.41, 0, 0), vec(0, 1, 0), 0.8, 1, (0.5, 0.2, 0.5), m=24)
+	addring(vdata, cdata, ndata, vec(0, 2.41, 0), vec(-1, 0, 0), 0.8, 1, (0.5, 0.2, 0.5), m=24)
+	addring(vdata, cdata, ndata, vec(-2.41, 0, 0), vec(0, -1, 0), 0.8, 1, (0.5, 0.2, 0.5), m=24)
+	addring(vdata, cdata, ndata, vec(0, -2.41, 0), vec(1, 0, 0), 0.8, 1, (0.5, 0.2, 0.5), m=24)
 	
 	vdata = [x * [1, 1, 5][j%3] for j, x in enumerate(vdata)]
 
@@ -387,6 +388,79 @@ def initmine():
 	addradcomp(vdata, cdata, ndata, ps, colors, edges=edges, m=24)
 	mine = makedrawable(GL_QUADS, vdata, cdata, ndata)
 
+def inittrashbin():
+	global trashbin
+	vdata, cdata, ndata = [], [], []
+	ps = (1, -1.3), (1.1, 0.5), (1.2, 1.3), (1.7, 2.1), (2.2, 2.3), (2.3, 3.7), (0, 3.7)
+	c0, c1 = (0.3, 0.3, 0.3), (0.5, 0.4, 0.3)
+	colors = c0, c0, c1, c0, c0, c0
+	edges = 0, 0, 0, 1, 1
+	addradcomp(vdata, cdata, ndata, ps, colors, edges=edges, m=24)
+	z, p, d, R, r, n, m = 2, 0.7, 0.6, 2, 0.4, 12, 6
+	c0, c1 = (0.5, 0.5, 0.2), (0.4,0.4,0.2)
+	addtorus(vdata, cdata, ndata, vec(p, 0, z), vec(0, -d, 1).norm(), vec(-1, 0, 0), R, r, 0, math.tau, c0, c1, n=n, m=m)
+	addtorus(vdata, cdata, ndata, vec(0, p, z), vec(d, 0, 1).norm(), vec(0, 1, 0), R, r, 0, math.tau, c0, c1, n=n, m=m)
+	addtorus(vdata, cdata, ndata, vec(-p, 0, z), vec(0, d, 1).norm(), vec(1, 0, 0), R, r, 0, math.tau, c0, c1, n=n, m=m)
+	addtorus(vdata, cdata, ndata, vec(0, -p, z), vec(-d, 0, 1).norm(), vec(0, -1, 0), R, r, 0, math.tau, c0, c1, n=n, m=m)
+	trashbin = makedrawable(GL_QUADS, vdata, cdata, ndata)
+
+
+def initlaunchpad():
+	global launchpad
+	vdata, cdata, ndata = [], [], []
+	ps = (1.2, -2), (0.8, 3.3), (2, 4), (2.3, 5.3), (0, 5.3)
+	c0 = (0.3, 0.3, 0.3)
+	colors = (c0,)
+	addradcomp(vdata, cdata, ndata, ps, colors, m=24)
+	z, p, d, R, r, n = 2, 1, 0.5, 2, 0.6, 24
+	c0, c1 = (0.3, 0.4, 0.2), (0.1,0.2,0.1)
+	R, r, n = 20, 0.4, 16
+	p = R - 2.7
+	A = 6.5/R
+	addtorus(vdata, cdata, ndata, vec(-p, 0, -2), vec(0, -1, 0), vec(1, 0, 0), R, r, 0, A, c0, c1, n=n)
+	addtorus(vdata, cdata, ndata, vec(0, p, -2), vec(-1, 0, 0), vec(0, -1, 0), R, r, 0, A, c0, c1, n=n)
+	addtorus(vdata, cdata, ndata, vec(p, 0, -2), vec(0, 1, 0), vec(-1, 0, 0), R, r, 0, A, c0, c1, n=n)
+	addtorus(vdata, cdata, ndata, vec(0, -p, -2), vec(1, 0, 0), vec(0, 1, 0), R, r, 0, A, c0, c1, n=n)
+	launchpad = makedrawable(GL_QUADS, vdata, cdata, ndata)
+
+def initcopter():
+	global copter
+	vdata, cdata, ndata = [], [], []
+	ps = (0, -0.7), (0.4, -0.7), (0.4, -0.5), (1.1, 0), (0.8, 0.5), (0.4, 0.8), (0, 0.95)
+	c0, c1, c2 = (0.2, 0.2, 0.4), (0.5, 0.5, 0.5), (0.1, 0.1, 0.2)
+	colors = c1, c1, c0, c0, c2, c0
+	addradcomp(vdata, cdata, ndata, ps, colors, m=16)
+	copter = makedrawable(GL_QUADS, vdata, cdata, ndata)
+
+def initbarrel():
+	global barrel
+	vdata, cdata, ndata = [], [], []
+	ps = (2.9, -1.5), (2.9, 1.8), (2.6, 2.1), (2.6, 3), (2.3, 3.3), (2.3, 4), (1.8, 4), (1.8, 3.7), (0, 3.7)
+	c0, c1, c2, c3 = (0.5, 0.4, 0.3), (0.45, 0.35, 0.25), (0.4, 0.3, 0.2), (0, 0, 0)
+	colors = c2, c2, c1, c1, c0, c0, c0, c3, c3
+	addradcomp(vdata, cdata, ndata, ps, colors, m=8)
+	barrel = makedrawable(GL_QUADS, vdata, cdata, ndata)
+
+def inithq():
+	global hq
+	vdata, cdata, ndata = [], [], []
+	v0, v1, v2 = vec(0, 1, 0), vec(0.83, -0.5, 0).norm(), vec(-0.83, -0.5, 0).norm()
+	for v in v0, v1, v2:
+		addring(vdata, cdata, ndata, vec(0, 0, -0.2), v, 3.6, 1, (0.5, 0.5, 0.5), m=32)
+		addring(vdata, cdata, ndata, vec(0, 0, -0.2), v, 3.2, 2, (0.4, 0.4, 0.4), m=32)
+
+	ps = (2.8, -1.5), (2.4, 2.9), (2, 2.9), (1.8, 5.2), (0, 5.2)
+	c0 = (0.2, 0.4, 0.4)
+	colors = (c0,)
+	addradcomp(vdata, cdata, ndata, ps, colors, m=24)
+	hq = makedrawable(GL_QUADS, vdata, cdata, ndata)
+	
+
+
+def initsplode():
+	global splode
+	vdata = [x for _ in range(1000) for x in vec.randomunit(random.random())]
+	splode = makedrawable(GL_POINTS, vdata, None, None)
 
 def init():
 	global vertexbuff
@@ -426,6 +500,17 @@ def draw(obj, f=1, coloroverride=None):
 #	glDisableClientState(GL_COLOR_ARRAY)
 #	glDisableClientState(GL_VERTEX_ARRAY)
 #	vertexbuff.unbind()
+
+def fill(*color):
+	glDisable(GL_LIGHTING)
+	glDisable(GL_TEXTURE_2D)
+	glColor(*color)
+	glBegin(GL_QUADS)
+	glVertex(0, 0, 0)
+	glVertex(settings.sx, 0, 0)
+	glVertex(settings.sx, settings.sy, 0)
+	glVertex(0, settings.sy, 0)
+	glEnd()
 
 
 def screenshot():
