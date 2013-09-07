@@ -3,6 +3,7 @@ import settings, state
 
 
 lights = GL_LIGHT0, GL_LIGHT1, GL_LIGHT2, GL_LIGHT3, GL_LIGHT4, GL_LIGHT5, GL_LIGHT6, GL_LIGHT7
+current = None
 
 # Call this at the beginning of the scene or at least the beginning of the game
 def init():
@@ -46,16 +47,23 @@ def init():
 	glLight(GL_LIGHT7, GL_DIFFUSE, [0.25,0.25,0.25,1])
 	glLight(GL_LIGHT7, GL_SPECULAR, [0,0,0,1])
 
+def setmoonlight(ambient, diffuse):
+	glLight(GL_LIGHT5, GL_AMBIENT, [ambient[0], ambient[1], ambient[2], 1])
+	glLight(GL_LIGHT5, GL_DIFFUSE, [diffuse[0], diffuse[1], diffuse[2], 1])
+	
+
 def setpos(lightpos):
 	for l in lights:
 		glLight(l, GL_POSITION, lightpos)
 
 def setlight(light):
-	for l in lights:
-		if l == light:
-			glEnable(l)
-		else:
-			glDisable(l)
+	global current
+	if light == current:
+		return
+	if current is not None:
+		glDisable(current)
+	current = light
+	glEnable(current)
 
 def normal():
 	setlight(GL_LIGHT0)

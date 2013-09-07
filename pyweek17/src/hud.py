@@ -1,7 +1,7 @@
 import random
 from OpenGL.GL import *
 
-import text, settings, cursor, things, state, info, scene
+import text, settings, cursor, things, state, info, scene, sound, graphics
 
 
 buttons = {}
@@ -78,6 +78,9 @@ class Button(object):
 	def __contains__(self, (x, y)):
 		return 0 <= x - self.x <= self.width + self.size * 0.6 and 0 <= self.y - y <= self.size * 1.1
 
+	def onpoint(self):
+		return None
+
 
 class SubButton(Button):
 	size0 = 1.5
@@ -94,6 +97,10 @@ class BuildButton(SubButton):
 		name = "build" + btype.__name__.lower()
 		words = (btype.shortname or btype.__name__).upper()
 		SubButton.__init__(self, name, words)
+
+	def draw(self):
+		self.color = (222, 222, 255) if self.frac >= 1 else (111, 111, 155)
+		SubButton.draw(self)
 
 class LaunchButton(SubButton):
 	def __init__(self, ltype):
@@ -164,9 +171,122 @@ class Textbox(object):
 			self.hanchor, self.vanchor, alpha=self.alpha)
 
 	def __nonzero__(self):
-		return self.text or self.nexttext
+		return bool(self.text or self.nexttext)
+
+class Warnbox(Textbox):
+	color = 255, 128, 128
+	size0 = 1.2
+	def __init__(self, name):
+		Textbox.__init__(self, name, settings.sx/2, settings.sy)
+
+class Statusbox(Textbox):
+	hanchor = 1
+	fontname = "Viga"
+	size0 = 1.2
+	
+	def __init__(self, name):
+		Textbox.__init__(self, name, settings.sx - f(0.3), settings.sy - f(0.2))
+
+	def draw(self):
+		if not self.text:
+			return
+		y = self.y
+		for t, color in self.text:
+			text.write(t, self.fontname, self.size, color, (self.x, y), (0, 0, 0),
+				self.hanchor, self.vanchor)
+			y -= int(self.size * 1.4)
+			
+	def think(self, dt):
+		pass
+
+	def settext(self, text=None):
+		self.text = text
+
+class Titlebox(Textbox):
+	color = 255, 255, 255
+	size0 = 5
+	vanchor = 0.5
+	def __init__(self, name):
+		Textbox.__init__(self, name, settings.sx/2, settings.sy*0.65)
+	
+	def draw(self):
+		if not self.text:
+			return
+		text.write(self.text[0], self.fontname, self.size, self.color, (self.x, self.y), (0, 0, 0),
+			self.hanchor, self.vanchor, alpha=self.alpha)
+		text.write(self.text[1], self.fontname, int(self.size/3), self.color, (self.x, self.y - self.size), (0, 0, 0),
+			self.hanchor, self.vanchor, alpha=self.alpha)
+
+class Leveltitlebox(Textbox):
+	color = 255, 255, 255
+	size0 = 5
+	vanchor = 0.5
+	def __init__(self, name):
+		Textbox.__init__(self, name, settings.sx/2, settings.sy/2)
+	
+	def draw(self):
+		if not self.text:
+			return
+		text.write(self.text[0], self.fontname, int(self.size/3), self.color, (self.x, self.y + self.size * 0.85), (0, 0, 0),
+			self.hanchor, self.vanchor, alpha=self.alpha)
+		text.write(self.text[1], self.fontname, self.size, self.color, (self.x, self.y), (0, 0, 0),
+			self.hanchor, self.vanchor, alpha=self.alpha)
+		text.write(self.text[2], self.fontname, int(self.size/3), self.color, (self.x, self.y - self.size * 0.85), (0, 0, 0),
+			self.hanchor, self.vanchor, alpha=self.alpha)
 
 
+class Endtitlebox(Textbox):
+	fontname = "Homenaje"
+	size0 = 6
+	color = 255, 255, 255
+	hanchor = 0.5
+	vanchor = 0.5
+	fadespeed = 4
+	def __init__(self, name):
+		Textbox.__init__(self, name, settings.sx/2, settings.sy/2)
+
+
+
+class Buildinfobox(Textbox):
+	color = 180, 180, 180
+	size0 = 2
+	vanchor = 1
+	def __init__(self, name):
+		Textbox.__init__(self, name, settings.sx/2, settings.sy - f(3))
+
+	def setbuilding(self, bname=None):
+		if not bname:
+			self.settext()
+		else:
+			self.bname = bname[5:]
+			if not self.text:
+				self.nexttext = True
+	
+	def draw(self):
+		if not self.text:
+			return
+		y = [self.y]
+		btype = buttons["build" + self.bname].btype
+		def write(t, dsize, color, fontname=None):
+			text.write(t, (fontname or self.fontname), int(self.size * dsize), color, (self.x, y[0]), (0, 0, 0),
+				self.hanchor, self.vanchor, alpha=self.alpha)
+			y[0] -= int(self.size * dsize * 1.5)
+		write(btype.longname, 1, self.color)
+		for line in btype.info.splitlines():
+			write(line, 0.7, self.color)
+		y[0] -= int(self.size * 0.4)
+		write("Power drain:", 0.7, self.color)
+		for j, (color, cost) in enumerate(zip(info.pcolors, btype.pneeds)):
+			if not cost:
+				continue
+			write("%s %s" % (cost, info.pnames[j]), 0.7, color, "Viga")
+		y[0] -= int(self.size * 0.4)
+		write("Cost to build:", 0.7, self.color)
+		for j, (color, cost) in enumerate(zip(info.mcolors, btype.cost)):
+			if not cost:
+				continue
+			write("%s %s" % (cost, info.mnames[j]), 0.7, color, "Viga")
+			
 
 
 def f(size):
@@ -177,11 +297,13 @@ def init():
 		cls.size = f(cls.size0)
 		cls.indent = f(cls.indent0)
 		cls.width = f(cls.width0)
-	for cls in [Textbox]:
+	for cls in [Textbox, Warnbox, Statusbox, Titlebox, Leveltitlebox, Buildinfobox, Endtitlebox]:
 		cls.size = f(cls.size0)
 
 	buttons.clear()
-	Button("build", "BUILD")
+	Button("buildw", "BUILD (W)")
+	Button("buildb", "BUILD (B)")
+	Button("buildr", "BUILD (R)")
 	Button("disable", "DISABLE")
 	Button("launch", "LAUNCH")
 	Button("unbuild", "UNBUILD")
@@ -191,10 +313,16 @@ def init():
 	Button("back", "BACK")
 	SubButton("confirmquit", "CONFIRM")
 	BuildButton(things.Collector)
-	BuildButton(things.Extractor)
+	BuildButton(things.WExtractor)
+	BuildButton(things.BExtractor)
+	BuildButton(things.RExtractor)
 	BuildButton(things.Cleaner)
 	BuildButton(things.Launcher)
 	BuildButton(things.Satcon)
+	BuildButton(things.Medic)
+	BuildButton(things.WBooster)
+	BuildButton(things.RBooster)
+	BuildButton(things.BBooster)
 	BuildButton(things.WRelay)
 	BuildButton(things.BRelay)
 	BuildButton(things.RRelay)
@@ -208,19 +336,41 @@ def init():
 	UnlaunchButton(things.RSat)
 	UnlaunchButton(things.BSat)
 
+	HelpButton("mission")
 	HelpButton("controls")
 	HelpButton("more~controls")
-	HelpButton("wonderflonium")
+	HelpButton("power")
+	HelpButton("satellites")
+	HelpButton("satcon")
 
 	Textbox("cursor", settings.sx/2, settings.sy - f(3))
 	Textbox("instructions", settings.sx/2, settings.sy - f(3))
 	Textbox("helppage", settings.sx/2, settings.sy - f(3))
+	Warnbox("warning")
+	Warnbox("powerwarning")
+	Statusbox("status")
+	Titlebox("title")
+	Leveltitlebox("leveltitle")
+	Buildinfobox("buildinfo")
 
 	Button("selectlevel", "MISSION")
+	Button("options", "OPTIONS")
+	Button("credits", "CREDITS")
 	Button("quitgame", "QUIT")
 	LevelButton(0)
 	LevelButton(1)
 	LevelButton(2)
+	LevelButton(3)
+	SubButton("soundtoggle", "SOUND: ON")
+	SubButton("musictoggle", "MUSIC: ON")
+	SubButton("fullscreentoggle", "FULLSCREEN: OFF")
+	buttons["soundtoggle"].words = "SOUND: %s" % ("ON" if settings.sound else "OFF")
+	buttons["musictoggle"].words = "MUSIC: %s" % ("ON" if settings.music else "OFF")
+	buttons["fullscreentoggle"].words = "FULLSCREEN: %s" % ("ON" if settings.fullscreen else "OFF")
+
+	global endtitle
+	endtitle = Endtitlebox("endtitle")
+	del labels["endtitle"]
 
 	
 	mainmode()
@@ -233,7 +383,13 @@ def think(dt):
 		button.think(dt)
 	for label in labels.values():
 		label.think(dt)
+	endtitle.think(dt)
+
 	labels["cursor"].settext("Click to build" if cursor.tobuild else None)
+
+def clearlabels():
+	for label in labels.values():
+		label.settext()
 
 def setmode(modename, bnames):
 	global mode
@@ -245,17 +401,45 @@ def setmode(modename, bnames):
 		buttons[bname].seek((0, y))
 		y -= buttons[bname].size * 1.2 + f(0.5)
 
+def setstatus():
+	buttons["buildw"].frac = state.buildclock
+	buttons["buildb"].frac = state.buildclock
+	buttons["buildr"].frac = state.buildclock
+	for bname, b in buttons.items():
+		if bname.startswith("build") and len(bname) > 6:
+			b.frac = min(state.buildclock / float(b.btype.buildclock), 1)
+		if bname.startswith("launch"):
+			b.frac = state.launchclock
+	if not state.status:
+		labels["status"].settext()
+		return
+	lines = []
+	for j in range(3):
+		lines.append((info.pnames[j], info.pcolors[j]))
+		lines.append(("reserve: %s/%s" % (state.reserves[j], state.cpow[j]), info.pcolors[j]))
+		lines.append(("rate: +%s - %s" % (state.ppow[j], state.mpow[j]), info.pcolors[j]))
+	for j in range(3):
+		lines.append(("%s: %s" % (info.mnames[j], state.materials[j],), info.mcolors[j]))
+	lines.append(("Satcon: %s/%s" % (state.nsat, state.satcon), (255, 255, 255)))
+	labels["status"].settext(lines)
+
 def mainmode():
 	labels["helppage"].settext()
 	labels["instructions"].settext()
 	cursor.disable = False
-	setmode("main", "build disable unbuild launch unlaunch help quit")
+	setmode("main", "buildw buildb buildr disable unbuild launch unlaunch help quit")
 
-def buildmode():
-	setmode("build", "build buildcollector buildextractor buildcleaner buildlauncher buildsatcon buildwrelay buildbrelay buildrrelay buildwbasin buildbbasin buildrbasin back")
+def buildwmode():
+	setmode("buildw", "buildw buildcollector buildwextractor buildlauncher buildwrelay buildwbasin buildwbooster back")
+
+def buildbmode():
+	setmode("buildb", "buildb buildsatcon buildbextractor buildmedic buildbrelay buildbbasin buildbbooster back")
+
+def buildrmode():
+	setmode("buildr", "buildr buildcleaner buildrextractor buildrrelay buildrbasin buildrbooster back")
 
 def launchmode():
-	setmode("launch", "launch launchwsat launchrsat launchbsat back")
+	setmode("launch", "launch launchwsat launchbsat launchrsat back")
 
 def disablemode():
 	cursor.tobuild = None
@@ -271,17 +455,35 @@ def unbuildmode():
 
 def unlaunchmode():
 	cursor.tobuild = None
-	setmode("unlaunch", "unlaunch unlaunchwsat unlaunchrsat unlaunchbsat back")
+	setmode("unlaunch", "unlaunch unlaunchwsat unlaunchbsat unlaunchrsat back")
 
 def helpmode():
-	setmode("help", "help helpcontrols helpmore~controls helpwonderflonium back")
+	setmode("help", "help helpmission helpcontrols helpmore~controls helppower helpsatellites helpsatcon back")
 
 def quitmode():
 	setmode("quit", "quit confirmquit back")
 
 
 def menumode():
-	setmode("menu", "selectlevel level0 level1 level2 quitgame")
+	setmode("menu", "selectlevel options credits quitgame")
+	clearlabels()
+	labels["title"].settext([settings.gamename, "by Christopher Night"])
+
+def levelmode():
+	lmax = min(settings.unlocked + 1, len(info.Rs))
+	lbuttons = " ".join("level%s" % j for j in range(lmax))
+	setmode("level", "selectlevel " + lbuttons + " options credits quitgame")
+	clearlabels()
+
+def optionsmode():
+	setmode("options", "selectlevel options fullscreentoggle soundtoggle musictoggle credits quitgame")
+	clearlabels()
+	labels["helppage"].settext("\n\nPlease restart game to\napply changes to graphics settings.")
+	
+def creditsmode():
+	setmode("credits", "selectlevel options credits quitgame")
+	clearlabels()
+	labels["helppage"].settext(info.creds)
 
 def draw():
 	for b in buttons.values():
@@ -289,32 +491,50 @@ def draw():
 	for l in labels.values():
 		l.draw()
 
-	texts = state.infotext
-	
-	y = 0
-	for t in texts:
-		text.write(t, "Homenaje", f(1.5), (255, 255, 255), (settings.sx, settings.sy - y), (0, 0, 0), 1, 1)
-		y += f(2)
-
 def point((x, y)):
 	for bname, button in buttons.items():
 		if (x, y) in button:
-			button.point = True
-		else:
-			button.point = False
+			pointto(bname)
+			return button.name
+	pointto("")
+	return False
 
 def click((x, y)):
 	for bname, button in buttons.items():
 		if (x, y) in button:
 			clickon(bname)
 			return True
+
+
+def pointto(bname):
+	if bname.startswith("build") and len(bname) > 6:
+		labels["buildinfo"].setbuilding(bname)
+	else:
+		labels["buildinfo"].setbuilding()
+
+	if mode == "level":
+		if bname.startswith("level") and len(bname) == 6:
+			settings.level = int(bname[5:])
+			labels["leveltitle"].settext(info.missionnames[settings.level].splitlines())
+		else:
+			labels["leveltitle"].settext()
 	
 
 def clickon(bname):
-	if bname == "build":
+	if bname == "buildw":
 		if mode == "main":
-			buildmode()
-		elif mode == "build":
+			buildwmode()
+		elif mode == "buildw":
+			mainmode()
+	elif bname == "buildb":
+		if mode == "main":
+			buildbmode()
+		elif mode == "buildb":
+			mainmode()
+	elif bname == "buildr":
+		if mode == "main":
+			buildrmode()
+		elif mode == "buildr":
 			mainmode()
 	elif bname.startswith("build"):
 		cursor.tobuild = buttons[bname].btype
@@ -333,6 +553,8 @@ def clickon(bname):
 			helpmode()
 		elif mode == "help":
 			mainmode()
+	elif bname == "helpmission":
+		labels["helppage"].settext(info.missionhelp[settings.level])
 	elif bname.startswith("help"):
 		labels["helppage"].settext(info.help[buttons[bname].helpname])
 
@@ -370,4 +592,35 @@ def clickon(bname):
 		scene.top().playing = False
 		scene.top().selected = buttons[bname].n
 
+	if bname == "selectlevel":
+		if mode == "level":
+			menumode()
+		else:
+			levelmode()
+	if bname == "options":
+		if mode == "options":
+			menumode()
+		else:
+			optionsmode()
+	if bname == "credits":
+		if mode == "credits":
+			menumode()
+		else:
+			creditsmode()
+
+	if bname == "soundtoggle":
+		settings.sound = not settings.sound
+		settings.save()
+		sound.setvolume()
+	if bname == "musictoggle":
+		settings.music = not settings.music
+		settings.save()
+		sound.setvolume()
+	if bname == "fullscreentoggle":
+		settings.fullscreen = not settings.fullscreen
+		settings.save()
+	if mode == "options":
+		buttons["soundtoggle"].words = "SOUND: %s" % ("ON" if settings.sound else "OFF")
+		buttons["musictoggle"].words = "MUSIC: %s" % ("ON" if settings.music else "OFF")
+		buttons["fullscreentoggle"].words = "FULLSCREEN: %s" % ("ON" if settings.fullscreen else "OFF")
 
