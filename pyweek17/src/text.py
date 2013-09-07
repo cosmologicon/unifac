@@ -176,7 +176,6 @@ if __name__ == "__main__":
 	pygame.init()
 	pygame.display.set_mode((800, 600), DOUBLEBUF | OPENGL)
 	pygame.font.init()
-	glutInit()
 	glClearColor(0, 0, 0, 1)
 	clock = pygame.time.Clock()
 	t = 0

@@ -31,7 +31,7 @@ def makedrawable(dtype, vdata, cdata, ndata):
 
 def initstars():
 	global stars
-	maxstars = 20000 / 20
+	maxstars = 2000  # 20000
 	vertexdata = []
 	colordata = []
 	for star in range(maxstars):
@@ -191,8 +191,8 @@ def addsphere(vdata, cdata, ndata, (x0, y0, z0), r, colors, n=12, m=12):
 		cdata.extend(colors[k % len(colors)] * (4 * m))
 
 
-def addring(vdata, cdata, ndata, p0, u, r, D, color, m=12):
-	f = u.cross(vec(0, 0, 1))
+def addring(vdata, cdata, ndata, p0, u, r, D, color, m=12, f=None):
+	f = f or u.cross(vec(0, 0, 1))
 	f = f.norm() if f.length() else vec(1, 0, 0)
 	l = f.cross(u)
 	def d(A):
@@ -371,22 +371,25 @@ def initbasin():
 
 def initmine():
 	global mine
-	vdata, cdata, ndata = [], [], []
-	addring(vdata, cdata, ndata, vec(2.41, 0, 0), vec(0, 1, 0), 0.8, 1, (0.5, 0.2, 0.5), m=24)
-	addring(vdata, cdata, ndata, vec(0, 2.41, 0), vec(-1, 0, 0), 0.8, 1, (0.5, 0.2, 0.5), m=24)
-	addring(vdata, cdata, ndata, vec(-2.41, 0, 0), vec(0, -1, 0), 0.8, 1, (0.5, 0.2, 0.5), m=24)
-	addring(vdata, cdata, ndata, vec(0, -2.41, 0), vec(1, 0, 0), 0.8, 1, (0.5, 0.2, 0.5), m=24)
+	mine = []
+	for color in (0.7, 0.7, 0.2), (0.7, 0.5, 0.2), (0.5, 0.2, 0.5):
+
+		vdata, cdata, ndata = [], [], []
+		addring(vdata, cdata, ndata, vec(2.41, 0, 0), vec(0, 1, 0), 0.8, 1, color, m=24)
+		addring(vdata, cdata, ndata, vec(0, 2.41, 0), vec(-1, 0, 0), 0.8, 1, color, m=24)
+		addring(vdata, cdata, ndata, vec(-2.41, 0, 0), vec(0, -1, 0), 0.8, 1, color, m=24)
+		addring(vdata, cdata, ndata, vec(0, -2.41, 0), vec(1, 0, 0), 0.8, 1, color, m=24)
 	
-	vdata = [x * [1, 1, 5][j%3] for j, x in enumerate(vdata)]
+		vdata = [x * [1, 1, 5][j%3] for j, x in enumerate(vdata)]
 
-	addtorus(vdata, cdata, ndata, vec(0, 0, -0.2), vec(0, 0, 1), vec(1, 0, 0), 2.3, 0.6, 0, math.tau, (0.7, 0.7, 0.7), n=24)
+		addtorus(vdata, cdata, ndata, vec(0, 0, -0.2), vec(0, 0, 1), vec(1, 0, 0), 2.3, 0.6, 0, math.tau, (0.7, 0.7, 0.7), n=24)
 
-	ps = (2.5, -2), (2.3, 1.7), (2.1, 3.2), (1.9, 3.8), (1.7, 3.6), (1.6, 0.5), (0, 0.5)
-	c0, c1 = (0.3, 0.3, 0.3), (0, 0, 0)
-	colors = c0, c0, c0, c0, c0, c1, c1
-	edges = 0, 0, 0, 0, 0
-	addradcomp(vdata, cdata, ndata, ps, colors, edges=edges, m=24)
-	mine = makedrawable(GL_QUADS, vdata, cdata, ndata)
+		ps = (2.5, -2), (2.3, 1.7), (2.1, 3.2), (1.9, 3.8), (1.7, 3.6), (1.6, 0.5), (0, 0.5)
+		c0, c1 = (0.3, 0.3, 0.3), (0, 0, 0)
+		colors = c0, c0, c0, c0, c0, c1, c1
+		edges = 0, 0, 0, 0, 0
+		addradcomp(vdata, cdata, ndata, ps, colors, edges=edges, m=24)
+		mine.append(makedrawable(GL_QUADS, vdata, cdata, ndata))
 
 def inittrashbin():
 	global trashbin
@@ -446,16 +449,86 @@ def inithq():
 	vdata, cdata, ndata = [], [], []
 	v0, v1, v2 = vec(0, 1, 0), vec(0.83, -0.5, 0).norm(), vec(-0.83, -0.5, 0).norm()
 	for v in v0, v1, v2:
-		addring(vdata, cdata, ndata, vec(0, 0, -0.2), v, 3.6, 1, (0.5, 0.5, 0.5), m=32)
-		addring(vdata, cdata, ndata, vec(0, 0, -0.2), v, 3.2, 2, (0.4, 0.4, 0.4), m=32)
+		addring(vdata, cdata, ndata, vec(0, 0, -0.2), v, 3.7, 1, (0.5, 0.5, 0.5), m=32)
+		addring(vdata, cdata, ndata, vec(0, 0, -0.2), v, 3.4, 1.5, (0.4, 0.4, 0.4), m=32)
+		addring(vdata, cdata, ndata, vec(0, 0, -0.2), v, 3.1, 2, (0.3, 0.3, 0.3), m=32)
 
 	ps = (2.8, -1.5), (2.4, 2.9), (2, 2.9), (1.8, 5.2), (0, 5.2)
 	c0 = (0.2, 0.4, 0.4)
 	colors = (c0,)
 	addradcomp(vdata, cdata, ndata, ps, colors, m=24)
 	hq = makedrawable(GL_QUADS, vdata, cdata, ndata)
-	
 
+def initspindle():
+	global spindle
+	spindle = []
+	for c in (0.3, 0.3, 0.3), (0.2, 0.2, 0.3), (0.3, 0.2, 0.2):
+		vdata, cdata, ndata = [], [], []
+		ps = (2.5, -2), (2.5, 0.4), (0.6, 0.4), (0.6, 6), (0, 6)
+		addradcomp(vdata, cdata, ndata, ps, (c,), m=16)
+		spindle.append(makedrawable(GL_QUADS, vdata, cdata, ndata))
+
+	global piston
+	piston = []
+	for c in (0.5, 0.5, 0.5), (0.4, 0.4, 0.6), (0.6, 0.4, 0.4):
+		vdata, cdata, ndata = [], [], []
+		ps = (0, -1.6), (0.7, -1.6), (1, -1.3), (1, -0.2), (1, 0), (1, 0.2), (1, 0.4), (1, 1.3), (0.7, 1.6), (0, 1.6)
+		g = 0.2, 0.5, 0.2
+		colors = c, c, c, g, c, g, c, c, c
+		addradcomp(vdata, cdata, ndata, ps, colors, m=16)
+		piston.append(makedrawable(GL_QUADS, vdata, cdata, ndata))
+
+def initmedic():
+	global medic
+	vdata, cdata, ndata = [], [], []
+	c0, c1, c2 = (0.3, 0.3, 0.3), (0.4, 0.4, 0.4), (0, 0, 0)
+	colors = c0, c0, c0, c0, c1, c1, c0, c2, c2
+	ps = (2.8, -1), (1, 1), (1, 2), (1.2, 2.9), (2.4, 3.8), (2.4, 4.6), (1.8, 4.6), (1.8, 4.3), (0, 4.3)
+	edges = 0, 0, 0, 1, 1, 1, 0
+	addradcomp(vdata, cdata, ndata, ps, colors, edges=edges, m=28)
+	medic = makedrawable(GL_QUADS, vdata, cdata, ndata)
+
+	global wings
+	vdata, cdata, ndata = [], [], []
+	c0 = (0.2, 0.4, 0.2)
+	colors = (c0,)
+	ps = (0.2, 0), (0.8, 1.8), (1.3, 2), (0, 3.5)
+	addradcomp(vdata, cdata, ndata, ps, colors, m=4)
+	nvdata, nndata = [], []
+	for j in range(0, len(vdata), 3):
+		x, y, z = vdata[j:j+3]
+		nvdata += [z, y, 1.4-x]
+		x, y, z = ndata[j:j+3]
+		nndata += [z, y, -x]
+	for j in range(0, len(vdata), 3):
+		x, y, z = vdata[j:j+3]
+		nvdata += [-y, z, 1.4-x]
+		x, y, z = ndata[j:j+3]
+		nndata += [-y, z, -x]
+	for j in range(0, len(vdata), 3):
+		x, y, z = vdata[j:j+3]
+		nvdata += [-z, -y, 1.4-x]
+		x, y, z = ndata[j:j+3]
+		nndata += [-z, -y, -x]
+	for j in range(0, len(vdata), 3):
+		x, y, z = vdata[j:j+3]
+		nvdata += [y, -z, 1.4-x]
+		x, y, z = ndata[j:j+3]
+		nndata += [y, -z, -x]
+	wings = makedrawable(GL_QUADS, nvdata, cdata * 4, nndata)
+
+def initartifact():
+	global artifact
+	artifact = []
+	for c in (0.3, 0.3, 0.3), (0.2, 0.2, 0.3), (0.3, 0.2, 0.2):
+		c2 = [x * 0.5 for x in c]
+		vdata, cdata, ndata = [], [], []
+		ps = (1.8, -1.3), (1.2, 1.2), (2, 1.9), (1.5, 4.8), (1.6, 5.1), (1.1, 7), (0, 7)
+		colors = c, c2, c, c2, c, c
+		addradcomp(vdata, cdata, ndata, ps, colors, m=8)
+		addring(vdata, cdata, ndata, vec(0, 0, 3.5), vec(1, 0, 0), 3.4, 1, (c), m=3, f=vec(0, -1, 0))
+		addring(vdata, cdata, ndata, vec(0, 0, 3.5), vec(0, 1, 0), 3.4, 1, (c), m=3, f=vec(1, 0, 0))
+		artifact.append(makedrawable(GL_QUADS, vdata, cdata, ndata))
 
 def initsplode():
 	global splode
@@ -468,6 +541,7 @@ def init():
 		if x.startswith("init") and x != "init":
 			f()
 	vertexbuff = vbo.VBO(numpy.array(vbodata, dtype="f"), usage=GL_STATIC_DRAW)
+	vertexbuff.bind()
 	
 
 def quit():
@@ -478,8 +552,6 @@ def quit():
 
 coloroverride = False
 def draw(obj, f=1, coloroverride=None):
-	vertexbuff.bind()
-
 	glEnableClientState(GL_VERTEX_ARRAY)
 	glVertexPointer(3, GL_FLOAT, 0, vertexbuff + obj.voff)
 	if not coloroverride and obj.coff is not None:
@@ -521,6 +593,28 @@ def screenshot():
 	pygame.surfarray.pixels3d(surf)[:] = data
 	pygame.image.save(surf, "screenshot-%s.png" % datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
 
+def setmode(fullscreen=None, resolution=None):
+	if fullscreen is not None:
+		settings.fullscreen = fullscreen
+	if resolution is not None:
+		settings.ssize = settings.sx, settings.sy = resolution
+
+	if settings.fullscreen:
+		settings.sx, settings.sy = settings.ssize = max(pygame.display.list_modes())
+	else:
+		settings.sx, settings.sy = settings.ssize = settings.wsize
+
+	fsflag = FULLSCREEN if settings.fullscreen else 0
+	pygame.display.quit()
+	pygame.display.init()
+	pygame.display.set_mode(settings.ssize, DOUBLEBUF | OPENGL | fsflag)
+	pygame.display.set_caption(settings.gamename)
+	glClearColor(0, 0, 0, 1)
+#	glViewport(0, 0, settings.sx, settings.sy)
+#	glMatrixMode(GL_PROJECTION)
+#	glLoadIdentity()
+#	glOrtho(0, settings.sx, 0, settings.sy, -1, 1)
+#	glMatrixMode(GL_MODELVIEW)
 
 
 

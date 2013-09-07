@@ -3,7 +3,7 @@ from pygame.constants import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-import scene, settings, graphics, camera, text, things, state, cursor, hud, lighting, scenes.game
+import scene, settings, graphics, camera, text, things, state, cursor, hud, lighting, scenes.game, sound, info
 from vec import vec
 
 playing = True
@@ -15,6 +15,7 @@ def init():
 	glEnable(GL_NORMALIZE)
 
 	lighting.init()
+	settings.level = None
 	hud.init()
 	hud.menumode()
 	camera.menuinit()
@@ -22,6 +23,12 @@ def init():
 	playing = True
 	alpha = 0
 	selected = None
+
+	sound.playmusic("011scifi")
+	
+	state.R = 40
+	
+
 		
 def resume():
 	init()
@@ -39,6 +46,7 @@ def think(dt, events, kpress):
 			else:
 				scene.push(scenes.game)
 			return
+	sound.setvolume(alpha)
 
 	if kpress[K_ESCAPE]:
 		scene.pop()
@@ -73,17 +81,20 @@ def draw():
 	graphics.draw(graphics.stars, min(settings.sx * settings.sy / 2000000., 1))
 	glEnable(GL_LIGHTING)
 
-	lighting.moon()
-	glPushMatrix()
-	glScale(state.R, state.R, state.R)
-	graphics.draw(graphics.moon)
-	glPopMatrix()
+	if hud.mode == "level" and hud.labels["leveltitle"]:
+		lighting.setmoonlight(*info.moonlights[settings.level])
+		lighting.moon()
+		glPushMatrix()
+		r = info.Rs[settings.level]
+		glScale(r, r, r)
+		graphics.draw(graphics.moon)
+		glPopMatrix()
 
 	text.setup()
 
 	hud.draw()
 
-	text.write(settings.gamename, "Homenaje", hud.f(4), (200, 200, 200), (settings.sx/2, settings.sy/2), (0, 0, 0))
+#	text.write(settings.gamename, "Homenaje", hud.f(4), (200, 200, 200), (settings.sx/2, settings.sy/2), (0, 0, 0))
 
 	if alpha < 1:
 		graphics.fill(0, 0, 0, 1-alpha)

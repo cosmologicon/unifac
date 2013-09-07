@@ -1,6 +1,19 @@
 
-white = """Wonderflonium
-All the buildings you can currently construct require a steady stream of Wonderflonium, which can only be harvested from space."""
+creds = """Written by Christopher Night
+for PyWeek 17
+
+Music by Creative Sound
+http://www.creative-sound.org
+
+See README.txt for font and sound effects
+sources and license information.
+"""
+
+pnames = "Wonderflonium Bombastium Residuum".split()
+pcolors = (255, 255, 255), (128, 128, 255), (255, 128, 128)
+mnames = "Ycleptons Octirons Monopoles".split()
+mcolors = (255, 255, 0), (255, 128, 0), (255, 0, 255)
+
 
 buildcollector = """Resource Collector
 Deploys collection bots that will pick up
@@ -14,8 +27,9 @@ collection bots."""
 
 levelname = [
 	"QUAOAR",
-	"ENCELADUS",
+	"UMBRIEL",
 	"CERES",
+	"EARTH'S MOON",
 ]
 
 
@@ -59,13 +73,63 @@ Scroll wheel or Ins/Del to zoom
 F12: take screenshot
 """,
 
+"power":
+"""
+Each structure requires a constant stream of either
+Wonderflonium, Bombastium, or Rodinium. Make sure you place
+each structure near to a structure of the same type, or else
+it will not function. Your command center provides all three
+kinds of connection.
+""",
+
+"satellites":
+"""
+Wonderflonium, Bombastium, and Rodinium can only be harvested
+from orbit. Make sure you have enough satellites of the correct
+type to provide for your power needs.
+""",
+
 "satcon":
 """
 Satellite Control
 You can control only a limited number of satellites at once.
 Launchpads and Satellite Control Dishes will increase this
-number.
+number. If your control amount falls below the number of
+active satellites, their orbits can destabilize.
 """,
 
 }
+
+
+missionnames = [
+	"\nQuaoar\nTrans-Neptunian Object",
+	"\nUmbriel\nMoon of Uranus",
+	"\nCeres\nAsteroid Belt",
+	"Showdown at\nEarth's Moon\n ",
+]
+
+missionhelp = [
+	"""Quaoar: Trans-Neptunian Object\nMission: build 3 Satcon Dishes""",
+	"""Umbriel: Moon of Uranus\nMission: remove all debris""",
+
+]
+
+moonlights = [
+	[(0.2, 0.24, 0.24), (0.7, 0.8, 0.8)],
+	[(0.2, 0.16, 0.2), (0.5, 0.65, 0.65)],
+	[(0.2, 0.16, 0.2), (0.5, 0.65, 0.65)],
+	[(0.2, 0.2, 0.2), (0.9, 0.9, 0.9)],
+	
+]
+
+Rs = [13, 16, 20, 32]
+
+m0s = [
+	[50, 0, 0],
+	[80, 60, 0],
+]
+
+
+
+
 
