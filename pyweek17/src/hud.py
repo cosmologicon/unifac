@@ -20,6 +20,7 @@ class Button(object):
 	indent0 = 1
 	width0 = 9
 	frac = 1
+	soundname = "select"
 
 	point = False
 	pointcolor = 255, 255, 255, 100
@@ -88,7 +89,7 @@ class SubButton(Button):
 	boxcolor0 = 1, 1, 1, 0.1
 	boxcolor1 = 0, 0, 0.8, 0.3
 	indent0 = 2
-	width0 = 6
+	width0 = 10
 
 
 class BuildButton(SubButton):
@@ -175,9 +176,9 @@ class Textbox(object):
 
 class Warnbox(Textbox):
 	color = 255, 128, 128
-	size0 = 1.2
+	size0 = 2.5
 	def __init__(self, name):
-		Textbox.__init__(self, name, settings.sx/2, settings.sy)
+		Textbox.__init__(self, name, settings.sx/2, settings.sy/2)
 
 class Statusbox(Textbox):
 	hanchor = 1
@@ -216,6 +217,13 @@ class Titlebox(Textbox):
 			self.hanchor, self.vanchor, alpha=self.alpha)
 		text.write(self.text[1], self.fontname, int(self.size/3), self.color, (self.x, self.y - self.size), (0, 0, 0),
 			self.hanchor, self.vanchor, alpha=self.alpha)
+
+class Dialoguebox(Textbox):
+	color = 220, 250, 220
+	size0 = 3
+	vanchor = 1
+	def __init__(self, name):
+		Textbox.__init__(self, name, settings.sx/2, settings.sy * 0.9)
 
 class Leveltitlebox(Textbox):
 	color = 255, 255, 255
@@ -288,6 +296,44 @@ class Buildinfobox(Textbox):
 			write("%s %s" % (cost, info.mnames[j]), 0.7, color, "Viga")
 			
 
+class Launchinfobox(Textbox):
+	color = 180, 180, 180
+	size0 = 2
+	vanchor = 1
+	def __init__(self, name):
+		Textbox.__init__(self, name, settings.sx/2, settings.sy - f(3))
+
+	def setsat(self, bname=None):
+		if not bname:
+			self.settext()
+		else:
+			self.sname = bname[6:]
+			if not self.text:
+				self.nexttext = True
+	
+	def draw(self):
+		if not self.text:
+			return
+		y = [self.y]
+		btype = buttons["launch" + self.sname].ltype
+		def write(t, dsize, color, fontname=None):
+			text.write(t, (fontname or self.fontname), int(self.size * dsize), color, (self.x, y[0]), (0, 0, 0),
+				self.hanchor, self.vanchor, alpha=self.alpha)
+			y[0] -= int(self.size * dsize * 1.5)
+		write(btype.longname, 1, self.color)
+		y[0] -= int(self.size * 0.4)
+		write("Power provided:", 0.7, self.color)
+		for j, (color, cost) in enumerate(zip(info.pcolors, btype.gpower)):
+			if not cost:
+				continue
+			write("%s %s" % (cost, info.pnames[j]), 0.7, color, "Viga")
+		y[0] -= int(self.size * 0.4)
+		write("Cost to build:", 0.7, self.color)
+		for j, (color, cost) in enumerate(zip(info.mcolors, btype.cost)):
+			if not cost:
+				continue
+			write("%s %s" % (cost, info.mnames[j]), 0.7, color, "Viga")
+
 
 def f(size):
 	return int(round(size * settings.sy / 32.0))
@@ -297,7 +343,7 @@ def init():
 		cls.size = f(cls.size0)
 		cls.indent = f(cls.indent0)
 		cls.width = f(cls.width0)
-	for cls in [Textbox, Warnbox, Statusbox, Titlebox, Leveltitlebox, Buildinfobox, Endtitlebox]:
+	for cls in [Textbox, Warnbox, Statusbox, Titlebox, Leveltitlebox, Buildinfobox, Launchinfobox, Endtitlebox, Dialoguebox]:
 		cls.size = f(cls.size0)
 
 	buttons.clear()
@@ -311,7 +357,9 @@ def init():
 	Button("help", "HELP")
 	Button("quit", "QUIT")
 	Button("back", "BACK")
-	SubButton("confirmquit", "CONFIRM")
+	Button("bcancel", "CANCEL")
+	SubButton("savequit", "SAVE + QUIT")
+	SubButton("abandonquit", "ABANDON + QUIT")
 	BuildButton(things.Collector)
 	BuildButton(things.WExtractor)
 	BuildButton(things.BExtractor)
@@ -352,6 +400,7 @@ def init():
 	Titlebox("title")
 	Leveltitlebox("leveltitle")
 	Buildinfobox("buildinfo")
+	Launchinfobox("launchinfo")
 
 	Button("selectlevel", "MISSION")
 	Button("options", "OPTIONS")
@@ -368,9 +417,11 @@ def init():
 	buttons["musictoggle"].words = "MUSIC: %s" % ("ON" if settings.music else "OFF")
 	buttons["fullscreentoggle"].words = "FULLSCREEN: %s" % ("ON" if settings.fullscreen else "OFF")
 
-	global endtitle
+	global endtitle, dialoguebox
 	endtitle = Endtitlebox("endtitle")
 	del labels["endtitle"]
+	dialoguebox = Dialoguebox("dialogue")
+	del labels["dialogue"]
 
 	
 	mainmode()
@@ -384,8 +435,26 @@ def think(dt):
 	for label in labels.values():
 		label.think(dt)
 	endtitle.think(dt)
+	dialoguebox.think(dt)
 
-	labels["cursor"].settext("Click to build" if cursor.tobuild else None)
+	if cursor.tobuild:
+		labels["cursor"].settext("Click to build")
+	elif cursor.disable:
+		if cursor.pointingto:
+			text = "Click to disable" if cursor.pointingto.enabled else "Click to enable"
+			text += "\nDisabled structures will not consume or transmit Wonderflonium"
+			labels["cursor"].settext(text)
+		else:
+			labels["cursor"].settext()
+	elif cursor.unbuild:
+		if cursor.pointingto:
+			labels["cursor"].settext("Click to remove")
+		else:
+			labels["cursor"].settext()
+	elif cursor.pointingto:
+		labels["cursor"].settext(cursor.pointingto.qdescrip())
+	else:
+		labels["cursor"].settext()
 
 def clearlabels():
 	for label in labels.values():
@@ -398,6 +467,8 @@ def setmode(modename, bnames):
 		button.seek()
 	y = settings.sy - f(1)
 	for bname in bnames.split():
+		if settings.level is not None and bname in info.locked[settings.level]:
+			continue
 		buttons[bname].seek((0, y))
 		y -= buttons[bname].size * 1.2 + f(0.5)
 
@@ -408,35 +479,42 @@ def setstatus():
 	for bname, b in buttons.items():
 		if bname.startswith("build") and len(bname) > 6:
 			b.frac = min(state.buildclock / float(b.btype.buildclock), 1)
-		if bname.startswith("launch"):
-			b.frac = state.launchclock
+		if bname.startswith("launch") and bname.endswith("sat"):
+			b.frac = min(state.launchclock / float(b.ltype.launchclock), 1)
 	if not state.status:
 		labels["status"].settext()
 		return
 	lines = []
 	for j in range(3):
 		lines.append((info.pnames[j], info.pcolors[j]))
-		lines.append(("reserve: %s/%s" % (state.reserves[j], state.cpow[j]), info.pcolors[j]))
+		res = state.reserves[j] if state.reserves[j] >= 0 else "<0"
+		lines.append(("reserve: %s/%s" % (res, state.cpow[j]), info.pcolors[j]))
 		lines.append(("rate: +%s - %s" % (state.ppow[j], state.mpow[j]), info.pcolors[j]))
 	for j in range(3):
-		lines.append(("%s: %s" % (info.mnames[j], state.materials[j],), info.mcolors[j]))
+		amt = "unlimited" if state.materials[j] > 100000 else state.materials[j]
+		lines.append(("%s: %s" % (info.mnames[j], amt,), info.mcolors[j]))
 	lines.append(("Satcon: %s/%s" % (state.nsat, state.satcon), (255, 255, 255)))
+	if state.wintime:
+		lines.append(("", (0,0,0)))
+		lines.append(("Mission completion: %s/30" % state.wintime, (255, 255, 255)))
+
 	labels["status"].settext(lines)
 
 def mainmode():
 	labels["helppage"].settext()
 	labels["instructions"].settext()
 	cursor.disable = False
+	cursor.unbuild = False
 	setmode("main", "buildw buildb buildr disable unbuild launch unlaunch help quit")
 
 def buildwmode():
-	setmode("buildw", "buildw buildcollector buildwextractor buildlauncher buildwrelay buildwbasin buildwbooster back")
+	setmode("buildw", "buildw buildwextractor buildcollector buildlauncher buildwrelay buildwbasin buildwbooster bcancel back")
 
 def buildbmode():
-	setmode("buildb", "buildb buildsatcon buildbextractor buildmedic buildbrelay buildbbasin buildbbooster back")
+	setmode("buildb", "buildb buildbextractor buildsatcon buildmedic buildbrelay buildbbasin buildbbooster bcancel back")
 
 def buildrmode():
-	setmode("buildr", "buildr buildcleaner buildrextractor buildrrelay buildrbasin buildrbooster back")
+	setmode("buildr", "buildr buildrextractor buildcleaner buildrrelay buildrbasin buildrbooster bcancel back")
 
 def launchmode():
 	setmode("launch", "launch launchwsat launchbsat launchrsat back")
@@ -444,13 +522,11 @@ def launchmode():
 def disablemode():
 	cursor.tobuild = None
 	cursor.disable = True
-	labels["instructions"].settext("Click to disable or enable structures\nDisabled structures will not consume or transmit Wonderflonium")
 	setmode("disable", "disable back")
 
 def unbuildmode():
 	cursor.tobuild = None
 	cursor.unbuild = True
-	labels["instructions"].settext("Click to remove structure")
 	setmode("unbuild", "unbuild back")
 
 def unlaunchmode():
@@ -461,7 +537,7 @@ def helpmode():
 	setmode("help", "help helpmission helpcontrols helpmore~controls helppower helpsatellites helpsatcon back")
 
 def quitmode():
-	setmode("quit", "quit confirmquit back")
+	setmode("quit", "quit savequit abandonquit back")
 
 
 def menumode():
@@ -506,7 +582,15 @@ def click((x, y)):
 			return True
 
 
+launchpoint = None
 def pointto(bname):
+	global launchpoint
+	if bname.startswith("launch") and bname.endswith("sat"):
+		labels["launchinfo"].setsat(bname)
+		launchpoint = buttons[bname].ltype
+	else:
+		labels["launchinfo"].setsat()
+		launchpoint = None
 	if bname.startswith("build") and len(bname) > 6:
 		labels["buildinfo"].setbuilding(bname)
 	else:
@@ -521,35 +605,43 @@ def pointto(bname):
 	
 
 def clickon(bname):
+	soundname = buttons[bname].soundname
 	if bname == "buildw":
 		if mode == "main":
 			buildwmode()
 		elif mode == "buildw":
+			soundname = "back"
 			mainmode()
 	elif bname == "buildb":
 		if mode == "main":
 			buildbmode()
 		elif mode == "buildb":
+			soundname = "back"
 			mainmode()
 	elif bname == "buildr":
 		if mode == "main":
 			buildrmode()
 		elif mode == "buildr":
+			soundname = "back"
 			mainmode()
 	elif bname.startswith("build"):
 		cursor.tobuild = buttons[bname].btype
-#		mainmode()
 	if bname == "launch":
 		if mode == "main":
 			launchmode()
 		elif mode == "launch":
+			soundname = "back"
 			mainmode()
 	elif bname.startswith("launch"):
-		state.launch(buttons[bname].ltype)
-#		mainmode()
+		if state.launcherror(buttons[bname].ltype):
+			soundname = "error"
+		else:
+			state.launch(buttons[bname].ltype)
+			soundname = "launch"
 
 	if bname == "help":
 		if mode == "main":
+			soundname = "back"
 			helpmode()
 		elif mode == "help":
 			mainmode()
@@ -562,31 +654,52 @@ def clickon(bname):
 		if mode == "main":
 			unbuildmode()
 		elif mode == "unbuild":
+			soundname = "back"
 			mainmode()
 
 	if bname == "unlaunch":
 		if mode == "main":
 			unlaunchmode()
 		elif mode == "unlaunch":
+			soundname = "back"
 			mainmode()
 	elif bname.startswith("unlaunch"):
 		state.unlaunch(buttons[bname].ltype)
-#		mainmode()
 
 	if bname == "disable":
 		if mode == "main":
 			disablemode()
 		elif mode == "disable":
+			soundname = "back"
 			mainmode()
 
 	if bname == "back":
+		soundname = "back"
+		cursor.tobuild = None
 		mainmode()
+	
+	if bname == "bcancel":
+		soundname = "back"
+		cursor.tobuild = None
 
 	if bname == "quit":
+		soundname = "back"
 		quitmode()
 
-	if (bname == "confirmquit" and mode == "quit") or bname == "quitgame":
+	if bname == "abandonquit":
+		soundname = "back"
+		state.removesave()
 		scene.top().playing = False
+
+	if bname == "savequit":
+		soundname = "back"
+		state.save()
+		scene.pop()
+		scene.pop()
+
+	if bname == "quitgame":
+		scene.top().playing = False
+
 
 	if bname.startswith("level"):
 		scene.top().playing = False
@@ -594,16 +707,19 @@ def clickon(bname):
 
 	if bname == "selectlevel":
 		if mode == "level":
+			soundname = "back"
 			menumode()
 		else:
 			levelmode()
 	if bname == "options":
 		if mode == "options":
+			soundname = "back"
 			menumode()
 		else:
 			optionsmode()
 	if bname == "credits":
 		if mode == "credits":
+			soundname = "back"
 			menumode()
 		else:
 			creditsmode()
@@ -623,4 +739,6 @@ def clickon(bname):
 		buttons["soundtoggle"].words = "SOUND: %s" % ("ON" if settings.sound else "OFF")
 		buttons["musictoggle"].words = "MUSIC: %s" % ("ON" if settings.music else "OFF")
 		buttons["fullscreentoggle"].words = "FULLSCREEN: %s" % ("ON" if settings.fullscreen else "OFF")
+
+	sound.play(soundname)
 

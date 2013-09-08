@@ -8,23 +8,26 @@ from vec import vec
 u = vec(0, 0, 1)
 f = vec(1, 0, 0)
 p = vec(1, 0, 1).norm()
+beta = 1.5
 zoom = 50
 
 target = None
 
 def menuinit():
-	global u, f, p, zoom
+	global u, f, p, zoom, beta
 	u = vec(0, 0, 1)
 	f = vec(1, 0, 0)
 	p = f
+	beta = 0
 	zoom = 100
 
 def init():
-	global u, f, p, zoom, target
-	u = vec(0, 0, 1)
-	f = vec(1, 0, 0)
-	p = vec(1, 0, 1).norm()
-	zoom = 50
+	global u, f, p, zoom, target, beta
+	beta = 0.2
+	u = vec(-math.cos(beta), 0, math.sin(beta))
+	f = vec(math.sin(beta), 0, math.cos(beta))
+	p = vec(0, 0, 1)
+	zoom = 80
 
 	target = None
 
@@ -32,7 +35,7 @@ def wthick():
 	return settings.sy / (zoom * settings.tanB) * 0.05
 
 def move(dx, dy, dr, dA):
-	global u, f, p, target
+	global u, f, p, target, beta
 	if not (dx or dy or dr or dA):
 		return
 
@@ -53,12 +56,17 @@ def move(dx, dy, dr, dA):
 		u = u.plus(u.cross(a))
 		f = f.plus(f.cross(a))
 	if dA:
+		if beta + dA > math.tau/4:
+			dA = math.tau/4 - beta
+		if beta + dA < 0:
+			dA = -beta
+		beta += dA
 		a = b.times(-dA)
 		u = u.plus(u.cross(a))
 		f = f.plus(f.cross(a))
 	f = f.norm()
 	u = u.rej(f).norm()
-	p = p.rej(f.cross(u)).norm()
+	p = f.times(math.cos(beta)).plus(u.times(math.sin(beta)))
 
 def think(dt):
 	global u, f, p, target
@@ -87,7 +95,7 @@ def think(dt):
 
 	f = f.norm()
 	u = u.rej(f).norm()
-	p = p.rej(f.cross(u)).norm()
+	p = f.times(math.cos(beta)).plus(u.times(math.sin(beta)))
 	
 	
 	

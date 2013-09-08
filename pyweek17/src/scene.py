@@ -15,7 +15,7 @@ def pop():
 	return s
 
 def swap(newscene):
-	oldscene = pop()
+	oldscene = stack.pop() if stack else None
 	push(newscene)
 	return oldscene
 

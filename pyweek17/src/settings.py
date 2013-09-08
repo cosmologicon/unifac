@@ -1,7 +1,7 @@
 import sys, math, cPickle, os.path
 import data
 
-gamename = "Luna whatever"
+gamename = "Eclipsed"
 
 # DEFAULT OPTIONS
 
@@ -11,29 +11,33 @@ fullscreen = False
 fps = 60
 fov = 30
 swaparrows = False
-dragfactor = 2.0
+dragfactor = 1.2
 sound = True
 music = True
+restart = False
 level = None
 unlocked = 0
 speedup = 1
+savetime = 5
 
-prefsfile = data.filepath("prefs.pickle")
+prefsfile = data.filepath("prefs.pkl")
 
 def save():
-	obj = wsize, fullscreen, swaparrows, sound, music
+	obj = wsize, fullscreen, swaparrows, sound, music, unlocked
 	cPickle.dump(obj, open(prefsfile, "wb"))
 
 def load():
 	if not os.path.exists(prefsfile):
 		return
-	global wsize, fullscreen, swaparrows, sound, music
-	wsize, fullscreen, swaparrows, sound, music = cPickle.load(open(prefsfile, "rb"))
+	global wsize, fullscreen, swaparrows, sound, music, unlocked
+	wsize, fullscreen, swaparrows, sound, music, unlocked = cPickle.load(open(prefsfile, "rb"))
 
 load()
 
 if "--fullscreen" in sys.argv:
 	fullscreen = True
+if "--restart" in sys.argv:
+	restart = True
 if "--nosound" in sys.argv:
 	sound = False
 if "--nomusic" in sys.argv:
@@ -42,6 +46,10 @@ if "--2x" in sys.argv:
 	speedup = 2
 if "--unlockall" in sys.argv:
 	unlocked = 99
+
+for arg in sys.argv:
+	if arg.startswith("--r="):
+		wsize = map(int, arg[4:].split("x"))
 
 save()
 

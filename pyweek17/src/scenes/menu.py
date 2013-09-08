@@ -3,7 +3,7 @@ from pygame.constants import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-import scene, settings, graphics, camera, text, things, state, cursor, hud, lighting, scenes.game, sound, info
+import scene, settings, graphics, camera, text, things, state, cursor, hud, lighting, scenes.game, sound, info, scenes.dialogue
 from vec import vec
 
 playing = True
@@ -15,7 +15,7 @@ def init():
 	glEnable(GL_NORMALIZE)
 
 	lighting.init()
-	settings.level = None
+	state.init()
 	hud.init()
 	hud.menumode()
 	camera.menuinit()
@@ -24,7 +24,7 @@ def init():
 	alpha = 0
 	selected = None
 
-	sound.playmusic("011scifi")
+	sound.playmusic(info.music["menu"])
 	
 	state.R = 40
 	
@@ -44,7 +44,7 @@ def think(dt, events, kpress):
 			if selected is None:
 				scene.pop()
 			else:
-				scene.push(scenes.game)
+				scene.push(scenes.dialogue)
 			return
 	sound.setvolume(alpha)
 

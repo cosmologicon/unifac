@@ -1,11 +1,11 @@
-import pygame, math, numpy, random, datetime
+import pygame, math, numpy, random, datetime, os.path, cPickle, os.path
 from pygame.constants import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 from OpenGL.arrays import vbo
 from collections import namedtuple
-import scene, settings, state
+import scene, settings, state, data
 from vec import vec
 
 
@@ -31,7 +31,7 @@ def makedrawable(dtype, vdata, cdata, ndata):
 
 def initstars():
 	global stars
-	maxstars = 2000  # 20000
+	maxstars = 50000
 	vertexdata = []
 	colordata = []
 	for star in range(maxstars):
@@ -65,7 +65,7 @@ def initmoon():
 		return avgcache[key]
 
 	# subdivide this many times
-	for i in range(3):
+	for i in range(5):
 		newfaces = []
 		for j1, j2, j3 in faces:
 			j4 = avg(j2, j3)
@@ -394,13 +394,14 @@ def initmine():
 def inittrashbin():
 	global trashbin
 	vdata, cdata, ndata = [], [], []
-	ps = (1, -1.3), (1.1, 0.5), (1.2, 1.3), (1.7, 2.1), (2.2, 2.3), (2.3, 3.7), (0, 3.7)
-	c0, c1 = (0.3, 0.3, 0.3), (0.5, 0.4, 0.3)
-	colors = c0, c0, c1, c0, c0, c0
-	edges = 0, 0, 0, 1, 1
+
+	ps = (1, -1.3), (1.1, 0.5), (1.2, 1.3), (1.7, 2.1), (2.2, 2.3), (2.3, 3.7), (1.8, 3.7), (1.8, 3.4), (0, 3.4)
+	c0, c1, c2 = (0.3, 0.3, 0.3), (0.5, 0.4, 0.3), (0, 0, 0)
+	colors = c0, c0, c1, c0, c0, c0, c2, c2
+	edges = 0, 0, 0, 1, 1, 1, 1
 	addradcomp(vdata, cdata, ndata, ps, colors, edges=edges, m=24)
 	z, p, d, R, r, n, m = 2, 0.7, 0.6, 2, 0.4, 12, 6
-	c0, c1 = (0.5, 0.5, 0.2), (0.4,0.4,0.2)
+	c0, c1 = (0.5, 0.2, 0.2), (0.35, 0.1, 0.1)
 	addtorus(vdata, cdata, ndata, vec(p, 0, z), vec(0, -d, 1).norm(), vec(-1, 0, 0), R, r, 0, math.tau, c0, c1, n=n, m=m)
 	addtorus(vdata, cdata, ndata, vec(0, p, z), vec(d, 0, 1).norm(), vec(0, 1, 0), R, r, 0, math.tau, c0, c1, n=n, m=m)
 	addtorus(vdata, cdata, ndata, vec(-p, 0, z), vec(0, d, 1).norm(), vec(1, 0, 0), R, r, 0, math.tau, c0, c1, n=n, m=m)
@@ -428,18 +429,21 @@ def initlaunchpad():
 
 def initcopter():
 	global copter
-	vdata, cdata, ndata = [], [], []
-	ps = (0, -0.7), (0.4, -0.7), (0.4, -0.5), (1.1, 0), (0.8, 0.5), (0.4, 0.8), (0, 0.95)
-	c0, c1, c2 = (0.2, 0.2, 0.4), (0.5, 0.5, 0.5), (0.1, 0.1, 0.2)
-	colors = c1, c1, c0, c0, c2, c0
-	addradcomp(vdata, cdata, ndata, ps, colors, m=16)
-	copter = makedrawable(GL_QUADS, vdata, cdata, ndata)
+	copter = []
+	for c0 in (0.2, 0.2, 0.4), (0.4, 0.2, 0.2), (0.2, 0.4, 0.2):
+		vdata, cdata, ndata = [], [], []
+		ps = (0, -0.7), (0.4, -0.7), (0.4, -0.5), (1.1, 0), (0.8, 0.5), (0.4, 0.8), (0, 0.95)
+		c1 = (0.5, 0.5, 0.5)
+		c2 = [x/2 for x in c0]
+		colors = c1, c1, c0, c0, c2, c0
+		addradcomp(vdata, cdata, ndata, ps, colors, m=16)
+		copter.append(makedrawable(GL_QUADS, vdata, cdata, ndata))
 
 def initbarrel():
 	global barrel
 	vdata, cdata, ndata = [], [], []
 	ps = (2.9, -1.5), (2.9, 1.8), (2.6, 2.1), (2.6, 3), (2.3, 3.3), (2.3, 4), (1.8, 4), (1.8, 3.7), (0, 3.7)
-	c0, c1, c2, c3 = (0.5, 0.4, 0.3), (0.45, 0.35, 0.25), (0.4, 0.3, 0.2), (0, 0, 0)
+	c0, c1, c2, c3 = (0.4, 0.4, 0.5), (0.25, 0.25, 0.4), (0.2, 0.2, 0.3), (0, 0, 0)
 	colors = c2, c2, c1, c1, c0, c0, c0, c3, c3
 	addradcomp(vdata, cdata, ndata, ps, colors, m=8)
 	barrel = makedrawable(GL_QUADS, vdata, cdata, ndata)
@@ -453,10 +457,10 @@ def inithq():
 		addring(vdata, cdata, ndata, vec(0, 0, -0.2), v, 3.4, 1.5, (0.4, 0.4, 0.4), m=32)
 		addring(vdata, cdata, ndata, vec(0, 0, -0.2), v, 3.1, 2, (0.3, 0.3, 0.3), m=32)
 
-	ps = (2.8, -1.5), (2.4, 2.9), (2, 2.9), (1.8, 5.2), (0, 5.2)
-	c0 = (0.2, 0.4, 0.4)
-	colors = (c0,)
-	addradcomp(vdata, cdata, ndata, ps, colors, m=24)
+	ps = (2.8, -1.5), (2.4, 2.9), (1.2, 3.8), (1.1, 4.5), (2, 5.1), (1.6, 5.1), (1.6, 6.9), (2, 6.9), (0, 7.6)
+	c0, c1 = (0.3, 0.4, 0.4), (0.6, 0.8, 0.9)
+	colors = c0, c0, c0, c0, c0, c1, c0, c0
+	addradcomp(vdata, cdata, ndata, ps, colors, m=6)
 	hq = makedrawable(GL_QUADS, vdata, cdata, ndata)
 
 def initspindle():
@@ -537,9 +541,19 @@ def initsplode():
 
 def init():
 	global vertexbuff
-	for x, f in list(globals().items()):
-		if x.startswith("init") and x != "init":
-			f()
+
+
+	global stars, moon, stone, relay, platform, dish, block, helmet, satellite, basin, mine, trashbin, launchpad, copter, barrel, hq, spindle, piston, medic, wings, artifact, splode, vbodata
+
+	fname = data.filepath("graphics.pkl")
+	if os.path.exists(fname):
+		stars, moon, stone, relay, platform, dish, block, helmet, satellite, basin, mine, trashbin, launchpad, copter, barrel, hq, spindle, piston, medic, wings, artifact, splode, vbodata = cPickle.load(open(fname, "rb"))
+	else:
+		for x, f in list(globals().items()):
+			if x.startswith("init") and x != "init":
+				f()
+		obj = stars, moon, stone, relay, platform, dish, block, helmet, satellite, basin, mine, trashbin, launchpad, copter, barrel, hq, spindle, piston, medic, wings, artifact, splode, vbodata
+		cPickle.dump(obj, open(fname, "wb"))
 	vertexbuff = vbo.VBO(numpy.array(vbodata, dtype="f"), usage=GL_STATIC_DRAW)
 	vertexbuff.bind()
 	
