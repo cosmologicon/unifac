@@ -1,7 +1,7 @@
 import random, math
 from OpenGL.GL import *
 from vec import vec
-import graphics, state, lighting, cursor, camera
+import graphics, state, lighting, cursor, camera, sound
 
 class Thing(object):
 
@@ -90,6 +90,7 @@ class Copter(Thing):
 	cruise = 14
 	
 	returns = True
+	tdh = 2
 	
 	def __init__(self, home, target):
 		Thing.__init__(self, home.u, home.f)
@@ -117,7 +118,11 @@ class Copter(Thing):
 		self.seek(self.home.u)
 
 	def die(self):
+		if self.home:
+			self.home.copter = None
 		self.alive = False
+		if self.payload:
+			self.payload.alive = False
 
 	def checktarget(self):
 		if self.target is self.home:
@@ -127,6 +132,7 @@ class Copter(Thing):
 			self.seekhome()
 
 	def think(self, dt):
+		dt *= self.home.boost
 		# TODO: what if the target disappears while in transit?
 		dh = self.targeth - self.h if self.targeth is not None else 0
 		if dh > 0:
@@ -146,12 +152,12 @@ class Copter(Thing):
 				if D < 6:
 					if dh < 0:
 						self.vy = max(self.vy - self.ay * dt, 4 * dh, -self.vymax)
-					self.targeth = self.target.h + 2
+					self.targeth = self.target.h + self.tdh
 				if D < 0.2 and abs(dh) < 0.1:
 					self.arrive(self.target)
 
 		self.h += self.vy * dt
-		self.travel(self.vx * dt * self.home.boost)
+		self.travel(self.vx * dt)
 		
 		if self.payload:
 			self.payload.think(dt)
@@ -165,7 +171,29 @@ class Copter(Thing):
 
 	def draw0(self):
 		glRotate(10 * math.sqrt(abs(self.vx)), 0, 1, 0)
-		graphics.draw(graphics.copter)
+		graphics.draw(graphics.copter[0])
+
+
+class DebrisCopter(Copter):
+
+	def draw0(self):
+		glRotate(10 * math.sqrt(abs(self.vx)), 0, 1, 0)
+		graphics.draw(graphics.copter[1])
+
+	
+class RepairCopter(Copter):
+
+	tdh = 7
+
+	def draw0(self):
+		glRotate(10 * math.sqrt(abs(self.vx)), 0, 1, 0)
+		graphics.draw(graphics.copter[2])
+
+	def checktarget(self):
+		if self.target is self.home:
+			if not self.home.alive:
+				self.die()
+	
 
 
 class Structure(Thing):
@@ -180,6 +208,8 @@ class Structure(Thing):
 	cost = 1, 0, 0
 	satcon = 0
 	buildclock = 0.2
+
+	hp0 = 2
 	
 	info = "It's a buildng. What do\nyou want from me?"
 
@@ -198,11 +228,36 @@ class Structure(Thing):
 	invalid = False
 	dummy = False  # cursor
 
+	def __init__(self, *args):
+		Thing.__init__(self, *args)
+		self.hp = self.hp0
+
+	def receive(self, healer):
+		state.effects.append(Healsplosion(healer.u, healer.f))
+		healer.die()
+		self.hp = self.hp0
+		sound.play("heal")
+
+	def qdescrip(self):
+		ts = [self.longname]
+		if not self.powered:
+			ts.append("(unpowered)")
+		elif not self.enabled:
+			ts.append("(disabled)")
+		elif self.hp < self.hp0:
+			ts.append("(damaged: hp = %s/%s)" % (self.hp, self.hp0))
+		if self.boost > 1:
+			ts.append("BOOSTED!")
+		
+		return "\n".join(ts)
+
 	def light(self):
 		if self.invalid:
 			lighting.invalid()
 		elif self is cursor.pointingto:
 			lighting.select()
+		elif self.hp < self.hp0:
+			lighting.damaged()
 		elif not self.enabled:
 			lighting.disabled()
 		elif not self.powered:
@@ -253,6 +308,7 @@ class HQ(Structure):
 	powered = True
 	pneeds = 0, 0, 0
 	pcap = 0, 0, 0
+	hp0 = 3
 	
 	dbuildclock = 0.02
 	satcon = 2
@@ -358,9 +414,7 @@ class Asteroid(Thing):
 		self.travel(self.vx * dt)
 		self.h += self.vh * dt
 		if self.h <= 0:
-			state.stuff.remove(self)
-			state.effects.append(Explosion(self.u, self.f))
-			Debris(self.u)
+			state.asteroidland(self)
 
 	def draw0(self):
 		lighting.glow()
@@ -374,6 +428,8 @@ class WExtractor(Structure):
 	rguy = 2
 	pneeds = 2, 0, 0
 	cost = 2, 0, 0
+	
+	info = "Extracts Ycleptons from the lunar interior. Extracted\nmaterials must be harvested by a Collector."
 	
 	materialtype = YMaterial
 	
@@ -411,6 +467,8 @@ class BExtractor(WExtractor):
 	cost = 8, 0, 0
 	materialtype = OMaterial
 
+	info = "Extracts Octiron from the lunar interior. Extracted\nmaterials must be harvested by a Collector."
+
 	def draw0(self):
 		self.drawpartial(graphics.mine[1])
 
@@ -420,6 +478,8 @@ class RExtractor(WExtractor):
 	pneeds = 0, 0, 2
 	cost = 0, 8, 0
 	materialtype = MMaterial
+
+	info = "Extracts Magnetic Monopoles from the lunar interior.\nExtracted materials must be harvested by a Collector."
 
 	def draw0(self):
 		self.drawpartial(graphics.mine[2])
@@ -431,15 +491,14 @@ class Collector(Structure):
 	pneeds = 3, 0, 0
 	cost = 3, 0, 0
 
+	info = "Collects extracted materials for use in construction.\nCollectors will always prefer to collect the materails\nnearest to them."
+
 	def __init__(self, *args):
 		Structure.__init__(self, *args)
 		self.copter = None
 	
 	def think(self, dt):
 		Structure.think(self, dt)
-#		if not self.copter:
-#			if state.stuff:
-#				self.dispatch(state.stuff[0])
 		if self.t > self.tbuild:
 			self.thinkhelmet(dt)
 		if not self.on():
@@ -461,6 +520,8 @@ class Collector(Structure):
 			state.collect(copter.payload)
 			copter.die()
 			self.copter = None
+		else:
+			Structure.receive(self, copter)
 
 	helmetz = 4
 	def draw0(self):
@@ -472,13 +533,16 @@ class Collector(Structure):
 class Launcher(Structure):
 	longname = "Satellite Launchpad"
 
+	info = "Launches power-collecting satellites into orbit through\nthe Launch menu. Each Launchpad can control up to two\nsatellites. More launchpads also allow more frequent launches."
+
+
 	pneeds = 4, 0, 0
 	cost = 6, 0, 0
 	
 	guy = 5
 	satcon = 2
 	
-	dlaunchclock = 0.02
+	dlaunchclock = 0.015
 	
 	sat = None
 
@@ -507,6 +571,8 @@ class Launcher(Structure):
 
 class Satcon(Structure):
 	longname = "Satellite Control Dish"
+
+	info = "Allows operation of up to four satellites each."
 	
 	pneeds = 0, 2, 0
 	cost = 0, 4, 0
@@ -533,10 +599,13 @@ class Satcon(Structure):
 			glEnd()
 
 class WBooster(Structure):
+	shortname = "W-BOOSTER"
 	longname = "Wonderflonium Booster"
 
+	info = "All Wonderflonium-powered structures attached directly to\nthe Booster operate at double speed or capacity. Effects are\nnot cumulative. No effect on Relays, Artifacts, or\nother Boosters."
+
 	pneeds = 15, 0, 0
-	cost = 50, 10, 2
+	cost = 40, 40, 40
 	
 	cindex = 0
 
@@ -565,22 +634,30 @@ class WBooster(Structure):
 			glPopMatrix()
 
 class BBooster(WBooster):
+	shortname = "B-BOOSTER"
 	longname = "Bombastium Booster"
 	pneeds = 0, 10, 0
 	cindex = 1
+	info = "All Bombastium-powered structures attached directly to\nthe Booster operate at double speed or capacity. Effects are\nnot cumulative. No effect on Relays."
 	
 
 class RBooster(WBooster):
+	shortname = "R-BOOSTER"
 	longname = "Rodinium Booster"
 	pneeds = 0, 0, 10
 	cindex = 2
+	info = "All Rodinium-powered structures attached directly to\nthe Booster operate at double speed or capacity. Effects are\nnot cumulative. No effect on Relays."
 
 
 class Cleaner(Structure):
+	shortname = "REMOVAL"
 	longname = "Debris Removal Center"
+
+	info = "Removes debris from the lunar surface that prevents\nconstruction. Begins with the nearest debris."
 
 	pneeds = 0, 0, 10
 	cost = 5, 5, 10
+	coptertype = DebrisCopter
 	
 	def __init__(self, *args):
 		Structure.__init__(self, *args)
@@ -619,12 +696,18 @@ class Cleaner(Structure):
 		if copter is self.copter:
 			copter.die()
 			self.copter = None
+		else:
+			Structure.receive(self, copter)
 
 
 class Medic(Structure):
+	shortname = "Repair"
 	longname = "Structure Repair Center"
+	info = "Repairs damaged structures. Begins with the\nnearest structure."
 
-	pneeds = 0, 5, 0
+	pneeds = 0, 6, 0
+	cost = 5, 10, 5
+	coptertype = RepairCopter
 	
 	def think(self, dt):
 		Structure.think(self, dt)
@@ -646,7 +729,11 @@ class Medic(Structure):
 
 
 class WRelay(Structure):
+	buff = 2
+	shortname = "W-RELAY"
 	longname = "Wonderflonium Relay"
+
+	info = "Has very long reach enabling the transmission of Wonderflonium\nover long distances."
 	reach = 10
 	guy = 8
 	pneeds = 1, 0, 0
@@ -656,7 +743,9 @@ class WRelay(Structure):
 		self.drawpartial(graphics.relay[0])
 
 class BRelay(WRelay):
+	shortname = "B-RELAY"
 	longname = "Bombastium Relay"
+	info = "Has very long reach enabling the transmission of Bombastium\nover long distances."
 	pneeds = 0, 1, 0
 	cost = 0, 1, 0
 
@@ -664,7 +753,9 @@ class BRelay(WRelay):
 		self.drawpartial(graphics.relay[1])
 
 class RRelay(WRelay):
+	shortname = "R-RELAY"
 	longname = "Rodinium Relay"
+	info = "Has very long reach enabling the transmission of Rodinium\nover long distances."
 	pneeds = 0, 0, 1
 	cost = 0, 0, 1
 
@@ -673,7 +764,9 @@ class RRelay(WRelay):
 
 
 class WBasin(Structure):
+	shortname = "W-SILO"
 	longname = "Wonderflonium Silo"
+	info = "Has the capacity to store up to 1000 units of Wonderflonium,\nto protect against periods of excess usage."
 	guy = 4
 	pneeds = 4, 0, 0
 	pcap = 1000, 0, 0
@@ -683,7 +776,9 @@ class WBasin(Structure):
 		self.drawpartial(graphics.basin[0])
 
 class BBasin(WBasin):
+	shortname = "B-SILO"
 	longname = "Bombastium Silo"
+	info = "Has the capacity to store up to 1000 units of Bombastium,\nto protect against periods of excess usage."
 	pneeds = 0, 4, 0
 	pcap = 0, 1000, 0
 	cost = 0, 3, 0
@@ -692,7 +787,9 @@ class BBasin(WBasin):
 		self.drawpartial(graphics.basin[1])
 
 class RBasin(WBasin):
+	shortname = "R-SILO"
 	longname = "Rodinium Silo"
+	info = "Has the capacity to store up to 1000 units of Rodinium,\nto protect against periods of excess usage."
 	pneeds = 0, 0, 4
 	pcap = 0, 0, 1000
 	cost = 0, 0, 3
@@ -703,21 +800,95 @@ class RBasin(WBasin):
 
 class WArtifact(Structure):
 	longname = "Wonderflonium Artifact"
-	pneeds = 50, 0, 0
+	pneeds = 120, 0, 0
+
+	def qdescrip(self):
+		ts = [
+			self.longname,
+			"Note: Uses 120 Wonderflonium!"
+		]
+		if not self.powered:
+			ts.append("(unpowered)")
+		return "\n".join(ts)
+		
 	
 	def draw0(self):
 		self.drawpartial(graphics.artifact[0])
 
+class WBRArtifact(WArtifact):
+	longname = "Artifact"
+	pneeds = 120, 120, 120
+	
+	hp0 = 4
+
+	def qdescrip(self):
+		ts = [
+			self.longname,
+			"Note: Uses 120 Wonderflonium,",
+			"120 Bombastium, and 120 Rodinium!"
+		]
+		if not self.powered:
+			ts.append("(unpowered)")
+		elif not self.enabled:
+			ts.append("(disabled)")
+		if self.hp < self.hp0:
+			ts.append("(damaged: hp = %s/%s)" % (self.hp, self.hp0))
+		if self.boost > 1:
+			ts.append("BOOSTED!")
+		return "\n".join(ts)
+
+	def draw0(self):
+		self.drawpartial(graphics.artifact[0])
+
+class MegaArtifact(WArtifact):
+	longname = "Mega Artifact"
+	pneeds = 400, 400, 400
+	
+	hp0 = 4
+
+	def qdescrip(self):
+		ts = [
+			self.longname,
+			"Note: Uses 120 Wonderflonium,",
+			"120 Bombastium, and 120 Rodinium!"
+		]
+		if not self.powered:
+			ts.append("(unpowered)")
+		return "\n".join(ts)
+
+	def draw0(self):
+		self.drawpartial(graphics.artifact[0])
+
+
+
 class BArtifact(WArtifact):
 	longname = "Bombastium Artifact"
-	pneeds = 0, 10, 0
+	pneeds = 0, 120, 0
+
+	def qdescrip(self):
+		ts = [
+			self.longname,
+			"Note: Uses 120 Bombastium!"
+		]
+		if not self.powered:
+			ts.append("(unpowered)")
+		return "\n".join(ts)
 
 	def draw0(self):
 		self.drawpartial(graphics.artifact[1])
 
 class RArtifact(WArtifact):
 	longname = "Rodinium Artifact"
-	pneeds = 0, 0, 10
+	pneeds = 0, 0, 120
+
+	def qdescrip(self):
+		ts = [
+			self.longname,
+			"Note: Uses 120 Rodinium!"
+		]
+		if not self.powered:
+			ts.append("(unpowered)")
+		return "\n".join(ts)
 
 	def draw0(self):
 		self.drawpartial(graphics.artifact[2])
@@ -730,7 +901,8 @@ class WSat(Thing):
 	gpower = 10, 0, 0
 	cost = 5, 0, 0
 	shortname = "W-Sat"
-	launchclock = 0.6
+	longname = "Wonderflonium Satellite"
+	launchclock = 0.3
 	
 	def __init__(self, launcher, cruise=None, h0=0):
 		u = launcher.u
@@ -741,10 +913,13 @@ class WSat(Thing):
 		self.t = 0
 		self.cruise = cruise or self.cruise
 		self.phi = (-1 if random.random() < 0.5 else 1) * random.uniform(40, 100)
+		self.theta = 0
 		self.h = self.h0 = h0
 
 	def think(self, dt):
 		self.t += dt
+		self.theta += self.phi * dt
+		self.theta %= 360
 		if self.launched:
 			self.h = self.cruise
 			if self.t < 3:
@@ -762,7 +937,7 @@ class WSat(Thing):
 
 	def xform(self):
 		Thing.xform(self)
-		glRotate(self.phi * self.t % 360, 0, 0, 1)
+		glRotate(self.theta, 0, 0, 1)
 		if not self.launched:
 			glRotate(self.vh * 50 % 360, 0, 1, 0)
 
@@ -782,7 +957,8 @@ class BSat(WSat):
 	gpower = 0, 10, 0
 	cost = 5, 0, 0
 	shortname = "B-Sat"
-	launchclock = 1
+	longname = "Bombastium Satellite"
+	launchclock = 0.6
 
 	def draw0(self):
 		graphics.draw(graphics.satellite[1], self.fdeploy)
@@ -791,6 +967,7 @@ class RSat(WSat):
 	gpower = 0, 0, 10
 	cost = 5, 5, 0
 	shortname = "R-Sat"
+	longname = "Rodinium Satellite"
 	launchclock = 1
 
 	def draw0(self):
@@ -833,11 +1010,17 @@ class Wire(Thing):
 		glEnd()
 		glEnable(GL_LIGHTING)
 
+lastplay = 0
 class Explosion(Thing):
 	def __init__(self, *args):
 		Thing.__init__(self, *args)
 		self.ps = [vec(0, 0, 0) for _ in range(200)]
 		self.vs = [vec.randomunit(random.uniform(5, 15)) for _ in range(200)]
+		global lastplay
+		import time
+		if time.time() - lastplay > 1:
+			sound.play("explode")
+			lastplay = time.time()
 
 	def think(self, dt):
 		Thing.think(self, dt)
@@ -851,6 +1034,21 @@ class Explosion(Thing):
 		glScale(r, r, r)
 		a = self.t / 0.6
 		graphics.draw(graphics.splode, coloroverride = (0.1 + 0.5 * a, 0.1 + 0.3 * a, 0.1 + 0.1 * a, 1 - a))
+		glPointSize(1)
+
+class Healsplosion(Thing):
+	def think(self, dt):
+		Thing.think(self, dt)
+		if self.t > 0.5:
+			self.alive = False
+
+	def draw0(self):
+		r, dz = 10 * self.t, 10 - 20 * self.t * self.t
+		glPointSize(int(camera.wthick() * 10))
+		glTranslate(0, 0, dz)
+		glScale(r, r, r)
+		a = self.t / 0.5
+		graphics.draw(graphics.splode, coloroverride = (1, 1, 1, 1 - a))
 		glPointSize(1)
 
 

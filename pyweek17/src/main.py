@@ -1,9 +1,9 @@
-import pygame, math
+import pygame, math, os.path
 from pygame.constants import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-import scene, settings, scenes.game, scenes.menu, graphics, sound
+import scene, settings, scenes.game, scenes.menu, graphics, sound, state
 
 math.tau = 2 * math.pi
 
@@ -15,9 +15,10 @@ def main():
 	graphics.setmode()
 	graphics.init()
 
-
-	settings.level = 0
 	scene.push(scenes.menu)
+	if not settings.restart and os.path.exists(state.fname):
+		state.load()
+		scene.push(scenes.game)
 	clock = pygame.time.Clock()
 	while scene.top():
 		dt = min(0.001 * clock.tick(settings.fps), 0.5)

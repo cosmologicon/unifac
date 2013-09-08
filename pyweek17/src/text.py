@@ -90,7 +90,7 @@ class Texture(object):
 		glVertex(x0 + self.sw, y0, 0)
 		glEnd()
 
-	def clear():
+	def clear(self):
 		glDeleteTextures([self.texture])
 
 

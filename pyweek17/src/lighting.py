@@ -26,6 +26,9 @@ def init():
 	glLight(GL_LIGHT2, GL_SPECULAR, [0,0,0,1])
 
 	# LIGHT 3: damaged structure	
+	glLight(GL_LIGHT3, GL_AMBIENT, [0.2,0.2,0.1,1])
+	glLight(GL_LIGHT3, GL_DIFFUSE, [1,1,0.3,1])
+	glLight(GL_LIGHT3, GL_SPECULAR, [0,0,0,1])
 
 	# LIGHT 4: selected structure
 	glLight(GL_LIGHT4, GL_AMBIENT, [1,1,0.5,1])
@@ -50,7 +53,10 @@ def init():
 def setmoonlight(ambient, diffuse):
 	glLight(GL_LIGHT5, GL_AMBIENT, [ambient[0], ambient[1], ambient[2], 1])
 	glLight(GL_LIGHT5, GL_DIFFUSE, [diffuse[0], diffuse[1], diffuse[2], 1])
-	
+
+def setdamagelight(a):
+	glLight(GL_LIGHT3, GL_AMBIENT, [0.2+0.1*a,0.2+0.1*a,0.2-0.1*a,1])
+	glLight(GL_LIGHT3, GL_DIFFUSE, [0.5+0.4*a,0.5+0.4*a,0.5-0.4*a,1])
 
 def setpos(lightpos):
 	for l in lights:
@@ -73,6 +79,9 @@ def invalid():
 
 def disabled():
 	setlight(GL_LIGHT1)
+
+def damaged():
+	setlight(GL_LIGHT3)
 
 def select():
 	setlight(GL_LIGHT4)
