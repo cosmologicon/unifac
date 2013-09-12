@@ -28,6 +28,7 @@ artifacts = []
 
 fname = data.filepath("savegame.pkl")
 def save():
+	print "saving", settings.savetime
 	obj = R, structures, wires, satellites, copters, stuff, debris, effects, hq, t, tick, ttick, reserves, materials, buildable, buildclock, launchclock, artifacts, wintime, nsat, satcon, status, ppow, mpow, cpow, reserves, tsatkill, tshutdown, tasteroids, settings.level
 	cPickle.dump(obj, open(fname, "wb"))
 
@@ -124,9 +125,9 @@ def init():
 
 
 def checklose():
-	if not hq.alive:
+	if not hq.alive or hq.hp <= 0:
 		return True
-	if settings.level == 3 and not artifacts:
+	if settings.level == 3 and any(a.hp <= 0 for a in artifacts):
 		return True
 	return False
 
@@ -259,9 +260,9 @@ def think(dt):
 	while tick > 1:
 		runtick()
 		tick -= 1
-	while ttick > 30:
+	while settings.tclear is not None and ttick > settings.tclear:
 		text.clear()
-		ttick -= 30
+		ttick -= settings.tclear
 	satellites = [s for s in satellites if s.alive]
 	copters = [s for s in copters if s.alive]
 	structures = [s for s in structures if s.alive]

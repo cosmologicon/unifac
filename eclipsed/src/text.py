@@ -64,6 +64,7 @@ class Texture(object):
 
 	def maketexture(self, surf):
 		sw, sh = surf.get_size()
+		print sw, sh, surf.get_bytesize()
 		data = numpy.hstack([
 			numpy.reshape(pygame.surfarray.pixels3d(surf), [sw * sh, 3]),
 			numpy.reshape(pygame.surfarray.pixels_alpha(surf), [sw * sh, 1])

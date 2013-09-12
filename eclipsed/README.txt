@@ -3,22 +3,23 @@ Eclipsed
 
 PyWeek 17
 Team: Universe Factory 17
-Members: Cosmologicon
+Members: Christopher Night (Cosmologicon)
 
 
 Running the Game
 ----------------
 
-You must have python 2, pygame, and pyopengl installed. I used python 2.7, pygame 1.9.1, and
-pyopengl 3.0.1
+You must have python 2, pygame, pyopengl, and numpy installed. I used python 2.7, pygame 1.9.1, and
+pyopengl 3.0.1.
 
   http://www.python.org/getit/
   http://www.pygame.org/download.shtml
   http://pyopengl.sourceforge.net/
+  http://www.numpy.org/
 
 On Ubuntu you can just say:
 
-  sudo apt-get install python python-pygame python-opengl
+  sudo apt-get install python python-pygame python-opengl python-numpy
 
 Double-click on run_game.pyw or open a terminal and run from the game directory:
 
@@ -32,8 +33,8 @@ Follow the in-game instructions.
 
 Use the mouse mostly.
 
-You can control the camera with the keyboard or the mouse. Use WASD and the arrow keys, or
-left and right drag. Hold shift (or press Caps Lock) to swap the bindings.
+You can control the camera with the keyboard or the mouse. Use WASD *and* the arrow keys, or
+left *and* right drag. Hold shift (or press Caps Lock) to swap the bindings.
 
 Scroll wheel or Ins/Del to zoom.
 
