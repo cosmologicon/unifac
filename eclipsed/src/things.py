@@ -338,7 +338,7 @@ class Material(Thing):
 			self.parent.payload = None
 			self.parent = None
 		carrier.seekhome()
-		state.stuff.remove(self)
+		if self in state.stuff: state.stuff.remove(self)
 
 	def die(self):
 		state.stuff.remove(self)

@@ -19,6 +19,7 @@ level = None
 unlocked = 0
 speedup = 1
 savetime = 5
+tclear = None
 
 prefsfile = data.filepath("prefs.pkl")
 
@@ -46,10 +47,16 @@ if "--2x" in sys.argv:
 	speedup = 2
 if "--unlockall" in sys.argv:
 	unlocked = 99
+if "--tclear" in sys.argv:
+	tclear = 60
+if "--nosave" in sys.argv:
+	savetime = None
 
 for arg in sys.argv:
 	if arg.startswith("--r="):
 		wsize = map(int, arg[4:].split("x"))
+	if arg.startswith("--savetime="):
+		savetime = int(arg[11:])
 
 save()
 

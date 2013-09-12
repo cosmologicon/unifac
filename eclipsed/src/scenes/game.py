@@ -46,7 +46,7 @@ def think(dt, events, kpress):
 	sound.setvolume(alpha)
 
 	lastsave += dt
-	if lastsave > settings.savetime:
+	if settings.savetime is not None and lastsave > settings.savetime:
 		lastsave = 0
 		state.save()
 
