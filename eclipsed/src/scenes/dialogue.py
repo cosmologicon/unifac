@@ -24,7 +24,7 @@ def init():
 	lines = list(info.dialogue[settings.level]) + [info.missionhelp[settings.level]]
 	hud.dialoguebox.settext(lines.pop(0))
 
-def think(dt, events, kpress):
+def think(dt, events, kpress, mpos):
 	global alpha, playing
 	playing = bool(hud.dialoguebox)
 	if playing:
@@ -56,7 +56,7 @@ def think(dt, events, kpress):
 	hud.think(dt)
 
 
-def draw():
+def draw(mpos):
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 	glEnable(GL_DEPTH_TEST)
 

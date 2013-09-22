@@ -20,6 +20,11 @@ unlocked = 0
 speedup = 1
 savetime = 5
 tclear = None
+vidcap = False
+skipmenu = False   # quit directly to the console?
+getrecord = False
+playback = False
+fixfps = False   # game clock forced to run at given framerate
 
 prefsfile = data.filepath("prefs.pkl")
 
@@ -51,6 +56,15 @@ if "--tclear" in sys.argv:
 	tclear = 60
 if "--nosave" in sys.argv:
 	savetime = None
+if "--getrecord" in sys.argv:
+	getrecord = True
+	fixfps = True
+if "--playback" in sys.argv:
+	vidcap = True
+	playback = True
+	fixfps = True
+if "--skipmenu" in sys.argv:
+	skipmenu = True
 
 for arg in sys.argv:
 	if arg.startswith("--r="):

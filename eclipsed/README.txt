@@ -56,6 +56,15 @@ Default resolution is 854x480. Any size should work.
 --nomusic : disable music
 
 
+Taking a gameplay video on Linux
+--------------------------------
+
+sudo apt-get install imagemagick vorbis-tools mencoder
+python run_game.py --getrecord --skipmenu  (save record as you play)
+python run_game.py --playback --skipmenu   (create image frames based on your playthrough)
+python src/vidcap.py                       (combine images into video)
+
+
 License
 -------
 

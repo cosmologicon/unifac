@@ -33,7 +33,7 @@ def init():
 def resume():
 	init()
 
-def think(dt, events, kpress):
+def think(dt, events, kpress, mpos):
 
 	global alpha
 	if playing:
@@ -53,7 +53,7 @@ def think(dt, events, kpress):
 
 	for event in events:
 		if event.type == MOUSEBUTTONDOWN and event.button == 1:
-			px, py = pygame.mouse.get_pos()
+			px, py = mpos
 			if hud.click((px, settings.sy - py)):
 				continue
 		if event.type == KEYDOWN and event.key == K_CAPSLOCK:
@@ -65,12 +65,12 @@ def think(dt, events, kpress):
 	camera.move(1 * dx, 1 * dy, 0.7 * dr, 0.7 * dA)
 	camera.think(dt)
 
-	px, py = pygame.mouse.get_pos()
+	px, py = mpos
 	hud.point((px, settings.sy - py))
 
 	hud.think(dt)
 
-def draw():
+def draw(mpos):
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 	glEnable(GL_DEPTH_TEST)
 #	glEnable(GL_CULL_FACE)
