@@ -28,15 +28,19 @@ artifacts = []
 
 fname = data.filepath("savegame.pkl")
 def save():
-	print "saving", settings.savetime
-	obj = R, structures, wires, satellites, copters, stuff, debris, effects, hq, t, tick, ttick, reserves, materials, buildable, buildclock, launchclock, artifacts, wintime, nsat, satcon, status, ppow, mpow, cpow, reserves, tsatkill, tshutdown, tasteroids, settings.level
-	cPickle.dump(obj, open(fname, "wb"))
+	cPickle.dump(saveobj(), open(fname, "wb"))
+
+def saveobj():
+	return R, structures, wires, satellites, copters, stuff, debris, effects, hq, t, tick, ttick, reserves, materials, buildable, buildclock, launchclock, artifacts, wintime, nsat, satcon, status, ppow, mpow, cpow, reserves, tsatkill, tshutdown, tasteroids, settings.level
+
 
 def load():
 	if not os.path.exists(fname):
 		init()
 		return
-	obj = cPickle.load(open(fname, "rb"))
+	loadobj(cPickle.load(open(fname, "rb")))
+
+def loadobj(obj):
 	global R, structures, wires, satellites, copters, stuff, debris, effects, hq, t, tick, ttick, reserves, materials, buildable, buildclock, launchclock, artifacts, wintime, nsat, satcon, status, ppow, mpow, cpow, reserves, tsatkill, tshutdown, tasteroids
 	R, structures, wires, satellites, copters, stuff, debris, effects, hq, t, tick, ttick, reserves, materials, buildable, buildclock, launchclock, artifacts, wintime, nsat, satcon, status, ppow, mpow, cpow, reserves, tsatkill, tshutdown, tasteroids, settings.level = obj
 

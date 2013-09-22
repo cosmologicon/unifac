@@ -25,7 +25,7 @@ def init():
 	sound.playmusic(info.music[settings.level])
 
 
-def think(dt, events, kpress):
+def think(dt, events, kpress, mpos):
 
 	global alpha, playing, ending, lastsave
 	if playing and not ending:
@@ -52,8 +52,9 @@ def think(dt, events, kpress):
 
 	if kpress[K_ESCAPE]:
 		state.save()
-		scene.pop()
-		scene.pop()
+#		scene.pop()
+#		scene.pop()
+		playing = False
 
 	dx = ((kpress[K_RIGHT]) - (kpress[K_LEFT])) * dt
 	dy = ((kpress[K_UP]) - (kpress[K_DOWN])) * dt
@@ -67,7 +68,7 @@ def think(dt, events, kpress):
 			elif event.button == 5:
 				camera.zoom *= 1.08
 			else:
-				px, py = pygame.mouse.get_pos()
+				px, py = mpos
 				if hud.click((px, settings.sy - py)):
 					continue
 				p = camera.screentoworld((settings.sx - px, settings.sy - py))
@@ -118,7 +119,7 @@ def think(dt, events, kpress):
 	camera.think(dt)
 			
 
-	px, py = pygame.mouse.get_pos()
+	px, py = mpos
 	hud.point((px, settings.sy - py))
 
 	dtobj = dt * settings.speedup
@@ -142,7 +143,7 @@ def think(dt, events, kpress):
 		settings.save()
 
 
-def draw():
+def draw(mpos):
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 	glEnable(GL_DEPTH_TEST)
 #	glEnable(GL_CULL_FACE)
@@ -174,7 +175,7 @@ def draw():
 		obj.drawfx()
 		glPopMatrix()
 
-	px, py = pygame.mouse.get_pos()
+	px, py = mpos
 	p = camera.screentoworld((settings.sx - px, settings.sy - py))
 	
 	cursor.pointingto = None
