@@ -40,7 +40,7 @@ def initstars():
 			for _ in range(10):
 				if random.random() < 0.9:
 					z *= 0.7
-		vertexdata += tuple(vec(x, y, z).norm(5000))
+		vertexdata += tuple(vec(x, y, z).norm(1000))
 		c = random.uniform(0.5, 1)
 		colordata += [c, c, c]
 	stars = makedrawable(GL_POINTS, vertexdata, colordata, None)
@@ -621,6 +621,7 @@ def setmode(fullscreen=None, resolution=None):
 	fsflag = FULLSCREEN if settings.fullscreen else 0
 	pygame.display.quit()
 	pygame.display.init()
+#	pygame.display.gl_set_attribute(pygame.GL_DEPTH_SIZE, 24)
 	pygame.display.set_mode(settings.ssize, DOUBLEBUF | OPENGL | fsflag)
 	pygame.display.set_caption(settings.gamename)
 	glClearColor(0, 0, 0, 1)
