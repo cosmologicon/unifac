@@ -110,7 +110,7 @@ def eye():
 def look():
 	glMatrixMode(GL_PROJECTION)
 	glLoadIdentity()
-	gluPerspective(settings.fov, float(settings.sx) / settings.sy, 0.01, 10000)
+	gluPerspective(settings.fov, float(settings.sx) / settings.sy, 1, 2000)
 
 	gluLookAt(*(eye() + p.times(state.R) + u))
 
