@@ -37,8 +37,9 @@ def saveobj():
 def load():
 	if not os.path.exists(fname):
 		init()
-		return
+		return False
 	loadobj(cPickle.load(open(fname, "rb")))
+	return True
 
 def loadobj(obj):
 	global R, structures, wires, satellites, copters, stuff, debris, effects, hq, t, tick, ttick, reserves, materials, buildable, buildclock, launchclock, artifacts, wintime, nsat, satcon, status, ppow, mpow, cpow, reserves, tsatkill, tshutdown, tasteroids

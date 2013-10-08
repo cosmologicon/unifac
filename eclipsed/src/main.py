@@ -30,11 +30,14 @@ def main():
 	if settings.playback:
 		state0, record = cPickle.load(open(data.filepath("record.pkl"), "rb"))
 		state.loadobj(state0)
+		scene.push(scenes.game if settings.skipmenu else scenes.menu)
 	elif settings.restart:
 		state.init()
+		scene.push(scenes.game if settings.skipmenu else scenes.menu)
 	else:
-		state.load()
-	scene.push(scenes.game if settings.skipmenu else scenes.menu)
+		scene.push(scenes.menu)
+		if state.load():
+			scene.push(scenes.game)
 	clock = pygame.time.Clock()
 
 	if settings.playback:

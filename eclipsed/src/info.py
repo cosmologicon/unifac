@@ -50,8 +50,8 @@ something else.
 """,
 """
 And not just the people, the entire world.
-We very soon came to find ourselves in the
-middle of a vast civilization we could not
+We very soon found ourselves in the middle
+of a vast civilization we could not
 comprehend or enjoy.
 """],
 ["""
@@ -62,29 +62,92 @@ gave us a choice.
 """,
 """
 Continue living in this world beyond our
-understanding, like animals or infants. Or take
+comprehension, like animals or infants. Or take
 to the unused moons, and build worlds we could
-call our own.
-"""],
+call our own. We almost all chose to leave.
+""",
+"""
+They gave us technology to make the moons
+hospitable to life. Bizarre artifacts we use
+without understanding.
+""",
+"""
+And so here we are, trying to make a home for
+ourselves on the dark, barren moons. But we
+haven't forgotten the world that was once ours.
+""",
+],
 ["""
-Almost all of us chose to leave. So here we
-are, building microcosms of the world that was
-taken from us.
+We've suffered out here in the outer solar system
+long enough. It's time to go home.
 """,
 """
-We, the last humans, claim the moons as our
-own. Which is why it's time for us to return
-to the moon of the world where we once lived.
+We'll never take Earth itself - they've advanced
+too far - but what about Earth's Moon? With our
+experience colonizing the outer moons, we just
+might have a shot.
 """,
 """
-We may have given up the Earth - what choice
-did we have? But the moons are ours! And if we
-won't be given this one, we'll take it!
+We are the last humans, and we claim the moons as
+our own. We may have given up the Earth - what
+choice did we have? But the moons belong to us,
+and it's time for us to take what's ours!
 """
 ],
-
-
 ]
+
+finaldialogue = """Human!
+Stop!
+
+We appreciate your position. You are being forced
+to deal with rapid changes to the world you once
+knew. Your resentment toward us is understandable.
+
+But there's something we must tell you. A secret
+was kept from you. A decision made before the first
+upgrade. It's time you knew.
+
+You were told that your brain was incompatible with
+the first upgrade. This was a lie. You and several
+million other humans were chosen at random to be
+denied the upgrade. You had an important purpose
+to serve.
+
+You see, with the upgrade came risk. Not to the
+brain - it was physically harmless - but to the
+world, to civilization. What would happen when such
+an unpredictable element was introduced? We did
+not know. Psychohistory was very primitive.
+
+Thus we needed a contingency plan, a last resort
+if the society we created collapsed into utter ruin.
+That last resort was you. The risk of the upgrade
+was only acceptable because we could count on you
+to safely maintain the old ways.
+
+Thanks to you and your fellow humans, we were
+able to take the risk, and we have now advanced
+to the point that we no longer require a contingency
+plan. You have fulfilled your purpose excellently,
+and you must now decide what to do next.
+
+Four years ago you made a difficult choice. Now
+you must make another. You can continue to live as
+a human, in worlds of your own making.
+
+You can have the Moon, to do with as you please. You
+can even have Earth when we leave this solar system
+in 9.7 years. With modern medicine you will live for
+another 318 years, at which point your brain will
+deteriorate beyond repair.
+
+However, the upgrades are still available to you. If
+you wish, you may use them now. You can join us, living
+forever in a vast society as we reach out to the
+stars.
+
+The choice is yours, last humans. We await your decision.""".split("\n\n")
+
 
 
 """Don't think of it as exile. After all, we technically chose to come out here, if you can call that a choice. We no longer belong on Earth - the outer moons are our home now. Still, I can't help but think back to how it all happened...."""
@@ -170,8 +233,7 @@ missionhelp = [
 	"""Umbriel: Moon of Uranus\nMission: build 3 Satcon Dishes""",
 	"""Tethys: Moon of Saturn\nMission: remove all debris\n\nExtractors operating at double capacity.""",
 	"""Ganymede: Moon of Jupiter\nMission: activate the artifact for 30 seconds.\nArtifact requires all three hookups to activate,\nand uses a large amount of power.""",
-	"""Earth's Moon\nMission: Keep the artifact alive and active for 30 seconds.\nUnlimited materials available.\nSatellites operating at double capacity.\nThis is the final mission. See README.txt\nfor the final cutscene I left out.""",
-
+	"""Earth's Moon\nFinal Mission:\nKeep the artifact alive and active for 30 seconds.\nUnlimited materials available.\nSatellites operating at double capacity.""",
 ]
 
 moonlights = [
@@ -219,7 +281,7 @@ locked = [
 	"buildwrelay buildwbasin buildwbooster buildmedic buildbrelay buildbbasin buildbbooster buildr buildrextractor buildcleaner buildrrelay buildrbasin buildrbooster launchrsat".split(),
 	"buildwbasin buildwbooster buildmedic buildbbasin buildbboster buildrbasin buildrbooster".split(),
 	"buildwbooster buildmedic buildbboster buildrbooster".split(),
-	"".split()
+	"buildwextractor buildbextractor buildrextractor buildcollector".split()
 ]
 
 

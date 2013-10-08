@@ -91,6 +91,9 @@ class SubButton(Button):
 	indent0 = 2
 	width0 = 10
 
+class OptButton(SubButton):
+	width0 = 12
+
 
 class BuildButton(SubButton):
 	def __init__(self, btype):
@@ -219,7 +222,7 @@ class Titlebox(Textbox):
 			self.hanchor, self.vanchor, alpha=self.alpha)
 
 class Dialoguebox(Textbox):
-	color = 220, 250, 220
+	color = 200, 255, 200
 	size0 = 3
 	vanchor = 1
 	def __init__(self, name):
@@ -336,10 +339,10 @@ class Launchinfobox(Textbox):
 
 
 def f(size):
-	return int(round(size * settings.sy / 32.0))
+	return int(round(size * min(settings.sy, settings.sx * 9 / 16) / 32.0))
 
 def init():
-	for cls in [Button, SubButton, BuildButton, LaunchButton, HelpButton]:
+	for cls in [Button, SubButton, BuildButton, LaunchButton, HelpButton, OptButton]:
 		cls.size = f(cls.size0)
 		cls.indent = f(cls.indent0)
 		cls.width = f(cls.width0)
@@ -410,17 +413,23 @@ def init():
 	LevelButton(1)
 	LevelButton(2)
 	LevelButton(3)
-	SubButton("soundtoggle", "SOUND: ON")
-	SubButton("musictoggle", "MUSIC: ON")
-	SubButton("fullscreentoggle", "FULLSCREEN: OFF")
+	OptButton("soundtoggle", "SOUND: ON")
+	OptButton("musictoggle", "MUSIC: ON")
+	OptButton("fullscreentoggle", "FULLSCREEN: OFF")
+	OptButton("wsizesmall", "WINDOW: 640x360")
+	OptButton("wsizemedium", "WINDOW: 854x480")
+	OptButton("wsizelarge", "WINDOW: 1280x720")
+	OptButton("wsizevlarge", "WINDOW: 1920x1080")
 	buttons["soundtoggle"].words = "SOUND: %s" % ("ON" if settings.sound else "OFF")
 	buttons["musictoggle"].words = "MUSIC: %s" % ("ON" if settings.music else "OFF")
 	buttons["fullscreentoggle"].words = "FULLSCREEN: %s" % ("ON" if settings.fullscreen else "OFF")
 
-	global endtitle, dialoguebox
+	global endtitle, dialoguebox, finaldialoguebox
 	endtitle = Endtitlebox("endtitle")
 	del labels["endtitle"]
 	dialoguebox = Dialoguebox("dialogue")
+	finaldialoguebox = Dialoguebox("dialogue")
+	finaldialoguebox.color = 255, 255, 128
 	del labels["dialogue"]
 
 	
@@ -436,6 +445,7 @@ def think(dt):
 		label.think(dt)
 	endtitle.think(dt)
 	dialoguebox.think(dt)
+	finaldialoguebox.think(dt)
 
 	if cursor.tobuild:
 		labels["cursor"].settext("Click to build")
@@ -552,7 +562,7 @@ def levelmode():
 	clearlabels()
 
 def optionsmode():
-	setmode("options", "selectlevel options fullscreentoggle soundtoggle musictoggle credits quitgame")
+	setmode("options", "selectlevel options fullscreentoggle wsizesmall wsizemedium wsizelarge wsizevlarge soundtoggle musictoggle credits quitgame")
 	clearlabels()
 	labels["helppage"].settext("\n\nPlease restart game to\napply changes to graphics settings.")
 	
@@ -735,10 +745,26 @@ def clickon(bname):
 	if bname == "fullscreentoggle":
 		settings.fullscreen = not settings.fullscreen
 		settings.save()
+	if bname == "wsizesmall":
+		settings.wsize = 640, 360
+		settings.save()
+	if bname == "wsizemedium":
+		settings.wsize = 854, 480
+		settings.save()
+	if bname == "wsizelarge":
+		settings.wsize = 1280, 720
+		settings.save()
+	if bname == "wsizevlarge":
+		settings.wsize = 1920, 1080
+		settings.save()
 	if mode == "options":
 		buttons["soundtoggle"].words = "SOUND: %s" % ("ON" if settings.sound else "OFF")
 		buttons["musictoggle"].words = "MUSIC: %s" % ("ON" if settings.music else "OFF")
 		buttons["fullscreentoggle"].words = "FULLSCREEN: %s" % ("ON" if settings.fullscreen else "OFF")
+		for sname in "small medium large vlarge".split():
+			b = buttons["wsize" + sname]
+			size = map(int, b.words.split()[-1].split("x"))
+			b.color = (180, 255, 180) if tuple(size) == tuple(settings.wsize) else (180, 180, 180)
 
 	sound.play(soundname)
 
