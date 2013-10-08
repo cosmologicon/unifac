@@ -21,19 +21,18 @@ def init():
 	playing = True
 	alpha = 0
 	global lines
-	lines = list(info.dialogue[settings.level]) + [info.missionhelp[settings.level]]
-	hud.dialoguebox.settext(lines.pop(0))
+	lines = list(info.finaldialogue)
+	hud.finaldialoguebox.settext(lines.pop(0))
 
 def think(dt, events, kpress, mpos):
 	global alpha, playing
-	playing = bool(hud.dialoguebox)
+	playing = bool(hud.finaldialoguebox)
 	if playing:
 		alpha = min(1 * dt + alpha, 1)
 	else:
 		alpha -= 1 * dt
 		if alpha <= 0:
-			state.init()
-			scene.swap(scenes.game)
+			scene.pop()
 			return
 	sound.setvolume(alpha)
 
@@ -43,11 +42,11 @@ def think(dt, events, kpress, mpos):
 	for event in events:
 		if event.type == MOUSEBUTTONDOWN:
 			if event.button == 1:
-				hud.dialoguebox.settext(lines.pop(0) if lines else None)
+				hud.finaldialoguebox.settext(lines.pop(0) if lines else None)
 		if event.type == KEYDOWN and event.key == K_SPACE:
-			hud.dialoguebox.settext(lines.pop(0) if lines else None)
+			hud.finaldialoguebox.settext(lines.pop(0) if lines else None)
 		if event.type == KEYDOWN and event.key == K_ESCAPE:
-			hud.dialoguebox.settext()
+			hud.finaldialoguebox.settext()
 		if event.type == KEYDOWN and event.key == K_F12:
 			graphics.screenshot()
 
@@ -70,7 +69,7 @@ def draw(mpos):
 
 	text.setup()
 
-	hud.dialoguebox.draw()
+	hud.finaldialoguebox.draw()
 
 	if alpha < 1:
 		glPushMatrix()
@@ -80,4 +79,6 @@ def draw(mpos):
 
 	glDisable(GL_TEXTURE_2D)
 
+def resume():
+	sound.playmusic(info.music["menu"])
 

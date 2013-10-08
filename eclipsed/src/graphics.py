@@ -546,9 +546,9 @@ def init():
 	global stars, moon, stone, relay, platform, dish, block, helmet, satellite, basin, mine, trashbin, launchpad, copter, barrel, hq, spindle, piston, medic, wings, artifact, splode, vbodata
 
 	fname = data.filepath("graphics.pkl")
-	if os.path.exists(fname):
+	try:
 		stars, moon, stone, relay, platform, dish, block, helmet, satellite, basin, mine, trashbin, launchpad, copter, barrel, hq, spindle, piston, medic, wings, artifact, splode, vbodata = cPickle.load(open(fname, "rb"))
-	else:
+	except:
 		for x, f in list(globals().items()):
 			if x.startswith("init") and x != "init":
 				f()
@@ -600,10 +600,11 @@ def fill(*color):
 
 
 def screenshot():
-	data = glReadPixels(0, 0, settings.sx, settings.sy, GL_RGB, GL_UNSIGNED_BYTE)
-	data = numpy.fromstring(data, dtype=numpy.uint8).reshape((settings.sy, settings.sx, 3))
+	sx, sy = pygame.display.get_surface().get_size()
+	data = glReadPixels(0, 0, sx, sy, GL_RGB, GL_UNSIGNED_BYTE)
+	data = numpy.fromstring(data, dtype=numpy.uint8).reshape((sx, sy, 3))
 	data = numpy.transpose(data, (1, 0, 2))[:,::-1,:]
-	surf = pygame.Surface((settings.sx, settings.sy)).convert_alpha()
+	surf = pygame.Surface((sx, sy)).convert_alpha()
 	pygame.surfarray.pixels3d(surf)[:] = data
 	pygame.image.save(surf, "screenshot-%s.png" % datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
 

@@ -3,7 +3,7 @@ from pygame.constants import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-import scene, settings, random, graphics, camera, text, things, state, cursor, hud, lighting, info, sound
+import scene, settings, random, graphics, camera, text, things, state, cursor, hud, lighting, info, sound, scenes.final
 from vec import vec
 
 playing = True
@@ -52,8 +52,8 @@ def think(dt, events, kpress, mpos):
 
 	if kpress[K_ESCAPE]:
 		state.save()
-#		scene.pop()
-#		scene.pop()
+		scene.pop()
+		scene.pop()
 		playing = False
 
 	dx = ((kpress[K_RIGHT]) - (kpress[K_LEFT])) * dt
@@ -62,6 +62,11 @@ def think(dt, events, kpress, mpos):
 	dA = ((kpress[K_COMMA] or kpress[K_w]) - (kpress[K_o] or kpress[K_s])) * dt
 
 	for event in events:
+		if event.type == QUIT:
+			state.save()
+			scene.pop()
+			scene.pop()
+			playing = False
 		if event.type == MOUSEBUTTONDOWN:
 			if event.button == 4:
 				camera.zoom /= 1.08
@@ -100,6 +105,11 @@ def think(dt, events, kpress, mpos):
 #			camera.seek((0, 0, 1))
 		if event.type == KEYDOWN and event.key == K_CAPSLOCK:
 			settings.swaparrows = not settings.swaparrows
+		if event.type == KEYDOWN and event.key == K_F3 and settings.unlocked >= 99:
+			if settings.level == 3:
+				scene.pushunder(scenes.final)
+			ending = True
+			hud.endtitle.settext("Mission Complete")
 		if event.type == KEYDOWN and event.key == K_F12:
 			graphics.screenshot()
 		if event.type == KEYDOWN and event.key == K_INSERT:
@@ -132,16 +142,18 @@ def think(dt, events, kpress, mpos):
 	
 	hud.setstatus()
 
-	if state.checklose():
-		ending = True
-		hud.endtitle.settext("Mission Failed")
-	elif state.checkwin(dt):
-		sound.play("success")
-		ending = True
-		hud.endtitle.settext("Mission Complete")
-		settings.unlocked = max(settings.unlocked, settings.level + 1)
-		settings.save()
-
+	if not ending:
+		if state.checklose():
+			ending = True
+			hud.endtitle.settext("Mission Failed")
+		elif state.checkwin(dt):
+			if settings.level == 3:
+				scene.pushunder(scenes.final)
+			sound.play("success")
+			ending = True
+			hud.endtitle.settext("Mission Complete")
+			settings.unlocked = max(settings.unlocked, settings.level + 1)
+			settings.save()
 
 def draw(mpos):
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)

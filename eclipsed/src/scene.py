@@ -8,6 +8,10 @@ def push(newscene):
 	stack.append(newscene)
 	newscene.init()
 
+def pushunder(newscene):
+	stack.insert(-1, newscene)
+	newscene.init()
+
 def pop():
 	s = stack.pop() if stack else None
 	if top():
