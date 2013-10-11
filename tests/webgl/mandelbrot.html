@@ -160,12 +160,8 @@ function go (dt) {
 		x0 -= mstate.left.drag.dx / zoom
 		y0 += mstate.left.drag.dy / zoom
 	}
-//	if (mstate.right.down) {
-//		itmax *= 1.05
-//	}
-	itmax = 100 + z * 35
+	itmax = 160 + z * 35
 
-//	var zoom = Math.exp(12 + 8 * Math.sin(0.0004 * Date.now()))
 	gl.uniform2f(uniforms.canvassize, canvas.width, canvas.height)
 	gl.uniform2f(uniforms.center, x0, y0)
 	gl.uniform1f(uniforms.zoom, zoom)
@@ -174,7 +170,7 @@ function go (dt) {
 	gl.enableVertexAttribArray(attribs.pos)
 	gl.vertexAttribPointer(attribs.pos, 2, gl.FLOAT, false, 0, 0);
 	gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
-	fpscounter.value = z + " " + itmax + " " + UFX.ticker.wfps.toPrecision(3) + "fps"
+	fpscounter.value = UFX.ticker.wfps.toPrecision(3) + "fps"
 }
 
 UFX.mouse.capture.wheel = true
