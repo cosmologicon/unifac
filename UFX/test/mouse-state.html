@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <link href='http://fonts.googleapis.com/css?family=Viga' rel='stylesheet' type='text/css'>
-<title>UFX.mouse test</title>
+<title>UFX.mouse.state test</title>
 <script src="../src/mouse.js"></script>
 <style>
 body {
@@ -30,7 +30,9 @@ td {
 <div id=gamebox style="margin: auto; text-align: center">
 <canvas id=canvas style="border: 20px blue outset; margin: 10px"></canvas>
 <div>
+<p><input type=text id=jsonlen readonly></input>
 <p><input type=text id=mousepos readonly></input>
+<p><input type=text id=mousedpos readonly></input>
 <p><input type=text id=mousedrag readonly></input>
 <p><input type=text id=clickinfo readonly></input>
 <p><input type=checkbox onclick="UFX.mouse.capture.middle = this.checked">
@@ -45,6 +47,7 @@ var canvas = document.getElementById("canvas")
 canvas.width = 400
 canvas.height = 300
 var context = canvas.getContext("2d")
+var jsonlen = document.getElementById("jsonlen")
 var mousepos = document.getElementById("mousepos")
 var clickinfo = document.getElementById("clickinfo")
 
@@ -81,36 +84,36 @@ function drawdot(pos, color) {
 }
 
 function draw() {
-	var ldrag = UFX.mouse.drag.left
-	var dx = ldrag ? ldrag.dx : null
-	var dy = ldrag ? ldrag.dy : null
-    mousepos.value = "pos: " + (UFX.mouse.pos && UFX.mouse.pos[0].toFixed(1) + ", " + UFX.mouse.pos[1].toFixed(1))
-    mousedrag.value = UFX.mouse.drag ? "left drag: " + dx + "," + dy
-                        : "point: " + UFX.mouse.pos
+  	var mstate = UFX.mouse.state()
+  	jsonlen.value = "JSON length: " + JSON.stringify(mstate).length
+    mousepos.value = "pos: " + (mstate.pos && mstate.pos[0].toFixed(1) + ", " + mstate.pos[1].toFixed(1))
+    mousedpos.value = "dpos: " + (mstate.dpos && mstate.dpos[0].toFixed(1) + ", " + mstate.dpos[1].toFixed(1))
 
-    UFX.mouse.events().forEach(function (event) {
-        if (event.type == "up") {
-            drawdot(event.pos, ["red", "orange", "yellow"][event.button])
-            clickinfo.value = "Click: dt=" + event.dt + "  (dx,dy)=" + event.dx + "," + event.dy
-        }
-    })
+  	var ldrag = mstate.left.drag
+  	var dx = ldrag ? ldrag.dx : null
+  	var dy = ldrag ? ldrag.dy : null
+    mousedrag.value = UFX.mouse.drag ? "left drag: " + dx + "," + dy : "point: " + mstate.pos
     
-    bcolor += UFX.mouse.getwheeldy()
+    bcolor += mstate.wheeldy || 0
     bcolor = ((bcolor % 255) + 255) % 255
     context.fillStyle = "rgb(0,0," + Math.floor(bcolor) + ")"
 
     context.fillRect(0, 0, 400, 300)
     context.drawImage(grid, 0, 0)
     context.drawImage(dots, 0, 0)
-    for (var button in UFX.mouse.drag) {
-    	var drag = UFX.mouse.drag[button]
-        context.strokeStyle = {left: "red", middle: "orange", right: "yellow"}[button]
-        context.beginPath()
-        context.moveTo(drag.pos0[0], drag.pos0[1])
-        context.lineTo(drag.pos[0], drag.pos[1])
-        context.stroke()
-        
-    }
+    ;"left middle right".split(" ").forEach(function (button, jbutton) {
+        if (!mstate[button]) return
+        if (mstate[button].up) {
+            drawdot(mstate[button].up, ["red", "orange", "yellow"][jbutton])
+        }
+        if (mstate[button].isdown) {
+            context.strokeStyle = ["red", "orange", "yellow"][jbutton]
+            context.beginPath()
+            context.moveTo(mstate.pos[0] - mstate[button].dx, mstate.pos[1] - mstate[button].dy)
+            context.lineTo(mstate.pos[0], mstate.pos[1])
+            context.stroke()
+        }
+    })
 
     setTimeout(draw, 20)
 }

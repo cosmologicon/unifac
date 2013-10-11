@@ -1,11 +1,10 @@
 // Mouse module - puts mouse events in a queue
 
-// Does not yet handle horizontal scrolling or multitouch
+// Does not yet handle horizontal scrolling
 
 
-if (typeof UFX == "undefined") UFX = {}
+var UFX = UFX || {}
 UFX.mouse = {}
-
 
 UFX.mouse.active = true
 UFX.mouse.qdown = true
@@ -18,37 +17,48 @@ UFX.mouse.capture = { left: true, middle: false, right: false, wheel: false }
 
 // While the mouse is down, this is updated with info on the current drag event
 UFX.mouse.watchdrag = true
-UFX.mouse.drag = null
+UFX.mouse.drag = {}
 
 UFX.mouse.events = function () {
     var r = UFX.mouse._events
-    UFX.mouse.clearevents()
+    UFX.mouse._clearevents()
     return r
 }
 
 UFX.mouse.state = function () {
     var r = {}
+    r.pos = UFX.mouse.pos
+    if (r.pos && UFX.mouse._opos) {
+        r.dpos = [r.pos[0] - UFX.mouse._opos[0], r.pos[1] - UFX.mouse._opos[1]]
+    } else {
+        r.dpos = [0, 0]
+    }
+    UFX.mouse._opos = r.pos
     if (UFX.mouse.capture.left) r.left = {}
     if (UFX.mouse.capture.middle) r.middle = {}
     if (UFX.mouse.capture.right) r.right = {}
+    for (var b in UFX.mouse.buttonsdown) {
+        if (UFX.mouse.buttonsdown[b] && r[b]) r[b].isdown = true
+    }
     UFX.mouse._events.forEach(function (event) {
         r[UFX.mouse._buttonmap[event.button]][event.type] = event.pos
     })
-    UFX.mouse.clearevents()
+    UFX.mouse._clearevents()
     if (UFX.mouse.capture.wheel) r.wheeldy = UFX.mouse.getwheeldy()
-    if (UFX.mouse.watchdrag && UFX.mouse.drag) {
-    	var drag = UFX.mouse.drag
-    	r[UFX.mouse._buttonmap[drag.button]].drag = {
-    		dx: drag.pos[0] - drag.opos[0],
-    		dy: drag.pos[1] - drag.opos[1],
-		}
-		drag.opos = drag.pos
+    if (UFX.mouse.watchdrag) {
+    	for (var bname in UFX.mouse.drag) {
+    	    if (!r[bname] || !r[bname].isdown) continue
+    	    var drag = UFX.mouse.drag[bname]
+        	r[bname].dx = r.pos[0] - drag.pos0[0]
+        	r[bname].dy = r.pos[1] - drag.pos0[1]
+        	r[bname].dt = Date.now() - drag.t0
+//            drag.opos = drag.pos
+        }
     }
-    r.pos = UFX.mouse.pos
     return r
 }
 
-UFX.mouse.clearevents = function () {
+UFX.mouse._clearevents = function () {
     UFX.mouse._events = []
 }
 
@@ -60,6 +70,9 @@ UFX.mouse.getwheeldy = function () {
 
 // This is updated every mouse event with the last known mouse position (as a length-2 array)
 UFX.mouse.pos = null
+UFX.mouse._opos = null
+// This is updated every event with the latest known info on which mouse buttons are currently down
+UFX.mouse.buttonsdown = {}
 //UFX.mouse.wheeldx = 0
 UFX.mouse.wheeldy = 0
 
@@ -101,7 +114,14 @@ UFX.mouse._elemoffset = function (elem) {
     return [x, y]
 }
 UFX.mouse._geteventpos = function (event, elem) {
-    var off = UFX.mouse._elemoffset(elem || event.target)
+    elem = elem || event.target
+    var off = UFX.mouse._elemoffset(elem)
+    if (elem.style.width || elem.style.height) {
+        var s = elem.style
+        var xf = s.width ? elem.width / parseFloat(s.width) : elem.height / parseFloat(s.height)
+        var yf = s.height ? elem.height / parseFloat(s.height) : elem.width / parseFloat(s.width)
+        return [xf * (event.clientX - off[0]), yf * (event.clientY - off[1])]
+    }
     return [event.clientX - off[0], event.clientY - off[1]]
 }
 
@@ -135,14 +155,16 @@ UFX.mouse._onclick = function (event) {
     return false
 }
 UFX.mouse._onmousedown = function (event) {
-    if (!UFX.mouse.active || !UFX.mouse.capture[UFX.mouse._buttonmap[event.button]]) return true
+    if (!UFX.mouse.active) return true
+    var bname = UFX.mouse._buttonmap[event.button]
+    UFX.mouse.buttonsdown[bname] = true
+    if (!UFX.mouse.capture[bname]) return true
     var pos = UFX.mouse._geteventpos(event)
     if (UFX.mouse.watchdrag) {
-        UFX.mouse.drag = {
+        UFX.mouse.drag[bname] = {
             downevent: event,
-            button: event.button,
             pos0: pos,
-            opos: pos,
+//            opos: pos,
             pos: pos,
             dx: 0,
             dy: 0,
@@ -164,8 +186,11 @@ UFX.mouse._onmousedown = function (event) {
     return false
 }
 UFX.mouse._onmouseup = function (event) {
-    if (!UFX.mouse.active || !UFX.mouse.capture[UFX.mouse._buttonmap[event.button]]) return true
-    if (!UFX.mouse.drag) return true
+    if (!UFX.mouse.active) return true
+    var bname = UFX.mouse._buttonmap[event.button]
+    UFX.mouse.buttonsdown[bname] = false
+    if (!UFX.mouse.capture[bname]) return true
+//    if (!UFX.mouse.drag[bname]) return true
     if (UFX.mouse.qup) {
         var mevent = {
             type: "up",
@@ -174,16 +199,16 @@ UFX.mouse._onmouseup = function (event) {
             time: Date.now(),
             baseevent: event,
         }
-        if (UFX.mouse.drag) {
-            mevent.t0 = UFX.mouse.drag.t0
+        if (UFX.mouse.drag[bname]) {
+            mevent.t0 = UFX.mouse.drag[bname].t0
             mevent.dt = Date.now() - mevent.t0
-            mevent.pos0 = UFX.mouse.drag.pos0
+            mevent.pos0 = UFX.mouse.drag[bname].pos0
             mevent.dx = mevent.pos[0] - mevent.pos0[0]
             mevent.dy = mevent.pos[1] - mevent.pos0[1]
         }
         UFX.mouse._events.push(mevent)
     }
-    UFX.mouse.drag = null
+    delete UFX.mouse.drag[bname]
     event.preventDefault()
     return false
 }
@@ -193,11 +218,12 @@ UFX.mouse._onmousemove = function (event) {
     if (!UFX.mouse.active) return true
     var pos = UFX.mouse._geteventpos(event, UFX.mouse._element)
     UFX.mouse.pos = pos
-    if (UFX.mouse.drag) {
-        UFX.mouse.drag.pos = pos
-        UFX.mouse.drag.dx = pos[0] - UFX.mouse.drag.pos0[0]
-        UFX.mouse.drag.dy = pos[1] - UFX.mouse.drag.pos0[1]
-        UFX.mouse.drag.dt = Date.now() - UFX.mouse.drag.t0
+    for (var bname in UFX.mouse.drag) {
+        var d = UFX.mouse.drag[bname]
+        d.pos = pos
+        d.dx = pos[0] - d.pos0[0]
+        d.dy = pos[1] - d.pos0[1]
+        d.dt = Date.now() - d.t0
     }
     return false
 }
