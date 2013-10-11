@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Skeletal animation editor</title>
+<link href='http://fonts.googleapis.com/css?family=Viga' rel='stylesheet' type='text/css'>
+<style>
+body {
+    background: black; color: white;
+    font-family: 'Viga';
+    font-size: 110%;
+}
+h1 {
+    font-size: 160%;
+    text-align: center;
+    margin: 0.5em auto;
+}
+</style>
+
+<!-- UFX libraries -->
+<script src="../../UFX/src/ticker.js"></script>
+<script src="../../UFX/src/resource.js"></script>
+<script src="../../UFX/src/key.js"></script>
+<script src="../../UFX/src/mouse.js"></script>
+<script src="../../UFX/src/Thing.js"></script>
+
+<script src="skeleton/data.js"></script>
+<script src="skeleton/skeleton.js"></script>
+
+<body>
+<h1>Skeletal animation editor</h1>
+<canvas id=canvas style="border: thick white outset"></canvas>
+
+<script>
+var canvas = document.getElementById("canvas")
+canvas.width = sx = 600 ; canvas.height = sy = 600
+var context = canvas.getContext("2d")
+
+// Pop open a window with text that you can copy
+function popwindow(varname, data) {
+    window.open("data:text/plain;charset=utf-8," + "var " + varname + " = " + JSON.stringify(data))
+}
+
+
+// Load up initial data and resources
+var skeletons = {}
+if (typeof skelspecs === "undefined") {
+    var defaultskel = {
+        partmap: {
+        },
+    }
+    var skelspecs = {
+        default: defaultskel,
+    }
+    popwindow("skelspecs", skelspecs)
+}
+for (var sname in skelspecs) {
+    skeletons[sname] = new Skeleton(skelspecs[sname])
+}
+
+
+
+
+UFX.resource.onload = function () {
+    UFX.ticker.register(think, null, {maxups: 60})
+}
+var imagelist = {}
+for (var sname in skeletons) {
+    for (var partname in skeletons[sname].partmap) {
+        imagelist[partname] = partname + ".png"
+    }
+}
+UFX.resource.base = "skeleton"
+UFX.resource.load(imagelist)
+UFX.key.init()
+UFX.key.watchlist = "comma period".split(" ")
+UFX.mouse.init(canvas)
+UFX.mouse.capture.middle = true
+UFX.mouse.capture.wheel = true
+
+var zoom = 0.5, x0 = 0, y0 = 0
+var dragx0 = 0, dragy0 = 0  // where x0 and y0 were when we started dragging
+var current = {
+    skelname: "mortimer",
+}
+function think(dt) {
+    // HANDLE MOUSE AND KEYBOARD CONTROLS
+    
+    UFX.key.events().forEach(function (event) {
+        // zoom in/out with comma/period
+        if (event.type === "up" && event.name === "comma") zoom /= 1.2
+        if (event.type === "up" && event.name === "period") zoom *= 1.2
+    })
+    // zoom by scrolling
+    zoom *= Math.pow(1.02, UFX.mouse.getwheeldy())
+    // pan by middle dragging
+    if (UFX.mouse.drag && UFX.mouse.drag.button === 1) {
+        x0 = dragx0 - UFX.mouse.drag.dx / zoom
+        y0 = dragy0 - UFX.mouse.drag.dy / zoom
+    } else {
+        dragx0 = x0 ; dragy0 = y0
+    }
+
+
+    context.save()
+    context.fillStyle = "#666"
+    context.fillRect(0, 0, sx, sy)
+    context.translate(sx/2, sy/2)
+    context.scale(zoom, zoom)
+    context.translate(-x0, -y0)
+
+    // DRAW BACKGROUND GRID
+    var xmin = x0 - sx/2 / zoom, xmax = x0 + sx/2 / zoom
+    var ymin = y0 - sx/2 / zoom, ymax = y0 + sy/2 / zoom
+    var majorstep = Math.pow(10, Math.floor(Math.log(sx / zoom / 5) / Math.log(10)))
+    function drawline(x0, y0, x1, y1, color) {
+        context.beginPath()
+        context.moveTo(x0, y0)
+        context.lineTo(x1, y1)
+        context.strokeStyle = color
+        context.stroke()
+    }
+    context.lineWidth = 1.0 / zoom
+    for (var y = majorstep ; y < ymax ; y += majorstep) drawline(xmin, y, xmax, y, "#AAA")
+    for (var y = -majorstep ; y > ymin ; y -= majorstep) drawline(xmin, y, xmax, y, "#AAA")
+    for (var x = majorstep ; x < xmax ; x += majorstep) drawline(x, ymin, x, ymax, "#AAA")
+    for (var x = -majorstep ; x > xmin ; x -= majorstep) drawline(x, ymin, x, ymax, "#AAA")
+    drawline(xmin, 0, xmax, 0, "#AFA")
+    drawline(0, ymin, 0, ymax, "#AFA")
+
+    // DRAW CHARACTER
+    var skeleton = skeletons[current.skelname]
+    skeleton.draw()
+
+
+    context.restore()
+    document.title = UFX.ticker.getfpsstr()
+}
+
+
+</script>
+
+

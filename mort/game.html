@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<title>Mortimer the Lepidopterist</title>
+<!-- UFX libraries -->
+<script src="../UFX/src/ticker.js"></script>
+<script src="../UFX/src/resource.js"></script>
+<script src="../UFX/src/scene.js"></script>
+<script src="../UFX/src/playback.js"></script>
+<script src="../UFX/src/random.js"></script>
+<script src="../UFX/src/noise.js"></script>
+<script src="../UFX/src/texture.js"></script>
+<script src="../UFX/src/Thing.js"></script>
+<script src="../UFX/src/draw.js"></script>
+<script src="../UFX/src/key.js"></script>
+<script src="../UFX/util/playback-reviewer.js"></script>
+
+<style type="text/css">
+p { margin: 0.3em }
+header * { margin: 0 }
+header { margin: 0.4em 0 0 }
+h1, h2 { font-weight: normal }
+body { background: #222 ; color: white ; text-align: center ; font-size: 150% }
+a { color: #AAF ; text-decoration: none }
+* { font-family: 'Contrail One' ; text-shadow: 0.1em 0.1em black }
+button, label { font-size: 100% ; border: medium white outset ; background: rgba(255,255,255,0.1) ; color: inherit ; cursor: pointer }
+label { padding-right: 0.3em }
+input { cursor: pointer }
+ul { margin: 0 ; padding: 0 }
+.controls li { display: inline-block ; margin-left: 0.7em ; margin-right: 0.7em }
+li.cheat { display: none }
+#recnote { font-size: 68% ; text-align: right ; margin: 0 auto ; max-width: 800px }
+</style>
+
+<header>
+<h1>Mortimer the Lepidopterist</h1>
+<p>please use Chrome if possible
+</header>
+<p id="recnote">This game is being recorded. <a href="#" onclick="confirmrecording();return false">(more info)</a>
+<p><canvas id=canvas></canvas>
+<ul class="controls">
+<li><label><input id=playsound name=playsound type=checkbox checked>Sound effects</label>
+<!-- <li><label><input id=playmusic name=playvoice type=checkbox checked>Voice effects</label> -->
+<li><label><input id=playmusic name=playmusic type=checkbox checked>Music</label>
+<li><button type=button onclick="gofullscreen()">Full Screen</button>
+<li class="cheat"><button type=button onclick="cheat()">Cheat</button>
+<li><button type=button onclick="gamestate.reset()">Reset Save Game</button>
+</ul>
+
+<h2>How to play</h2>
+<p>Arrow keys + Space (or WASD + Enter): control
+<p>Esc (or P): pause or skip
+<p>Tab: compact HUD
+
+<h2>Credits</h2>
+<p>Game code and artwork by Christopher Night, Universe Factory games.
+<p>Sound effects made with sfxr and Audacity. 
+<p><a href="http://creativecommons.org/publicdomain/zero/1.0/">Copyright waived on code, artwork, and sounds</a>
+<h2>Music credits</h2>
+<p><a href="http://chadcrouch.bandcamp.com/track/gnossienne-1">Gnosseinne 1 by Erik Satie, arranged by Chad Crouch</a><br>
+<a href="http://ccmixter.org/files/DoKashiteru/19848">The Annual New England Xylophone Symposium by DoKashiteru</a><br>
+<a href="http://ccmixter.org/files/duckett/23334">Another Girl (Instrumental) by duckett</a><br>
+<a href="http://ccmixter.org/files/IamTheStev/19649">One Five Nine (SR Mix) by IamTheStev</a>
+
+<!-- game code -->
+<script src="settings.js"></script>
+<script src="gamestate.js"></script>
+<script src="vista.js"></script>
+<script src="sprite.js"></script>
+<script src="you.js"></script>
+<script src="effect.js"></script>
+<script src="scenes.js"></script>
+<script src="dialogue.js"></script>
+<script src="init.js"></script>
+

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<script src="UFX/src/resource.js"></script>
+<audio id="x" preload="auto" src="robot-underground/data/sfx/destroy4.ogg"></audio>
+<script>
+var x = document.getElementById("x")
+x.loop = true
+x.play()
+
+var y = new Audio()
+y.addEventListener("canplaythrough", function () {
+//	y.play()
+//	setTimeout(y.play.bind(y), 1000)
+}, false)
+y.src = "robot-underground/data/sfx/destroy3.ogg"
+
+UFX.resource.load({
+	"z": "robot-underground/data/sfx/destroy2.ogg"
+})
+
+UFX.resource.onload = function () {
+//	UFX.resource.sounds.z.play()
+}
+
+</script>
+

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<style type="text/css">
+@font-face {
+    font-family: "Hockey";
+    src: url(../../robot-underground/data/fonts/hockey.ttf) format("truetype");
+}
+</style>
+<script id="2d-vertex-shader" type="x-shader/x-vertex">
+attribute vec3 aVertexPosition;
+attribute vec2 aTextureCoord;
+
+uniform mat4 xform;
+
+varying vec2 vTextureCoord;
+
+void main(void) {
+    gl_Position = xform * vec4(aVertexPosition, 1.0);
+    vTextureCoord = aTextureCoord;
+}
+</script>
+<script id="2d-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+uniform float uUseTexture;
+uniform sampler2D uSampler;
+
+uniform vec4 vColor;
+varying vec2 vTextureCoord;
+
+void main(void) {
+    vec4 texColor = texture2D(uSampler, vTextureCoord) * uUseTexture;
+    vec4 vertColor = vColor * (1.0 - uUseTexture); 
+    gl_FragColor = texColor + vertColor;
+}
+</script>
+<canvas id="canvas" style="border: thin gray solid"></canvas>
+<p style="font-size: 50px; font-family: 'Hockey'">HTML5 just rocks!
+<script>
+// Figure out how to render text to a gl context
+// http://delphic.me.uk/webgltext.html
+// https://developer.mozilla.org/en-US/docs/Web/WebGL/Using_textures_in_WebGL
+// http://stackoverflow.com/questions/9457152/glsl-2-0-color-and-texture?rq=1
+
+
+var canvas = document.getElementById("canvas");
+canvas.width = 854 ; canvas.height = 480
+var gl = canvas.getContext("experimental-webgl");
+
+function createShaderFromScript(gl, scriptId, shaderType) {
+	var shader = gl.createShader(shaderType)
+	var shaderScript = document.getElementById(scriptId)
+	gl.shaderSource(shader, shaderScript.text)
+	gl.compileShader(shader)
+	return shader
+}
+var vertexShader = createShaderFromScript(gl, "2d-vertex-shader", gl.VERTEX_SHADER);
+var fragmentShader = createShaderFromScript(gl, "2d-fragment-shader", gl.FRAGMENT_SHADER);
+var program = gl.createProgram()
+gl.attachShader(program, vertexShader)
+gl.attachShader(program, fragmentShader)
+gl.linkProgram(program)
+gl.useProgram(program)
+
+gl.clearColor(0, 0, 0, 1)
+
+//var colorLocation = gl.getUniformLocation(program, "aVertexColor")
+var colorLocation = gl.getUniformLocation(program, "vColor")
+var aVertexPosition = gl.getAttribLocation(program, "aVertexPosition")
+var aTextureCoord = gl.getAttribLocation(program, "aTextureCoord")
+var xform = gl.getUniformLocation(program, "xform")
+var uSampler = gl.getUniformLocation(program, "uSampler")
+var uUseTexture = gl.getUniformLocation(program, "uUseTexture")
+
+gl.activeTexture(gl.TEXTURE0)
+gl.uniform1i(uSampler, 0)
+gl.enable(gl.BLEND)
+gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+//gl.disable(gl.DEPTH_TEST)
+
+function render(text, color, fontsize) {
+	// 0.2x font height seems like a pretty safe border
+	var d = Math.ceil(0.2 * fontsize)
+	var can = document.createElement("canvas")
+	var con = can.getContext("2d")
+	con.font = fontsize + "px 'Hockey'"
+	var w0 = con.measureText(text).width + 2*d, h0 = fontsize + 2*d, w = 4, h = 4
+	while (w < w0) w <<= 1
+	while (h < h0) h <<= 1
+	can.width = w ; can.height = h
+	con.font = fontsize + "px 'Hockey'"
+	con.fillStyle = "rgba(255,255,0,0.3)"
+	con.fillRect(0, 0, w0, h0)
+	con.fillStyle = color
+	con.textBaseline = "top"
+	con.fillText(text, d, d)
+	return can
+}
+
+
+function setxform(x, y, r, s) {
+	var W = 2/canvas.width, H = 2/canvas.height
+	var cx = 0, cy = 0, cz = 1
+	var S = Math.sin(r), C = Math.cos(r)
+	console.log([cz*W*C*s, -cz*H*S*s, 0, 0, cz*W*S*s, cz*H*C*s, 0, 0, 0, 0, 1, 0, (x-cx)*cz*W, (y-cy)*cz*H, 0, 1])
+	gl.uniformMatrix4fv(xform, false, [cz*W*C*s, -cz*H*S*s, 0, 0, cz*W*S*s, cz*H*C*s, 0, 0, 0, 0, 1, 0, (x-cx)*cz*W, (y-cy)*cz*H, 0, 1]);
+}
+function loaddata(ps) {
+	gl.bufferData(gl.ARRAY_BUFFER, ps, gl.STATIC_DRAW)
+}
+function setcolor(color) {
+	gl.uniform4f(colorLocation, color[0], color[1], color[2], color[3])
+}
+function drawlines(off, len) {
+	gl.drawArrays(gl.LINES, off, len)
+}
+function drawstrip(off, len) {
+	gl.drawArrays(gl.LINE_STRIP, off, len)
+}
+function bindbuffer(buffer) {
+	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+	gl.enableVertexAttribArray(aVertexPosition);
+	gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
+}
+function bindtexbuffer(buffer) {
+	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+	gl.enableVertexAttribArray(aTextureCoord);
+	gl.vertexAttribPointer(aTextureCoord, 2, gl.FLOAT, false, 0, 0);
+}
+
+
+function go() {
+	var tcan = render("HTML5 gjy$&#!", "blue", 50)
+	var texture = gl.createTexture()
+	//gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+	gl.bindTexture(gl.TEXTURE_2D, texture)
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, tcan)
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+	gl.generateMipmap(gl.TEXTURE_2D);
+
+	gl.clear(gl.COLOR_BUFFER_BIT)
+
+	//loaddata(new Float32Array([0, 0, w, 0, w, -h, 0, -h]))
+	var texbuffer = gl.createBuffer()
+	bindtexbuffer(texbuffer)
+	loaddata(new Float32Array([0,0,0,1,1,1,1,0]))
+
+	var buffer = gl.createBuffer()
+	bindbuffer(buffer)
+
+	var w = tcan.width, h = tcan.height
+	function draw(x, y, color, usetexture) {
+		setxform(x,y,0,1)
+		setcolor(color)
+		gl.uniform1f(uUseTexture, usetexture)
+		loaddata(new Float32Array([-w/2, h/2, -w/2, -h/2, w/2, -h/2, w/2, h/2]))
+		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+	}
+
+	draw(0, 0, [1, 0, 0, 1], 0)
+	draw(20, 20, [0, 1, 0, 0.5], 0)
+	draw(40, 40, [0, 0, 1, 1], 0)
+	draw(60, 60, [0, 0, 0, 0], 0.5)
+	draw(80, 80, [0, 0, 0, 0], 1)
+}
+
+setTimeout(go, 2000)
+
+</script>
+
