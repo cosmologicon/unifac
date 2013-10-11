@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<link href='http://fonts.googleapis.com/css?family=Contrail+One' rel='stylesheet' type='text/css'>
+<title>Simplex terrain webGL test</title>
+<script src="../../UFX/src/ticker.js"></script>
+<script src="../../UFX/src/mouse.js"></script>
+<script src="../../UFX/src/maximize.js"></script>
+<script id="cover-vertex-shader" type="x-shader/x-vertex">
+// (x,y) position
+attribute vec2 pos;
+
+uniform vec2 canvassize;
+uniform vec2 center;
+uniform float zoom;
+
+// to pass the texture coordinate to the fragment shader
+varying vec2 tcoord;
+
+void main(void) {
+    gl_Position = vec4(pos * 2.0 - 1.0, 1.0, 1.0);
+    tcoord = center + (pos - 0.5) * canvassize / zoom;
+}
+</script>
+<script id="terrain-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+// passed in from vertex shader
+varying vec2 tcoord;
+
+
+float contrib(in float t) {
+	return t < 0.0 ? 0.0 : t * t * t * t;
+}
+
+vec3 gradat(in vec3 p) {
+	mat4 seed = mat4(2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9);
+	vec4 r = seed * vec4(p, 1);
+	return vec3(fract(r.x), fract(r.y), fract(r.z));
+}
+
+float noise(in vec3 p) {
+	float s = (p.x + p.y + p.z) / 3.0;
+	vec3 q0 = floor(p + s);
+	float t = (q0.x + q0.y + q0.z) / 6.0;
+	vec3 p0 = (p - q0) + t;
+	vec3 d1 = vec3(0.0, 0.0, 0.0);
+	vec3 d2 = vec3(0.0, 0.0, 0.0);
+
+/*
+ if(x0>=y0) {
+ if(y0>=z0)
+ { i1=1; j1=0; k1=0; i2=1; j2=1; k2=0; } // X Y Z order
+ else if(x0>=z0) { i1=1; j1=0; k1=0; i2=1; j2=0; k2=1; } // X Z Y order
+ else { i1=0; j1=0; k1=1; i2=1; j2=0; k2=1; } // Z X Y order
+ }
+ else { // x0<y0
+ if(y0<z0) { i1=0; j1=0; k1=1; i2=0; j2=1; k2=1; } // Z Y X order
+ else if(x0<z0) { i1=0; j1=1; k1=0; i2=0; j2=1; k2=1; } // Y Z X order
+ else { i1=0; j1=1; k1=0; i2=1; j2=1; k2=0; } // Y X Z order
+ }
+*/
+	if (p0.x >= p0.y) {
+		if (p0.y >= p0.z) { d1.x = 1.0; d2.x = 1.0; d2.y = 1.0; }
+		else if (p0.x >= p0.z) { d1.x = 1.0; d2.x = 1.0; d2.z = 1.0; }
+		else { d1.z = 1.0; d2.x = 1.0; d2.z = 1.0; }
+	} else {
+		if (p0.y < p0.z) { d1.z = 1.0; d2.y = 1.0; d2.z = 1.0; }
+		else if (p0.x < p0.z) { d1.y = 1.0; d2.y = 1.0; d2.z = 1.0; }
+		else { d1.y = 1.0; d2.x = 1.0; d2.y = 1.0; }
+	}
+
+/*
+ double x1 = x0 - i1 + G3; // Offsets for second corner in (x,y,z) coords
+ double y1 = y0 - j1 + G3;
+ double z1 = z0 - k1 + G3;
+ double x2 = x0 - i2 + 2.0*G3; // Offsets for third corner in (x,y,z) coords
+ double y2 = y0 - j2 + 2.0*G3;
+ double z2 = z0 - k2 + 2.0*G3;
+ double x3 = x0 - 1.0 + 3.0*G3; // Offsets for last corner in (x,y,z) coords
+ double y3 = y0 - 1.0 + 3.0*G3;
+ double z3 = z0 - 1.0 + 3.0*G3;
+*/
+
+	vec3 I = vec3(1.0, 1.0, 1.0);
+
+	vec3 q1 = q0 + d1 - I / 6.0;
+	vec3 q2 = q0 + d2 - I / 3.0;
+	vec3 q3 = q0 + I / 2.0;
+
+	vec3 p1 = p0 - d1 + I / 6.0;
+	vec3 p2 = p0 - d2 + I / 3.0;
+	vec3 p3 = p0 - I / 2.0;
+	
+
+	float n0 = contrib(0.5 - dot(p0, p0)) * dot(gradat(q0), p0);
+	float n1 = contrib(0.5 - dot(p1, p1)) * dot(gradat(q1), p1);
+	float n2 = contrib(0.5 - dot(p2, p2)) * dot(gradat(q2), p2);
+	float n3 = contrib(0.5 - dot(p3, p3)) * dot(gradat(q3), p3);
+
+	return 32.0 * (n0 + n1 + n2 + n3);
+}
+
+void main(void) {
+	vec3 p = vec3(tcoord, 0.0);
+    gl_FragColor = vec4(0.5 + 0.4 * noise(p), 0, 0, 1);
+//	gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+}
+</script>
+<style>
+input {
+	position: absolute;
+	font: 48px 'Contrail One';
+	width: 20em;
+	background: none;
+	color: black;
+	text-shadow: 0 0 0.2em white;
+	border: none;
+}
+</style>
+<canvas id="canvas" style="border: thin black solid"></canvas>
+<input style="bottom: 10px; left: 10px;" id="fpscounter" type="text"></input>
+<script>
+function clamp(x,a,b){return x>b?b:x<a?a:x}
+
+var canvas = document.getElementById("canvas")
+var fpscounter = document.getElementById("fpscounter")
+canvas.width = 200 ; canvas.height = 200
+//UFX.maximize.fill(canvas, "total")
+var gl = canvas.getContext("experimental-webgl")
+
+function Program(vshaderid, fshaderid) {
+	this.declines = []
+	this.vshader = this.createshader(vshaderid, gl.VERTEX_SHADER)
+	this.fshader = this.createshader(fshaderid, gl.FRAGMENT_SHADER)
+	this.makeprogram()
+	this.getlocations()
+}
+Program.prototype = {
+	createshader: function (scriptId, shaderType) {
+		var shader = gl.createShader(shaderType)
+		var shaderScript = document.getElementById(scriptId)
+		var text = shaderScript.text, prog = this
+		this.declines.push.apply(this.declines, text.split("\n").map(function (line) {
+			return line.replace(/;/g, "").trim().split(/\s+/)
+		}).filter(function (words) {
+			return words.length == 3 && (words[0] == "attribute" || words[0] == "uniform")
+		}))
+		gl.shaderSource(shader, text)
+		gl.compileShader(shader)
+
+		if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+			throw "shader compile error:" + gl.getShaderInfoLog(shader)
+		}
+
+		return shader
+	},
+	makeprogram: function () {
+		this.program = gl.createProgram()
+		gl.attachShader(this.program, this.vshader)
+		gl.attachShader(this.program, this.fshader)
+		gl.linkProgram(this.program)
+	},
+	getlocations: function () {
+		this.use()
+		var prog = this
+		this.attribs = {}
+		this.uniforms = {}
+		this.uniformsetters = {}
+		this.declines.forEach(function (words) {
+			if (words[0] == "attribute") {
+				prog.attribs[words[2]] = gl.getAttribLocation(prog.program, words[2])
+			} else if (words[0] == "uniform") {
+				var uni = prog.uniforms[words[2]] = gl.getUniformLocation(prog.program, words[2])
+				var setfunc = gl["uniform" + prog.utypesetters[words[1]]]
+				prog["set" + words[2]] = prog.uniformsetters[words[2]] = setfunc.bind(gl, uni)
+			}
+		})
+	},
+	use: function () {
+		gl.useProgram(this.program)
+	},
+	set: function(name) {
+		this.uniformsetters[name].apply(gl, [].slice.call(arguments, 1))
+	},
+	utypesetters: {
+		float: "1f",
+		vec2: "2f",
+	},
+}
+var program = new Program("cover-vertex-shader", "terrain-fragment-shader")
+
+gl.clearColor(0, 0, 0, 1)
+gl.clear(gl.COLOR_BUFFER_BIT)
+var coordbuffer = gl.createBuffer()
+gl.bindBuffer(gl.ARRAY_BUFFER, coordbuffer)
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0,1,0,1,1,0,1]), gl.STATIC_DRAW)
+
+
+var x0 = 0.0
+var y0 = 0.0
+var z = 0.0
+
+function go (dt) {
+	gl.viewport(0, 0, canvas.width, canvas.height)
+	var mstate = UFX.mouse.state()
+	var zoom = canvas.width * Math.exp(z), oldzoom = zoom
+	if (mstate.wheeldy) {
+		z = clamp(z + 0.04 * mstate.wheeldy, -2, 15)
+		zoom = canvas.width * Math.exp(z)
+		x0 += (mstate.pos[0] - canvas.width / 2) * (1/oldzoom - 1/zoom)
+		y0 -= (mstate.pos[1] - canvas.height / 2) * (1/oldzoom - 1/zoom)
+	}
+	var zoom = canvas.width * Math.exp(z)
+	if (mstate.left.drag) {
+		x0 -= mstate.left.drag.dx / zoom
+		y0 += mstate.left.drag.dy / zoom
+	}
+	program.use()
+	program.setcanvassize(canvas.width, canvas.height)
+	program.setcenter(x0, y0)
+	program.setzoom(zoom)
+	gl.enableVertexAttribArray(program.attribs.pos)
+	gl.vertexAttribPointer(program.attribs.pos, 2, gl.FLOAT, false, 0, 0);
+	gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+	fpscounter.value = UFX.ticker.wfps.toPrecision(3) + "fps"
+}
+
+UFX.mouse.capture.wheel = true
+UFX.mouse.capture.right = true
+UFX.mouse.init(canvas)
+UFX.ticker.init(go, null, { ups: 120 })
+
+</script>
+
