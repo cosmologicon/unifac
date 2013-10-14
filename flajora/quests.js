@@ -19,7 +19,7 @@ var itemnames = {
 	meat: "A Big Thing of Meat",
 	ticket: "Train Ticket",
 	sneakers: "Enchanted Sneakers",
-	redgem: "The Red Gem of Rolanda",
+	redgem: "The Red Gem of Ruth",
 	bluegem: "The Blue Gem of Betsy",
 	greengem: "The Green Gem of Gertrude",
 	ladder: "A Rope Ladder",

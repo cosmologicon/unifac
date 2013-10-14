@@ -11,7 +11,7 @@ var context = canvas.getContext("2d")
 UFX.draw.setcontext(context)
 UFX.key.init()
 UFX.key.remaparrows(true)
-UFX.key.watchlist = "up down left right space esc backspace".split(" ")
+UFX.key.watchlist = "up down left right space esc backspace F12".split(" ")
 UFX.maximize.fill(canvas, "total")
 
 
