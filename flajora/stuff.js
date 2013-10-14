@@ -181,7 +181,7 @@ Bulkhead.prototype = UFX.Thing()
 			if (-Math.sin(this.A) * this.dy < 0) return true
 		},
 		draw: function () {
-			UFX.draw("[ b rr", -0.5, -0.5, this.w + 1, this.h + 1, 0.5, "fs gray ss darkgray f s ]")
+			UFX.draw("[ b rr", -0.5, -0.5, this.w + 1, this.h + 1, 0.5, "fs gray ss #333 lw 0.3 f s ]")
 		},
 		think: function (dt) {
 			this.A += dt * this.phi

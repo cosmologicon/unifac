@@ -30,6 +30,50 @@ function die(n) {
 	UFX.draw("fs #000 f")
 }
 
+// draw goddess avatar
+var hairks = []
+while (hairks.length < 200) hairks.push(R() * 1000)
+function gds() {
+	hires = true
+	// halo
+	for (var r = 120 ; r > 20 ; r *= (hires ? 0.9 : 0.65)) {
+		var f = (t0/100/r % 1)
+		var z = 140 * f
+		UFX.draw("[ z", z, z, "fs rg~0~0~0~0~0~1~0~rgba(255,255,255,1)~1~rgba(255,255,255,0)",
+			"alpha", 1-f, "b o 0 0 1 f ]")
+	}
+	for (var f = 3000 ; f < 30000 ; f *= (hires ? 1.04 : 1.23)) {
+		var z = 0.5 + f % 1 * 2
+		var a = t0/f % tau * (f % 2 > 1 ? 1 : -1)
+		UFX.draw("[ z", z, z, "fs lg~0~-100~0~100~0~rgba(255,255,255,0)~0.2~rgba(255,255,255,0.05)~0.5~rgba(255,255,255,0.3)~0.8~rgba(255,255,255,0.05)~1~rgba(255,255,255,0)",
+			"r", a, "( m -20 -100 l 20 100 l -20 100 l 20 -100 ) f",
+		"]")
+	}
+
+	// hair
+	K.lineCap = "round"
+	for (var j = 0 ; j < 50 ; ++j) {
+		var w = j, a = []
+		for (var n = 0 ; n < 8 ; ++n) {
+			var f = hairks[j] * Math.pow(1.619, n) % 1
+			w += (0.05 + 0.15 * n + 0.03 * n * n) * S(t0/(3000+1000*f))
+			a.push(6*S(w))
+			a.push(7 + 10*C(w))
+		}
+		var x = 0, y = -30
+		UFX.draw("[ b m 0 0")
+		for (var n = 0 ; n < a.length - 2 ; n += 2) {
+			UFX.draw("q", (x += a[n]), (y += a[n+1]), (x += a[n+2]), (y += a[n+3]))
+		}
+		var b = F((1234.567 * j) % 1 * 100 + 100)
+		UFX.draw("lw 10 ss rgb(255,255," + b + ") s ]")
+	}
+
+	// noggin
+	UFX.draw("[ z 1 1.4 b o 0 0 28 fs #fde f ]")
+
+}
+
 // draw sword wielder
 function dS() {
 	w = S(t0/150)
@@ -153,7 +197,7 @@ function think() {
 	t = t0/2
 	for (z = 0, k = 0 ; z < 3 ; ++z) {
 		UFX.draw("b")
-		for (j = 0 ; j < 3*nrain ; ++j, ++k) {
+		for (j = 0 ; j < 4*nrain ; ++j, ++k) {
 			x = ((v*k*k+(t/2+k*t/100)*wind/10)%Aw+Aw)%Aw
 			y = ((v*v*k*k+t/2+k*t/100)%Ah+Ah)%Ah
 			UFX.draw("m", x, y, "l", x-4*wind, y-40)
@@ -191,6 +235,12 @@ function think() {
 	// hourglass
 	UFX.draw("[ t", Aw - 50, Ah - 20, "( m -5 -10 c -5 0 5 0 5 10 l -5 10 c -5 0 5 0 5 -10 ) ss #fff lw 1 s",
 		"t 15 3 fs #fff ft0", ((t0-g0)/1000).toFixed(0), "]")
+
+	// goddess avatar
+//	UFX.draw("fs black f0")
+	UFX.draw("[ t", W/2, H/2)
+	gds()
+	UFX.draw("]")
 
 	raf(think)
 }

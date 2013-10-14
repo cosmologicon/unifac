@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<form action="">
+<p><button onclick="return invoke(dropoff)">Drop off</button>
+<p><button onclick="return invoke(mary)">Mary</button>
+<p><button onclick="return invoke(envelope)">Envelope</button>
+<p><button onclick="return invoke(analyse)">Analyse</button>
+<p><button onclick="return invoke(dynamics)">Dynamics</button>
+<p><button onclick="return invoke(periodic)">Periodic</button>
+<p><button onclick="return invoke(telephone)">Telephone</button>
+<p><button onclick="return invoke(repeat)">Repeat</button>
+<p><button onclick="return invoke(waveshape)">Wave Shape</button>
+<p><button onclick="return invoke(noise)">White Noise</button>
+<p><button onclick="return invoke(brownnoise)">Brownian Noise</button>
+<p><button onclick="return invoke(angel)">Angel</button>
+<p><button onclick="return invoke(swipe)">Swipe</button>
+<p><button onclick="return invoke(pulse)">Pulse</button>
+<p><button onclick="return invoke(brownpulse)">Brownian Pulse</button>
+</form>
+
+<script>
+
+function invoke(func) {
+	try {
+		func()
+	} catch (s) {
+		console.log(s)
+	}
+	return false
+}
+
+var acon = new webkitAudioContext()
+var master = acon.createGainNode()
+master.connect(acon.destination)
+function dropoff() {
+	var source = acon.createOscillator()
+	source.type = "sine"
+	source.frequency.setValueAtTime(600, acon.currentTime)
+	source.frequency.exponentialRampToValueAtTime(100, acon.currentTime + 0.8)
+	source.connect(master)
+	source.start(acon.currentTime)
+	source.stop(acon.currentTime + 1)
+}
+function mary() {
+	var source = acon.createOscillator()
+	source.type = "sine"
+	notes = new Float32Array([330,294,262,294,330,330,330,330])
+	source.frequency.setValueCurveAtTime(notes, acon.currentTime, 3)
+	source.connect(master)
+	source.start(acon.currentTime)
+	source.stop(acon.currentTime + 3)
+}
+function envelope() {
+	var source = acon.createOscillator()
+	source.type = "sine"
+	source.frequency.value = 300
+	var gain = acon.createGain()
+	gain.gain.setValueAtTime(0, acon.currentTime)
+	gain.gain.linearRampToValueAtTime(1, acon.currentTime + 0.3)
+	gain.gain.setValueAtTime(1, acon.currentTime + 0.7)
+	gain.gain.linearRampToValueAtTime(0, acon.currentTime + 1)
+	source.connect(gain)
+	gain.connect(master)
+	source.start(acon.currentTime)
+	source.stop(acon.currentTime + 1)
+}
+
+// So the peak in the Fourier transform is at ~f/21. What's the significance?
+function analyse() {
+	var source = acon.createOscillator()
+	analyser = acon.createAnalyser()
+	source.type = "sine"
+	source.frequency.value = 1200
+	source.connect(analyser)
+	source.start(acon.currentTime)
+	source.stop(acon.currentTime + 1)
+	setTimeout(function () {
+		var data = new Float32Array(1024)
+		analyser.getFloatFrequencyData(data)
+		console.log(data)
+		for (var j = 0 ; j < 1024 ; ++j) { if (data[j] > -100) console.log(j, data[j]) }
+	}, 999)
+}
+
+
+function dynamics() {
+	var source = acon.createOscillator()
+	var dyn = acon.createDynamicsCompressor()
+	source.type = "sine"
+	source.frequency.value = 300
+	source.connect(dyn)
+	dyn.connect(master)
+	source.start(acon.currentTime)
+	source.stop(acon.currentTime + 5)
+	dyn.threshold.setValueAtTime(0, acon.currentTime + 0)
+	dyn.threshold.setValueAtTime(-25, acon.currentTime + 1)
+	dyn.threshold.setValueAtTime(-50, acon.currentTime + 2)
+	dyn.threshold.setValueAtTime(-75, acon.currentTime + 3)
+	dyn.threshold.setValueAtTime(-100, acon.currentTime + 4)
+}
+
+
+// TODO BiquadFilterNode, WaveShaperNode
+
+// Looks like this isn't implemented in Chrome?
+function periodic() {
+	var real = new Float32Array([0,220,1])
+	var imag = new Float32Array([0,220,0])
+	var per = acon.createPeriodicWave(real, imag)
+	console.log(per)
+	
+	var source = acon.createOscillator()
+	source.setPeriodicWave(per)
+	source.connect(master)
+	source.start(acon.currentTime)
+	source.stop(acon.currentTime + 5)
+}
+
+function telephone() {
+	var request = new XMLHttpRequest()
+	request.open("GET", "./filter-telephone.wav", true)
+	request.responseType = "arraybuffer"
+	request.onload = function() {
+		acon.decodeAudioData(
+			request.response,
+			function(buffer) {
+				console.log(buffer.getChannelData(0))
+			}
+		)
+	}
+	request.send()
+}
+function repeat() {
+	var source = acon.createOscillator()
+	source.type = "sine"
+	source.frequency.value = 300
+	source.connect(master)
+	for (var t = 0 ; t < 3 ; t += 1) {
+		source.start(acon.currentTime + t)
+		source.stop(acon.currentTime + t + 0.2)
+	}
+}
+function waveshape() {
+	var source = acon.createOscillator()
+	var shaper = acon.createWaveShaper()
+	source.type = "sine"
+	source.frequency.value = 300
+	var a = []
+	for (var x = -1 ; x < 1 ; x += 0.001) a.push(Math.pow(Math.abs(x), 1/3) * (x > 0 ? 1 : -1))
+	shaper.curve = new Float32Array(a)
+	source.connect(shaper)
+	shaper.connect(master)
+	source.start(acon.currentTime)
+	source.stop(acon.currentTime + 1)
+}
+
+function noise() {
+	var buffer = acon.createBuffer(1, 44000, 44000)
+	var data = buffer.getChannelData(0)
+	for (var j = 0 ; j < data.length ; ++j) data[j] = Math.random() * 2 - 1
+	var source = acon.createBufferSource()
+	source.buffer = buffer
+	source.connect(master)
+	source.start(acon.currentTime)
+	source.stop(acon.currentTime + 1)
+}
+function brownnoise() {
+	var len = 20
+	var buffer = acon.createBuffer(1, 44000*len, 44000)
+	var data = buffer.getChannelData(0)
+	for (var j = 0 ; j < data.length ; ++j) data[j] = Math.random() * 2 - 1
+	var source = acon.createBufferSource()
+	source.buffer = buffer
+	var filter = acon.createBiquadFilter()
+	filter.type = "lowpass"
+	filter.Q.setValueAtTime(0.1, acon.currentTime)
+	filter.frequency.setValueAtTime(200, acon.currentTime)
+
+	var gain = acon.createGain()
+	gain.gain.setValueAtTime(1, acon.currentTime)
+	for (var t = 0 ; t <= len ; ++t) {
+		gain.gain.linearRampToValueAtTime(Math.random() + 0.5, acon.currentTime + t)
+	}
+
+	var dyn = acon.createDynamicsCompressor()
+	dyn.connect(master)
+//	dyn.threshold.setValueAtTime(0, acon.currentTime + 0)
+
+	source.connect(filter)
+	filter.connect(gain)
+	gain.connect(dyn)
+//	filter.connect(master)
+	source.start(acon.currentTime)
+	source.stop(acon.currentTime + len)
+}
+function brownpulse() {
+	var t0 = acon.currentTime
+	var len = 20
+	var buffer = acon.createBuffer(1, 44000*len, 44000)
+	var data = buffer.getChannelData(0)
+	for (var j = 0 ; j < data.length ; ++j) data[j] = Math.random() * 2 - 1
+	var source = acon.createBufferSource()
+	source.buffer = buffer
+
+	var sine1 = acon.createOscillator()
+	sine1.type = "triangle"
+	sine1.frequency.setValueAtTime(600, t0)
+
+	var filter = acon.createBiquadFilter()
+	filter.type = "lowpass"
+	filter.Q.setValueAtTime(0.01, t0)
+	filter.frequency.setValueAtTime(600, t0)
+
+	var gain = acon.createGain()
+
+	for (var dt = 0 ; dt < len ; dt += 0.5) {
+		gain.gain.setValueAtTime(0, t0 + dt)
+		gain.gain.linearRampToValueAtTime(1, t0 + dt + 0.02)
+		gain.gain.linearRampToValueAtTime(0, t0 + dt + 0.45)
+	}
+
+	var dyn = acon.createDynamicsCompressor()
+	dyn.connect(master)
+//	dyn.threshold.setValueAtTime(0, acon.currentTime + 0)
+
+//	sine1.connect(filter)
+	source.connect(filter)
+	filter.connect(gain)
+	gain.connect(dyn)
+//	filter.connect(master)
+	source.start(t0)
+	sine1.start(t0)
+}
+
+function angel() {
+	var len = 20
+	var buffer = acon.createBuffer(1, 44000*len, 44000)
+	var data = buffer.getChannelData(0)
+	for (var j = 0 ; j < data.length ; ++j) data[j] = Math.random() * 2 - 1
+	var white = acon.createBufferSource()
+	white.buffer = buffer
+
+
+
+	var lowpass = acon.createBiquadFilter()
+	lowpass.type = "lowpass"
+	lowpass.Q.setValueAtTime(1, acon.currentTime)
+	lowpass.frequency.setValueAtTime(2000, acon.currentTime)
+
+	var lowpass2 = acon.createBiquadFilter()
+	lowpass.type = "lowpass"
+	lowpass.Q.setValueAtTime(1, acon.currentTime)
+	lowpass.frequency.setValueAtTime(2000, acon.currentTime)
+
+	var gain2 = acon.createGain()
+	gain2.gain.setValueAtTime(0, acon.currentTime)
+	gain2.gain.setValueAtTime(0, acon.currentTime + 0.5)
+	gain2.gain.linearRampToValueAtTime(4, acon.currentTime + 3)
+	
+	var dyn = acon.createDynamicsCompressor()
+
+	for (var j = 0 ; j < 4 ; ++j) {
+		var bandpass = acon.createBiquadFilter()
+		bandpass.type = "bandpass"
+		bandpass.Q.setValueAtTime(1000, acon.currentTime)
+		var df = Math.pow(2, j/3)
+		bandpass.frequency.setValueAtTime(440 * df, acon.currentTime)
+//		bandpass.detune.setValueAtTime(100 * j, acon.currentTime)
+//		bandpass.detune.linearRampToValueAtTime(100 * j + 1000, acon.currentTime + 20)
+
+		var gain1 = acon.createGain()
+		gain1.gain.setValueAtTime(5, acon.currentTime)
+		for (var dt = 1 ; dt < len ; dt += Math.random() + 1) {
+			gain1.gain.linearRampToValueAtTime(Math.exp(3 * Math.random()) / df, acon.currentTime + dt)
+//			gain1.gain.linearRampToValueAtTime(10 / df, acon.currentTime + dt)
+		}
+
+		white.connect(bandpass)
+		bandpass.connect(gain1)
+		gain1.connect(lowpass)
+	}
+
+	lowpass.connect(lowpass2) ; lowpass2.connect(gain2)
+//	lowpass.connect(gain2)
+	gain2.connect(dyn)
+	dyn.connect(master)
+
+	white.start(acon.currentTime)
+	white.stop(acon.currentTime + len)
+}
+
+function swipe() {
+	var buffer = acon.createBuffer(1, 44000, 44000)
+	var data = buffer.getChannelData(0)
+	for (var j = 0 ; j < data.length ; ++j) data[j] = Math.random() * 2 - 1
+	var source = acon.createBufferSource()
+	source.buffer = buffer
+	var filter = acon.createBiquadFilter()
+	filter.type = "bandpass"
+	filter.Q.value = 10
+	filter.frequency.setValueAtTime(100, acon.currentTime + 0)
+	filter.frequency.linearRampToValueAtTime(2000, acon.currentTime + 0.1)
+//	filter.frequency.exponentialRampToValueAtTime(2000, acon.currentTime + 0.3)
+	source.connect(filter)
+	filter.connect(master)
+	source.start(acon.currentTime)
+	source.stop(acon.currentTime + 0.1)
+}
+
+function pulse() {
+	var t0 = acon.currentTime
+
+	var sine1 = acon.createOscillator()
+	sine1.type = "sine"
+	sine1.frequency.setValueAtTime(220, t0)
+	var sine2 = acon.createOscillator()
+	sine2.type = "sine"
+	sine2.frequency.setValueAtTime(660, t0)
+	var sine3 = acon.createOscillator()
+	sine3.type = "square"
+	sine3.frequency.setValueAtTime(1000, t0)
+
+	var gain1 = acon.createGain()
+	gain1.gain.setValueAtTime(1, t0)
+	var gain2 = acon.createGain()
+	gain2.gain.setValueAtTime(1/4, t0)
+	var gain3 = acon.createGain()
+	gain3.gain.setValueAtTime(1/9, t0)
+
+	sine1.connect(gain1)
+	sine2.connect(gain2)
+	sine3.connect(gain3)
+
+	var gain = acon.createGain()
+
+	gain.connect(master)
+	gain1.connect(gain)
+	gain2.connect(gain)
+	gain3.connect(gain)
+	
+	sine1.start(t0)
+	sine2.start(t0)
+	sine3.start(t0)
+	for (var dt = 0 ; dt < 10 ; dt += 0.5) {
+		gain.gain.setValueAtTime(0, t0 + dt)
+		gain.gain.linearRampToValueAtTime(1, t0 + dt + 0.05)
+		gain.gain.linearRampToValueAtTime(0, t0 + dt + 0.1)
+	}
+}
+
+
+
+
+
+</script>
