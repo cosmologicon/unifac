@@ -57,6 +57,7 @@ UFX.scenes.game = {
 		return [dt, kstate]
 	},
 	think: function (dt, kstate) {
+		if (kstate.down.F12) window.open(canvas.toDataURL())
 		if (this.opentime > 0) {
 			this.opentime -= dt
 			if (this.opentime > 0) return
@@ -203,6 +204,7 @@ UFX.scenes.chat = {
 		return [dt, UFX.key.state()]
 	},
 	think: function (dt, kstate) {
+		if (kstate.down.F12) window.open(canvas.toDataURL())
 		this.t += dt
 		if (this.t > 0.4 && kstate.down.space) {
 			UFX.scene.pop()
@@ -231,6 +233,7 @@ UFX.scenes.get = {
 		return [dt, UFX.key.state()]
 	},
 	think: function (dt, kstate) {
+		if (kstate.down.F12) window.open(canvas.toDataURL())
 		this.t += dt
 		if (this.t > 0.4 && kstate.down.space) {
 			UFX.scene.pop()
@@ -300,6 +303,7 @@ UFX.scenes.pause = {
 		return [dt, UFX.key.state()]
 	},
 	think: function (dt, kstate) {
+		if (kstate.down.F12) window.open(canvas.toDataURL())
 		if (kstate.down.esc) {
 			UFX.scene.pop()
 			playmusic()
@@ -323,6 +327,7 @@ UFX.scenes.die = {
 		return [dt, UFX.key.state()]
 	},
 	think: function (dt, kstate) {
+		if (kstate.down.F12) window.open(canvas.toDataURL())
 		this.t += dt
 		if (kstate.down.esc) UFX.scene.pop()
 	},
@@ -377,6 +382,7 @@ UFX.scenes.win = {
 		return [dt, UFX.key.state()]
 	},
 	think: function (dt, kstate) {
+		if (kstate.down.F12) window.open(canvas.toDataURL())
 		this.t += dt
 		if (!this.bubble && !this.texts.length && this.h < 1) {
 			this.h += dt
@@ -428,6 +434,7 @@ UFX.scenes.thanks = {
 		return [dt, UFX.key.state()]
 	},
 	think: function (dt, kstate) {
+		if (kstate.down.F12) window.open(canvas.toDataURL())
 		if (kstate.down.space) {
 			UFX.scene.pop()
 		}
