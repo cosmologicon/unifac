@@ -5,39 +5,33 @@ armournames = ["Breastplate", "Helmet", "Greaves", "Gauntlets", "Gloves", "Vambr
                "Bracelet", "Amulet", "Dustbin Lid", "Shades", "Rollcage", "Kneepads", "Sunglasses", "Boots",
                "Thong", "Sandals", "Jetpack", "Battery Pack", "Rollerblades"]
 
-function Armour() {
-	this.init()
+function Armour(name) {
+	this.init(name)
 }
 Armour.prototype = extend(Equippable.prototype, {
 	isarmour: true,
-	init: function () {
-		Equippable.prototype.init.call(this, UFX.random.choice(armournames))
+	init: function (name) {
+		Equippable.prototype.init.call(this, name)
 		var pc = this.percentages = {}
 		mod.pckeys.forEach(function (key) {
-			pc[mod[key]] = 0
+			pc[key] = 0
 		})
 		var rs = this.resistances = {}
 		mod.rskeys.forEach(function (key) {
-			rs[mod[key]] = 0
+			rs[key] = 0
 		})
-		this.mods = []
-	},
-	applyMod: function (mod) {
-		for (var key in mod.percentages) this.percentages[key] += mod.percentages[key]
-		for (var key in mod.resistances) this.resistances[key] += mod.resistances[key]
-		this.mods.push(mod)
-		return this
+		this.modList = []
 	},
 	effects: function () {
 		var efx = []
 		if (this.isIdentified) {
 			for (var type in this.percentages) {
-				var value = this.getPercentage(type)
+				var value = Math.round(this.getPercentage(type))
 				if (value > 0) efx.push(value + "% increased " + type + ".")
 				if (value < 0) efx.push(-value + "% decreased " + type + ".")
 			}
 			for (var type in this.resistances) {
-				var value = this.getResistance(type)
+				var value = Math.round(this.getResistance(type))
 				if (value > 0) efx.push(value + "% increased resistance to " + type + " damage.")
 				if (value < 0) efx.push(-value + "% decreased resistance to " + type + " damage.")
 			}
@@ -45,3 +39,19 @@ Armour.prototype = extend(Equippable.prototype, {
 		return efx.join("\n")
 	},
 })
+
+function makeArmour(seed, mods, itemLevel) {
+	if (seed.pop) return makeArmour.apply(this, seed)  // Also accepts 3-arrays as args
+	UFX.random.pushseed(seed)
+	var a = new Armour(UFX.random.choice(armournames))
+	if (mods) {
+		for (var j = 0 ; j < mods.length ; j += 2) {
+			applyArmourMod(a, mods[j], mods[j+1])
+		}
+	}
+	if (itemLevel) a.itemLevel = itemLevel
+	a.spec = [].slice.call(arguments)
+	UFX.random.popseed()
+	return a
+}
+

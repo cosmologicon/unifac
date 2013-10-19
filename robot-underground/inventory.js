@@ -89,7 +89,7 @@ ScrollingInventoryMenu.prototype = {
 		return this.box_l <= pos[0] && pos[0] < this.box_l + this.box_w &&
 			this.view_b <= pos[1] && pos[1] < this.view_b + this.view_h
 	},
-	// TODO set_left set_right _change_current
+	// TODO set_right _change_current
 
 	set_left: function (item, force) {
 		if (!item) {
@@ -169,9 +169,12 @@ ScrollingInventoryMenu.prototype = {
 
 	handle_input: function (mstate, kstate) {
 		if (mstate.pos) this.set_mouse(mstate.pos)
-		// TODO: popup_menu update mouse
-		if (mstate.left.down) this.on_mouse_press()
-		if (mstate.right.down) this.on_mouse_press(true, kstate.pressed.alt, kstate.pressed.ctrl)
+		if (this.menu_popup) {
+			if (mstate.left.down) this.menu_popup.activate()
+		} else {
+			if (mstate.left.down) this.on_mouse_press()
+			if (mstate.right.down) this.on_mouse_press(true, kstate.pressed.alt, kstate.pressed.ctrl)
+		}
 	},
 	on_mouse_press: function (right, alt, ctrl) {
 		for (var j = 0 ; j < this.buttons.length ; ++j) {
@@ -208,7 +211,6 @@ ScrollingInventoryMenu.prototype = {
 	},
 
 	show_item: function (item) {
-		console.log(item, robotstate.inventory.indexOf(item))
 		if (robotstate.inventory.indexOf(item) == -1) return
 		var choices = []
 		if (item.isIdentified) {
@@ -229,7 +231,7 @@ ScrollingInventoryMenu.prototype = {
 				this.notify_menu("You cannot afford to equip this weapon.", item)
 			}
 		} else if (item.isarmour) {
-			if (robostate.canAfford(item.equipcost())) {
+			if (robotstate.canAfford(item.equipcost())) {
 				this.equip_armour(item)
 			} else {
 				this.notify_menu("You cannot afford to equip this armour.", item)
@@ -262,6 +264,7 @@ ScrollingInventoryMenu.prototype = {
 		} else {
 			this.notify_menu("You cannot afford to appraise this item.", item)
 		}
+		// TODO: set_left(item, true)?
 	},
 	
 	sell_item: function (item) {
@@ -301,12 +304,12 @@ ScrollingInventoryMenu.prototype = {
 	
 	do_appraise_item: function (item) {
 		if (item.isIdentified) return
-		if (!robotstate.canAfford(item.salevalue())) return   // TODO: redundant, no?
+		if (!robotstate.canAfford(item.salevalue())) return
 		robotstate.removeMetals(item.salevalue())
 		// TODO gamelog
 		item.isIdentified = true
-		// TODO this.set_self(item, true)
-		this.update_invetory()
+		this.set_left(item, true)
+		this.update_inventory()
 		if (this.menu_popup) this.show_item(item)
 	},
 	
@@ -316,7 +319,7 @@ ScrollingInventoryMenu.prototype = {
 		robotstate.addMetals(item.salevalue())
 		robotstate.inventory.splice(idx, 1)
 		this.remove_item(item)
-		this.update_invetory()
+		this.update_inventory()
 		this.close_menu()
 	},
 	
@@ -327,7 +330,7 @@ ScrollingInventoryMenu.prototype = {
 	},
 
 	remove_item: function (item) {
-		this.icons = this.icons.filter(function (i) { return i !== item })
+		this.icons = this.icons.filter(function (i) { return i.item !== item })
 	},		
 
 	load_inventory: function () {

@@ -21,7 +21,7 @@ var robotstate = {
 		)
 		this.weaponslots = 2
 		this.weaponry = [makeWeapon("LightLaser"), makeWeapon("LightRepairKit")]
-		this.armoury = new Armour()
+		this.armoury = makeArmour(UFX.random.rand())
 		this.maxenergy = ROBOT_INITIAL_MAX_ENERGY
 		if (protag_level && protag_level > 4) {
 			// TODO: cheat code
@@ -29,12 +29,16 @@ var robotstate = {
 		this.armoury.isIdentified = true
 		this.weaponry.forEach(function (weap) { weap.isIdentified = true })
 		this.inventory = []
+		this.metal = [0,0,0,0,0]
 
 		if (DEBUG.testinventory) {
-			for (var j = 0 ; j < 50 ; ++j) this.addItem(makeWeapon("LightLaser"))
+			for (var level = 1 ; level <= 22 ; ++level) {
+				this.addItem(makeWeapon(treasuretables.getRandomWeaponSpec(level)))
+				this.addItem(makeArmour(treasuretables.getRandomArmourSpec(level)))
+			}
+			//for (var j = 0 ; j < 50 ; ++j) this.addItem(makeWeapon("LightLaser"))
+			this.metal = [1000000, 1000000, 1000000, 1000000, 1000000]
 		}
-
-		this.metal = [0,0,0,0,0]
 	},
 	addXP: function (amt) {
 		this.xp += amt
@@ -57,7 +61,44 @@ var robotstate = {
 		this.inventory.push(newItem)
 		// TODO: gamelog
 	},
-	// TODO: canAfford, getMetal, addMetals, removeMetals, setWeapon, addWeaponSlot, setArmour
+	canAfford: function (metals) {
+		for (var j = 0 ; j < this.metal.length ; ++j) {
+			if (this.metal[j] < metals[j]) return false
+		}
+		return true
+	},
+	getMetal: function (metaltype) {
+		return this.metal[METALS.indexOf(metaltype)]
+	},
+	addMetals: function (metals) {
+		for (var j = 0 ; j < this.metal.length ; ++j) {
+			this.metal[j] += metals[j]
+		}
+	},
+	removeMetals: function (metals) {
+		for (var j = 0 ; j < this.metal.length ; ++j) {
+			this.metal[j] -= metals[j]
+		}
+	},
+	setWeapon: function (weapon, slotNumber) {
+		if (slotNumber >= this.weaponSlots) return
+		if (this.weaponry[slotNumber]) {
+			this.inventory.push(this.weaponry[slotNumber])
+		}
+		this.weaponry[slotNumber] = weapon
+		this.inventory.splice(this.inventory.indexOf(weapon), 1)
+	},
+	addWeaponSlot: function () {
+		this.weaponslots += 1
+		this.weaponry.push(null)
+	},
+	setArmour: function (armour) {
+		if (this.armoury) {
+			this.inventory.push(this.armoury)
+		}
+		this.armoury = armour
+		this.inventory.splice(this.inventory.indexOf(armour), 1)
+	},
 	levelup: function () {
 		this.level += 1
 		// TODO: gamelog
@@ -67,22 +108,22 @@ var robotstate = {
 	},
 
 	getAttack: function () {
-		return this.stats.attack * (1 + 0.01 * this.armoury.getPercentage(mod.attack))
+		return this.stats.attack * (1 + 0.01 * this.armoury.getPercentage("attack"))
 	},
 	getDefence: function () {
-		return this.stats.defence * (1 + 0.01 * this.armoury.getPercentage(mod.defence))
+		return this.stats.defence * (1 + 0.01 * this.armoury.getPercentage("defence"))
 	},
 	getMaxHP: function () {
-		return this.stats.maxhp * (1 + 0.01 * this.armoury.getPercentage(mod.hp))
+		return this.stats.maxhp * (1 + 0.01 * this.armoury.getPercentage("hp"))
 	},
 	getSpeed: function () {
-		return this.stats.speed * (1 + 0.01 * this.armoury.getPercentage(mod.speed))
+		return this.stats.speed * (1 + 0.01 * this.armoury.getPercentage("speed"))
 	},
 	getMaxEnergy: function () {
-		return this.maxenergy * (1 + 0.01 * this.armoury.getPercentage(mod.maxenergy))
+		return this.maxenergy * (1 + 0.01 * this.armoury.getPercentage("maxenergy"))
 	},
 	getEnergyRegen: function () {
-		return 1 + 0.01 * this.armoury.getPercentage(mod.energyregen)
+		return 1 + 0.01 * this.armoury.getPercentage("energyregen")
 	},
 	getResistance: function (damageType) {
 		return 1 + 0.01 * this.armoury.getResistance(damageType)

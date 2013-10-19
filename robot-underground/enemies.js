@@ -10,7 +10,7 @@ Enemy.prototype = extend(Actor.prototype, {
 		this.allweapons = weapons
 		this.weapon = this.allweapons[0]
 		this.protag = this.mission.protag
-		this.level = dropLevel
+		this.level = dropLevel || 0
 		this.explosions = explosions
 		this.ai = ai
 		if (ai.init) ai.init.apply(this, aiargs)
@@ -61,21 +61,63 @@ function makeEnemy(type, mission, pos) {
 	var info = enemyinfo[type]
 	var enemy = new Enemy()
 	if (type in enemyinfo) {
-		var info = enemyinfo[type], weapons = info[0], stats = info[1], guardradius = info[2]
+		var info = enemyinfo[type], weaponspecs = info[0], stats = info[1], guardradius = info[2]
 		var size = info[3], xpvalue = info[4], dropLevel = info[5], explosions = info[6]
 		var ai = info[7], aiargs = info[8], resists = info[9]
 		var name = splitcap(type)
 		var bearing = null
-		enemy.init(mission, pos, weapons, stats, guardradius, size, xpvalue, name, bearing,
+		enemy.init(mission, pos, weaponspecs, stats, guardradius, size, xpvalue, name, bearing,
 			explosions, ai, aiargs, dropLevel)
 		enemy.resistances[Damage.laser] += resists[0]
 		enemy.resistances[Damage.physical] += resists[1]
 		enemy.resistances[Damage.fire] += resists[2]
 		enemy.resistances[Damage.electric] += resists[3]
 		enemy.resistances[Damage.explosion] += resists[4]
+	} else {
+		throw "Unknown enemy type: " + type
 	}
 	return enemy
 }
+
+
+// Mines moved from actor.py - seems more appropriate here
+// I moved some stuff around between Mine, ProximityMine, and TimedMine constructors
+// HomingMissiles left out - thankfully they don't seem to ever be used
+function Mine() {
+}
+Mine.prototype = extend(Enemy.prototype, {
+	init: function (owner, damageamt, blast, name, aiclass, aiargs) {
+		var weap = makeWeapon(["SuicideBomb", [damageamt, Damage.explosion, blast]])
+		var stats = [1, 1, 1, 0]  // speed = 0 always
+		Enemy.prototype.init.call(this, owner.mission, owner.pos, [weap], stats, 20, 10, 0, name,
+			owner.bearing, 0, aiclass, aiargs)
+		this.solid = false
+	},
+	
+	die: function () {
+		var mine = this, mission = this.mission
+		this.allweapons.forEach(function (w) {
+			w.fire(this, null)
+			this.mission.dispatch_event("on_explode", this)
+		})
+		Enemy.prototype.die.call(this)
+	},
+
+	isObjective: function () {
+		return false
+	},
+})
+
+function makeMine(type, owner, damageamt, blast) {
+	var mine = new Mine()
+	if (type == "ProximityMine") {
+		mine.init(owner, damageamt, blast, "Proximity Mine", ProximityMineAI, [owner])
+	} else if (type == "TimedMine") {
+		mine.init(owner, damageamt, blast, "Timed Mine", TimedMineAI, [120])
+	}
+	return mine
+}
+
 
 
 

@@ -107,6 +107,17 @@ var graphics = {
 	clear: function () {
 		gl.clear(gl.COLOR_BUFFER_BIT)
 	},
+	// Set the alpha channel to 1 everywhere. Should call this at the end of the drawing loop
+	// because webGL allows the canvas to bleed through to the background color
+	onealpha: function () {
+		gl.enable(gl.BLEND)
+		gl.blendFunc(gl.ONE, gl.ONE)
+		this.setrectxform(0, 0, settings.scr_w, settings.scr_h, 1)
+		this.bindbuffer(this.rectbuffer)
+		this.setcolour([0, 0, 0, 1])
+		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+	},
 	worldtoscreen: function (x, y) {
 		return [
 			Math.round((x - this.cx) * this.cz + settings.scr_w/2),
