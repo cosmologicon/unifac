@@ -82,6 +82,15 @@ function clip(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
 
 function splitcap(s) { return s.replace(/([A-Z])/g, ' $1').substr(1) }
 
+// From helpers.py
+function d2between(first, second) {
+	var dx = first[0] - second[0], dy = first[1] - second[1]
+	return dx * dx + dy * dy
+}
+function distanceBetween(first, second) {
+	return Math.sqrt(d2between(first, second))
+}
+
 var musicplaying = null
 var musicvolume = 1, sfxvolume = 1
 function setsfx(on) {

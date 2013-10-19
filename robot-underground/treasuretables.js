@@ -5,10 +5,11 @@ var treasuretables = {
 		if (UFX.random() < this.getMetalChance(dropLevel)) {
 			this.dropMetal(mission, pos, dropLevel)
 		} else {
-//TODO			var item = UFX.random() < 0.75 ? this.getRandomWeapon(dropLevel) : this.getRandomArmour(dropLevel)
-//			makeTreasure(mission, item, pos)
+			var itemspec = UFX.random() < 0.75 ? this.getRandomWeaponSpec(dropLevel) : this.getRandomArmourSpec(dropLevel)
+//TODO			makeTreasure(mission, item, pos)
 		}
 	},
+
 	
 	noDropChance: function (dropLevel) {
 		return dropLevel ? Math.pow(0.9, dropLevel + 1) : 1
@@ -34,8 +35,72 @@ var treasuretables = {
 		new Metal(mission, METALS[which], amount, pos)
 	},
 	
-	// TODO: getRandomWeapon, getRandomArmour, addRandomMods
+	// Returns a weapon spec rather than an actual instantiated weapon : replaces getRandomWeapon
+	getRandomWeaponSpec: function (dropLevel) {
+		if (dropLevel == 0) return null
+		var totalLevel = UFX.random.rand(Math.floor(dropLevel * 5/8), Math.floor(dropLevel * 5/4) + 1)
+		var weaponLevel = UFX.random.rand(1, totalLevel + 2)
+		while (!weaponLevels[weaponLevel]) --weaponLevel
+		var modLevel = totalLevel - weaponLevel
+		var type = UFX.random.choice(weaponLevels[weaponLevel])
+		var mods = this.randomMods(modLevel, weaponModTypes)
+		var itemLevel = totalLevel
+		return [type, null, mods, itemLevel]
+	},
+
+	// Returns an armour spec rather than an actual instantiated piece of armour : replaces getRandomArmour
+	getRandomArmourSpec: function (dropLevel) {
+		if (dropLevel == 0) return null
+		var seed = UFX.random.rand()
+		var modLevel = UFX.random.rand(Math.floor(dropLevel / 2), dropLevel + 2)
+		var mods = this.randomMods(modLevel, armourModTypes)
+		var itemLevel = modLevel
+		return [seed, mods, itemLevel]
+	},
+
+	// Replaces addRandomMods
+	randomMods: function (modLevel, availablemods) {
+		var chosen = {}, mods = []
+		while (modLevel > 0 && Object.keys(chosen).length < availablemods.length) {
+			var level = UFX.random.rand(1, modLevel + 2)
+			do {
+				var modtype = UFX.random.choice(availablemods)
+			} while (chosen[modtype])
+			chosen[modtype] = true
+			var modtypeLevel = modtypeLevels[modtype]
+			var awesomeness = Math.floor(level / modtypeLevel)
+			if (awesomeness > 0) {
+				modLevel -= awesomeness * modtypeLevel
+				mods.push(modtype, awesomeness)
+			}
+		}
+		return mods.length ? mods : null
+	},
+
 }
+
+var weaponLevels = {
+	1: ["LightLaser", "LightRepairKit"],
+	2: ["MachineGun"],
+	3: ["Taser"],
+	4: ["Shotgun"],
+	5: ["Flamethrower", "TimedMineLayer"],
+	6: ["HeavyLaser"],
+	7: ["SniperRifle", "Bazooka"],
+	8: ["LightningGun", "SuperRepairKit"],
+	10: ["Cannon"],
+	12: ["IncendiaryRifle", "ProximityMineLayer", "ChainLightningGun"],
+	14: ["GatlingGun", "Railgun", "UberLaser", "NapalmThrower", "PlasmaGun", "RocketLauncher"],
+}
+
+var weaponModTypes = ["Accurate", "Assault", "Autofiring", "Efficient", "HighPowered", "Holy", 
+	"MasterCrafted", "Overclocked", "RapidFire", "Scoped", "Smart", "SuperCooled"]
+
+var armourModTypes = ["Rubber", "Iron", "Mercury", "Chrome", "Asbestos", "Spiky", "Lightning", "Phoenix", "Giants",
+	"Chromatic", "Juggernaut", "Conductive", "Crystal", "Wooden", "Sturdy", "Shiny", "FlameRetardant", "Insulated",
+	"BlastProof", "Warriors", "Tough", "Oiled", "Capacitative", "Inductive", "Medical", "Berserkers",
+	"Glass", "Alcoholic", "Elemental", "Mighty", "Enchanted", "Energetic", "Overlords"]
+
 
 
 metaldrops = {

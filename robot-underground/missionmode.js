@@ -226,7 +226,7 @@ UFX.scenes.missionmode = {
 	},
 	
 	draw_lightning: function (src, target) {
-		var points = [], npoints = Math.floor(0.05 * distanceBetween(src, target)) + 1
+		var points = [], npoints = Math.floor(0.05 * distanceBetween(src.pos, target.pos)) + 1
 		while (points.length < 2 * npoints) {
 			var a = 0.5 * points.length / npoints
 			points.push(src[0] * (1-a) + target[0] * a + UFX.random.normal(5))
@@ -513,6 +513,9 @@ UFX.scenes.missionmode = {
 			text.drawhud(this.fpscount, settings.scr_w/2, 8, 18, "#AAFFFF", "center", "bottom")
 		}
 		this.cursor.draw()  // I'm guessing this is called automatically in pyglet
+		
+		// Eh, this doesn't seem as helpful as I hoped.
+		//graphics.onealpha()
 	},
 
 	can_click: function () {

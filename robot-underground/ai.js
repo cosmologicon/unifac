@@ -1,12 +1,6 @@
 // Do things a little different than in the python version
 // Don't instantiate these, instead call them and set the enemy to this
 
-// Taken from helpers.py
-function distanceBetween(first, second) {
-	var dx = first.pos[0] - second.pos[0], dy = first.pos[1] - second.pos[1]
-	return Math.sqrt(dx * dx + dy * dy)
-}
-
 var AI = {
 	tick: function () {
 		for (var j = 0 ; j < this.allweapons.length ; ++j) {
@@ -20,7 +14,7 @@ var AI = {
 var StupidAI = {
 	tick: function () {
 		AI.tick.apply(this)
-		var protagDistance = distanceBetween(this, this.protag)
+		var protagDistance = distanceBetween(this.pos, this.protag.pos)
 		if (protagDistance <= this.weapon.getRange() / 2) {
 			if (this.mission.map.hasLOS(this.pos, this.protag.pos)) {
 				this.dest = null
@@ -50,7 +44,7 @@ var SneakyAI = {
 			--this.counter
 			return
 		}
-		protagDistance = distanceBetween(this, this.protag)
+		protagDistance = distanceBetween(this.pos, this.protag.pos)
 		if (protagDistance < this.guardradius || this.currenthp < this.getMaxHP()) {
 			var is_brazen = UFX.random() > this.ninjosity
 			for (var n = 0 ; n < NINJA_TRIES ; ++n) {
@@ -77,7 +71,7 @@ var RangedAI = {
 		}
 	},
 	tick: function () {
-		var protagDistance = distanceBetween(this, this.protag)
+		var protagDistance = distanceBetween(this.pos, this.protag.pos)
 		if (this.always_shoot || protagDistance >= this.preferred_dist * this.weapon.getRange()) {
 			AI.tick.apply(this)
 		}
@@ -108,7 +102,34 @@ var BlindAI = {
 	},
 }
 
-// TODO ProximityMineAI TimedMineAI HomingAI
+var ProximityMineAI = {
+	init: function (owner) {
+		this.owner = owner
+	},
+	tick: function () {
+		var ents = this.mission.entities.entitiesAt(this.pos)
+		for (var id in ents) {
+			var e = ents[id]
+			if (!e.solid || !(e.hostile || e === this.mission.protag)) continue
+			if (e !== this.owner && e !== this) {
+				this.takeDamage(this.getMaxHP(), Damage.explosion)
+				return
+			}
+		}
+	},
+}
+
+var TimedMineAI = {
+	init: function (timer) {
+		this.timer = timer
+	},
+	tick: function () {
+		if (this.timer <= 0) this.takeDamage(this.getMaxHP(), Damage.explosion)
+		--this.timer
+	},
+}
+
+// I'm not going to bother with HomingAI, doesn't seem to be used
 
 
 

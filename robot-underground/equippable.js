@@ -6,7 +6,6 @@ Equippable.prototype = {
 	init: function (name) {
 		this.name = name
 		this.basedescription = name
-		this.mods = []
 		this.isIdentified = false
 		this.itemLevel = 1
 	},
@@ -18,7 +17,7 @@ Equippable.prototype = {
 		return this.isIdentified ? this.appraisedname() : "Unappraised " + this.name
 	},
 	appraisedname: function () {
-		return this.mods.map(function (mod) { return mod.getName() }).join("") + this.name
+		return this.modList.map(function (mod) { return getModName(mod[0]) + " " }).join("") + this.name
 	},
 	effects: function () {
 		return ""
