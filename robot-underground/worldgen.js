@@ -1,3 +1,5 @@
+
+
 function loadFixedMap(name) {
 	var map = new DungeonGrid(100)
 	var img = mapdata[name]
@@ -8,6 +10,38 @@ function loadFixedMap(name) {
 	}
 	return map
 }
+
+// from content.town
+function makeTown(m) {
+	m.map = loadFixedMap("dollis")
+	m.style = "town"
+	;[
+		["Fountain", [1000, 1200]],
+		["FountainWater", [1000, 1200]],
+		["Barrel", [20, 986], -25],
+		["Barrel", [20, 946], -69],
+		["Crates", [53, 1050], -44],
+		["Bush", [1279,1432], -167], 
+		["Bush", [1235,1475], -33], 
+		["Bush", [1277,1476], -133], 
+		["Tree1", [1204,996], 0], 
+		["Tree2", [794,1396], 0], 
+		["Column", [726,325], -125], 
+		["Column", [468,325], 0], 
+		["Barrel", [177,831], -127], 
+		["Barrel", [154,799], 121], 
+		["Barrel", [182,767], 9], 
+		["Crates", [1346,2048], 157], 
+		["Barrel", [1520,2080], -116], 
+		["Barrel", [1548,2045], 37], 
+		["Barrel", [1581,2046], 154], 
+		["Barrel", [1552,2077], 40], 
+		["Tree1", [1247,348], 178], 
+		["Bush", [963,374], -26], 
+		["Bush", [921,376], 69], 
+	].forEach(m.addScenery.apply.bind(m.addScenery, m))
+}
+
 
 function makeDungeon2(args) {
 	var map = makeDungeon1(args)
@@ -28,6 +62,7 @@ function makeDungeon2(args) {
 }
 
 function makeDungeon1(args) {
+	args = args || {}
 	var startpos = args.startpos || [100, 70]
 	var minroomsize = args.minroomsize || 2
 	var maxroomsize = args.maxroomsize || 5

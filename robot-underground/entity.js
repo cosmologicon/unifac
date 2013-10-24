@@ -93,6 +93,14 @@ EntityIndex.prototype = {
 		}
 		return res
 	},
+	// applys the given function to each entity
+	forEach: function (f) {
+		var ids = Object.keys(this.es)
+		ids.sort()
+		for (var j = 0 ; j < ids.length ; ++j) {
+			f.apply(this.es[ids[j]])
+		}
+	},
 }
 
 

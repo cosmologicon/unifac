@@ -137,7 +137,49 @@ ProjectileWeapon.prototype = extend(Weapon.prototype, {
 		owner.mission.dispatch_event("on_projectile_fire", owner, projectile)
 	},
 })
-// TODO: Summon
+
+function Summon() {
+}
+Summon.prototype = extend(Weapon.prototype, {
+	init: function (cons, range, cooldowntime, limit, supply) {
+		Weapon.prototype.init.call(this, null, range, cooldowntime, 0, 0, null)
+		this.cons = cons
+		this.limit = limit
+		this.children = []
+		this.supply = supply || null
+	},
+	canFire: function (owner, target) {
+		if (this.cooldown > 0) return false
+		if (distanceBetween(owner.pos, target.pos) > owner.guardradius) return false
+		this.children = this.children.filter(function (c) { return c.currenthp > 0 })
+		if (this.supply !== null && this.supply < 1) return false
+		return (this.limit === null) || this.children.length < this.limit
+	},
+	fire: function (owner, target) {
+		var beast = makeEnemy(this.cons, owner.mission, owner.pos)
+		var born = owner.mission.born
+		function tooclose (id) {
+			var r = beast.r + born[id].r
+			return d2between(pos, born[id].pos) <= r * r
+		}
+		for (var tries = 0 ; tries < SUMMON_TRIES ; ++tries) {
+			var xd = owner.pos[0] + UFX.random(-this.baserange, this.baserange)
+			var yd = owner.pos[1] + UFX.random(-this.baserange, this.baserange)
+			var pos = [xd, yd]
+			if (!owner.mission.map.circleClear(pos, beast.r)) continue
+			if (Object.keys(owner.mission.entities.entitiesWithin(pos, beast.r)).length) continue
+			if (Object.keys(born).some(tooclose)) continue
+			beast.pos = pos
+			owner.mission.born[beast.id] = beast
+			// Seems to be a no-op
+			//owner.mission.dispatch_event("on_summon", beast, owner)
+			this.children.push(beast)
+			if (this.supply !== null) --this.supply
+			this.cooldown = this.getCooldown()
+			break
+		}
+	},
+})
 
 function MineLayer() {
 }
@@ -162,8 +204,7 @@ MineLayer.prototype = extend(Weapon.prototype, {
 })
 
 // NB: SuicideBomb is merely a pseudo-weapon used by mines. No need for its spec to be JSONable
-function SuicideBomb(damageamt, damagetype, blast) {
-	this.init(damageamt, damagetype, blast)
+function SuicideBomb() {
 }
 SuicideBomb.prototype = extend(Weapon.prototype, {
 	init: function (damageamt, damagetype, blast) {
@@ -277,9 +318,6 @@ var minelayerdata = {
 	ProximityMineLayer: ["ProximityMine", 250, 250, 500, 60, "Proximity Mine Layer"],
 }
 
-// Weapons I still need to handle:
-// Summon
-
 function makeWeapon(type, args, mods, itemLevel) {
 	if (type.pop) return makeWeapon.apply(this, type)  // Also accepts 4-arrays as args
 	var w
@@ -298,7 +336,11 @@ function makeWeapon(type, args, mods, itemLevel) {
 		w = new MineLayer()
 		w.init.apply(w, minelayerdata[type])
 	} else if (type == "SuicideBomb") {
-		
+		w = new SuicideBomb()
+		w.init.apply(w, args)
+	} else if (type == "Summon") {
+		w = new Summon()
+		w.init.apply(w, args)
 	} else {
 		throw "Unrecognized weapon type: " + type
 	}

@@ -37,12 +37,13 @@ UFX.scenes.missionmode = {
 		
 		this.mission = new Mission(this)
 		this.walls = this.mission.map.getWalls()
-		this.world_chunks = {}
+		// this.world_chunks = {}
 		this.wall_colour = wall_colours[this.mission.style]
 		this.floor_colour = floor_colours[this.mission.style]
 		// Note: this was originally based on the screen size, but I want to have variable screen sizes
 		this.world_chunk_x = 8
 		this.world_chunk_y = 8
+		graphics.makeworldchunks(this.mission.map, this.world_chunk_x, this.world_chunk_y)
 		this.new_xp = 0
 		this.new_xp_delay = 0
 		this.last_get_float = 0
@@ -264,14 +265,15 @@ UFX.scenes.missionmode = {
 		var mincy = Math.floor(Math.floor(miny/cs - 1) / this.world_chunk_y)
 		var maxcx = Math.floor(Math.floor(maxx/cs) / this.world_chunk_x)
 		var maxcy = Math.floor(Math.floor(maxy/cs) / this.world_chunk_y)
+		graphics.setcolour(this.floor_colour)
 		for (var cx = mincx ; cx <= maxcx ; ++cx) {
 			for (var cy = mincy ; cy <= maxcy ; ++cy) {
-				this.draw_world_chunk(cx, cy)
+				graphics.drawworldchunk(cx, cy)
 			}
 		}
 	},
 	// TODO: cache world chunks so we're not drawing the entire floor every frame
-	draw_world_chunk: function (cx, cy) {
+	draw_world_chunk_slow: function (cx, cy) {
 		var cs = this.mission.map.csize
 		for (var dx = 0 ; dx < this.world_chunk_x ; ++dx) {
 			var x = dx + this.world_chunk_x * cx

@@ -41,6 +41,10 @@ var graphics = {
 
 		this.primbuffer = gl.createBuffer()  // for drawing procedurally-generated primitives
 
+		// for caching floors and walls of the map
+		this.worldchunkbuffer = gl.createBuffer()
+		this.worldchunks = {}
+
 		this.W = 2/canvas.width
 		this.H = 2/canvas.height
 		this.cx = 0
@@ -133,7 +137,8 @@ var graphics = {
 		gl.uniformMatrix3fv(this.svars.xform, false, new Float32Array([
 			this.cz*this.W*C*s, this.cz*this.H*S*s, 0,
 			-this.cz*this.W*S*s, this.cz*this.H*C*s, 0,
-			(x-this.cx)*this.cz*this.W, (y-this.cy)*this.cz*this.H, 1
+			(x*this.cz-Math.round(this.cx*this.cz))*this.W,
+			(y*this.cz-Math.round(this.cy*this.cz))*this.H, 1
 		]))
 	},
 	// HUD coordinates
@@ -229,6 +234,78 @@ var graphics = {
 		this.bindbuffer(this.rectbuffer)
 		this.bindtexbuffer(this.texbuffer)
 		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+	},
+	
+	// Draw the floor and walls of dungeons
+	makeworldchunks: function (map, wcx, wcy) {
+		var t0 = Date.now()
+		var chunks = {}, cs = map.csize
+		var floordata = gdata.ps.slice(2 * gdata.floor.p0, 2 * (gdata.floor.p0 + gdata.floor.np))
+		var walldata = {}
+		for (var t in gdata.walls) {
+			var wdata = gdata.walls[t]
+			walldata[t] = gdata.ps.slice(2 * wdata.p0, 2 * (wdata.p0 + wdata.np))
+		}
+		for (var n in map.cells) {
+			var x = gridx(n), y = gridy(n)
+			var cx = Math.floor(x/wcx), cy = Math.floor(y/wcy)
+			var cn = gridn(cx, cy)
+			if (!chunks[cn]) chunks[cn] = { floorps: [], wallps: [] }
+			chunks[cn].floorps.push(floordata.map(function (p, j) {
+				return (p / gdata.floor.height + (j % 2 ? y : x)) * cs
+			}))
+		}
+		var t1 = Date.now()
+		var mapwalls = map.getWalls()
+		for (var n in mapwalls) {
+			var x = gridx(n), y = gridy(n)
+			var cx = Math.floor(x/wcx), cy = Math.floor(y/wcy)
+			var cn = gridn(cx, cy)
+			if (!chunks[cn]) chunks[cn] = { floorps: [], wallps: [] }
+			try {
+				chunks[cn].wallps.push(walldata[mapwalls[n]].map(function (p, j) {
+					return (p / gdata.walls[mapwalls[n]].height + (j % 2 ? y : x)) * cs
+				}))
+			} catch (e) {
+				console.log(n, gridx(n), gridy(n), mapwalls[n], walldata[mapwalls[n]])
+				throw e
+			}
+		}
+		var t2 = Date.now()
+		
+		var ps = []
+		this.worldchunks = {}
+		function flatten (a, b) { return a.concat(b) }
+		for (var cn in chunks) {
+			this.worldchunks[cn] = {}
+			var floorps = chunks[cn].floorps
+			floorps = floorps.length ? floorps.reduce(flatten) : []
+			this.worldchunks[cn].floorp0 = ps.length / 2
+			this.worldchunks[cn].floornp = floorps.length / 2
+			ps = ps.concat(floorps)
+
+			var wallps = chunks[cn].wallps
+			wallps = wallps.length ? wallps.reduce(flatten) : []
+			this.worldchunks[cn].wallp0 = ps.length / 2
+			this.worldchunks[cn].wallnp = wallps.length / 2
+			ps = ps.concat(wallps)
+		}
+		var t3 = Date.now()
+		this.bindbuffer(this.worldchunkbuffer)
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ps), gl.STATIC_DRAW)
+		var t4 = Date.now()
+		
+
+		console.log(ps.length, t1 - t0, t2 - t1, t3 - t2, t4 - t3, (t4 - t0) + "ms")
+	},
+	drawworldchunk: function (cx, cy) {
+		var cn = gridn(cx, cy)
+		var chunk = this.worldchunks[cn]
+		if (!chunk) return
+		this.bindbuffer(this.worldchunkbuffer)
+		this.setxform(0, 0, 1, 0)
+		gl.drawArrays(gl.LINES, chunk.floorp0, chunk.floornp)
+		gl.drawArrays(gl.LINES, chunk.wallp0, chunk.wallnp)
 	},
 
 	debugcircle: function (x, y, r, colour, hud) {

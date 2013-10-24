@@ -313,6 +313,10 @@ walls = {
         bottomright + topright + bottomleft: svg.SVG("../data/images/scenery/triplecornerul.svgz"),
         
         topleft + topright + bottomleft + bottomright: svg.SVG("../data/images/scenery/quadcorner.svgz"),
+
+		top + bottom + left + right: svg.SVG("../data/images/scenery/wall1.svgz"),
+
+
     }
 walls = defaultdict(lambda: wall, walls)
 

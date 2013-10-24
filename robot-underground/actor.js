@@ -141,8 +141,27 @@ Actor.prototype = extend(Entity.prototype, {
 			this.setPos(newpos)
 		}
 	},
-	
-	// TODO: scriptMove, setScriptPath
+
+	scriptMove: function () {
+		var d = this.dest = this.scriptNodes[0]
+		this.bearing = 57.3 * Math.atan2(d[1] - this.pos[1], d[0] - this.pos[0])
+		this.move(false)
+		if (!this.dest) {
+			// Problem! Obstacle encountered. Jump to next node to ensure script terminates.
+			this.setPos(this.scriptNodes[0])
+		}
+		if (this.pos[0] == this.scriptNodes[0][0] && this.pos[1] == this.scriptNodes[0][1]) {
+			this.scriptNodes.shift()
+			if (!this.scriptNodes.length && this.scriptBearing !== null) {
+				this.bearing = this.scriptBearing
+			}
+		}
+	},
+		
+	setScriptPath: function (nodes, bearing) {
+		this.scriptNodes = nodes.slice()
+		this.scriptBearing = bearing
+	},
 	
 	describe: function () {
 		return this.name + (this.hostile ? " (" + Math.ceil(this.currenthp) + " HP)" : "")

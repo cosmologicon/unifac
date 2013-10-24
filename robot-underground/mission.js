@@ -12,6 +12,7 @@ function Mission(handler) {
 	this.isTimed = false
 	this.entities = new EntityIndex()
 	this.style = "basic"
+	this.bosses = []
 	this.scripts = []
 
 	setupMission(plotstate, this)
@@ -29,7 +30,28 @@ Mission.prototype = {
 		this.entities.add(this.protag)
 		return this.protag
 	},
-	// TODO: addScenery, addEntity
+	addScenery: function (type, pos, bearing) {
+		var s = makeScenery(type, this, pos, bearing)
+		this.entities.add(s)
+		return s
+	},
+	// TODO: addEntity
+	// Partially replaces addEntity
+	addNPC: function (pos, bearing, name) {
+		var npc = new Actor(this, pos, undefined, undefined, bearing, false, name)
+		this.entities.add(npc)
+		return npc
+	},
+	addEnemy: function (type, pos, bearing) {
+		var enemy = makeEnemy(type, this, pos, bearing)
+		this.entities.add(enemy)
+		return enemy
+	},
+	addBoss: function (type, pos, bearing) {
+		var boss = this.addEnemy(type, pos, bearing)
+		this.bosses.push(boss)
+		return boss
+	},
 	placeEnemiesRandomlyAnywhere: function (enemies, outOfSight) {
 		if (outOfSight === undefined) outOfSight = true
 		var m = this.map, cells = m.cellkeys.splice(0), p = this.protag.pos
