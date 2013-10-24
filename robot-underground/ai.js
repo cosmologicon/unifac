@@ -28,7 +28,32 @@ var StupidAI = {
 	},
 }
 
-// TODO TurretAI DroneAI
+// TODO TurretAI
+
+var DroneAI = {
+	init: function (zipradius, wait_time, always_shoot) {
+		this.zipradius = zipradius || 80
+		this.always_shoot = always_shoot
+		this.wait_time = wait_time || 30
+		this.aicounter = 0
+	},
+	tick: function () {
+		if (this.always_shoot || !this.dest) AI.tick.call(this)
+		if (this.dest) return
+		var protagDistance = distanceBetween(this.pos, this.protag.pos)
+		if (protagDistance >= this.guardradius && this.currenthp >= this.getMaxHP()) return
+		if (this.counter) {
+			--this.counter
+		} else {
+			var r = this.weapon.getRange() / 2
+			var x = this.protag.pos[0] + UFX.random.normal(0, r)
+			var y = this.protag.pos[1] + UFX.random.normal(0, r)
+			this.set_dest([x, y])
+			this.counter = this.wait_time
+		}
+	},
+}
+
 
 var SneakyAI = {
 	init: function (ninjosity, movelength, wait_time) {

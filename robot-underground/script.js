@@ -119,7 +119,7 @@ Script.prototype = {
 	heal: function (num) {
 		this.actor.heal(num)
 	},
-	addXp: function (num) {
+	add_xp: function (num) {
 		this.mission.protag.addXp(num)
 	},
 	deny: function (flag) {
@@ -127,6 +127,11 @@ Script.prototype = {
 	},
 	die: function () {
 		this.actor.die()
+	},
+	kill_type: function (type) {
+		this.mission.entities.forEach(function () {
+			if (this.name === type) this.die()
+		})
 	},
 	die_no_drop: function () {
 		this.actor.die(false)
@@ -139,6 +144,9 @@ Script.prototype = {
 	drop_weapon: function (wspec, sspec) {
 		var t = new DroppedEquippable(this.mission, makeWeapon(wspec), this.actor.pos)
 		if (sspec) t.setPickUpScript(sspec)
+	},
+	set_hostile: function (hostile) {
+		this.actor.hostile = hostile
 	},
 
 
@@ -158,6 +166,32 @@ Script.prototype = {
 	if_first: function (key, ifspec, elsespec) {
 		this.if(!plotstate[key], ifspec, elsespec)
 		plotstate[key] = "done"
+	},
+
+	// replaces if key in plotstate
+	if_plotstate: function (key, ifspec, elsespec) {
+		this.if(plotstate[key], ifspec, elsespec)
+	},
+	// replaces if key not in plotstate
+	if_not_plotstate: function (key, ifspec, elsespec) {
+		this.if(!plotstate[key], ifspec, elsespec)
+	},
+	// replaces if robotstate.getMetal(type) >= amount
+	if_has_metal: function (type, amount, ifspec, elsespec) {
+		this.if(robotstate.getMetal(type) >= amount, ifspec, elsespec)
+	},
+	// if all members of mission.bosses are dead
+	if_boss_dead: function (ifspec, elsespec) {
+		this.if(mission.bosses.every(function (b) { return b.hp <= 0 }), ifspec, elsespec)
+	},
+
+	// replaces plotstate[key] = "done"
+	set_plotstate: function (key) {
+		plotstate[key] = "done"
+	},
+	// replaces robotstate.changeMetal(amt, type)
+	change_metal: function (amt, type) {
+		robotstate.changeMetal(amt, type)
 	},
 
 	sound: function (sfx) {
@@ -195,12 +229,24 @@ Script.prototype = {
 		this.mission.runScript(this, ticks)
 		this.state = "endConversation"
 	},
-	wait_until_moved: function (actors) {
-		this.waitingOn = actors
-		this.mission.isCutScene = true
-		this.mission.runScript(this, 1)
-		this.state = "endConversation"
+	// This method is turning out to be a pain to get working, and I think it was primarily used
+	//   for a training mission that's no longer used. I'm fine with removing it.
+//	wait_until_moved: function (actors) {
+//		console.log("wait_until_moved", actors)
+//		this.waitingOn = actors.slice()
+//		this.mission.isCutscene = true
+//		this.mission.runScript(this, 1)
+//		this.state = "endConversation"
+//	},
+	set_script_path: function (who, nodes, bearing) {
+		who.setScriptPath(nodes, bearing)
 	},
+
+	// Catch-all for any silly one-off functions they put in the script
+	do: function (fn) {
+		fn()
+	},
+
 
 	// TODO log_record
 

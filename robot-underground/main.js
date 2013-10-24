@@ -42,7 +42,16 @@ UFX.scenes.load = {
 		}
 		this.loaded = true
 		this.canvas.style.cursor = "pointer"
-		this.canvas.onclick = UFX.scene.swap.bind(UFX.scene, "mainmenu")
+		if (DEBUG.levelskip) {
+			this.canvas.onclick = function () {
+				initPlotState(plotstate)
+				robotstate.init(null)
+				plotstate.nextScene = DEBUG.levelskip
+				return UFX.scene.swap("missionmode")
+			}
+		} else {
+			this.canvas.onclick = UFX.scene.swap.bind(UFX.scene, "mainmenu")
+		}
 	},
 	draw: function () {
 		var s = this.loaded ? "Click~to~begin" : "Loading~(" + (this.progress * 100).toFixed(0) + "%)..."
@@ -66,8 +75,8 @@ var soundnames = (
 	"shot1 shot2 shot3 destroy1 destroy2 destroy3 destroy4 pickup1 fanfare bullet4 radio click roar " +
 	"lightning1 lightning2 lightning3 explosion eject railgun1 44magnum click plasma fireball gunshot1"
 ).split(" ")
-//var songnames = "Chase ElectroSketch HowItBegins Klockworx LongTimeComing RadioMartini".split(" ")
-var songnames = "ElectroSketch HowItBegins".split(" ")
+var songnames = "Chase ElectroSketch HowItBegins Klockworx LongTimeComing RadioMartini".split(" ")
+//var songnames = "ElectroSketch HowItBegins RadioMartini".split(" ")
 
 var res = {
 	mapdata: "data/mapdata.json",

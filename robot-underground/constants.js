@@ -27,8 +27,10 @@ if (qopts.DEBUG) {
 	DEBUG.expose = true // expose convenience methods, eg zoomout and zoomin
 	DEBUG.testdialogue = qopts.testdialogue  // put Putney by the starting position
 	DEBUG.testinventory = qopts.testinventory  // put Hammersmith by the starting position
+	DEBUG.levelskip = qopts.levelskip // skip to the named level, eg levelskip=act1.town
 	DEBUG.failhard = true  // shut down with error mesasge on throw
 	DEBUG.showfps = true
+	if (qopts.softcursoroff) settings.cursor = false
 	var DEBUGform = document.getElementById("DEBUG")
 	DEBUGform.style.display = "block"
 }

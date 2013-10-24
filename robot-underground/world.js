@@ -38,8 +38,10 @@ DungeonGrid.prototype = {
 		}
 	},
 	getClearSpace: function () {
+		// TODO: sortkeys
 		var n = +UFX.random.choice(Object.keys(this.cells))
-		return gridxy(n)
+		var startcell = gridxy(n)
+		return [(startcell[0] + 0.5) * this.csize, (startcell[1] + 0.5) * this.csize]
 	},
 	isClear: function (start, size) {
 		for (var x = 0 ; x < size[0] ; ++x) {
