@@ -268,7 +268,7 @@ UFX.scenes.missionmode = {
 		graphics.setcolour(this.floor_colour)
 		for (var cx = mincx ; cx <= maxcx ; ++cx) {
 			for (var cy = mincy ; cy <= maxcy ; ++cy) {
-				graphics.drawworldchunk(cx, cy)
+				graphics.drawworldchunk(cx, cy, this.floor_colour, this.wall_colour)
 			}
 		}
 	},
