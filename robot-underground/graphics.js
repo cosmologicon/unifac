@@ -239,72 +239,86 @@ var graphics = {
 	// Draw the floor and walls of dungeons
 	makeworldchunks: function (map, wcx, wcy) {
 		var t0 = Date.now()
-		var chunks = {}, cs = map.csize
-		var floordata = gdata.ps.slice(2 * gdata.floor.p0, 2 * (gdata.floor.p0 + gdata.floor.np))
-		var walldata = {}
-		for (var t in gdata.walls) {
-			var wdata = gdata.walls[t]
-			walldata[t] = gdata.ps.slice(2 * wdata.p0, 2 * (wdata.p0 + wdata.np))
+		var chunks = {}, gps = gdata.ps
+		var fp0 = 2 * gdata.floor.p0, flen = 2 * gdata.floor.np
+		var wp0 = {}, wlen = {}
+		for (var v in gdata.walls) {
+			wp0[v] = 2 * gdata.walls[v].p0
+			wlen[v] = 2 * gdata.walls[v].np
 		}
+		var mapwalls = map.getWalls()
+		var nps = 0
+		for (var n in map.cells) nps += flen
+		for (var n in mapwalls) nps += wlen[mapwalls[n]]
+		var ps = new Float32Array(nps), pj = 0
+		
+		var t1 = Date.now()
+
 		for (var n in map.cells) {
 			var x = gridx(n), y = gridy(n)
 			var cx = Math.floor(x/wcx), cy = Math.floor(y/wcy)
 			var cn = gridn(cx, cy)
-			if (!chunks[cn]) chunks[cn] = { floorps: [], wallps: [] }
-			chunks[cn].floorps.push(floordata.map(function (p, j) {
-				return (p / gdata.floor.height + (j % 2 ? y : x)) * cs
-			}))
+			if (!chunks[cn]) chunks[cn] = { floorxs: [], floorys: [], wallxs: [], wallys: [], wallvs: [] }
+			chunks[cn].floorxs.push(x)
+			chunks[cn].floorys.push(y)
 		}
-		var t1 = Date.now()
-		var mapwalls = map.getWalls()
 		for (var n in mapwalls) {
 			var x = gridx(n), y = gridy(n)
 			var cx = Math.floor(x/wcx), cy = Math.floor(y/wcy)
 			var cn = gridn(cx, cy)
-			if (!chunks[cn]) chunks[cn] = { floorps: [], wallps: [] }
-			try {
-				chunks[cn].wallps.push(walldata[mapwalls[n]].map(function (p, j) {
-					return (p / gdata.walls[mapwalls[n]].height + (j % 2 ? y : x)) * cs
-				}))
-			} catch (e) {
-				console.log(n, gridx(n), gridy(n), mapwalls[n], walldata[mapwalls[n]])
-				throw e
-			}
+			if (!chunks[cn]) chunks[cn] = { floorxs: [], floorys: [], wallxs: [], wallys: [], wallvs: [] }
+			chunks[cn].wallxs.push(x)
+			chunks[cn].wallys.push(y)
+			chunks[cn].wallvs.push(mapwalls[n])
 		}
-		var t2 = Date.now()
-		
-		var ps = []
-		this.worldchunks = {}
-		function flatten (a, b) { return a.concat(b) }
-		for (var cn in chunks) {
-			this.worldchunks[cn] = {}
-			var floorps = chunks[cn].floorps
-			floorps = floorps.length ? floorps.reduce(flatten) : []
-			this.worldchunks[cn].floorp0 = ps.length / 2
-			this.worldchunks[cn].floornp = floorps.length / 2
-			ps = ps.concat(floorps)
 
-			var wallps = chunks[cn].wallps
-			wallps = wallps.length ? wallps.reduce(flatten) : []
-			this.worldchunks[cn].wallp0 = ps.length / 2
-			this.worldchunks[cn].wallnp = wallps.length / 2
-			ps = ps.concat(wallps)
+		var t2 = Date.now()
+
+		this.worldchunks = { cs: map.csize }
+		for (var cn in chunks) {
+		
+			var chunk = chunks[cn], floorxs = chunk.floorxs, floorys = chunk.floorys
+			this.worldchunks[cn] = { floorp0: pj/2 }
+			for (var fj = 0 ; fj < floorxs.length ; ++fj) {
+				 var x = floorxs[fj], y = floorys[fj], h = gdata.floor.height
+				 for (var j = 0, i = fp0 ; j < flen ; j += 2) {
+				 	ps[pj++] = gps[i++] / h + x
+				 	ps[pj++] = gps[i++] / h + y
+			 	}
+		 	}
+		 	this.worldchunks[cn].floornp = pj/2 - this.worldchunks[cn].floorp0
+
+			var wallxs = chunk.wallxs, wallys = chunk.wallys, wallvs = chunk.wallvs
+		 	this.worldchunks[cn].wallp0 = pj/2
+			for (var wj = 0 ; wj < wallxs.length ; ++wj) {
+				 var x = wallxs[wj], y = wallys[wj], v = wallvs[wj]
+				 var h = gdata.walls[v].height, i0 = wp0[v], jmax = wlen[v]
+				 for (var j = 0, i = i0 ; j < jmax ; j += 2) {
+				 	ps[pj++] = gps[i++] / h + x
+				 	ps[pj++] = gps[i++] / h + y
+			 	}
+		 	}
+		 	this.worldchunks[cn].wallnp = pj/2 - this.worldchunks[cn].wallp0
 		}
+
 		var t3 = Date.now()
+
 		this.bindbuffer(this.worldchunkbuffer)
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ps), gl.STATIC_DRAW)
+		gl.bufferData(gl.ARRAY_BUFFER, ps, gl.STATIC_DRAW)
 		var t4 = Date.now()
 		
 
-		console.log(ps.length, t1 - t0, t2 - t1, t3 - t2, t4 - t3, (t4 - t0) + "ms")
+//		console.log(ps.length, t1 - t0, t2 - t1, t3 - t2, t4 - t3, (t4 - t0) + "ms")
 	},
-	drawworldchunk: function (cx, cy) {
+	drawworldchunk: function (cx, cy, fcolour, wcolour) {
 		var cn = gridn(cx, cy)
 		var chunk = this.worldchunks[cn]
 		if (!chunk) return
 		this.bindbuffer(this.worldchunkbuffer)
-		this.setxform(0, 0, 1, 0)
+		this.setxform(0, 0, this.worldchunks.cs, 0)
+		this.setcolour(fcolour)
 		gl.drawArrays(gl.LINES, chunk.floorp0, chunk.floornp)
+		this.setcolour(wcolour)
 		gl.drawArrays(gl.LINES, chunk.wallp0, chunk.wallnp)
 	},
 

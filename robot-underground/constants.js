@@ -31,6 +31,7 @@ if (qopts.DEBUG) {
 	DEBUG.failhard = true  // shut down with error mesasge on throw
 	DEBUG.showfps = true
 	if (qopts.softcursoroff) settings.cursor = false
+	if (qopts.nomusic) settings.music = false
 	var DEBUGform = document.getElementById("DEBUG")
 	DEBUGform.style.display = "block"
 }
