@@ -242,6 +242,9 @@ function setupTown(ps, m) {
 		["ask_r", "Need anything?", [
 			["Inventory",
 				["inventory"],
+				// I'm adding this because clicks immediately after the inventory menu skip the first line
+				// TODO: is there a better way?
+				["say_r", ""],
 		        ["if_first", 'act1.hammersmith.inventory.autofire', [
 		            ["say_r", "I see you've found a weapon with the Autofire option available there."],
 		            ["say_r", "Weapons with that mod can be either on, off, or autofiring, which will highlight them in green."],
@@ -280,7 +283,7 @@ function setupTown(ps, m) {
         ["speaker_l", "Camden"],
         ["speaker_r", "Pimlico"],
         ["say_r", "I sometimes try and target enemies and miss and end up moving."],
-        ["say_r", "It totally throws my balance off, but if you hold the Ctrl key, that doesn't happen."],
+        ["say_r", "It totally throws my balance off, but if you right-click or hold the Ctrl key, that doesn't happen."],
 	], [1533, 664], "Pimlico", null, 312)
 
     m.actorTalkScript([

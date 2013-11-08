@@ -11,20 +11,13 @@ Menu.prototype = {
 		this.fns = choices.map(function (c) { return c[1] })
 		this.n = choices.length
 		this.current = opts.defaultOption || 0
-		// (x,y) = coorditanes of anchor point
+		// (x,y) = coordinates of anchor point
 		// (x0,y0,w0,h0) = box, not including gutter
 		// (x1,y1,w1,h1) = box including gutter
 		this.x = x
 		this.y = y
 		this.hanchor = opts.hanchor || 0
 		this.vanchor = opts.vanchor || 0
-		this.fontsize = Math.round(opts.fontsize || MENU_FONT_LARGE * settings.scr_h)
-		// gutter around the individual options (for drawing selected box)
-		this.ogutter = Math.round("ogutter" in opts ? opts.ogutter : 0.25 * this.fontsize)
-		// Vertical separation between options
-		this.spacing = Math.round("spacing" in opts ? opts.spacing : MENU_TEXT_SPACING * settings.scr_h)
-		// gutter of the menu itself
-		this.gutter = Math.round("gutter" in opts ? opts.gutter : this.ogutter * 3)
 
 		this.colour0 = opts.colour0 || "#888800"  // unfocused colour
 		this.colour1 = opts.colour1 || "#FFFF00"  // focused colour
@@ -35,6 +28,7 @@ Menu.prototype = {
 		this.header = opts.header
 		this.hcolour = opts.hcolour || "#FFFFFF"
 		
+		this.opts = opts
 		this.setsizes()
 	},
 	
@@ -47,6 +41,15 @@ Menu.prototype = {
 	},
 
 	setsizes: function () {
+		// These options are pulled here from the init method because they change on adjust!
+		this.fontsize = Math.round(this.opts.fontsize || MENU_FONT_LARGE * settings.scr_h)
+		// gutter around the individual options (for drawing selected box)
+		this.ogutter = Math.round("ogutter" in this.opts ? this.opts.ogutter : 0.25 * this.fontsize)
+		// Vertical separation between options
+		this.spacing = Math.round("spacing" in this.opts ? this.opts.spacing : MENU_TEXT_SPACING * settings.scr_h)
+		// gutter of the menu itself
+		this.gutter = Math.round("gutter" in this.opts ? this.opts.gutter : this.ogutter * 3)
+
 		this.x0s = [] ; this.x1s = [] ; this.y0s = [] ; this.y1s = []
 		this.w0s = [] ; this.w1s = [] ; this.h0s = [] ; this.h1s = []
 		this.w0 = 0
@@ -121,20 +124,22 @@ Menu.prototype = {
 
 function MenuScene(choices, opts) {
 	this.choices = choices
-	var opts0 = { hanchor: 0.5, vanchor: 1, x: Math.floor(settings.scr_w/2), y: Math.floor(0.7*settings.scr_h) }
+	var opts0 = { hanchor: 0.5, vanchor: 1 }
 	this.opts = opts ? extend(opts0, opts) : opts0
-	this.x = this.opts.x
-	this.y = this.opts.y
 	this.mx = null
 	this.my = null
 }
 MenuScene.prototype = {
 
 	start: function () {
+		this.setpos()
 		this.menu = new Menu(this.choices, this.x, this.y, this.opts)
 		if (this.opts.music) playmusic(this.opts.music)
 	},
-	
+	setpos: function () {
+		this.x = "x" in this.opts ? this.opts.x : Math.floor(settings.scr_w/2)
+		this.y = "y" in this.opts ? this.opts.y : Math.floor(0.7*settings.scr_h)
+	},
 	thinkargs: function (dt) {
 		return [dt, UFX.mouse.state(), UFX.key.state()]
 	},
@@ -161,8 +166,17 @@ MenuScene.prototype = {
 	
 	suspend: function () { this.suspended = true },
 	resume: function () {
+		this.onadjust()
 		this.suspended = false
 		if (this.opts.music) playmusic(this.opts.music)
+	},
+	
+	onadjust: function () {
+		graphics.onadjust()
+		this.setpos()
+		this.menu.x = this.x
+		this.menu.y = this.y
+		this.menu.setsizes()
 	},
 }
 
@@ -259,7 +273,10 @@ UFX.scenes.credits = {
 		var x = settings.scr_w/2, y = settings.scr_h/2, fontsize = MENU_FONT_SMALL * settings.scr_h
 		text.drawhudborder(s, x, y, fontsize, "#7F7F7F", 10, 0.5, 0.5, null, 0.5, null, [0,0,0.2,0.9])
 		if (this.mpos) graphics.drawcursor("walk", this.mpos[0], this.mpos[1], {hud: true})
-	}
+	},
+	onadjust: function () {
+		UFX.scenes.mainmenu.onadjust()
+	},
 }
 
 

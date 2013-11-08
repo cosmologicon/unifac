@@ -33,6 +33,7 @@ if (qopts.DEBUG) {
 	DEBUG.minidungeons = qopts.minidungeons // dungeons are much smaller for easier completion
 	DEBUG.failhard = true  // shut down with error mesasge on throw
 	DEBUG.showfps = true
+	DEBUG.fixcanvas = true
 	if (qopts.softcursoroff) settings.cursor = false
 	if (qopts.nomusic) settings.music = false
 	var DEBUGform = document.getElementById("DEBUG")

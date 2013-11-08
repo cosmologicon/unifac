@@ -1,40 +1,14 @@
 
 UFX.scenes.missionmode = {
 	start: function () {
-		var scr_h = settings.scr_h, scr_w = settings.scr_w
 
-		// dialogue box positions and HUD constants moved into the individual draw_* methods where
-		//   they're used.
-		
+		this.setsizes()
 		this.inventory_mode = false
 		this.inventory_menu = new ScrollingInventoryMenu(this.close_inventory.bind(this))
-		
-		var equipment_icons = []
-		while (equipment_icons.length < MAX_NUM_WEAPONS + 1) {
-			var px = (HUD_MARGIN + (HUD_ICON_SIZE + HUD_SPACING) * equipment_icons.length) * scr_h
-			var py = HUD_MARGIN * scr_h
-			var sx = HUD_ICON_SIZE * scr_h, sy = sx
-			var f = this.weapon_clicked.bind(this, equipment_icons.length)
-			equipment_icons.push(new Button(f, px, py, sx, sy, null))
-		}
-		this.equip_icons = equipment_icons
-		this.update_weapons()
-		
-		var px = scr_w - (HUD_ICON_SIZE + HUD_MARGIN) * scr_h, py = HUD_MARGIN * scr_h
-		var sx = HUD_ICON_SIZE * scr_h, sy = sx
-		this.eject_icon = new Button(this.eject_clicked.bind(this), px, py, sx, sy, gdata.eject)
-		
 		this.eject_mode = false
 		
 		this.choice_mode = false
-		this.portrait_ypos = PORTRAIT_BOTTOM * scr_h
-		this.portrait_height = (PORTRAIT_TOP - PORTRAIT_BOTTOM) * scr_h
-		this.portrait_width = this.portrait_height * PORTRAIT_ASPECT
-		this.portrait_l_xpos = PORTRAIT_PAD * scr_h
-		this.portrait_r_xpos = scr_w - (PORTRAIT_PAD * scr_h) - this.portrait_width
-		this.dialogue_changed = true
-		this.dialogue_gutter = BOX_GUTTER * scr_h
-		
+
 		this.mission = new Mission(this)
 		this.walls = this.mission.map.getWalls()
 		// this.world_chunks = {}
@@ -60,12 +34,9 @@ UFX.scenes.missionmode = {
 		this.hud_mouseover_target = null
 		
 		this.hide_hud = false
-		this.hud_portrait_ypos = HUD_PORTRAIT_BOTTOM * scr_h
-		this.hud_portrait_height = (1 - HUD_MARGIN - HUD_PORTRAIT_BOTTOM) * scr_h
-		this.hud_portrait_width = this.hud_portrait_height * HUD_PORTRAIT_ASPECT
-		this.hud_portrait_xpos = scr_w - HUD_MARGIN * scr_h - this.hud_portrait_width
-		this.mouseover_pad = MOUSEOVER_PAD * scr_h
-		
+
+		this.dialogue_changed = true
+
 		this.frameno = 0
 		this.current_zoom = 1.0
 		this.desired_zoom = 1.0
@@ -80,8 +51,38 @@ UFX.scenes.missionmode = {
 		if (this.mission.startScript) {
 			this.mission.runScript(this.mission.startScript)
 		}
+	},
+	
+	setsizes: function () {
+		var scr_h = settings.scr_h, scr_w = settings.scr_w
+
+		var equipment_icons = []
+		while (equipment_icons.length < MAX_NUM_WEAPONS + 1) {
+			var px = (HUD_MARGIN + (HUD_ICON_SIZE + HUD_SPACING) * equipment_icons.length) * scr_h
+			var py = HUD_MARGIN * scr_h
+			var sx = HUD_ICON_SIZE * scr_h, sy = sx
+			var f = this.weapon_clicked.bind(this, equipment_icons.length)
+			equipment_icons.push(new Button(f, px, py, sx, sy, null))
+		}
+		this.equip_icons = equipment_icons
+		this.update_weapons()
 		
+		var px = scr_w - (HUD_ICON_SIZE + HUD_MARGIN) * scr_h, py = HUD_MARGIN * scr_h
+		var sx = HUD_ICON_SIZE * scr_h, sy = sx
+		this.eject_icon = new Button(this.eject_clicked.bind(this), px, py, sx, sy, gdata.eject)
 		
+		this.portrait_ypos = PORTRAIT_BOTTOM * scr_h
+		this.portrait_height = (PORTRAIT_TOP - PORTRAIT_BOTTOM) * scr_h
+		this.portrait_width = this.portrait_height * PORTRAIT_ASPECT
+		this.portrait_l_xpos = PORTRAIT_PAD * scr_h
+		this.portrait_r_xpos = scr_w - (PORTRAIT_PAD * scr_h) - this.portrait_width
+		this.dialogue_gutter = BOX_GUTTER * scr_h
+		
+		this.hud_portrait_ypos = HUD_PORTRAIT_BOTTOM * scr_h
+		this.hud_portrait_height = (1 - HUD_MARGIN - HUD_PORTRAIT_BOTTOM) * scr_h
+		this.hud_portrait_width = this.hud_portrait_height * HUD_PORTRAIT_ASPECT
+		this.hud_portrait_xpos = scr_w - HUD_MARGIN * scr_h - this.hud_portrait_width
+		this.mouseover_pad = MOUSEOVER_PAD * scr_h
 	},
 	
 	get_mouse_world_coordinates: function () {
@@ -226,12 +227,12 @@ UFX.scenes.missionmode = {
 		if (this.mission.canEject) this.eject_icon.draw()
 	},
 	
-	draw_lightning: function (src, target) {
-		var points = [], npoints = Math.floor(0.05 * distanceBetween(src.pos, target.pos)) + 1
+	draw_lightning: function (srcpos, targetpos) {
+		var points = [], npoints = Math.floor(0.05 * distanceBetween(srcpos, targetpos)) + 1
 		while (points.length < 2 * npoints) {
 			var a = 0.5 * points.length / npoints
-			points.push(src[0] * (1-a) + target[0] * a + UFX.random.normal(5))
-			points.push(src[1] * (1-a) + target[1] * a + UFX.random.normal(5))
+			points.push(srcpos[0] * (1-a) + targetpos[0] * a + UFX.random.normal(5))
+			points.push(srcpos[1] * (1-a) + targetpos[1] * a + UFX.random.normal(5))
 		}
 		graphics.setcolour([0.8, 0.8, 1.0])
 		graphics.drawstrip(points)
@@ -348,8 +349,9 @@ UFX.scenes.missionmode = {
 			graphics.setcolour(e0 === this.mission.protag ? [1,0,0] : [0,0,1])
 			graphics.drawstrip([e0.pos[0], e0.pos[1], e1.pos[0], e1.pos[1]])
 		}
-		for (var s in this.ligthnings) {
+		for (var s in this.lightnings) {
 			var e0 = this.lightnings[s][1], e1 = this.lightnings[s][2]
+//			console.log(e0.pos, e1.pos, e0, e1)
 			this.draw_lightning(e0.pos, e1.pos)
 		}
 		for (var s in this.bullets) {
@@ -537,11 +539,12 @@ UFX.scenes.missionmode = {
 		if (this.inventory_mode)
 			return this.inventory_menu.handle_input(mstate, kstate)
 
-		if (mstate.left.down) this.on_mouse_press(mstate.pos, kstate.pressed.ctrl)
-		if (mstate.right.down) this.on_mouse_press(mstate.pos, true)
+		var mleft = mstate.left, mright = mstate.right
+		if (mleft.down) this.on_mouse_press(mstate.pos, kstate.pressed.ctrl)
+		if (mright.down) this.on_mouse_press(mstate.pos, true)
 
-		if (mstate.left.drag) this.on_mouse_drag(mstate.pos, mstate.left.drag, kstate.pressed.ctrl)
-		if (mstate.right.drag) this.on_mouse_drag(mstate.pos, mstate.right.drag, true)
+		if (mleft.dx || mleft.dy) this.on_mouse_drag(mstate.pos, [mleft.dx, mleft.dy], kstate.pressed.ctrl)
+		if (mright.dx || mright.dy) this.on_mouse_drag(mstate.pos, [mright.dx, mright.dy], true)
 		
 		var s = this.mission.currentScript
 		if (s && s.menu) {
@@ -786,6 +789,11 @@ UFX.scenes.missionmode = {
 
 		this.bullets = []
 		this.mission.tick()
+	},
+	
+	onadjust: function () {
+		graphics.onadjust()
+		this.setsizes()
 	},
 
 	// From helpers.format_xp
