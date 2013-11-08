@@ -21,6 +21,7 @@ EntityIndex.prototype = {
 		this.es[e.id] = e
 		e.indices.push(this)
 		this.max_entity_radius = Math.max(this.max_entity_radius, e.r)
+		return e
 	},
 	remove: function (e) {
 		var that = this

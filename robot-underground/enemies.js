@@ -85,10 +85,16 @@ var eweapspecs = {
 	bossggun: ["GatlingGun", [], ["BOSS", 2]],
 	bossrlaunch: ["RocketLauncher", [], ["BOSS", 2]],
 	hprailgun: ["Railgun", [], ["HighPowered", 10]],
+	montaser: ["Taser", [], ["Scoped", 10]],
+	summonmin: ["Summon", ["Minument", 5, 250, 3]],
 }
 // allweapons, [attack, defence, hp, speed], guardradius, size, xpvalue, dropLevel, explosions,
 //  ai, aiargs, resistances [laser physical fire electric explosion], 
 var enemyinfo = {
+	// Direct subclasses of Enemy - base resistances: [0, 0, 0, 0, 0]
+	Minument: [["Taser"], [6, 10, 20, 3], 8, 25, 32, 4, 3, DroneAI, [], [25, -25, 0, 0, 0]],
+	Monument: [[eweapspecs.montaser, eweapspecs.summonmin], [12, 10, 50, 2], 8, 75, 512, 6, 3, RangedAI, [], [25, -25, 0, 0, 0]],
+
 	// Insect subclasses - base resistances: [50, 0, -50, 0, 0]
 	Spider: [["WimpyClaw"], [1, 2, 5, 4], 4, 15, 8, 1, 1, BlindAI, [], [50, 0, -50, 0, 0]],
 	Scorpion: [["WimpyClaw"], [2, 3, 5, 3], 4, 25, 8, 1, 1, StupidAI, [], [50, 0, -50, 0, 0]],

@@ -18,3 +18,14 @@
 Double GET! sometimes
 - Space in COBALT(4)
 
+Continue moving toward cursor until you let up
+Metal spacing when you have more than just Cobalt
+Sound effects when you shoot a lot
+Hammersmith's first word after you check your inventory
+Pimlico's right-click hint
+Music loop ends eventually
+Seems like a lot of scorpions in the scorpion den
+Armour mods seem really weak
+missing sound: level up
+
+

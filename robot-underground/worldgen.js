@@ -71,6 +71,8 @@ function makeDungeon1(args) {
 	var maxdist = args.maxdist || 11
 	var extratunnels = "extratunnels" in args ? args.extratunnels : true
 
+	if (DEBUG.minidungeons) maxrooms = Math.ceil(maxrooms / 20)
+
 	var map = new DungeonGrid(100)
 	var r = new Room(startpos, [maxroomsize, maxroomsize])
 	r.addToDungeon(map)
