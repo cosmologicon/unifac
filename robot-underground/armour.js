@@ -18,7 +18,7 @@ Armour.prototype = extend(Equippable.prototype, {
 		})
 		var rs = this.resistances = {}
 		mod.rskeys.forEach(function (key) {
-			rs[key] = 0
+			rs[Damage[key]] = 0
 		})
 		this.modList = []
 	},

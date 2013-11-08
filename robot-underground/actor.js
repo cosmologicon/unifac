@@ -53,6 +53,10 @@ Actor.prototype = extend(Entity.prototype, {
 		if (!this.hostile && this.mission.protag !== this) return
 		amount /= this.getDefence() * (1 + this.getResistance(type)/100)
 		this.currenthp -= amount
+		if (isNaN(this.currenthp)) {
+			console.log(amount, type)
+			throw "err"
+		}
 		if (this.currenthp <= 0) {
 			if (this.deathScript) {
 				this.mission.runScript(this.deathScript)

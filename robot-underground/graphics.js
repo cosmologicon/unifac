@@ -45,8 +45,8 @@ var graphics = {
 		this.worldchunkbuffer = gl.createBuffer()
 		this.worldchunks = {}
 
-		this.W = 2/canvas.width
-		this.H = 2/canvas.height
+		this.W = 2/settings.scr_w
+		this.H = 2/settings.scr_h
 		this.cx = 0
 		this.cy = 0
 		this.cz = 1  // world zoom level
@@ -74,6 +74,10 @@ var graphics = {
 		this.texbuffer = gl.createBuffer()
 		this.bindtexbuffer(this.texbuffer)
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,1,1,1,1,0,0,0]), gl.STATIC_DRAW)
+	},
+	onadjust: function () {
+		this.W = 2/settings.scr_w
+		this.H = 2/settings.scr_h
 	},
 
 	// Set the vertex array buffer

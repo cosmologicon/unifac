@@ -32,7 +32,7 @@ InventoryPixIcon.prototype = {
 	},
 }
 
-
+// TODO: Allow resizing of canvas while inventory menu is up
 function ScrollingInventoryMenu(callback) {
 	var scr_w = settings.scr_w, scr_h = settings.scr_h
 	this.callback = callback

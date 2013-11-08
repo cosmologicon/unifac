@@ -9,6 +9,9 @@ UFX.scenes.load = {
 	start: function () {
 		this.canvas = document.getElementById("loadcanvas")
 		this.canvas.width = settings.scr_w ; this.canvas.height = settings.scr_h
+		if (!DEBUG.fixcanvas) {
+			UFX.maximize.fill(this.canvas, "aspect")
+		}
 		this.context = loadcanvas.getContext("2d")
 		this.progress = 0
 		this.loaded = false
@@ -25,14 +28,14 @@ UFX.scenes.load = {
 		mapdata = UFX.resource.data.mapdata
 		graphics.init()
 		"shot1 shot2 shot3 bullet4 radio".split(" ").forEach(function (s) {
-			UFX.resource.sounds[s] = UFX.resource.Multisound(UFX.resource.sounds[s], 3)
+			UFX.resource.sounds[s] = UFX.resource.Multisound(UFX.resource.sounds[s], 6)
 		})
 		UFX.resource.mergesounds("shot", "destroy", "pickup", "bullet", "lightning", "railgun")
 		graphics.clear()
 		UFX.mouse.capture.right = true
 		UFX.mouse.capture.wheel = true
 		UFX.mouse.init(canvas)
-		UFX.key.watchlist = "up down left right enter space tab esc".split(" ")
+		UFX.key.watchlist = "up down left right enter space tab esc ctrl".split(" ")
 		UFX.key.init()
 
 		if (DEBUG.expose) {
@@ -42,15 +45,16 @@ UFX.scenes.load = {
 		}
 		this.loaded = true
 		this.canvas.style.cursor = "pointer"
-		if (DEBUG.levelskip) {
-			this.canvas.onclick = function () {
+		this.canvas.onclick = function () {
+			if (!DEBUG.fixcanvas) UFX.maximize.fill(canvas, "aspect")
+			if (DEBUG.levelskip) {
 				initPlotState(plotstate)
 				robotstate.init(null)
 				plotstate.nextScene = DEBUG.levelskip
-				return UFX.scene.swap("missionmode")
+				UFX.scene.swap("missionmode")
+			} else {
+				UFX.scene.swap("mainmenu");
 			}
-		} else {
-			this.canvas.onclick = UFX.scene.swap.bind(UFX.scene, "mainmenu")
 		}
 	},
 	draw: function () {
@@ -68,6 +72,15 @@ UFX.scene.init({fps: 30})
 UFX.scene.push("load")
 UFX.resource.onloading = UFX.scenes.load.onloading.bind(UFX.scenes.load)
 UFX.resource.onload = UFX.scenes.load.onload.bind(UFX.scenes.load)
+
+UFX.maximize.onadjust = function (canvas, sx, sy) {
+	settings.scr_w = sx
+	settings.scr_h = sy
+	if (gl) gl.viewport(0, 0, sx, sy)
+	var s = UFX.scene.top()
+	if (s && s.onadjust) s.onadjust()
+}
+UFX.maximize.fillcolor = "#222"
 
 // christopher@palimpsest:~/Downloads/robot-underground-1.0.4$ grep "\.wav" lib/sound.py | sed 's|.*\ "||;s|\..*||' | xargs -n 1 -I xxx oggenc data/sfx/xxx.wav -o ~/projects/unifac/robot-underground/data/sfx/xxx.ogg
 // radio.wav is weird - had to convert it with audacity
