@@ -51,6 +51,28 @@ Equippable.prototype = {
 	getResistance: function (which) {
 		return clip(this.resistances[which], -80, 300)
 	},
+	getItemSpec: function () {
+		return [
+			this.isweapon ? "weapon" : this.isarmour ? "armour" : "",
+			this.spec,
+			this.isIdentified,
+		]
+	},
 }
+
+function makeItem(type, spec, isIdentified) {
+	if (type.pop) return makeItem.apply(this, type)
+	if (type == "weapon") {
+		var item = makeWeapon(spec)
+	} else if (type == "armour") {
+		var item = makeArmour(spec)
+	} else {
+		throw "Unknown item type: " + type
+	}
+	item.isIdentified = isIdentified
+	return item
+}
+
+
 
 

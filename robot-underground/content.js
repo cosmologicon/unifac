@@ -16,6 +16,7 @@ function setupMission(ps, m) {
 		case "act1.bossfight": setupBossFight(ps, m) ; break
 		case "act1.ozmission": setupOZ(ps, m) ; break
 		case "gameover": setupGameOver(ps, m) ; break
+		case "finale": setupFinale(ps, m) ; break
 		default: throw "Unknown scene: " + ps.nextScene
 	}
 }
@@ -481,7 +482,6 @@ function setupFirstMission(ps, m) {
 	m.setEjectScript([
 		["set_zoom", 0.1],
 		["freeze", 25],
-		["end_game"],
 		["change_scene", "act1.town"],
 	])
 
@@ -549,7 +549,7 @@ function setupBossFight(ps, m) {
     m.entities.add(makeEnemy("BladeDrone", m, m.map.topPos([750, 450]), 180))
     m.entities.add(makeEnemy("BladeDrone", m, m.map.topPos([750, 850]), 180))
 
-    var door = m.addEntity(makeScenery("BlastDoor", m, m.map.topPos([450,650]), 90, true))
+    var door = m.entities.add(makeScenery("BlastDoor", m, m.map.topPos([450,650]), 90, true))
     
     m.setStartScript([
         ["change_music", MISSION_MUSIC],
@@ -581,12 +581,12 @@ function setupBossFight(ps, m) {
         ["canEject"],
     ])
 
-    m.canEject = True
+    m.canEject = true
     m.setEjectScript([
         ["set_zoom", 0.1],
         ["freeze", 25],
         ["if_boss_dead", [
-        	["change_scene", "act1.party"],
+        	["change_scene", "finale"],
 		], [
             ["change_scene", "act1.town"],
         ]],
@@ -635,6 +635,19 @@ function setupGameOver(ps, m) {
 		["say_l", "Camden was never seen again."],
 		["say_l", "The world was destroyed in flames."],
 		["say_l", "Your game is over."],
+		["end_game"],
+		// TODO: option to load saved game
+	])
+}
+
+function setupFinale(ps, m) {
+	m.map = new DungeonGrid(100)
+	m.addProtag([0, 0])
+	m.setStartScript([
+		["blank"],
+		["say_l", "Thanks for playing the Robot Underground JavaScript demo!"],
+		["say_l", "Please leave your feedback!"],
+		["say_l", "To find out what happens to Camden and the gang, check out the complete game!"],
 		["end_game"],
 		// TODO: option to load saved game
 	])

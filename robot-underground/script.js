@@ -17,6 +17,11 @@ Script.prototype = {
 
 	// TODO save_log save load
 
+	// TODO: support multiple save slots	
+	save: function () {
+		savegame()
+	},
+
 	say_l: function (text, speaker) {
 		this.currentDialogue = text
 		if (speaker) this.leftSpeaker = speaker
@@ -182,7 +187,7 @@ Script.prototype = {
 	},
 	// if all members of mission.bosses are dead
 	if_boss_dead: function (ifspec, elsespec) {
-		this.if(mission.bosses.every(function (b) { return b.hp <= 0 }), ifspec, elsespec)
+		this.if(this.mission.bosses.every(function (b) { return b.currenthp <= 0 }), ifspec, elsespec)
 	},
 
 	// replaces plotstate[key] = "done"

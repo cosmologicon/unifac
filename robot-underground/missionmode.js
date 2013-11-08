@@ -314,6 +314,8 @@ UFX.scenes.missionmode = {
 		try {
 			graphics.draw(gdata.sprites[e.name], pos[0], pos[1], Math.round(2 * e.r), e.bearing/57.3, opts)
 		} catch (err) {
+			console.log(e)
+			console.log(opts)
 			throw err + " ::: " + e.name
 		}
 		if (DEBUG.entitycircle) {

@@ -63,7 +63,9 @@ Mission.prototype = {
 	placeEnemiesRandomly: function (enemies, unusedCells) {
 		UFX.random.shuffle(unusedCells)
 		for (var type in enemies) {
-			for (var j = 0 ; j < enemies[type] ; ++j) {
+			var nenemies = enemies[type]
+			if (DEBUG.minidungeons) nenemies = Math.ceil(nenemies / 20)
+			for (var j = 0 ; j < nenemies ; ++j) {
 				var celln = unusedCells.pop()
 				var abspos = this.map.cellCentre(gridxy(celln))
 				var newEnemy = makeEnemy(type, this, abspos)

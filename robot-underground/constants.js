@@ -17,6 +17,8 @@ var settings = {
 	antialias: true,
 	linewidth: 1,
 }
+settings.savename = settings.gamename + "|" + settings.version + "|save"
+
 if (qopts.h) {
 	settings.scr_h = +qopts.h
 	settings.scr_w = Math.round(+qopts.h * 4 / 3)
@@ -28,6 +30,7 @@ if (qopts.DEBUG) {
 	DEBUG.testdialogue = qopts.testdialogue  // put Putney by the starting position
 	DEBUG.testinventory = qopts.testinventory  // put Hammersmith by the starting position
 	DEBUG.levelskip = qopts.levelskip // skip to the named level, eg levelskip=act1.town
+	DEBUG.minidungeons = qopts.minidungeons // dungeons are much smaller for easier completion
 	DEBUG.failhard = true  // shut down with error mesasge on throw
 	DEBUG.showfps = true
 	if (qopts.softcursoroff) settings.cursor = false

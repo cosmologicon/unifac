@@ -130,5 +130,40 @@ var robotstate = {
 	},
 }
 
+function getstate() {
+	var weaponspecs = robotstate.weaponry.map(function (w) { return w.getItemSpec() })
+	var armourspec = robotstate.armoury.getItemSpec()
+	var inventoryspecs = robotstate.inventory.map(function (i) { return i.getItemSpec() })
+	return [plotstate, robotstate.xp, robotstate.level, robotstate.stats, robotstate.weaponslots,
+		weaponspecs, armourspec, robotstate.maxenergy, inventoryspecs, robotstate.metal]
+}
+
+function setstate(state) {
+	plotstate = state[0]
+	robotstate.xp = state[1]
+	robotstate.level = state[2]
+	robotstate.stats = state[3]
+	robotstate.weaponslots = state[4]
+	robotstate.weaponry = state[5].map(makeItem)
+	robotstate.armoury = makeItem(state[6])
+	robotstate.maxenergy = state[7]
+	robotstate.inventory = state[8].map(makeItem)
+	robotstate.metal = state[9]
+}
+
+function savegame(slot) {
+	localStorage[settings.savename + "|" + slot] = JSON.stringify(getstate())
+}
+function slotfilled(slot) {
+	return (settings.savename + "|" + slot) in localStorage
+}
+function loadgame(slot) {
+	setstate(JSON.parse(localStorage[settings.savename + "|" + slot]))
+}
+function deletesavedgame(slot) {
+	delete localStorage[settings.savename + "|" + slot]
+}
+
+
 
 

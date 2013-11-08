@@ -173,20 +173,44 @@ function swapscene(name) {
 	return UFX.scene.swap.bind(UFX.scene, name)
 }
 
-UFX.scenes.mainmenu = new MenuScene([
-	["Play Intro Mission", function () {
-		initPlotState(plotstate)
-		robotstate.init(null)
-		UFX.scene.push("missionmode")
-	}],
-	["Options", pushscene("options")],
-	["Credits", pushscene("credits")],
-], {
-	music: MENU_MUSIC
+
+// This is sort of a hack to make the "Continue Game" option only show up when there's a saved
+//   game. Should reconsider once I've implemented multiple save slots, or I need another menu
+//   with this functionality.
+function MainMenuScene() {
+	this.setup()
+}
+MainMenuScene.prototype = extend(MenuScene.prototype, {
+	setup: function () {
+		var choices = [
+			["New Game", function () {
+				initPlotState(plotstate)
+				robotstate.init(null)
+				UFX.scene.push("missionmode")
+			}],
+			["Options", pushscene("options")],
+			["Credits", pushscene("credits")],
+		]
+		if (slotfilled()) {
+			choices.splice(1, 0, 
+				["Continue Game", function () {
+					loadgame()
+					UFX.scene.push("missionmode")
+				}]
+			)
+		}
+		var opts = { music: MENU_MUSIC }
+		MenuScene.call(this, choices, opts)
+	},
+	resume: function () {
+		this.setup()
+		this.start()
+		MenuScene.prototype.resume.apply(this)
+	}
 })
+UFX.scenes.mainmenu = new MainMenuScene()
 
 // TODO menuingame menustart confirmsaveover menuload menuoptions
-
 
 UFX.scenes.options = new MenuScene([
 	[function () { return "Music: " + (settings.music ? "On" : "Off") }, function () { setmusic(!settings.music) }],
