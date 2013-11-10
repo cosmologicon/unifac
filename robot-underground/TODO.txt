@@ -30,4 +30,6 @@ missing sound: level up
 Issue with ctrl leaving focus - probably should be solved with UFX.key
 Can't target in autofire mode - is that correct behavior?
 Name appears as "Latimer &"
+Lightning doesn't seem to reach far enough
+Draw bullets
 

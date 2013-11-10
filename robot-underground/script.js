@@ -181,6 +181,10 @@ Script.prototype = {
 	if_not_plotstate: function (key, ifspec, elsespec) {
 		this.if(!plotstate[key], ifspec, elsespec)
 	},
+	// replaces if plotstate[key] >= value
+	if_plotstate_counter: function (key, value, ifspec, elsespec) {
+		this.if(plotstate[key] >= value, ifspec, elsespec)
+	},
 	// replaces if robotstate.getMetal(type) >= amount
 	if_has_metal: function (type, amount, ifspec, elsespec) {
 		this.if(robotstate.getMetal(type) >= amount, ifspec, elsespec)
@@ -191,12 +195,20 @@ Script.prototype = {
 	},
 
 	// replaces plotstate[key] = "done"
-	set_plotstate: function (key) {
-		plotstate[key] = "done"
+	set_plotstate: function (key, value) {
+		plotstate[key] = value === undefined ? "done" : value
+	},
+	// replaces plotstate[key] += 1
+	increment_plotstate: function (key) {
+		plotstate[key]++
 	},
 	// replaces robotstate.changeMetal(amt, type)
 	change_metal: function (amt, type) {
 		robotstate.changeMetal(amt, type)
+	},
+	// replaces robotstate.addWeaponSlot
+	addWeaponSlot: function () {
+		robotstate.addWeaponSlot()
 	},
 
 	sound: function (sfx) {
@@ -233,6 +245,11 @@ Script.prototype = {
 	wait: function (ticks) {
 		this.mission.runScript(this, ticks)
 		this.state = "endConversation"
+	},
+	
+	// Replaces mission.runScript(script, delay) - for dispatching the next script
+	runScript: function (spec, delay, actor) {
+		this.mission.runScript(new Script(spec, this.mission, actor), delay)
 	},
 	// This method is turning out to be a pain to get working, and I think it was primarily used
 	//   for a training mission that's no longer used. I'm fine with removing it.

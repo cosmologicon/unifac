@@ -8,21 +8,16 @@ function initPlotState(ps) {
 }
 
 function setupMission(ps, m) {
-	switch (ps.nextScene) {
-		case "act1.town": setupTown(ps, m) ; break
-		case "act1.party": setupParty(ps, m) ; break
-		case "act1.firstmission": setupFirstMission(ps, m) ; break
-		case "act1.cleartheway": setupClearTheWay(ps, m) ; break
-		case "act1.bossfight": setupBossFight(ps, m) ; break
-		case "act1.ozmission": setupOZ(ps, m) ; break
-		case "gameover": setupGameOver(ps, m) ; break
-		case "finale": setupFinale(ps, m) ; break
-		default: throw "Unknown scene: " + ps.nextScene
+	if (ps.nextScene in setups) {
+		setups[ps.nextScene](ps, m)
+	} else {
+		throw "Unknown scene: " + ps.nextScene
 	}
 }
 
+var setups = {}
 
-function setupTown(ps, m) {
+setups["act1.town"] = function (ps, m) {
 	makeTown(m)
 	var camden = m.addProtag([41, 640])
 	
@@ -342,9 +337,7 @@ function setupTown(ps, m) {
     }
 }
 
-// TODO: setupParty
-
-function setupFirstMission(ps, m) {
+setups["act1.firstmission"] = function (ps, m) {
 	m.map = makeDungeon2({
 		top: "controlroom",
 		bottom: "3rooms",
@@ -490,7 +483,7 @@ function setupFirstMission(ps, m) {
 
 }
 
-function setupClearTheWay(ps, m) {
+setups["act1.cleartheway"] = function (ps, m) {
 	m.map = makeDungeon2({
 		left: "entry_left",
 		maxrooms: 12,
@@ -530,7 +523,7 @@ function setupClearTheWay(ps, m) {
     ])
 }
 
-function setupBossFight(ps, m) {
+setups["act1.bossfight"] = function (ps, m) {
     m.map = makeDungeon2({
     	top: "temple_end",
     	bottom: "entry_bottom",
@@ -597,8 +590,7 @@ function setupBossFight(ps, m) {
 
 }
 
-
-function setupOZ(ps, m) {
+setups["act1.ozmission"] = function (ps, m) {
     m.map = makeDungeon1()
     m.addProtagAnywhere()
     m.placeEnemiesRandomlyAnywhere({
@@ -630,7 +622,247 @@ function setupOZ(ps, m) {
     ])
 }
 
-function setupGameOver(ps, m) {
+setups["act1.party"] = function (ps, m) {
+	makeTown(m)
+	camden = m.addProtag([1201, 1230])
+	camden.bearing = 71
+	
+	m.setStartScript([
+		["change_music", TOWN_MUSIC],
+		["say_l", "Back at Dollis Hill, a spontaneous party has broken out to celebrate the recovery of the Charing Cross."],
+		["speaker_l", "Camden"],
+		["say_r", "Camden!"],
+		["speaker_r", "Angel"],
+		["say_r", "Camden! Over here."],
+		["say_l", "Oh, hi, Angel. Everyone's having a good time."],
+		["say_r", "So join us, join me, have a drink."],
+		["say_l", "As soldier of Knightsbridge I have a duty..."],
+		["say_r","You have a right to enjoy your victories. You should talk to everyone here, they all want to thank you."],
+		["say_r", "Including me."],
+		["set_plotstate", 'act1.party.counter', 0],
+	])
+	
+	var theftScript = [
+		["say_l", "Suddenly..."],
+		["blank"],
+		["speaker_l", "Camden"],
+		["say_l", "What happened to the light?"],
+		["speaker_r", "Goldhawk"],
+		["say_r", "Easy, soldier. I'll sort it out."],
+		["say_r", "..."],
+		["freeze", 40],
+		["say_r", "This should fix it."],
+		["blank", false],
+		["freeze", 10],
+		["say_l", "Phew. What hap-"],
+		["speaker_r", "Angel"],
+		["say_r", "It's gone! The Cross has been stolen!"],
+		["speaker_l", "Great Portland"],
+		["say_l", "What's this?"],
+		["speaker_r", "Harlesden cape"],
+		["say_r", "That can't be true!"],
+		["speaker_r", "Putney"],
+		["say_r", "..."],
+		["speaker_l", "Cutty Sark"],
+		["say_l", "... Quack."],
+		["clear_r"],
+		["clear_l"],
+
+		["blank"],
+		["say_l", "A commotion arose amidst the party. Nobody knew who had taken the Charing Cross. Suspicion was rife."],
+		["speaker_l", "Camden"],
+		["speaker_r", "Angel"],
+		["say_l", "What's going on, Angel? Who would steal it?"],
+		["say_r", "I can't say. Sub-Inquisitor Latimer says he saw Putney leaving the party. So he's currently suspect."],
+		["say_l", "Putney? No, I can't believe that. I mean, I don't really know him..."],
+		["say_r", "Maybe none of us really did."],
+		["say_l", "Well, I'm going to find out who did this. I'm responsible for losing it, after all."],
+		["say_r", "It's not your fault. But thanks, I'll help you with your search. Together, we'll find out who did this!"],
+
+		["set_plotstate", "act", 2],
+		["addWeaponSlot"],
+		["change_scene", "act2.town"],
+	]
+
+	m.actorTalkScript([
+		["speaker_r", "Goldhawk"],
+		["speaker_l", "Camden"],
+		["if_first", 'act1.party.goldhawk', [
+			["increment_plotstate", 'act1.party.counter'],
+			["say_r", "Good work, soldier!"],
+			["say_l", "Thank you, sir."],
+			["say_r", "Cut it out with the 'sir', this is a party."],
+			["say_l", "Sorry, but I feel that I should be on the look out for trouble."],
+			["say_r", "That you should, but leave it today. You're no good to anyone if you're on edge the whole time."],
+			["say_l", "Understood, sir. I mean... okay."],
+			["if_plotstate_counter", 'act1.party.counter', 4, [["runScript", theftScript, 50]]],
+		], [
+			["say_r", "Keep up the good work."],
+		]],
+	], [812, 1105], 'Goldhawk', null, 76)
+
+
+    m.actorTalkScript([
+		["speaker_r", "Putney"],
+		["speaker_l", "Camden"],
+		["if_first", 'act1.party.putney', [
+			["increment_plotstate", 'act1.party.counter'],
+			["say_r", "We found the cross, thanks to you and everyone else."],
+			["ask_l", "(Should I..)", [
+				["Agree",
+					["say_l", "Yes, it's good to feel part of something like this."],
+					["say_r", "(Sigh.)"],
+				],
+				["Disagree",
+					["say_l", "Don't forget your part in all this."],
+					["say_r", "..."],
+				],
+			]],
+			["if_plotstate_counter", 'act1.party.counter', 4, [["runScript", theftScript, 50]]],
+		], [
+			["ask_r", "Enjoying the party?", [
+				["Yes",
+					["say_r", "Good."],
+				],
+				["No",
+					["say_r", "Oh..."],
+				],
+			]]
+		]],
+	], [912, 918], "Putney", null, 43)
+
+    m.actorTalkScript([
+    	["speaker_l", "Camden"],
+		["speaker_r", "Angel"],
+		["if_first", 'act1.party.angel', [
+			["increment_plotstate", 'act1.party.counter'],
+			["say_r", "Camden, finding the cross and this party, its all thanks to you."],
+			["say_l", "Thanks, but it is my duty to..."],
+			["say_r", "No, it isn't because of your duty, you do it out of goodness. I want you to know that we... that I really appreciate it."],
+			["say_l", "... Thanks."],
+			["clear_r"],
+			["say_l", "... Was she... ? No... probably not."],
+			["if_plotstate_counter", 'act1.party.counter', 4, [["runScript", theftScript, 50]]],
+		], [
+			["say_r", "Weeeeeeeeeeee!"],
+		]],
+	], [1214, 1291], "Angel", null, 197)
+
+	var cnlscript = [
+		["speaker_l", "Camden"],
+		["if_first", 'act1.party.cnl', [
+			["increment_plotstate", 'act1.party.counter'],
+			["speaker_r", "Latimer &"],
+			["say_r", "Corporal Camden, his Holiness the Robo-Pope will be very pleased to hear of this progress."],
+			["say_l", "That's good news. So what are the duties of a 'Sub-Inquisitor'?"],
+			["speaker_r", "Chalfont &"],
+			["say_r", "Brrzt bkzz. Peep peep krzz srweee."],
+			["speaker_r", "Latimer &"],
+			["say_r", "That's right."],
+			["say_l", "..."],
+			["if_plotstate_counter", 'act1.party.counter', 4, [["runScript", theftScript, 50]]],
+		], [
+			["speaker_r", "Chalfont &"],
+			["say_r", "Buzz pip pip."],
+		]],
+	]
+    m.actorTalkScript(cnlscript, [1152, 1102], "Chalfont", null, 135)
+    m.actorTalkScript(cnlscript, [1182, 1122], "Latimer", null, 149)
+
+	m.actorTalkScript([
+		["speaker_l", "Camden"],
+		["speaker_r", "Great Portland"],
+		["if_first", 'act1.party.portland', [
+			["increment_plotstate", 'act1.party.counter'],
+			["say_r", "Greetings, young one!"],
+			["say_l", "Um, hi."],
+			["say_r", "Your achievements here have been great, but I sense they are the start of a greater darkness."],
+			["say_l", "Um, okay?"],
+			["say_r", "Keep your guard up."],
+			["clear_r"],
+			["say_l", "That guy really makes me nervous."],
+			["if_plotstate_counter", 'act1.party.counter', 4, [["runScript", theftScript, 50]]],
+		], [
+			["say_r", "(Mutter mutter) terrible evil (mutter mutter) impending doom (mutter mutter)."],
+			["say_l", "Best to not disturb him."],
+		]],
+	], [770, 1301], "Great Portland", null, 311, 45)
+
+    m.actorTalkScript([
+		["speaker_l", "Camden"],
+		["speaker_r", "Hammersmith"],
+		["if_first", 'act1.party.hammersmith', [
+			["increment_plotstate", 'act1.party.counter'],
+			["say_r", "Easy there, son. You've done a good job!"],
+			["say_l", "So I'm told. Although everything has happened quite suddenly."],
+			["say_r", "Get used to it. When I was in Knightsbridge you had to stay ahead of the game."],
+			["say_l", "I'm surprised that the dig needed me. Commander Goldhawk seems to have everything under control."],
+			["say_r", "With a find like this, we could be drawing a lot of attention. Shouldn't be surprised if the two of you aren't enough."],
+			["say_l", "(Gulp.)"],
+			["say_r", "Ha ha ha! Don't worry, son, I'll back you up"],
+			["if_plotstate_counter", 'act1.party.counter', 4, [["runScript", theftScript, 50]]],
+		], [
+			["say_r", "It's a great day to be alive."],
+		]],
+	], [1195, 1346], "Hammersmith", null, 210)
+
+    m.actorTalkScript([
+		["speaker_l", "Camden"],
+		["speaker_r", "Harlesden cape"],
+		["if_first", 'act1.party.harlesden', [
+			["increment_plotstate", 'act1.party.counter'],
+			["say_r", "Ah, hello, Camden. Don't you think this is an incredible find?"],
+			["say_l", "I don't really understand..."],
+			["say_r", "The relics from the era of St. Pancras were mostly destroyed. Finding the Charing Cross has profound significance."],
+			["say_r", "St. Pancras used the cross to restore life."],
+			["say_l", "You mean, from a backup?"],
+			["say_r", "Without a backup, dear boy."],
+			["ask_l", "Wow.", [
+				["I can see why you're excited.",
+					["say_r", "Indeed."],
+				],
+				["Why are you dressed up?", 
+					["say_r", "Oh this, I thought it was a costume party. So I put on my wizard's hat and cape."],
+					["say_r", "I miss my youth."],
+				],
+			]],
+			["if_plotstate_counter", 'act1.party.counter', 4, [["runScript", theftScript, 50]]],
+		], [
+			["say_r", "When I speak, how can I know that you hear?"],
+		]],
+	], [862, 1377], "Harlesden", null, 287)
+
+	m.actorTalkScript([
+		["speaker_l", "Camden"],
+		["speaker_r", "Gospel"],
+		["if_first", "act1.party.gospel", [
+			["increment_plotstate", "act1.party.counter"],
+			["say_r", "Good evening, my son."],
+			["say_r", "You are the heroic soldier that brought this boon of St. Pancras upon us. Blessing to you."],
+			["say_l", "Um... Thanks?"],
+			["say_r", "And modest too, truly, you are a noble soul. Through you is manifested the love of St. Pancras himself."],
+		], [
+			["say_r", "Praise to St. Pancras, my son."],
+		]],
+	], [962, 968], 'Father Gospel', null, 190)
+
+	m.actorTalkScript([
+		["speaker_l", "Camden"],
+		["speaker_r", "Cutty Sark"],
+		["say_r", "Quack... quack..."],
+		["say_l", "He's muttering in his sleep."],
+	], [950, 1140], 'Cutty Sark', null, 129)
+        
+	m.actorTalkScript([
+		["speaker_l", "Camden"],
+		["speaker_r", "Pimlico"],
+		["say_r", "When I get tired and need a break, I go talk to the duck to save my progress."],
+		["say_r", "He's asleep now though."],
+	], [729, 978], "Pimlico", null, 26)
+}
+
+
+setups.gameover = function (ps, m) {
 	m.map = new DungeonGrid(100)
 	m.addProtag([0, 0])
 	m.setStartScript([
@@ -643,7 +875,7 @@ function setupGameOver(ps, m) {
 	])
 }
 
-function setupFinale(ps, m) {
+setups.finale = function (ps, m) {
 	m.map = new DungeonGrid(100)
 	m.addProtag([0, 0])
 	m.setStartScript([
@@ -652,7 +884,6 @@ function setupFinale(ps, m) {
 		["say_l", "Please leave your feedback!"],
 		["say_l", "To find out what happens to Camden and the gang, check out the complete game!"],
 		["end_game"],
-		// TODO: option to load saved game
 	])
 }
 
