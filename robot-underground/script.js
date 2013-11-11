@@ -133,6 +133,10 @@ Script.prototype = {
 	die: function () {
 		this.actor.die()
 	},
+	kill_protag: function () {
+		this.mission.entities.add(new Explosion(this.mission, this.mission.protag.pos, 100))
+		this.mission.protag.kill()
+	},
 	kill_type: function (type) {
 		this.mission.entities.forEach(function () {
 			if (this.name === type) this.die()

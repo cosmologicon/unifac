@@ -109,7 +109,9 @@ Healing.prototype = extend(Weapon.prototype, {
 function ProjectileWeapon() {
 }
 ProjectileWeapon.prototype = extend(Weapon.prototype, {
-	init: function (cons, range, damage, cooldowntime, energydrain, name, cone, normal_los) {
+	// Note that the order of cooldowntime and damage are swapped! This is because that's how the
+	//   numbers appear in most of the subclass constructors.
+	init: function (cons, range, cooldowntime, damage, energydrain, name, cone, normal_los) {
 		Weapon.prototype.init.call(this, null, range, cooldowntime, damage, energydrain, name)
 		this.cons = cons
 		this.cone = cone * 0.0174532925
@@ -430,11 +432,18 @@ var projdata = {
 	Rocket: [10, Damage.explosion, 12, "Rocket", true, 150, null, "fire"],
 	NinjaStar: [6, Damage.physical, 8, "Ninja Star", true, null, null, null],
 	// Not implemented: FireSpider
+	
+	// HomingMissile is a special case, since it's a subclass of Mine. Behaves differently.
+	HomingMissile: [10, null, 5, "Rocket", null, 20],
 }
 
 function makeProjectile(type, owner, bearing, damageamt) {
-	var p = new Projectile()
-	if (type in projdata) {
+	var p
+	if (type == "HomingMissile") {
+		p = new HomingMissile()
+		p.init(owner, bearing, damageamt)
+	} else if (type in projdata) {
+		p = new Projectile()
 		var data = projdata[type], radius = data[0], damagetype = data[1], velocity = data[2]
 		var name = data[3], onehit = data[4], blast = data[5], ttl = data[6], trail = data[7]
 		p.init(owner, radius, bearing, damageamt, damagetype, velocity, name, onehit, blast,

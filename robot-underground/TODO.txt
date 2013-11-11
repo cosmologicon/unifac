@@ -32,4 +32,5 @@ Can't target in autofire mode - is that correct behavior?
 Name appears as "Latimer &"
 Lightning doesn't seem to reach far enough
 Draw bullets
+Questions need to wrap when they're too long
 
