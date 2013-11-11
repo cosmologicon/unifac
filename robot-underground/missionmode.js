@@ -356,7 +356,7 @@ UFX.scenes.missionmode = {
 		}
 		for (var s in this.bullets) {
 			var e0 = this.bullets[s][0], e1 = this.bullets[s][1]
-			this.draw_bullet(e0.pos, e1.pos)
+			this.draw_bullet(e0.pos, e1.pos, e1.r)
 		}
 		for (var s in this.claws) {
 			var target = this.claws[s][1], left = this.claws[s][2]
@@ -513,10 +513,16 @@ UFX.scenes.missionmode = {
 		} else {
 			this.draw_hud()
 		}
+		var y = 8
+		if (DEBUG.showscene) {
+			text.drawhud("scene: " + plotstate.nextScene, settings.scr_w/2, y, 18, "#AAFFFF", "center", "bottom")
+			y += 22
+		}
 		if (DEBUG.showfps) {
 			if (!this.fpscount || this.frameno % 15 == 0)
 				this.fpscount = UFX.ticker.wfps.toPrecision(2) + "fps"
-			text.drawhud(this.fpscount, settings.scr_w/2, 8, 18, "#AAFFFF", "center", "bottom")
+			text.drawhud(this.fpscount, settings.scr_w/2, y, 18, "#AAFFFF", "center", "bottom")
+			y += 22
 		}
 		this.cursor.draw()  // I'm guessing this is called automatically in pyglet
 		

@@ -82,19 +82,20 @@ var eweapspecs = {
 	accmachgun: ["MachineGun", [], ["Accurate", 5]],
 	bosspgun: ["PlasmaGun", [], ["BOSS", 2]],
 	bossdrill: ["Drill", [], ["BOSS", 2]],
-	bossggun: ["GatlingGun", [], ["BOSS", 2]],
+	bossggun1: ["GatlingGun", [], ["BOSS", 1]],
+	bossggun2: ["GatlingGun", [], ["BOSS", 2]],
 	bossrlaunch: ["RocketLauncher", [], ["BOSS", 2]],
 	hprailgun: ["Railgun", [], ["HighPowered", 10]],
 	montaser: ["Taser", [], ["Scoped", 10]],
 	summonmin: ["Summon", ["Minument", 5, 250, 3]],
+	summonmc: ["Summon", ["MicroCopter", 1.5, 150, 3, 6]],
+	summonsd: ["Summon", ["SentryDroid", 2.5, 25, 6, 12]],
+	bossnjstar2: ["NinjaStarLauncher", [], ["BOSS", 2]],
+	bossnjstar5: ["NinjaStarLauncher", [], ["BOSS", 5]],
 }
 // allweapons, [attack, defence, hp, speed], guardradius, size, xpvalue, dropLevel, explosions,
 //  ai, aiargs, resistances [laser physical fire electric explosion], 
 var enemyinfo = {
-	// Direct subclasses of Enemy - base resistances: [0, 0, 0, 0, 0]
-	Minument: [["Taser"], [6, 10, 20, 3], 8, 25, 32, 4, 3, DroneAI, [], [25, -25, 0, 0, 0]],
-	Monument: [[eweapspecs.montaser, eweapspecs.summonmin], [12, 10, 50, 2], 8, 75, 512, 6, 3, RangedAI, [], [25, -25, 0, 0, 0]],
-
 	// Insect subclasses - base resistances: [50, 0, -50, 0, 0]
 	Spider: [["WimpyClaw"], [1, 2, 5, 4], 4, 15, 8, 1, 1, BlindAI, [], [50, 0, -50, 0, 0]],
 	Scorpion: [["WimpyClaw"], [2, 3, 5, 3], 4, 25, 8, 1, 1, StupidAI, [], [50, 0, -50, 0, 0]],
@@ -120,7 +121,7 @@ var enemyinfo = {
 	JusticeDrone: [["UberLaser"], [4, 15, 30, 7], 6, 20, 32768, 14, 1, DroneAI, [], [0, 0, 50, -50, 0]],
 	InjusticeDrone: [["RocketLauncher"], [10, 30, 150, 4], 5, 40, 262144, 18, 1, RangedAI, [], [0, 0, 50, -50, 300]],
 	GiantBladeDrone: [[eweapspecs.bossdrill], [15, 30, 150, 4], 5, 40, 262144, 18, 1, StupidAI, [], [0, 300, 50, -50, 0]],
-	NinjaDrone: [[eweapspecs.bossggun], [20, 50, 500, 5], 5, 30, 1<<22, 25, 1, RangedAI, [], [0, 300, 50, -50, 0]],
+	NinjaDrone: [[eweapspecs.bossggun2], [20, 50, 500, 5], 5, 30, 1<<22, 25, 1, RangedAI, [], [0, 300, 50, -50, 0]],
 	
 	// Tank subclasses - base resistances: [0, 50, 0, 0, -50]
 	MiniTank: [[["LightLaser"], ["PopGun"]], [7, 5, 10, 3], 5, 12, 16, 3, 1, RangedAI, [], [0, 50, 0, 0, -50]],
@@ -133,10 +134,51 @@ var enemyinfo = {
 	PincerTank: [["Drill"], [15, 20, 50, 5], 5, 35, 32768, 15, 1, StupidAI, [], [0, 50, 0, 0, -50]],
 	TerrorTank: [["UberLaser"], [15, 40, 150, 4], 5, 40, 262144, 18, 1, RangedAI, [], [300, 50, 0, 0, -50]],
 	SuperRocketTank: [[eweapspecs.bossrlaunch], [35, 50, 500, 7], 5, 30, 1<<22, 25, 1, RangedAI, [], [0, 50, 0, 0, -50]],
+	RedTank: [["Flamethrower", "LightLaser"], [1, 5, 10, 5], 5, 12, 16, 3, 1, RangedAI, [], [0, 50, 0, 0, -50]],
+	
+	// Military subclasses - base resistances: [-50, 0, 0, 0, 50]
+	SentryDroid: [["NinjaStarLauncher"], [8, 10, 20, 7], 10, 15, 128, 7, 1, SneakyAI, [0.5], [-50, 0, 0, 0, 50]],
+	MechDroid: [["LightningGun"], [4, 20, 50, 4], 5, 30, 2048, 11, 1, StupidAI, [], [-50, 0, 0, 0, 50]],
+	Copter: [["GatlingGun"], [4, 10, 100, 5], 5, 35, 8192, 12, 1, RangedAI, [], [-50, 0, 0, 0, 50]],
+	WarChopper: [[eweapspecs.bossggun1], [8, 30, 200, 5], 5, 40, 262144, 18, 1, RangedAI, [], [-50, 300, 0, 0, 50]],
+	CombatDroidZero: [[eweapspecs.bossnjstar2], [15, 20, 200, 7], 5, 30, 262144, 18, 1, SneakyAI, [], [-50, 300, 0, 0, 50]],
+	AssassinDroid: [[eweapspecs.bossnjstar5], [35, 50, 500, 3], 5, 20, 1<<22, 25, 1, SneakyAI, [0.9, 100, true], [-50, 300, 0, 0, 50]],
+	SupportCopter: [["GatlingGun", eweapspecs.summonmc, eweapspecs.summonsd],
+		[1, 15, 100, 2], 5, 40, 16384, 12, 1, SneakyAI, [1], [-50, 0, 0, 0, 50]],
+	MicroCopter: [["GatlingGun"], [2, 10, 20, 5], 5, 20, 4096, 10, 1, RangedAI, [], [-50, 0, 0, 0, 50]],
+
+	// Direct subclasses of Enemy (mostly bosses)
+	Minument: [["Taser"], [6, 10, 20, 3], 8, 25, 32, 4, 3, DroneAI, [], [25, -25, 0, 0, 0]],
+	Monument: [[eweapspecs.montaser, eweapspecs.summonmin], [12, 10, 50, 2], 8, 75, 512, 6, 3, RangedAI, [], [25, -25, 0, 0, 0]],
+	Arsenal: [[
+		["MachineGun", [], ["Accurate", 5]],
+		["HomingMissileLauncher"],
+		["Flamethrower", [], ["Accurate", 5]],
+		["Taser", [], ["Accurate", 5]],
+		["HeavyLaser"],
+	], [10, 15, 200, 2], 8, 75, 4096, 10, 3, RangedAI, [], [25, 25, 25, -25, 25]],
+	Chalfont: [["MachineGun", "LightLaser"], [10, 5, 100, 10], 8, 10, 2048, 10, 3, DroneAI, [], [0, 0, 0, -100, 100]],
+	Latimer: [["LightningGun"], [5, 5, 100, 4], 8, 15, 4096, 10, 3, RangedAI, [], [-50, 0, 50, 0, 0]],
+	Goldhawk: [["GatlingGun", "Cannon", ["Shotgun", [], ["BOSS", 3]]],
+		[4, 25, 150, 3], 8, 15, 32768, 14, 3, DroneAI, [60, 40, true], [0, 0, 0, 0, 0]],
+	Hyde: [[
+		["Drill", [], ["BOSS", 3, "Accurate", 1]],
+		["Summon", ["Bat", 40, 10]],
+	], [12, 50, 300, 8], 8, 100, 131072, 15, 3, StupidAI, [], [0, 0, 0, 0, 0]],
+	ChalfontAndLatimer: [["LightningGun", ["HeavyLaser", [], ["BOSS", 2]]],
+		[13, 50, 300, 10], 10, 25, 524288, 17, 1, DroneAI, [60, 15, true], [0, 0, 0, 0, 0]],
+	GoldhawkReloaded: [[
+		["GatlingGun", [], ["HighPowered", [], -8]],
+		["Shotgun", [], ["BOSS", 2]],
+		["RocketLauncher", [], ["BOSS", 2, "SuperCooled", 20]],
+	], [9, 40, 500, 3], 8, 15, 1048576*4, 20, 3, DroneAI, [80, 30, true], [0, 0, 0, 0, 0]],
+	// TODO: hornchurch robocherub roboseraph stpancras pimlico
 }
 var enemynameinfo = {
 	SmallScorpion: "Scorpion",
 	TinyScorpion: "Scorpion",
+	ChalfontAndLatimer: "Chalfont/Latimer Fusion",
+	GoldhawkReloaded: "Goldhawk",
 }
 var packinfo = {
 	ScorpionPack: ["Scorpion", 2, "SmallScorpion", 3, "TinyScorpion", 6],
@@ -146,13 +188,6 @@ var packinfo = {
 	VarietySpiderPack: ["VarietySpiderR", 3, "VarietySpiderY", 3, "VarietySpiderG", 3, "VarietySpiderB", 3],
 }
 
-// Left out: everything labeled EXPERIMENTAL (below line 1400 in enemies.py)
-for (var etype in enemyinfo) {
-	enemyinfo[etype][0] = enemyinfo[etype][0].map(makeWeapon)
-	enemyinfo[etype][1] = CombatStats.apply(null, enemyinfo[etype][1])
-}
-
-
 function makeEnemy(type, mission, pos, bearing) {
 	if (type in enemyinfo) {
 		var enemy = new Enemy()
@@ -160,7 +195,9 @@ function makeEnemy(type, mission, pos, bearing) {
 		var size = info[3], xpvalue = info[4], dropLevel = info[5], explosions = info[6]
 		var ai = info[7], aiargs = info[8], resists = info[9]
 		var name = enemynameinfo[type] || splitcap(type)
-		enemy.init(mission, pos, weaponspecs, stats, guardradius, size, xpvalue, name, bearing,
+		var weapons = weaponspecs.map(makeWeapon)
+		stats = CombatStats.apply(null, stats)
+		enemy.init(mission, pos, weapons, stats, guardradius, size, xpvalue, name, bearing,
 			explosions, ai, aiargs, dropLevel)
 		enemy.resistances[Damage.laser] += resists[0]
 		enemy.resistances[Damage.physical] += resists[1]
@@ -179,13 +216,12 @@ function makeEnemy(type, mission, pos, bearing) {
 
 // Mines moved from actor.py - seems more appropriate here
 // I moved some stuff around between Mine, ProximityMine, and TimedMine constructors
-// HomingMissiles left out - thankfully they don't seem to ever be used
 function Mine() {
 }
 Mine.prototype = extend(Enemy.prototype, {
 	init: function (owner, damageamt, blast, name, aiclass, aiargs) {
 		var weap = makeWeapon(["SuicideBomb", [damageamt, Damage.explosion, blast]])
-		var stats = [1, 1, 1, 0]  // speed = 0 always
+		var stats = CombatStats(1, 1, 1, 0)  // speed = 0 always
 		Enemy.prototype.init.call(this, owner.mission, owner.pos, [weap], stats, 20, 10, 0, name,
 			owner.bearing, 0, aiclass, aiargs)
 		this.solid = false
@@ -194,14 +230,29 @@ Mine.prototype = extend(Enemy.prototype, {
 	die: function () {
 		var mine = this, mission = this.mission
 		this.allweapons.forEach(function (w) {
-			w.fire(this, null)
-			this.mission.dispatch_event("on_explode", this)
+			w.fire(mine, null)
+			mission.dispatch_event("on_explode", mine)
 		})
 		Enemy.prototype.die.call(this)
 	},
 
 	isObjective: function () {
 		return false
+	},
+})
+
+// A bit of a special case
+// Inherits from Mine, but constructed with makeProjectile
+function HomingMissile() {
+}
+HomingMissile.prototype = extend(Mine.prototype, {
+	init: function (owner, bearing, damageamt) {
+		var blast = 20, speed = 5
+		var weap = makeWeapon(["SuicideBomb", [damageamt, Damage.explosion, blast]])
+		var stats = CombatStats(1, 1, 1, speed)
+		Enemy.prototype.init.call(this, owner.mission, owner.pos, [weap], stats, 20, 10, 0, "Rocket",
+			bearing, 0, HomingAI, [owner])
+		this.solid = false
 	},
 })
 

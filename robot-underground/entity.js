@@ -42,7 +42,7 @@ EntityIndex.prototype = {
 		this.ei[n][e.id] = e
 	},
 	entitiesAt: function (pos) {
-		return this.entitesWithin(pos, 0)
+		return this.entitiesWithin(pos, 0)
 	},
 	entitiesWithin: function (pos, radius) {
 		var tx = pos[0], ty = pos[1], rmax = radius + this.max_entity_radius

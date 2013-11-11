@@ -154,7 +154,19 @@ var TimedMineAI = {
 	},
 }
 
-// I'm not going to bother with HomingAI, doesn't seem to be used
+var HomingAI = {
+	init: function (owner) {
+		this.owner = owner
+	},
+	tick: function () {
+		StupidAI.tick.call(this)
+		if (this.mission.map.circleClear(this.pos, 2*this.r)) {
+			ProximityMineAI.tick.call(this)
+		} else {
+			this.takeDamage(this.getMaxHP(), Damage.explosion)
+		}
+	},
+}
 
 
 
