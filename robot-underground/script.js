@@ -189,6 +189,10 @@ Script.prototype = {
 	if_plotstate_counter: function (key, value, ifspec, elsespec) {
 		this.if(plotstate[key] >= value, ifspec, elsespec)
 	},
+	// replaces if plotstate[key] == value
+	if_eq_plotstate: function (key, value, ifspec, elsespec) {
+		this.if(plotstate[key] == value, ifspec, elsespec)
+	},
 	// replaces if robotstate.getMetal(type) >= amount
 	if_has_metal: function (type, amount, ifspec, elsespec) {
 		this.if(robotstate.getMetal(type) >= amount, ifspec, elsespec)

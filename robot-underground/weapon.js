@@ -144,9 +144,9 @@ function Summon() {
 }
 Summon.prototype = extend(Weapon.prototype, {
 	init: function (cons, range, cooldowntime, limit, supply) {
-		Weapon.prototype.init.call(this, null, range, cooldowntime, 0, 0, null)
+		Weapon.prototype.init.call(this, null, range || 2, cooldowntime || 150, 0, 0, null)
 		this.cons = cons
-		this.limit = limit
+		this.limit = limit || 5
 		this.children = []
 		this.supply = supply || null
 	},
