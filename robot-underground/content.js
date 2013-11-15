@@ -26,19 +26,7 @@ setups.gameover = function (ps, m) {
 		["say_l", "The world was destroyed in flames."],
 		["say_l", "Your game is over."],
 		["end_game"],
-		// TODO: option to load saved game
-	])
-}
-
-setups.finale = function (ps, m) {
-	m.map = new DungeonGrid(100)
-	m.addProtag([0, 0])
-	m.setStartScript([
-		["blank"],
-		["say_l", "Thanks for playing the Robot Underground JavaScript demo!"],
-		["say_l", "Please leave your feedback!"],
-		["say_l", "To find out what happens to Camden and the gang, check out the complete game!"],
-		["end_game"],
+		// TODO: option to load saved game?
 	])
 }
 
@@ -1532,5 +1520,1567 @@ setups["act2.ozmission"] = function (ps, m) {
 		["change_scene", "act2.town"],
 	])
 }
+
+setups["act3.town"] = function (ps, m) {
+	makeTown(m)
+	var camden = m.addProtag([100,800])
+
+	var hammersmithScript = [
+		["sound", "radio"],
+		["say_r", "Camden, come in, son. This is Hammersmith, I need you to come see me in town.", "Hammersmith"],
+		["say_r", "I have important information for you."],
+	]
+	
+	m.setStartScript([
+		["change_music", TOWN_MUSIC],
+		["if_first", 'act3.town', [
+			["set_plotstate", 'act3.quests', 0],
+			["speaker_l", "Camden"],
+			["speaker_r", "Putney"],
+			["say_l", "Putney?"],
+			["say_r", "Camden, the fountain is surrounded by tanks!"],
+			["say_l", "What? Why?"],
+			["say_r", "Robo-Pope Hornchurch has seized control of the village. He's just marched in!"],
+			["say_l", "Hornchurch? Oh no, Angel must've been in league with him! This is all part of their plan!"],
+			["speaker_r", "Victoria"],
+			["say_r", "I always knew that rotten Hornchurch was no good."],
+			["speaker_r", "Putney"],
+			["say_r", "They're after Victoria, they're searching all over for her."],
+			["say_l", "Why, Victoria?"],
+			["speaker_r", "Victoria"],
+			["say_r", "Because I'm a princess."],
+			["speaker_r", "Putney"],
+			["say_r", "We have to get her out of here. It's not safe."],
+			["say_l", "But where shall we go?"],
+			["say_r", "I know a cave, it's infested with vermin, but I'm sure you can clear it out."],
+			["speaker_r", "Victoria"],
+			["say_r", "Infested? No, that won't do, you'll have to find me somewhere else."],
+			["say_l", "I'm sorry, Princess, but you may not have a choice."],
+			["say_r", "Insolence!"],
+			["say_l", "Call it what you will. I don't work for Hornchurch though, I'm on your side. Your chances are better with me than here on your own."],
+			["speaker_r", "Putney"],
+			["say_r", "Talk to me when you're ready."],
+		]],
+	])
+
+	var tankps = [[1255, 1445], [1255, 949], [750, 949], [750, 1445]]
+	var bearings = [225, 135, 45, 315]
+	for (var j = 0 ; j < 4 ; ++j) {
+		if (!ps["act3.tank" + j + "dead"]) {
+			m.enemyDeathScript([
+				["set_plotstate", "act3.tank" + j + "dead"],
+				["die"],
+			], "TownTank", tankps[j], bearings[j])
+		}
+	}
+
+	if (!ps["act3.killsomespiders"]) {
+		m.actorTalkScript([
+			["speaker_r", "Goldhawk"],
+			["say_r", "Stick it out, soldier. We'll get through this."],
+		], "Goldhawk", [1530, 1450], null, 0)
+
+		m.actorTalkScript([
+			["speaker_r", "Victoria"],
+			["say_r", "I'm a princess! I don't want to live in a cave!"],
+		], [135, 835], "Victoria", null, 265)
+	}
+
+	m.actorTalkScript([
+		["speaker_r", "Putney"],
+		["if_plotstate", 'act3.killsomespiders', [
+			["say_r", "I hope Victoria's okay."],
+			["ask_r", "Do you need something?", [
+				["Outer Zones", 
+					["say_r", "Right!"],
+					["set_plotstate", 'act3.ozfrom', 'act3.town'],
+					["change_scene", "act3.ozmission"],
+				],
+				["Victoria's Secret Cave",
+					["say_r", "Right!"],
+					["change_scene", "act3.camp"],
+				],
+				["Nothing",
+					["say_r", "Later, then."],
+				],
+			]],
+		], [
+			["ask_r", "Do you need something?", [
+				["Clear the cave",
+					["say_r", "Right!"],
+					["change_scene", "act3.killsomespiders"],
+				],
+				["Outer Zones"
+					["say_r", "Right!"],
+					["set_plotstate", 'act3.ozfrom', 'act3.town'],
+					["change_scene", "act3.ozmission"],
+				],
+				["Nothing",
+					["say_r", "Later, then."],
+				],
+			]],
+		]],
+	], [131, 761], "Putney", null, 95)
+
+	m.actorTalkScript([
+		["speaker_l", "Camden"],
+		["speaker_r", "Great Portland"],
+		["if_plotstate", 'act3.portland.questdone', [
+			["say_r", "..."],
+			["say_l", "..."],
+			["say_r", "...?"],
+			["say_l", "Wow. How did you do that?"],
+			["say_r", "The young are too impatient to learn."],
+			"terminated",
+		]],
+		["if_plotstate", "act3.killsomespiders", [
+			["if_first", "act3.portland.quest", [
+				["say_r", "This is a time of uncertain futures, young one. We all must come together or be torn apart."],
+				["say_r", "I have, for you, an important quest. I dare say the most important quest there is."],
+				["say_r", "It will challenge every aspect of your fitness and faculties. It will push you to achieve more."],
+				["say_r", "More importantly, it will ensure the safety of this village and all who live in it."],
+				["say_r", "You, Camden, must fetch me 32 units of molybdenum."],
+				["say_l", "That's it?"],
+				["say_r", "Yes. Now go."],
+			], [
+				["say_r", "Camden, I yet await those 32 units of molybdenum."],
+			]],
+			["if_has_metal", "Molybdenum", 32, [
+				["ask_l", "Shall I give Great Portland 32 molybdenum?", [
+					["Yes",
+						["set_plotstate", 'act3.portland.questdone'],
+						["increment_plotstate", 'act3.quests'],
+						["change_metal", -32, "Molybdenum"],
+						["say_r", "Excellent work, young one, now leave me."],
+						["if_plotstate_counter", 'act3.quests', 2, [["runScript", hammersmithScript, 50]]],
+					],
+					["No",
+					],
+				]],
+			]],
+		], [
+			["say_r", "These are dark times for our village."],
+		]],
+	], [1088, 280], "Great Portland", null, 90, 45)
+
+	m.actorTalkScript([
+		["speaker_l", "Camden"],
+		["speaker_r", "Hammersmith"],
+		["if_plotstate_counter", 'act3.quests', 2, [
+			["if_first", 'act3.hammersmith.mission', [
+				["say_r", "Good to see you, son."],
+				["say_l", "What's up?"],
+				["say_r", "Goldhawk's gone missing. He went undercover in the enemy base but he hasn't reported in."],
+				["say_r", "You've gotta go in there and find him, son."],
+				["say_l", "Okay, I'm there."],
+				["say_r", "Are you sure? This is a dangerous mission. There's no telling if you'll come back."],
+				["say_l", "Definitely. Goldhawk pulled me out of a mess just before I got here."],
+				["say_l", "I owe him a favour, as my CO and my friend."],
+				["say_r", "You got it, son. I know you're gonna go far."],
+			], [
+				["say_r", "Goldhawk's still not back."],
+			]],
+			["ask_r", "What will you do?", [
+				["Rescue Goldhawk",
+					["say_r", "Good luck, son!"],
+					["change_scene", "act3.assaultthebase"],
+				],
+				["Inventory",
+					["inventory"],
+					["say_r", "Come back any time."],
+				],
+				["Nothing",
+				],
+			]],
+		], [
+			["ask_r", "Need anything?", [
+				["Inventory",
+					["inventory"],
+					["say_r", "Come back any time."],
+				],
+				["Leave",
+				],
+			]],
+		]],
+	], [1453, 2057], 'Hammersmith', null, 270)
+
+	m.actorTalkScript([
+		["speaker_l", "Camden"],
+		["speaker_r", "Harlesden"],
+		["if_plotstate", 'act3.harlesden.questdone', [
+			// The hell is this...?
+			["say_r", "What if I am a butterfly who dreams of being a robot?"],
+			"endConversation",
+			["say_r", "What if I am a butterfly who dreams of being a robot?"],
+			["say_l", "What if you're a butterfly who dreams of being a flying egg-thing with dangly arms?"],
+			"endConversation",
+			["say_r", "Your questions pierce me to my core. Am I my form, or am I my nature?"],
+			"endConversation",
+			["say_r", "Am I my form, or am I my nature?"],
+			["say_l", "Are you always this philosophical, or are you on drugs?"],
+		], [
+			["if_plotstate", 'act3.killsomespiders', [
+				["if_first", "act3.harlesden.quest", [
+					["say_r", "Camden, I would like to ask you a favour."],
+					["say_r", "I am currently working on a particularly incisive research project."],
+					["say_r", "However, progress is stalled for want of a large amount of molybdenum."],
+					["say_r", "If you could fetch me 32 units, that would be very useful."],
+				], [
+					["say_r", "I could still use 32 units of molybdenum."],
+				]],
+				["if_has_metal", "Molybdenum", 32, [
+					["ask_l", "Shall I give Harlesden 32 molybdenum?", [
+						["Yes",
+							["set_plotstate", 'act3.harlesden.questdone'],
+							["increment_plotstate", 'act3.quests'],
+							["change_metal", -32, "Molybdenum"],
+							["say_r", "Excellent. Now I can equip my flamethrower!"],
+							["say_l", "Research project?"],
+							["say_r", "Hmmm?"],
+							["if_plotstate_counter", 'act3.quests', 2, [["runScript", hammersmithScript, 50]]],
+						],
+					]],
+				]],
+			], [
+				["say_r", "How now, brown cow."],
+				["say_r", "I am working. Please return later."],
+			]],
+		]],
+	], [630, 309], "Harlesden", null, 6)
+
+	m.actorTalkScript([
+		["speaker_r", "Cutty Sark"],
+		["ask_r", "Quack quack quack quack, quack quack?", [
+			["Save", 
+				["save"],
+				["say_r", "Saved."],
+			],
+			["Cancel",
+			],
+		]],
+	], [40, 560], "Cutty Sark", null, 7)
+
+	m.actorTalkScript([
+		["speaker_r", "Gospel"],
+		["say_r", "The so-called 'Holy' Robot Empire knows nothing of true faith. Do not be deceived by their lies, my son."],
+	], [768, 134], "Father Gospel", null, 270)
+		
+	m.actorTalkScript([
+		["speaker_l", "Camden"],
+		["speaker_r", "Pimlico"],
+		["say_r", "I sometimes try to target enemies but miss and end up moving instead."],
+		["say_r", "It totally throws my balance off, but if you right-click or hold the Ctrl key when you click, that doesn't happen!"],
+	], [1533, 664], "Pimlico", null, 312)
+}
+
+
+setups["act3.camp"] = function (ps, m) {
+	m.map = loadFixedMap("camp")
+	var camden = m.addProtag([250,250])
+	m.style = 'cave'
+
+	var hammersmithScript = [
+		["sound", "radio"],
+		["say_r", "Camden, come in, son. This is Hammersmith, I need you to come see me in town.", "Hammersmith"],
+		["say_r", "I have important information for you."],
+	]
+
+	m.setStartScript([
+		["change_music", CAMP_MUSIC],
+		["if_first", 'act3.camp', [
+			["speaker_l", "Putney"],
+			["speaker_r", "Victoria"],
+			["say_r", "This is it?"],
+			["say_l", "Yeah, it's great isn't it?"],
+			["say_r", "It's rotten."],
+			["say_l", "... But you'll be safe."],
+			["say_r", "Camden, you can't expect me to stay here."],
+			["speaker_l", "Camden"],
+			["say_l", "You will be safer here than in town. We don't know how far Hornchurch's hand stretches, so we have to keep you hidden."],
+			["say_r", "Hmph. I do not approve. But I suppose I will give you a chance."],
+		]],
+	])
+
+	m.actorTalkScript([
+		["speaker_r", "Putney"],
+		["say_r", "What do you think of the place? Neat, huh?"],
+		["ask_r", "Do you need something?", [
+			["Outer Zones",
+				["say_r", "Right!"],
+				["set_plotstate", 'act3.ozfrom', 'act3.camp'],
+				["change_scene", "act3.ozmission"],
+			],
+			["Town",
+				["say_r", "Right!"],
+				["change_scene", "act3.town"],
+			],
+			["Nothing",
+				["say_r", "Later, then."],
+			],
+		]],
+	], [118, 779], "Putney", null, 95)
+			
+	m.actorTalkScript([
+		["speaker_l", "Camden"],
+		["speaker_r", "Victoria"],
+		["if_plotstate", 'act3.victoria.questdone', [
+			["say_r", "I guess this cave isn't too bad."],
+			"terminated",
+		]],
+		["if_first", "act3.victoria.quest", [
+			["say_r", "This cave is horrible. It's all your fault."],
+			["say_l", "Sorry, but you're safer here than in town."],
+			["say_r", "Well, you can at least make up for it by bringing me 32 molybdenum."],
+			["say_l", "..."],
+		], [
+			["say_r", "I'm still waiting for some molybdenum."],
+		]],
+		["if_has_metal", "Molybdenum", 32, [
+			["ask_l", "Shall I give Victoria 32 molybdenum?", [
+				["Yes",
+					["set_plotstate", 'act3.victoria.questdone'],
+					["increment_plotstate", 'act3.quests'],
+					["change_metal", -32, "Molybdenum"],
+					["say_r", "Excellent. I can at least make this place liveable."],
+					["if_plotstate_counter", 'act3.quests', 2, [["runScript", hammersmithScript, 50]]],
+				],
+				["No",
+				],
+			]],
+		]],
+	], [250, 350], "Victoria", null, 270)
+}
+
+setups["act3.killsomespiders"] = function (ps, m) {
+	m.map = makeDungeon2({
+		top: "entry_top",
+		bottom: "camp",
+		maxrooms: 16,
+	})
+	var camden = m.addProtag(m.map.topPos([200, 200]))
+	m.placeEnemiesRandomlyAnywhere({
+		GreaterFireScorpion: 16,
+		NinjaSpider: 16,
+		JadeBeetle: 16,
+	})
+	
+	m.canEject = true
+	m.setStartScript([
+		["change_music", MISSION_MUSIC],
+		["if_first", "act3.killsomespiders.intro", [
+			["speaker_l", "Camden"],
+			["sound", "radio"],
+			["say_r", "You're very brave, Camden.", "Putney"],
+			["say_r", "Some of the monsters in there are pretty scary, but I'm sure you can beat them!"],
+		]],
+	])
+
+	m.setEjectScript([
+		["set_zoom", 0.1],
+		["freeze", 25],
+		["change_scene", "act3.town"],
+	])
+
+	m.setClearScript([
+		["set_plotstate", 'act3.killsomespiders'],
+		["wait", 45],
+		["sound", "radio"],
+		["wait", 5],
+		["speaker_l", "Camden"],
+		["say_r", "Camden, did you really get rid of all of those spiders by yourself?", "Putney"],
+		["say_r", "You're amazing!"],
+		["say_r", "Come back to town now and we can get ready to smuggle Victoria over there."],
+		["add_xp", 64],
+	])
+}
+
+setups["act3.assaultthebase"] = function (ps, m) {
+	m.map = makeDungeon2({
+		top: "goldhawk_base",
+		bottom: "entry_bottom",
+		maxrooms: 24,
+	})
+	var camden = m.addProtag(m.map.bottomPos([255, 255]))
+	m.placeEnemiesRandomlyAnywhere({
+		MechDroid: 16,
+		Copter: 4,
+		SawDrone: 32,
+		SentryDroid: 32
+	})
+	
+	m.setStartScript([
+		["change_music", MISSION_MUSIC],
+		["if_first", 'act3.assaultthebase.intro', [
+			["sound", "radio"],
+			["speaker_l", "Camden"],
+			["say_r", "Good luck, son.", "Hammersmith"],
+			["say_l", "Thanks. I'll do my best."],
+		]],
+	])
+
+	m.setEjectScript([
+		["set_zoom", 0.1],
+		["freeze", 25],
+		["if_plotstate", 'act3.assaultthebase', [
+			["set_plotstate", 'act', 4],
+			["addWeaponSlot"],
+			["change_scene", "act4.camp"],
+		], [
+			["change_scene", "act3.town"],
+		]],
+	])
+
+	var door = m.entities.add(makeScenery("BlastDoor", m, m.map.topPos([250, 150]), 90, true))
+
+	var goldhawk = m.entities.add(makeEnemy("Goldhawk", m, m.map.topPos([250, 950]), 270))
+	goldhawk.hostile = false
+	
+	var droids = [], dxs = [150, 200, 300, 350], dys = [800, 750, 700, 650, 600]
+	dxs.forEach(function (dx) { dys.forEach(function (dy) {
+		var d = m.addEntity(makeEnemy("SentryDroid", m, m.map.topPos([dx, dy]), 90))
+		d.hostile = false
+		d.setTalkScript([
+			["speaker_l", "Camden"],
+			["say_l", "It's not responding."],
+		])
+		droids.push(d)
+	})})
+
+	goldhawk.setTalkScript([
+		["change_music", HI_BOSS_MUSIC],
+		["speaker_l", "Camden"],
+		["speaker_r", "Goldhawk"],
+		["say_l", "Goldhawk?"],
+		["say_r", "Oh, Camden. I bet Hammersmith sent you here, didn't he?"],
+		["say_l", "I don't understand ... are they keeping you here?"],
+		["say_l", "No ... it's not that, is it? What did the Robo-Pope buy you with?"],
+		["say_r", "I'm not one to be bought, Camden. I came to him of my own accord, and don't you ever say otherwise."],
+		["say_l", "Goldhawk, we don't have to do this. You could call off the troops and come back to Dollis Hill."],
+		["say_r", "And you'd forget about what I've done, just like that?"],
+		["ask_l", "What should I say?", [
+			["Of course I would.",
+				["say_r", "Camden, you idiot."],
+				["say_r", "If you don't quit being so foolishly trusting, you'll end up in the Robo-Papal dungeons just like that simpleton Prince Regent."],
+				["say_l", "You're holding the Prince Regent captive?"],
+				["say_r", "Yes, and that irritating Angel girl as well. If you don't want to end up rusting away to nothing alongside them, I suggest you prepare to fight for your life!"],
+			],
+			["I wouldn't forget, but I might forgive.",
+				["say_r", "You and your stupid platitudes, Camden."],
+				["say_r", "You remind me of that irritating Angel girl we now have languishing in the Robo-Papal dungeon."],
+				["say_l", "You're holding Angel captive? Wasn't she working for you?"],
+				["say_r", "She's locked up right next to the Prince Regent. And yes, she was."],
+				["say_r", "But I am not as trusting as you are, Camden, which is why I'm still alive, while you are shortly not to be."],
+				["say_r", "Now prepare to fight!"],
+			],
+		]],
+		["set_hostile", true],
+		["canEject", false],
+		["do", door.close.bind(door)],
+		["do", droids.forEach.bind(droids, function (d) { d.hostile = true })],
+	])
+
+	goldhawk.setDeathScript([
+		["do", droids.forEach.bind(droids, function (d) { d.kill() })],
+		["canEject"],
+		["set_plotstate", 'act3.assaultthebase'],
+		["speaker_l", "Camden"],
+		["speaker_r", "Goldhawk"],
+		["say_r", "Damn you, Camden! This isn't over!"],
+		["clear_r"],
+		["die"],
+		["wait", 50],
+		["say_l", "I have a feeling I haven't seen the last of him."],
+		["say_l", "Anyway, I should probably get out of here."],
+	])
+}
+
+setups["act3.ozmission"] = function (ps, m) {
+	m.map = makeDungeon1()
+	m.addProtagAnywhere()
+	m.placeEnemiesRandomlyAnywhere({
+		GreaterFireScorpion: 16,
+		NinjaSpider: 16,
+		JadeBeetle: 16,
+		MechDroid: 16,
+		Copter: 4,
+		SawDrone: 8,
+		SawDronePack: 8,
+	})
+	m.canEject = true
+	m.isTimed = true
+	
+	m.setStartScript([
+		["change_music", OZ_MUSIC],
+	])
+	
+	m.setEjectScript([
+		["set_zoom", 0.1],
+		["freeze", 25],
+		["change_scene", ps["act3.ozfrom"]],
+	])
+}
+
+setups["act4.camp"] = function (ps, m) {
+	m.map = loadFixedMap("camp")
+	var camden = m.addProtag([250, 250])
+	m.style = 'cave'
+
+	m.setStartScript([
+		["change_music", CAMP_MUSIC],
+		["if_first", 'act4.camp', [
+			["speaker_l", "Camden"],
+			["speaker_r", "Victoria"],
+			["say_r", "Camden?"],
+			["say_l", "Goldhawk has turned against us. He was with Hornchurch all along."],
+			["say_l", "We can't go back to town now at all. Hornchurch's allies are surely looking for all of us."],
+			["say_r", "So what do we do? I'm not staying here forever"],
+			["say_l", "Well, there is one stroke of luck. Goldhawk gave away something when I found him."],
+			["say_l", "He told me that Angel had been imprisoned by the Holy Robot Empire."],
+			["say_r", "Angel? The horrid girl? Serves her right."],
+			["say_l", "I want to rescue her."],
+			["ask_r", "What?! Why?", [
+				["She might help us.",
+					["say_l", "Because if they imprisoned her then perhaps she's not on their side. We need allies."],
+				],
+				["Sweet revenge.",
+					["say_l", "So I can show her that betrayal comes with a high price."],
+				],
+				["Love has a face.",
+					["say_l", "Well, I'm fairly sure she was hitting on me at that party."],
+				],
+			]],
+			["say_l", "Besides, there's someone else they've got I want to see."],
+			["say_r", "Who?"],
+			["say_l", "Your father."],
+			["say_r", "Daddy?"],
+			["say_l", "Yes. Get ready, we're heading out."],
+			["clear_l"],
+			["clear_r"],
+			["speaker_r", "Putney"],
+			["say_r", "..."],
+		]],
+		["if_plotstate", 'act4.villagecutscene', [
+			["if_first", 'act4.camp.aftervillagecutscene', [
+				["say_r", "Back at camp..."],
+				["speaker_l", "Camden"],
+				["speaker_r", "Putney"],
+				["say_l", "Putney?"],
+				["say_r", "Hi, Camden? Who are these people?"],
+				["say_l", "This is Cockfosters and Marylebone, we're helping them out, and I need your help with that."],
+				["say_r", "You do? Um... okay."],
+				["say_l", "There's a monster of some kind up in the pass that stole their child. I'm going to go and distract it while you retrieve the child."],
+				["ask_r", "Really? Me? Are you sure?", [
+					["Absolutely", 
+ 						["say_l", "Yes, I know you can do this Putney. I believe in you"],
+						["say_r", "Thanks, Camden. I won't let you down."],
+					],
+					["Lesser of two evils",
+						["say_l", "Well, it's you or Victoria. I'm not spoilt for choice."],
+						["say_r", "Oh."],
+					],
+				]],
+				["say_l", "Make sure you're ready. We're heading out soon."],
+				["say_r", "Let me know when you're ready."],
+			]],
+		]],
+		["if_plotstate", 'act4.defendthevillage', [
+			["if_first", 'act4.camp.aftervillage', [
+				["say_r", "Back at camp..."],
+				["speaker_l", "Putney"],
+				["say_l", "We did it! We saved the child."],
+				["speaker_r", "Marylebone"],
+				["say_r", "Oh, Pancras be praised, this is a blessing."],
+				["speaker_r", "Cockfosters"],
+				["say_r", "Thank you, sirs. We are in your debt."],
+				["speaker_l", "Camden"],
+				["say_l", "It was nothing. We wanted to get across the pass anyway."],
+				["say_l", "Good work, Putney."],
+				["speaker_r", "Putney"],
+				["say_r", "Thanks, Camden. I'm surprised at myself."],
+				["speaker_r", "Victoria"],
+				["say_r", "Can we go find Daddy now?"],
+				["say_l", "Yes we can. Once we're over the mountains it'll be clear paths to our destination."],
+				["say_r", "Good, I'll be waiting once you're ready."],
+			]],
+		]],
+	])
+				
+	m.actorTalkScript([
+		["speaker_r", "Putney"],
+		["if_plotstate", 'act4.villagecutscene', [
+			["if_plotstate", 'act4.defendthevillage', [
+				["if_first", "act4.putney.aftervillage", [
+					["say_r", "Thanks, Camden. I feel like I'm part of things."],
+				]],
+				["ask_r", "Need anything?", [
+					["Outer Zones",
+						["say_l", "Sure thing."],
+						["change_scene", "act4.ozmission"],
+					],
+					["Leave",
+					],
+				]],
+			], [
+				["say_r", "I guess I'm ready when you are."],
+				["ask_r", "What do you need?", [
+					["Save the baby",
+						["say_r", "... Okay."],
+						["change_scene", "act4.defendthevillage"],
+					],
+					["Outer Zones",
+						["say_r", "Okay."],
+						["change_scene", "act4.ozmission"],
+					],
+					["Nothing",
+					],
+				]],
+			]],
+		], [
+			["say_r", "I'm sorry about Goldhawk, Camden."],
+			["ask_r", "Need anything?", [
+				["Outer Zones",
+					["say_l", "Sure thing."],
+					["change_scene", "act4.ozmission"],
+				],
+				["Leave",
+				],
+			]],
+		]],
+	], [250, 450], "Putney", null, 270)
+			
+	m.actorTalkScript([
+		["speaker_l", "Camden"],
+		["speaker_r", "Victoria"],
+		["if_plotstate", 'act4.villagecutscene', [
+			["if_plotstate", 'act4.defendthevillage', [
+				["ask_r", "Ready to go save my dad?", [
+					[ "Yes",
+						["say_l", "Let's go then."],
+						["change_scene", "act4.savetheprince"],
+					],
+					["Not yet",
+						["say_l", "Well, hurry up!"],
+					],
+				]],
+			], [
+				["say_r", "Hmph, sharing my cave with peasants..."],
+			]],
+		], [
+			["say_r", "I'm ready when you are."],
+			["ask_r", "Ready to go?", [
+				["Yes",
+					["change_scene", "act4.villagecutscene"],
+				],
+				["No",
+				],
+			]],
+		]],
+	], [250, 350], "Victoria", null, 270)
+
+	if (ps['act4.defendthevillage']) {
+		m.actorTalkScript([
+			["speaker_r", "Cockfosters"],
+			["say_r", "Thanks for helping us."],
+			["if_plotstate", 'act4.cockfosters.questdone', [
+			], [
+				["if_first", "act4.cockfosters.quest", [
+					["say_r", "I used to work in a mine, so believe me when I say this cave is structurally unsound."],
+					["say_r", "I could build some supports for you, but I'll need some materials. Say, 64 bismuth?"],
+				], [
+					["say_r", "I'll need some bismuth if you want those supports."],
+				]],
+				["if_has_metals", "Bismuth", 64, [
+					["ask_l", "Shall I give Cockfosters 64 bismuth?", [
+						["Yes",
+							["set_plotstate", 'act4.cockfosters.questdone'],
+							["change_metal", -64, "Bismuth"],
+							["say_r", "Excellent, I'll get these up in no time."],
+						],
+						["No",
+						],
+					]],
+				]],
+			]],
+		], [450, 450], "Cockfosters", null, 270)
+
+		m.actorTalkScript([
+			["speaker_r", "Marylebone"],
+			["say_r", "Thank you for your help."],
+		], [550, 450], "Marylebone", null, 270)
+	}
+
+	m.actorTalkScript([
+		["speaker_r", "Cutty Sark"],
+		["ask_r", "Quack quack quack quack, quack quack?", [
+			["Save",
+				["save"],
+				["say_r", "Saved."],
+			],
+			["Cancel",
+			],
+		]],
+	], [640, 170], "Cutty Sark", null, 295)
+
+	m.actorTalkScript([
+		["speaker_r", "Canary Wharf"],
+		["say_r", "Quack quack quack! Quack, quack quack quack!"],
+		["inventory"],
+	], [625, 125], "Canary Wharf", null, 350)
+}
+
+setups["act4.villagecutscene"] = function (ps, m) {
+	m.map = new DungeonGrid(100)
+	m.addProtag([0, 0])
+
+	m.setStartScript([
+		["change_music", MISSION_MUSIC],
+		["set_plotstate", 'act4.villagecutscene'],
+		["blank"],
+		["freeze", 10],
+		["speaker_l", "Camden"],
+		["speaker_r", "Victoria"],
+		["say_r", "Camden, this is a peasant village."],
+		["say_l", "Yes, I know."],
+		["say_r", "But I'm a princess."],
+		["say_l", "We need to scout out the pass before we can cross. The best way to do that is to ask the locals."],
+		["say_r", "But they're peasants, what will they know?"],
+		["say_l", "A lot, I hope."],
+		["say_r", "I don't think that-"],
+		["clear_r", ],
+		["say_r", "Eeeeeeeeeek!"],
+		["say_l", "Who was that?"],
+		["speaker_r", "Marylebone"],
+		["say_r", "It's taken our baby! The demon has taken our baby!"],
+		["say_r", "Cockfosters, our baby is gone. Baby Goodge, he's been taken by the demon!"],
+		["speaker_r", "Cockfosters"],
+		["say_r", "Egads! What'll we do?"],
+		["say_l", "Excuse me, but what is this demon?"],
+		["speaker_r", "Marylebone"],
+		["say_r", "Oh, it's a foul thing and no mistake! Vile and horrid! It lives up on the pass and it'll come down and preys on us poor village folk!"],
+		["say_l", "We shall defeat this monster and retrieve your child."],
+		["speaker_r", "Victoria"],
+		["say_r", "We shall?"],
+		["say_l", "Well, I shall."],
+		["say_r", "Look, we're supposed to be finding my daddy."],
+		["say_l", "That'll be more quickly accomplished if we can cross the mountains. Besides, we'd be helping out these villagers."],
+		["say_r", "They're peasants, Camden..."],
+		["say_l", "And?"],
+		["say_r", "..."],
+		["say_l", "Come on, we should go back to camp first, I'll need Putney's help."],
+		["speaker_r", "Cockfosters"],
+		["say_r", "Oh, thank you, sir."],
+		["change_scene", 'act4.camp'],
+	])
+}
+  
+setups["act4.defendthevillage"] = function (ps, m) {
+	m.map = loadFixedMap('openarea')
+	camden = m.addProtag([897, 685])
+	
+	m.setStartScript([
+		["change_music", LO_BOSS_MUSIC],
+		["blank", ],
+		["say_l", "On the mountain pass..."],
+		["speaker_l", "Camden"],
+		["say_l", "This must be it, but I don't see-"],
+		["say_r", "DEEEEEATH..."],
+		["say_l", "What was that?"],
+		["say_r", "DEEEEEATH..."],
+		["say_l", "I don't see-"],
+		["speaker_r", "Hyde"],
+		["say_r", "DEEEEEATH..."],
+		["say_l", "Oh, now I see."],
+		["say_l", "Okay Putney, don't let me down..."],
+		["say_l", "Here I come!"],
+	])
+	
+	m.setEjectScript([
+		["set_zoom", 0.1],
+		["freeze", 25],
+		["change_scene", "act4.camp"],
+	])
+	
+	m.enemyDeathScript([
+		["die"],
+		["wait", 50],
+		["speaker_l", "Camden"],
+		["say_l", "I defeated it... That seems too easy."],
+		["say_l", "Shouldn't complain, I guess."],
+		["set_plotstate", 'act4.defendthevillage'],
+		["canEject"],
+	], "Hyde", [1111, 730], 200)
+}
+
+setups["act4.savetheprince"] = function (ps, m) {
+	m.map = makeDungeon2({
+		left: 'entry_left',
+		right: 'grid',
+	})
+	var camden = m.addProtag(m.map.leftPos([96, 96]))
+	
+	m.placeEnemiesRandomlyAnywhere({
+		JusticeDrone: 16,
+		Copter: 32,
+		RailgunTank: 32,
+		RocketTank: 32,
+	})
+
+	m.setStartScript([
+		["change_music", MISSION_MUSIC],
+		["speaker_l", "Camden"],
+		["say_l", "Right, here I go."],
+		["sound", "radio"],
+		["say_r", "I hope you can save Daddy, Camden!", "Victoria"],
+		["ask_l", "What shall I say?", [["Don't worry!"], ["So do I."], ["Anything for you."]]],
+	])
+
+	m.canEject = true
+	m.setEjectScript([
+		["set_zoom", 0.1],
+		["freeze", 25],
+		["change_scene", "act4.camp"],
+	])
+
+	var door_in = m.entities.add(makeScenery("BlastDoor", m, m.map.rightPos([1050, 50]), 0, true))
+	var door_out = m.entities.add(makeScenery("BlastDoor", m, m.map.rightPos([1750, 750]), 90, false))
+	
+	var cnl = m.addEntity(makeEnemy("ChalfontAndLatimer", m, m.map.rightPos([1100, 700]), 270))
+	cnl.hostile = false
+	cnl.setDeathScript([
+		["die"],
+		["wait", 50],
+		["speaker_l", "Camden"],
+		["say_l", "Well, those two were full of surprises."],
+		["say_l", "Now, time to see if I can find Angel and the Prince Regent."],
+		["do", door_out.open.bind(door_out)],
+	])
+
+	camden.addAreaScript([
+		["wait", 50],
+		["set_plotstate", 'act4.savetheprince'],
+		["set_plotstate", 'act', 5],
+		["addWeaponSlot"],
+		["change_scene", 'act5.intro'],
+	], m.map.rightPos([1650, 750]), [200,200])
+
+	camden.addAreaScript([
+		["speaker_l", "Camden"],
+		["say_l", "You!"],
+		["speaker_r", "Chalfont"],
+		["say_r", "B'deeeee zzzzt zzp skreeeeeeow piiiii!"],
+		["speaker_r", "Latimer &"],
+		["say_r", "And here returns the prodigal son to slay our fatted calf."],
+		["speaker_r", "Chalfont"],
+		["say_r", "Prrrrrrrrrrr dipdipdip bee bee beeeeeeee pzow!"],
+		["speaker_r", "Latimer &"],
+		["say_r", "Well, no, my lord, but I felt it appropriate."],
+		["say_r", "Corporal Camden of the Order of Knightsbridge, I am hereby relieving you of your rank with immediate notice."],
+		["say_l", "What?"],
+		["say_r", "You heard me. You are hereby returned to civilian status, effective immediately."],
+		["say_l", "Since when can you do that?"],
+		["say_r", "You will find, ex-Corporal Camden, that the Holy Robot Empire holds a great deal of influence in a great many circles."],
+		["say_r", "Fortunately it seems that the Prince Regent has finally decided to acknowledge our great and bountiful wisdom ..."],
+		["say_r", "And has abdicated his gubernatorial responsibilities to His Holiness the Robo-Pope."],
+		["say_l", "Enough of the florid language, sub-Inquisitor. You and I know that this was a coup d'etat, plain and simple."],
+		["speaker_r", "Chalfont"],
+		["say_r", "Pdbdbdbd prrr beee eee beeee!"],
+		["speaker_r", "Latimer &"],
+		["say_r", "Most eloquently put, my lord. History will bear us out, ex-Corporal. But you will not be there to see it."],
+		["say_l", "Ha! I beat you handily last time, you unholy double-act, and I'll do it again!"],
+		["say_r", "I see the folly of youth knows no bounds. Prepare to face our full fury!"],
+		["speaker_l", "Latimer"],
+		["speaker_r", "Chalfont"],
+		["change_music", LO_BOSS_MUSIC],
+		["say_l", "Inquisitorial and Robo-Cardinal digitally-enhanced combat mode activation sequence ..."],
+		["say_l", "... combine and transform!"],
+		["say_r", "Skreeeow!"],
+		["speaker_l", "Camden"],
+		["speaker_r", "Chalfont/Latimer Fusion"],
+		["say_l", "What the ..."],
+		["do", (function () { this.hostile = true }).bind(cnl)],
+		["do", door_in.close.bind(door_in)],
+	], m.map.rightPos([600, 150]), [1000, 1000])
+}
+
+setups["act4.ozmission"] = function (ps, m) {
+	m.map = makeDungeon1()
+	m.addProtagAnywhere()
+	m.placeEnemiesRandomlyAnywhere({
+		JusticeDrone: 16,
+		SupportCopterPack: 8,
+		RailgunTank: 16,
+		RocketTank: 8,
+		PincerTank: 16,
+		MoonSpider: 16,
+	})
+	m.canEject = true
+	m.isTimed = true
+	
+	m.setStartScript([["change_music", OZ_MUSIC]])
+	m.setEjectScript([
+		["set_zoom", 0.1],
+		["freeze", 25],
+		["change_scene", "act4.camp"],
+	])
+}
+
+setups["act5.town"] = function (ps, m) {
+	makeTown(m)
+	var camden = m.addProtag([1051, 401])
+	camden.bearing = 275
+
+	m.setStartScript([  // plot dump - seriously needs rewriting
+		["change_music", TOWN_MUSIC],
+		["if_first", "act5.plotdump", [
+			["speaker_l", "Camden"],
+			["speaker_r", "Great Portland"],
+			["say_r", "... well, we seem to be in a very grave situation."],
+			["say_r", "The safe return of Prince Regent is something of a blessing, but nonetheless we have little cause to rejoice."],
+			["say_r", "According to Hammersmith's scouts, Robo-Pope Hornchurch has taken the Charing Cross and headed deep into the blasted wastes of the Outer Zones."],
+			["say_r", "I cannot be certain of his precise intention..."],
+			["say_r", "... but I fear that he may intend to release the seal on the ancient Tomb of St. Pancras itself."],
+			["say_l", "Unseal the Tomb of St. Pancras?"],
+			["say_l", "But that would be the utmost heresy! What could he possibly have to gain from doing that?"],
+			["say_r", "There is a rumour which continues to resurface among those who deal in forbidden magicks concerning the Tomb of St. Pancras."],
+			["say_r", "A rumour never spoken, yet often whispered."],
+			["say_r", "It is said that St. Pancras had some powerful item sealed within the tomb, which would bring great power to any brave enough to break the seal."],
+			["say_r", "Brave ... or foolish."],
+			["speaker_l", "Victoria"],
+			["say_l", "And is it true?"],
+			["say_r", "True?"],
+			["say_r", "Is it true?"],
+			["say_r", "Whether or not it is true that St. Pancras had a powerful magical item sealed within his tomb is entirely immaterial!"],
+			["say_r", "The unsealing of the Tomb of St. Pancras would be a cosmological event akin to the sinking of Atlantis or the extinction of the humans!"],
+			["say_r", "I do not know whether Robo-Pope Hornchurch knows this; he may be misled, or simply very, very foolish."],
+			["speaker_l", "Camden"],
+			["say_l", "But if he unseals the tomb, it could unleash some kind of disaster?"],
+			["say_r", "Oh, no, my boy."],
+			["say_r", "Ah, I should have known better than to expect one so young to appreciate the gravity of the situation."],
+			["say_r", "Unsealing the tomb will most certainly unleash a great many kinds of disaster!"],
+			["say_l", "Right."],
+			["say_l", "Then we have to stop him!"],
+			["speaker_r", "Victoria"],
+			["say_r", "Stop him how?"],
+			["say_l", "We'll do whatever it takes."],
+			["speaker_r", "Great Portland"],
+			["say_r", "Robo-Pope Hornchurch is a powerful and dangerous creature."],
+			["say_r", "If he thinks you are an obstacle to his plans, he will not hesitate to remove you."],
+			["say_r", "Are you brave enough to face him?"],
+			["ask_l", "", [["I know no fear."], ["My wits will see me through."], ["My friends are my shield."]]],
+			["say_r", "You are strong."],
+			["say_r", "However, even the strongest warrior cannot pass through the furthest Outer Zones unaided."],
+			["say_r", "Hornchurch carries the Charing Cross, which will shield him from harm."],
+			["say_r", "But even one such as you would not pass through unshielded."],
+			["ask_l", "", [["There must be something we can do!"], ["If this is the end, I'll face it with dignity."]]],
+			["say_r", "This is something that I did not expect that I would ever do."],
+			["say_r", "However, given the circumstances, and your most peculiar resolve ... I think it is fitting that I bequeath this to you."],
+			["say_l_unlabelled", "Received the KING'S CROSS."],
+			["say_r", "Carry that with you, and you may be able to pursue Robo-Pope Hornchurch through the Outer Zones."],
+			["say_r", "Young Camden, the fate of all our people now rests with you."],
+			["speaker_l", "Camden"],
+			["say_l", "Thank you, Great Portland. I won't let you down."],
+			["say_r", "I am confident that you will not."],
+			["say_r", "Speak to me when you are ready to depart."],
+		]],
+	])
+
+	m.actorTalkScript([
+		["speaker_r", "Putney"],
+		["say_r", "You're very brave, Camden."],
+		["ask_r", "Do you want to go to the Outer Zones?", [
+			["Yes",
+				["change_scene", "act5.ozmission"],
+			],
+			["No"],
+		]],
+	], [1653, 1736], "Putney", null, 270)
+
+	if (ps['angel.rescued']) {
+		m.actorTalkScript([
+			["speaker_r", "Angel"],
+			["speaker_l", "Camden"],
+			["say_r", "You chose to rescue me even after what I did to you, Camden."],
+			["say_r", "I won't forget that."],
+		], [43, 725], "Angel", null, 325)
+	}
+		
+	m.actorTalkScript([
+		["speaker_r", "Victoria"],
+		["speaker_l", "Camden"],
+		["say_l", "So you're a princess?"],
+		["say_r", "Hadn't you heard?"],
+	], [1156, 399], "Victoria", null, 261)
+
+	m.actorTalkScript([
+		["speaker_l", "Camden"],
+		["speaker_r", "Great Portland"],
+		["say_r", "This is the final battle, young Camden. After this point, there can be no turning back."],
+		["ask_r", "Are you ready?", [
+			["I'm ready.", 
+				["change_scene", "act5.bossfight1"],
+			],
+			["I need more time."],
+		]],
+	], [1088, 280], "Great Portland", null, 90, 45)
+
+	m.actorTalkScript([
+		["speaker_r", "Hammersmith"],
+		["ask_r", "What can I get you, son?", [
+			["Inventory",
+				["inventory"],
+			],
+			["Leave"],
+		]],
+	], [1453, 2057], "Hammersmith", null, 270)
+
+	m.actorTalkScript([
+		["speaker_l", "Camden"],
+		["speaker_r", "Harlesden"],
+		["say_r", "Would you like a backrub?"],
+	], [970, 1800], "Harlesden", null, 290)
+
+	m.actorTalkScript([
+		["speaker_r", "Cutty Sark"],
+		["ask_r", "Quack quack quack quack, quack quack?", [
+			["Save", 
+				["save"],
+				["say_r", "Saved."],
+			],
+			["Cancel"],
+		]],
+	], [940, 1090], "Cutty Sark", null, 289)
+
+	m.actorTalkScript([
+		["speaker_l", "Camden"],
+		["speaker_r", "Gospel"],
+		["say_r", "Blessings of St. Pancras be upon you."],
+	], [768, 134], "Father Gospel", null, 270)
+
+	ps["act5.superdungeon.next"] = ps["act5.superdungeon.next"] || 1
+	if (ps['act5.superdungeon.next'] < 101) {
+		m.actorTalkScript([
+			["speaker_l", "Camden"],
+			["speaker_r", "Pimlico"],
+			["say_r", "I once killed a man just to watch him die!"],
+			["say_l", "You're just messing with me, aren't you?"],
+			["say_r", "..."],
+			["say_l", "Well, I hope you're just messing."],
+			["say_r", "I've found a cave with some really tough enemies in. Do you want to come explore it with me?"],
+			["ask_r", "Shall we go?", [
+				["With you? Of course!",
+					["change_scene", "act5.superdungeon"],
+				],
+				["Helpful as your tips have been, I'm not sure I'm ready for this."],
+			]],
+		], [1533, 664], "Pimlico", null, 312)
+	}
+}
+
+setups["act5.intro"] = function (ps, m) {
+	m.map = new DungeonGrid(100)
+	m.addProtag([0, 0])
+	
+	m.setStartScript([
+		["blank"],
+		["speaker_l", "Camden"],
+		["say_l", "Angel? Angel!"],
+		["speaker_r", "Angel"],
+		["say_r", "Camden!"],
+		["say_r", "What are you doing here?"],
+
+		["set_plotstate", "sweetheart", "Victoria"],
+		["ask_l", "", [
+			["I'm here to save you.",
+				["say_r", "Me? Why?"],
+				["ask_l", "", [
+					["I believe in second chances."
+						["set_plotstate", "whyrescue", "secondchance"],
+					],
+					["Because I love you."
+						["set_plotstate", "whyrescue", "love"],
+					],
+					["I lied. I'm actually here for Prince Regent.",
+						["set_plotstate", "whyrescue", "regent"],
+					],
+				]],
+			],
+			["I'm here to save Prince Regent.",
+				["set_plotstate", "whyrescue", "regent"],
+			],
+		]],
+
+		["if_plotstate_eq", "whyrescue", "regent", [
+			["say_r", "What, this old lunatic?"],
+			["speaker_r", "Regent"],
+			["say_r", "Hello, moonbeams!"],
+			["speaker_l", "Victoria"],
+			["say_l", "Daddy!"],
+			["say_r", "Good afternoon, my splendid seeker after truths and teeth."],
+			["speaker_r", "Angel"],
+			["say_r", "That's why you fought your way in here?"],
+			["say_l", "Shut up, you."],
+			["speaker_l", "Camden"],
+			["ask_l", "", [
+				["Sorry about her, Angel.",
+					["ask_r", "So, are you going to take me with you as well?", [
+						["Yes",
+							["say_r", "Thank you, Camden. I really am sorry for what I've done."],
+							["set_plotstate", "angel.rescued"],
+						],
+						["Sorry",
+							["say_l", "Sorry, Angel. I can't forgive you so easily."],
+							["say_r", "Would it help if I apologised?"],
+							["say_l", "No."],
+							["clear_l"],
+							["say_r", "Hey, wait! Hey! Come back! Camden!"],
+						],
+					]],
+				],
+				["Shut up, Angel.",
+					["say_r", "Camden! I can't believe you. Wandering around with this brainless princess trying to save her lunatic father!"],
+					["speaker_r", "Victoria"],
+					["say_r", "Hey, I'm not the one who betrayed her so-called 'friends'."],
+					["speaker_r", "Angel"],
+					["say_r", "Yeah, well, I didn't..."],
+					["speaker_l", "Regent"],
+					["say_l", "Interjection! There's no such word as didn't, except in very expensive dictionaries."],
+					["say_r", "..."],
+					["speaker_r", "Victoria"],
+					["say_r", "..."],
+					["speaker_l", "Camden"],
+					["speaker_r", "Angel"],
+					["ask_r", "So, are you going to get me out of here, too?", [
+						["Yes",
+							["say_r", "Well, at least that's something. Let's get going."],
+							["set_plotstate", "angel.rescued"],
+						],
+						["(Leave)",
+							["clear_l"],
+							["say_r", "... Hey! Camden! Come back here!"],
+							["say_r", "Please come back..."],
+						],
+					]],
+				],
+			]],
+		]],
+		["if_plotstate", "whyrescue", "secondchance", [
+			["say_r", "So does that mean you're getting me out of here?"],
+			["say_l", "Yes, you and Prince Regent as well."],
+			["speaker_r", "Regent"],
+			["say_r", "And well you might, or at least, you might as well."],
+			["set_plotstate", "sweetheart", "Angel"],
+			["set_plotstate", "angel.rescued"],
+		]],
+		["if_plotstate", "whyrescue", "love", [
+			["say_r", "..."],
+			["speaker_r", "Victoria"],
+			["say_r", "..."],
+			["speaker_r", "Angel"],
+			["say_r", "You... you do?"],
+			["say_l", "..."],
+			["speaker_r", "Regent"],
+			["say_r", "Well I think we've all come to a very special place."],
+			["say_r", "A special place with wind chimes and matchboxes."],
+			["say_r", "Now let us wend our wiggly way westwards."],
+			["ask_l", "Take Angel with you?", [
+				["Yes",
+					["say_r", "Camden..."],
+					["set_plotstate", "sweetheart", "Angel"],
+					["set_plotstate", "angel.rescued"],
+				],
+				["No",
+					["say_r", "Camden? I don't understand."],
+					["clear_l"],
+					["say_r", "Why are you leaving?"],
+					["say_r", "Camden... I love you, too."],
+				],
+			]],
+		]],
+		["clear_l"],
+		["freeze", 20],
+		["clear_r"],
+		["change_scene", "act5.town"],
+	])
+}
+
+setups["act5.bossfight1"] = function (ps, m) {
+	m.map = loadFixedMap("clearing")
+	var camden = m.addProtag([1000, 234])
+	m.canEject = false
+	
+	m.setStartScript([
+		["change_music", null],
+		["blank"],
+		["say_l", "Protected by the King's Cross, Camden treks for many miles across the impossible wastelands of the Outer Zones."],
+		["speaker_l", "Camden"],
+		["say_l", "It can't be far now."],
+		["say_l", "I think that must be the tomb of St. Pancras just ahead."],
+		["say_r", "Not so fast, soldier."],
+		["say_r", "This is as far as you go."],
+		["say_l", "Goldhawk!"],
+		["blank", false],
+		["change_music", LO_BOSS_MUSIC],
+		["speaker_r", "Goldhawk"],
+		["say_r", "Yes, Camden, I'm still alive."],
+		["say_l", "I can't believe you're protecting the Robo-Pope, Goldhawk."],
+		["say_l", "Don't you understand what it is he plans to do?"],
+		["say_l", "Won't you die along with everyone else if he brings his plans to fruition?"],
+		["say_r", "You're still so naive, Camden."],
+		["say_r", "I'm here to protect his Holiness. That's all that matters."],
+		["say_l", "I wish it didn't have to be this way, Goldhawk. But I have a job to do, for the sake of all my friends."],
+		["say_r", "And you'll die doing it!"],
+	])
+
+	m.enemyDeathScript([
+		["die_no_drop"],
+		["wait", 50],
+		["speaker_l", "Camden"],
+		["say_l", "Goldhawk ..."],
+		["say_l", "Why wouldn't you listen to me?"],
+		["say_l", "Well, I've come this far."],
+		["say_l", "Time to confront the Robo-Pope himself."],
+		["clear_l"],
+		["freeze", 10],
+		["blank"],
+		["freeze", 10],
+		["change_scene", "act5.bossfight2"],		
+	], "GoldhawkReloaded", [1000, 456], 270)
+}
+
+setups["act5.bossfight2"] = function (ps, m) {
+	m.map = loadFixedMap("crypt")
+	var camden = m.addProtag([750, 234])
+	m.canEject = false
+
+	m.setStartScript([
+		["change_music", LO_BOSS_MUSIC],
+		["speaker_l", "Camden"],
+		["say_l", "Stop right there!"],
+		["say_l", "I won't let you unseal the tomb!"],
+		["say_l", "Whatever it is you think you stand to gain from it, you're wrong!"],
+		["speaker_r", "Hornchurch"],
+		["say_r", "What confidence you have."],
+		["say_r", "I might ask how you presume to know what it is I expect to accomplish here."],
+		["say_r", "But frankly, I don't care. In mere moments, the seal will open and the ultimate power of St. Pancras will flow into me!"],
+		["say_r", "Prepare to bow down before your new god!"],
+	])
+
+	m.enemyDeathScript([
+		["die_no_drop"],
+		["wait", 50],
+		["speaker_l", "Camden"],
+		["say_l", "Is he ..."],
+		["say_l", "Is he dead?"],
+		["say_l", "It feels like whatever he was trying to do... is still going on..."],
+		["say_l", "In fact..."],
+		["clear_l"],
+		["set_zoom", 0.1],
+		["freeze", 25],
+		["change_scene", "act5.bossfight3"],
+	], "Hornchurch", [250, 550], 270)
+}
+
+setups["act5.bossfight3"] = function (ps, m) {
+	m.map = loadFixedMap("plane")
+	var camden = m.addProtag([450, 50])
+	m.canEject = false
+
+	m.setStartScript([
+		["change_music", null],
+		["blank"],
+		["speaker_l", "Camden"],
+		["say_l", "Where am I?"],
+		["say_l", "What's going on?"],
+		["say_l", "And what in the world..."],
+		["change_music", HI_BOSS_MUSIC],
+		["speaker_r", "Pancras happy"],
+		["say_r", "I AM ALPHA."],
+		["say_r", "I AM OMEGA."],
+		["say_r", "I AM THE GLORIOUS ARC OF THE UNIVERSE AND I AM THE MOTE IN A PROTON'S EYE."],
+		["say_r", "FINALLY THE SEAL IS BROKEN."],
+		["speaker_r", "Pancras angry"],
+		["say_r", "FINALLY I AM FREED TO RULE AGAIN."],
+		["say_r", "ALL WILL BEND TO MY WILL..."],
+		["say_r", "OR BE BROKEN AT MY COMMAND!"],
+		["speaker_r", "Pancras happy"],
+		["say_l", "You expect us to bow down before you?"],
+		["speaker_r", "Pancras angry"],
+		["say_r", "OBEY OR YOU WILL BE CRUSHED!"],
+		["say_l", "Never!"],
+		["say_l", "I, Camden, on behalf of the people of this world, stand before you now and I say: We will not surrender!"],
+		["say_l", "We will not be destroyed!"],
+		["say_r", "YOU DARE DEFY ME?"],
+		["say_r", "TASTE MY WRATH!"],
+	])
+
+	m.enemyDeathScript([
+		["speaker_r", "Pancras angry"],
+		["speaker_l", "Camden"],
+		["say_r", "I DON'T UNDERSTAND... HOW ARE YOU STILL ALIVE?"],
+		["say_l", "My resolve is far stronger than you can imagine."],
+		["say_l", "Only Death can stop me, but not before he stops you too!"],
+		["say_r", "FOOLISH MACHINE... YOU THINK I CAN BE BEATEN? YOU ARE MORTAL!"],
+		["say_r", "YOU WILL SUCCUMB TO RUST AND CRUMBLE INTO THE EARTH BEFORE THE SLIGHTEST OF MY STRENGTH BEGINS TO WANE."],
+		["say_l", "(He's right, I've been fighting for so long, and he seems barely fatigued! There must be a way to finish this...)"],
+		["if_eq_plotstate", "sweetheart", "Angel", [
+			["speaker_r", "Angel"],
+			["say_r", "Camden. Listen to my voice."],
+			["say_l", "Angel? Angel!"],
+			["say_r", "Camden, I am not Angel. But I am everything you love in her."],
+			["say_l", "You're what?"],
+			["say_r", "Your love, Camden. Every ounce of it embodied."],
+			["say_r", "Now you must focus, there is so much at stake but everything to gain."],
+			["say_r", "Take your love for Angel and the world and all the robots within it."],
+			["say_l", "What is this power I can feel?"],
+			["say_r", "That is your gift, Camden. Now unleash it! Unleash your passion!"],
+			["say_l", "..."],
+			["say_l", "For this world, and everyone in it. For the skies and the seas, for every creature..."],
+			["say_l", "AND FOR ANGEL, I VANQUISH YOU!"],
+		]],
+		["if_eq_plotstate", "sweetheart", "Victoria", [
+			["speaker_r", "Victoria"],
+			["say_r", "Camden! I demand you hear me!"],
+			["say_l", "Victoria? But... how?"],
+			["say_r", "I am not Victoria, Camden. I merely manifest your love for her."],
+			["say_l", "You manifest my... hey, what is this?"],
+			["say_r", "Focus, child. Focus on your love."],
+			["say_l", "Focus?"],
+			["say_r", "Yes, and quickly! Focus on everything you love in this world. Focus on all the good things that are worth fighting for."],
+			["say_r", "Focus on Victoria. Gather your love of all things deep within you..."],
+			["say_l", "What is this power I can feel?"],
+			["say_r", "Your gift, child. Now unleash it! Unleash your love!"],
+			["say_l", "..."],
+			["say_l", "For this world, and everyone in it. For the skies and the seas, for every creature..."],
+			["say_l", "AND FOR VICTORIA, I VANQUISH YOU!"],
+		]],
+		["speaker_r", "Pancras angry"],
+		["say_r", "Aaaaaarrrrrggghhhh!"],
+		["die_no_drop"],
+		["clear_r"],
+		["blank"],
+		["say_l", "I've won..."],
+		["freeze", 40],
+		["change_scene", "finale"],
+	], "StPancras", [450, 450], 270)
+}
+
+setups["act5.ozmission"] = function (ps, m) {
+	m.map = makeDungeon1()
+	m.addProtagAnywhere()
+	m.placeEnemiesRandomlyAnywhere({
+		InjusticeDrone: 16,
+		GiantBladeDrone: 16,
+		FlameAvatar: 16,
+		TerrorTank: 16,
+		WarChopper: 16,
+		CombatDroidZero: 16,
+		VarietySpiderPack: 8,
+	})
+	m.canEject = true
+	m.isTimed = true
+	
+	m.setStartScript([["change_music", OZ_MUSIC]])
+	
+	m.setEjectScript([
+		["set_zoom", 0.1],
+		["freeze", 25],
+		["change_scene", "act5.town"],
+	])
+}
+	
+setups["act5.superdungeon"] = function (ps, m) {
+	m.map = loadFixedMap("clearing")
+	var camden = m.addProtag([900, 234])
+
+	var div = Math.floor(ps['act5.superdungeon.next'] / 10)
+	var rem = ps['act5.superdungeon.next'] % 10
+	if (rem == 0) {
+		m.canEject = true
+		var pimlico = makeEnemy("Pimlico", m, [1000, 234], 180)
+		pimlico.hostile = false
+		m.entities.add(pimlico)
+		pimlico.setTalkScript([
+			["speaker_l", "Camden"],
+			["speaker_r", "Pimlico"],
+			["say_r", "Well done!"],
+			["if_eq_plotstate", "act5.superdungeon.next", 100, [
+				["say_r", "No-one's ever made it this far with me before!"],
+				["change_music", HI_BOSS_MUSIC],
+				["say_r", "That will make your soul all the tastier!!"],
+				["set_hostile", true],
+				["canEject", false],
+			], [
+				["ask_r", "Ready to keep going?", [
+					["Of course!",
+						["increment_plotstate", 'act5.superdungeon.next'],
+						["say_r", "I'll see you further down..."],
+						["change_scene", "act5.superdungeon"],
+					],
+					["Inventory",
+						["inventory"],
+					],
+					["Not yet.",
+						["say_r", "Maybe later then..."],
+					],
+				]],
+			]],
+		])
+		pimlico.setDeathScript([
+			["die_no_drop"],
+			["drop_item", "SpiderThrower"],
+		])
+	} else {
+		var enemygroups = [
+			["Spider", "Scorpion", "MiniTank", "StagBeetle", "SpikeDrone"],
+			["BladeDrone", "SpiderQueen", "FireScorpion", "MachineGunTank"],
+			["DrillTank", "HeavyTank", "SentryDroid", "GreaterFireScorpion"],
+			["JadeBeetle", "NinjaSpider", "Bat", "Monument"],
+			["MechDroid", "SawDrone", "Copter", "Arsenal"],
+			["RailgunTank", "RocketTank", "JusticeDrone", "PincerTank", "MoonSpider"],
+			["InjusticeDrone", "TerrorTank", "FlameAvatar"],
+			["TerrorTank", "CombatDroidZero", "WarChopper"],
+			["InjusticeDrone", "TerrorTank", "FlameAvatar", "TerrorTank", "CombatDroidZero", "WarChopper"],
+			["SuperRocketTank", "Arachne", "AssassinDroid", "NinjaDrone"],
+		]
+	
+		for (var i = 0 ; i < rem ; ++i) {
+			var etype = UFX.random.choice(enemygroups[div])
+			m.entities.add(makeEnemy(etype, m, [750, 50 + (100 * i)], 0))
+		}
+		m.canEject = false
+	}
+   
+	m.setStartScript([
+		["change_music", OZ_MUSIC],
+		["say_l", "Level " + ps['act5.superdungeon.next']],
+	])
+	
+	m.setClearScript([
+		["increment_plotstate", 'act5.superdungeon.next'],
+		["wait", 45],
+		["if_plotstate_counter", 'act5.superdungeon.next', 101, [
+			["speaker_l", "Camden"],
+			["say_l", "Okay, seriously."],
+			["say_l", "Who on earth was she?"],
+			["canEject", true],
+		], [
+			["speaker_r", "Pimlico"],
+			["say_r", "Well done, keep coming..."],
+			["add_xp", 1 << (12+div)],
+			["wait", 25],
+			["change_scene", "act5.superdungeon"],
+		]],
+	])
+	
+	m.setEjectScript([
+		["set_zoom", 0.1],
+		["freeze", 25],
+		["change_scene", "act5.town"],
+	])
+}
+
+setups["finale"] = function (ps, m) {
+	m.map = new DungeonGrid(100)
+	m.addProtag([0, 0])
+	
+	m.setStartScript([
+		["change_music", MENU_MUSIC],
+		["blank"],
+		["freeze", 40],
+		["speaker_l", "Camden"],
+		["say_l", "Hi, there. My name's Camden."],
+		["say_l", "Of course, you know that already. I just wanted to say thanks for playing the game."],
+		["say_l", "I'm assured that it was a lot of fun creating. I'm even told that this game and its engine may see updates or improvements in the future."],
+		["say_l", "So stay tuned. Oh and pay attention after the credits to find out what we characters are up to."],
+		["clear_l", ],
+		["say_l", "Hi there, I did loads of hacking on the combat and scripting engines and wrote a bunch of content.", "Adam Biltcliffe"],
+		["say_r", "Hi, I did programming. Especially SVG code the scripting engine.", "Martin O'Leary"],
+		["say_l", "Hi, I drew everything! I hope you liked it!", "Carrie Oliver"],
+		["say_r", "Hey, I programmed all the interface components and scripted lots of content.", "Richard Thomas"],
+		["say_l", "I wrote item generation and did game balance.", "John-Joseph Wilks"],
+		["say_r", "I ported the game to JavaScript.", "Christopher Night"],
+		["say_l_unlabelled", "Also thanks to Kevin MacLeod (incompetech.com), for all the game music..."],
+		["say_l_unlabelled", "... Thanks to Tom Murphy for the in-game font which we liked."],
+		["say_l_unlabelled", "... And thanks to David Birch for some bug testing."],
+		["say_l_unlabelled", "Special thanks to Richard Jones for organising PyWeek."],
+
+		["speaker_l", "Cockfosters"],
+		["clear_r", ],
+		["say_r", "Cockfosters eventually moved to the city and got a job as a mining safety consultant."],
+
+		["speaker_r", "Marylebone"],
+		["clear_l", ],
+		["say_l", "Marylebone works in a seedy bar, but manages to pay the bills and is putting aside the money to send Baby Goodge to university."],
+		
+		["speaker_l", "Gospel"],
+		["clear_r", ],
+		["say_r", "Father Gospel became a missionary and now lives in the Caribbean."],
+
+		["speaker_r", "Harlesden"],
+		["clear_l", ],
+		["say_l", "Harlesden eventually got tenure and now carries on an illicit affair with his beautiful young lab assistant."],
+
+		["speaker_l", "Hammersmith"],
+		["clear_r", ],
+		["say_r", "Hammersmith decided he was becoming soft after years away from the front line, and so now works as a drugs education outreach worker in schools."],
+
+		["speaker_r", "Chalfont & Latimer"],
+		["clear_l", ],
+		["say_l", "Chalfont and Latimer survived the collapse of the Holy Robot Empire and took the semi-professional ten-pin bowling world by storm."],
+
+		["speaker_l", "Great Portland"],
+		["clear_r", ],
+		["say_r", "Great Portland eventually found a publisher for his crime novel and now writes regularly under the pseudonym of Temperance Brennan."],
+
+		["speaker_r", "Putney"],
+		["clear_l", ],
+		["say_l", "Putney finally found his place in life as an entertainer for children's parties."],
+
+		["speaker_l", "Regent"],
+		["clear_r", ],
+		["say_r", "Prince Regent went back to Philadephia to live with his mother."],
+
+		["if_plotstate_counter", 'act5.superdungeon.next', 101, [
+			["speaker_r", "Pimlico"],
+			["clear_l", ],
+			["say_l", "Pimlico fled to a secret base in the jungles of South America, where she plots to one day rule the world."],
+		], [
+			["speaker_r", "Pimlico"],
+			["clear_l", ],
+			["say_l", "Pimlico is now in secondary school. Her teachers report that she is doing very well, especially in drama and creative writing."],
+		]],
+
+		["if_eq_plotstate", 'sweetheart', 'Angel', [
+			["speaker_l", "Victoria"],
+			["clear_r", ],
+			["say_r", "Victoria is now Princess Regina, and her rule is perhaps a little less haphazard than her father's."],
+		], [
+			["if_plotstate", 'angel.rescued', [
+				["speaker_l", "Angel"],
+				["clear_r", ],
+				["say_r", "Angel went back to the dig site. The revelation of St. Pancras changed a lot, and there was much to learn."],
+			], [
+				["speaker_l", "Angel"],
+				["clear_r", ],
+				["say_r", "Angel was never heard from again..."],
+			]],
+		]],
+
+		["speaker_r", ps['sweetheart']],
+		["speaker_l", "Camden"],
+		["say_l", "And as for us... that's another story."],
+		["freeze", 20],
+		["clear_r", ],
+		["freeze", 30],
+		["clear_l", ],
+		["say_l", "Fin."],
+		["clear_l", ],
+		["freeze", 20],
+		"endGame",
+	])
+}
+
+
+
 
 

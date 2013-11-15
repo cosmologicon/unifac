@@ -172,13 +172,38 @@ var enemyinfo = {
 		["Shotgun", [], ["BOSS", 2]],
 		["RocketLauncher", [], ["BOSS", 2, "SuperCooled", 20]],
 	], [9, 40, 500, 3], 8, 15, 1048576*4, 20, 3, DroneAI, [80, 30, true], [0, 0, 0, 0, 0]],
-	// TODO: hornchurch robocherub roboseraph stpancras pimlico
+	Hornchurch: [[
+		["LightLaser"],
+		["Summon", ["Copter", null, 100]],
+		["Summon", ["RailgunTank", null, 150]],
+		["Summon", ["MoonSpider", null, 200]],
+		["Summon", ["CombatDroidZero", null, 300]],
+	], [1, 30, 200, 6], 12, 15, 2049152*4, 20, 3, SneakyAI, [1, 100, 20], [-50, 0, 50, 0, 0]],
+	RoboCherub: [["Taser"], [5, 10, 100, 7], 8, 10, 32768, 0, 2, DroneAI, [80, 30], [0, 0, 0, 0, 0]],
+	RoboSeraph: [["Taser"], [5, 10, 100, 7], 8, 10, 32768, 0, 2, DroneAI, [80, 30], [0, 0, 0, 0, 0]],
+	StPancras: [[
+		["UberLaser", [], ["BOSS", 1]],
+		["Summon", ["RoboCherub", 1.5, 1, 4]],
+		["Summon", ["RoboSeraph", 1.5, 1, 4]],
+	], [10, 40, 1000, 4], 8, 50, 1, 24, 3, RangedAI, [], [0, 0, 0, 0, 0]],
+	Pimlico: [[
+		["UberLaser", [], ["BOSS", 3]],
+		["GatlingGun", [], ["BOSS", 3]],
+		["PlasmaGun", [], ["BOSS", 3]],
+		["NapalmThrower", [], ["BOSS", 3]],
+		["Railgun", [], ["BOSS", 3]],
+		["RocketLauncher", [], ["BOSS", 3]],
+	], [30, 100, 2500, 1000], 6, 15, 4294967296, 50, 3, DroneAI, [200, 60], [0, 0, 0, 0, 0]],
 }
 var enemynameinfo = {
 	SmallScorpion: "Scorpion",
 	TinyScorpion: "Scorpion",
 	ChalfontAndLatimer: "Chalfont/Latimer Fusion",
 	GoldhawkReloaded: "Goldhawk",
+	Hornchurch: "Robo-Pope Hornchurch 0x0D",
+	RoboCherub: "Robo-Cherub",
+	RoboSeraph: "Robo-Seraph",
+	StPancras: "St. Pancras",
 }
 var packinfo = {
 	ScorpionPack: ["Scorpion", 2, "SmallScorpion", 3, "TinyScorpion", 6],
