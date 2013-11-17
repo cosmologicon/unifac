@@ -1,6 +1,7 @@
 
 UFX.scenes.missionmode = {
 	start: function () {
+		//This would be a great place to call text.cleanup() if it turns out to be necessary.
 
 		this.setsizes()
 		this.inventory_mode = false
@@ -436,7 +437,6 @@ UFX.scenes.missionmode = {
 	// ported from MissionMode.ondraw
 	draw: function () {
 		graphics.clear()
-		//if (this.frameno % 1000 == 0) text.cleanup()
 		var w = settings.scr_w, h = settings.scr_h, m = this.mission
 		if (!m.currentScript || !m.currentScript.blankScreen) {
 			graphics.cx = m.protag.pos[0]
@@ -446,19 +446,18 @@ UFX.scenes.missionmode = {
 			var maxp = this.mouse_to_world(w, h), maxx = maxp[0], maxy = maxp[1]
 			this.draw_world(minx, miny, maxx, maxy)
 			this.draw_entities(minx, miny, maxx, maxy)
-			// TODO
 			this.draw_weapon_fx()
 			this.draw_floaties()
 			this.draw_cursor_shadows()
-
 		}
-		graphics.hz = this.current_hud_zoom
 		if (this.inventory_mode) {
 			this.draw_inventory()
 		} else if (this.mission.currentScript && this.mission.currentScript.state != "terminated") {
 			this.draw_script()
 		} else {
+			graphics.hz = this.current_hud_zoom
 			this.draw_hud()
+			graphics.hz = 1
 		}
 		var y = 8
 		if (DEBUG.showscene) {
@@ -472,9 +471,6 @@ UFX.scenes.missionmode = {
 			y += 22
 		}
 		this.cursor.draw()  // I'm guessing this is called automatically in pyglet
-		
-		// Eh, this doesn't seem as helpful as I hoped.
-		//graphics.onealpha()
 	},
 
 	can_click: function () {
@@ -482,8 +478,6 @@ UFX.scenes.missionmode = {
 		return !(this.mouse_protected > 0 || m.isCutscene || m.currentScript && m.currentScript.state === "frozen")
 	},
 	
-	
-	// TODO: still need to finish mouse and key handling functions
 	// Replaces on_mouse_motion, on_mouse_release, on_mouse_press, on_mouse_drag, on_mouse_scroll, and on_key_press
 	handle_input: function (mstate, kstate) {
 		if (mstate.pos) this.set_mouse(mstate.pos[0], settings.scr_h - mstate.pos[1])
@@ -499,19 +493,19 @@ UFX.scenes.missionmode = {
 		if (mleft.dx || mleft.dy) this.on_mouse_drag(mstate.pos, [mleft.dx, mleft.dy], kstate.pressed.ctrl)
 		if (mright.dx || mright.dy) this.on_mouse_drag(mstate.pos, [mright.dx, mright.dy], true)
 		
-		var s = this.mission.currentScript
-		if (s && s.menu) {
-			s.menu.handlemouse(this.mouse_x, this.mouse_y, mstate.left.down)
-			// TODO handle keys as well
+		var s = this.mission.currentScript, smenu = s ? s.menu : null
+		if (smenu) {
+			smenu.handlemouse(this.mouse_x, this.mouse_y, mstate.left.down)
+			smenu.handlekeys(kstate.down)
 		}
-		if (kstate.down.esc) UFX.scene.push("pause")
+		for (var key in kstate.down) {
+			this.on_key_press(key, kstate.pressed)
+		}
 	},
 	on_mouse_press: function (pos, targetonly) {
 		// Note that pos here is in screen coordinates - Y-coordinate is flipped from HUD coordinates
 		this.drag_to_move = false
 		if (this.mouse_protected > 0) return
-		// TODO: choice mode and dialogue menu
-		// TODO: inventory mode
 		var m = this.mission, s = m.currentScript
 		if (s && s.state == "waitKey") {
 			s.state = "running"
@@ -545,6 +539,20 @@ UFX.scenes.missionmode = {
 		if (this.drag_to_move && !targetonly) {
 			m.protag.set_dest(this.get_mouse_world_coordinates())
 		}
+	},
+	on_key_press: function (key, modifiers) {
+		if (key == "esc") {
+			UFX.scene.push("pause")
+		} else if (key == "tab") {
+			this.desired_hud_zoom = 2.5 - this.desired_hud_zoom  // 1.0 <-> 1.5
+		} else if (this.mission.isCutscene) {
+			return
+		}
+		var nindex = "123456789".indexOf(key)
+		if (nindex > -1) {
+			this.weapon_clicked(nindex)
+		}
+		// DEBUG stuff left out here
 	},
 	
 	on_weapon_fire: function (weapon, shooter, target) {

@@ -38,7 +38,7 @@ UFX.scenes.load = {
 		UFX.mouse.capture.right = true
 		UFX.mouse.capture.wheel = true
 		UFX.mouse.init(canvas)
-		UFX.key.watchlist = "up down left right enter space tab esc ctrl".split(" ")
+		UFX.key.watchlist = "up down left right enter space tab esc ctrl alt 1 2 3 4 5 6 7 8 9".split(" ")
 		UFX.key.init()
 
 		if (DEBUG.expose) {

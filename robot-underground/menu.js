@@ -135,7 +135,6 @@ Menu.prototype = {
 	activate: function () {
 		this.fns[this.current]()
 	},
-
 }
 
 

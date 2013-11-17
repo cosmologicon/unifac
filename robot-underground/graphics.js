@@ -154,7 +154,7 @@ var graphics = {
 		gl.uniformMatrix3fv(this.svars.xform, false, new Float32Array([
 			this.hz*this.W*C*s, this.hz*this.H*S*s, 0,
 			-this.hz*this.W*S*s, this.hz*this.H*C*s, 0,
-			x*this.hz*this.W-1, y*this.hz*this.H-1, 1
+			(x*this.W-1)*this.hz, (y*this.H-1)*this.hz, 1
 		]))
 	},
 	// HUD coordinates that allows no rotation but different x and y stretch factors
@@ -167,7 +167,7 @@ var graphics = {
 		gl.uniformMatrix3fv(this.svars.xform, false, new Float32Array([
 			z*this.W*sx, 0, 0,
 			0, z*this.H*sy, 0,
-			x*z*this.W-1, y*z*this.H-1, 1
+			(x*this.W-1)*z, (y*this.H-1)*z, 1
 		]))
 	},
 	trace: function (sprite, x, y, h, A, hud) {
