@@ -1,3 +1,8 @@
+// The original python version made heavy use of yields to achieve script advancement.
+// That's not an option here, so the script engine is pretty much completely rewritten.
+// A script spec is an Array of steps, each one is a line of dialogue, etc.
+// If a step can either be a string (in which case script.state will be set to it)
+//   or an Array consisting of a command name (string) and the corresponding arguments.
 
 function Script(spec, mission, actor) {
 	this.spec0 = spec
@@ -15,7 +20,6 @@ Script.prototype = {
 		this.blankScreen = blank === undefined ? true : blank
 	},
 
-	// TODO: support multiple save slots	
 	save: function () {
 		savegame()
 	},
@@ -271,7 +275,7 @@ Script.prototype = {
 		who.setScriptPath(nodes, bearing)
 	},
 
-	// Catch-all for any silly one-off functions they put in the script
+	// Catch-all for any one-off functions they put in the script
 	do: function (fn) {
 		fn()
 	},
