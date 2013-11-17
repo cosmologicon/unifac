@@ -65,7 +65,7 @@ function makeItem(type, spec, isIdentified) {
 	if (type == "weapon") {
 		var item = makeWeapon(spec)
 	} else if (type == "armour") {
-		var item = makeArmour(spec)
+		var item = makeArmour.apply(null, spec)
 	} else {
 		throw "Unknown item type: " + type
 	}

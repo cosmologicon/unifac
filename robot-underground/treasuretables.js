@@ -5,8 +5,12 @@ var treasuretables = {
 		if (UFX.random() < this.getMetalChance(dropLevel)) {
 			this.dropMetal(mission, pos, dropLevel)
 		} else {
-			var itemspec = UFX.random() < 0.75 ? this.getRandomWeaponSpec(dropLevel) : this.getRandomArmourSpec(dropLevel)
-//TODO			makeTreasure(mission, item, pos)
+			if (UFX.random() < 0.75) {
+				var item = makeWeapon(this.getRandomWeaponSpec(dropLevel))
+			} else {
+				var item = makeArmour.apply(null, this.getRandomArmourSpec(dropLevel))
+			}
+			new DroppedEquippable(mission, item, pos)
 		}
 	},
 
@@ -51,11 +55,10 @@ var treasuretables = {
 	// Returns an armour spec rather than an actual instantiated piece of armour : replaces getRandomArmour
 	getRandomArmourSpec: function (dropLevel) {
 		if (dropLevel == 0) return null
-		var seed = UFX.random.rand()
 		var modLevel = UFX.random.rand(Math.floor(dropLevel / 2), dropLevel + 2)
 		var mods = this.randomMods(modLevel, armourModTypes)
 		var itemLevel = modLevel
-		return [seed, mods, itemLevel]
+		return [mods, itemLevel]
 	},
 
 	// Replaces addRandomMods

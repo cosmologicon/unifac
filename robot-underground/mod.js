@@ -23,7 +23,7 @@ var mod = {
 	rskeys: "physical laser fire electric explosion".split(" "),
 }
 
-
+// Make sure you set the UFX.random seed appropriately before calling this
 function applyWeaponMod(weapon, type, a) {  // a = awesomeness
 	var pcs = { damage: 0, range: 0, energy: 0, rate: 0 }, afire = false, name = type
 	switch (type) {
@@ -41,7 +41,9 @@ function applyWeaponMod(weapon, type, a) {  // a = awesomeness
 		case "Holy": pcs.damage = a*2 ; pcs.range = a ; break
 		case "BOSS": pcs.damage = (a+1)*(a+1) ; pcs.range = a*2 ; pcs.rate = a*2 ; pcs.energy = -3*a ; afire = true ; break
 	}
-	for (var t in pcs) weapon.percentages[t] += pcs[t]
+	for (var t in pcs) {
+		if (pcs[t]) weapon.percentages[t] += (pcs[t] + UFX.random(-0.5, 0.5)) * 10
+	}
 	if (afire) {
 		weapon.canAutofire = true
 		weapon.mode = "Autofire"
