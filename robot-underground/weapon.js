@@ -75,7 +75,7 @@ Weapon.prototype = extend(Equippable.prototype, {
 		var efx = []
 		if (this.isIdentified) {
 			for (var type in this.percentages) {
-				var value = this.getPercentage(type)
+				var value = Math.round(this.getPercentage(type))
 				if (value > 0) efx.push(value + "% increased " + type + ".")
 				if (value < 0) efx.push(-value + "% decreased " + type + ".")
 			}
@@ -320,8 +320,10 @@ var minelayerdata = {
 	ProximityMineLayer: ["ProximityMine", 250, 250, 500, 60, "Proximity Mine Layer"],
 }
 
-function makeWeapon(type, args, mods, itemLevel) {
+function makeWeapon(type, args, mods, itemLevel, seed) {
 	if (type.pop) return makeWeapon.apply(this, type)  // Also accepts 4-arrays as args
+	seed = seed || UFX.random.rand()
+	UFX.random.pushseed(seed)
 	var w
 	if (type == "ChainLightningGun") {
 		w = new ChainLightningGun()
@@ -354,6 +356,7 @@ function makeWeapon(type, args, mods, itemLevel) {
 	}
 	if (itemLevel) w.itemLevel = itemLevel
 	w.spec = [].slice.call(arguments)
+	UFX.random.popseed()
 	return w
 }
 

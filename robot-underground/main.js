@@ -31,6 +31,9 @@ UFX.scenes.load = {
 			UFX.resource.sounds[s] = UFX.resource.Multisound(UFX.resource.sounds[s], 6)
 		})
 		UFX.resource.mergesounds("shot", "destroy", "pickup", "bullet", "lightning", "railgun")
+		UFX.resource.sounds.level_up = UFX.resource.sounds.fanfare
+		UFX.resource.sounds.shotgun = UFX.resource.sounds["44magnum"]
+		UFX.resource.sounds.rifle = UFX.resource.sounds.gunshot1
 		graphics.clear()
 		UFX.mouse.capture.right = true
 		UFX.mouse.capture.wheel = true
@@ -51,6 +54,9 @@ UFX.scenes.load = {
 				initPlotState(plotstate)
 				robotstate.init(null)
 				plotstate.nextScene = DEBUG.levelskip
+				if (DEBUG.levelskip.indexOf("act") == 0) {
+					plotstate.act = +DEBUG.levelskip[3]
+				}
 				UFX.scene.swap("missionmode")
 			} else {
 				UFX.scene.swap("mainmenu");
@@ -86,7 +92,8 @@ UFX.maximize.fillcolor = "#222"
 // radio.wav is weird - had to convert it with audacity
 var soundnames = (
 	"shot1 shot2 shot3 destroy1 destroy2 destroy3 destroy4 pickup1 fanfare bullet4 radio click roar " +
-	"lightning1 lightning2 lightning3 explosion eject railgun1 44magnum click plasma fireball gunshot1"
+	"lightning1 lightning2 lightning3 explosion eject railgun1 44magnum click plasma fireball " +
+	"gunshot1"
 ).split(" ")
 var songnames = "Chase ElectroSketch HowItBegins Klockworx LongTimeComing RadioMartini".split(" ")
 //var songnames = "ElectroSketch HowItBegins RadioMartini".split(" ")

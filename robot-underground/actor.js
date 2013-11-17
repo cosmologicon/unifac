@@ -48,7 +48,8 @@ Actor.prototype = extend(Entity.prototype, {
 	},
 
 	takeDamage: function (amount, type) {
-		if (DEBUG.onehit && this.mission.protag !== this) amount *= 1000000
+		if (DEBUG.onehit && this.mission.protag !== this) amount *= 1000
+		if (DEBUG.onehit && this.mission.protag === this) amount /= 1000
 		if (this.currenthp <= 0) return
 		if (!this.hostile && this.mission.protag !== this) return
 		amount /= this.getDefence() * (1 + this.getResistance(type)/100)

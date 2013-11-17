@@ -136,7 +136,7 @@ UFX.scenes.missionmode = {
     	texts.reverse()
     	texts.forEach(function (t, j) {
     		text.drawhud(t, x, y, fontsize, "white", "left", "bottom")
-        	y -= dy
+        	y += dy
     	})
 	},
 	
@@ -261,7 +261,6 @@ UFX.scenes.missionmode = {
 	
 	draw_world: function (minx, miny, maxx, maxy) {
 		var cs = this.mission.map.csize
-		// TODO: they used int here, which rounds to 0. I think floor is better. verify.
 		var mincx = Math.floor(Math.floor(minx/cs - 1) / this.world_chunk_x)
 		var mincy = Math.floor(Math.floor(miny/cs - 1) / this.world_chunk_y)
 		var maxcx = Math.floor(Math.floor(maxx/cs) / this.world_chunk_x)
@@ -273,7 +272,6 @@ UFX.scenes.missionmode = {
 			}
 		}
 	},
-	// TODO: cache world chunks so we're not drawing the entire floor every frame
 	draw_world_chunk_slow: function (cx, cy) {
 		var cs = this.mission.map.csize
 		for (var dx = 0 ; dx < this.world_chunk_x ; ++dx) {
@@ -417,57 +415,6 @@ UFX.scenes.missionmode = {
 		var W = settings.scr_w, H = settings.scr_h
         var gutter = Math.round(BOX_GUTTER * H)
         var fontsize = Math.round(DIALOGUE_FONT_SIZE * H)
-/*
-        # Dialogue text left
-        self.dialogue_text_l = text.Label(
-            "",
-            font_name=DIALOGUE_FONT,
-            font_size=DIALOGUE_FONT_SIZE*scr_h,
-            x=DIALOGUE_BOX_PAD*scr_w,
-            y=DIALOGUE_BOX_TOP*scr_h,
-            halign="left", valign="top"
-        )
-        self.dialogue_text_l.width = DIALOGUE_BOX_WIDTH * scr_w
-        self.dialogue_text_l.multiline = True
-
-        # Dialogue text right
-        self.dialogue_text_r = text.Label(
-            "",
-            font_name=DIALOGUE_FONT,
-            font_size=DIALOGUE_FONT_SIZE*scr_h,
-            x=(1 - DIALOGUE_BOX_PAD - DIALOGUE_BOX_WIDTH)*scr_w,
-            y=DIALOGUE_BOX_TOP*scr_h,
-            halign="left", valign="top"
-        )
-        self.dialogue_text_r.width = DIALOGUE_BOX_WIDTH * scr_w
-        self.dialogue_text_r.multiline = True
-
-
-        # Dialogue menu left
-        self.dialogue_menu_l = menu.MenuObject(
-            font_name=DIALOGUE_FONT,
-            font_size=DIALOGUE_FONT_SIZE,
-            x=DIALOGUE_BOX_PAD*scr_w,
-            y=DIALOGUE_BOX_TOP*scr_h,
-            width=DIALOGUE_BOX_WIDTH*scr_w,
-            spacing=DIALOGUE_BOX_SPACING*scr_h,
-        )
-
-        # Dialogue menu right
-        self.dialogue_menu_r = menu.MenuObject(
-            font_name=DIALOGUE_FONT,
-            font_size=DIALOGUE_FONT_SIZE,
-            x=(1-DIALOGUE_BOX_PAD-DIALOGUE_BOX_WIDTH)*scr_w,
-            y=DIALOGUE_BOX_TOP*scr_h,
-            width=DIALOGUE_BOX_WIDTH*scr_w,
-            spacing=DIALOGUE_BOX_SPACING*scr_h,
-        )
-		if (s && s.state === "waitChoice") {
-			this.mouse_protected = DIALOGUE_CLICK_PROTECTION_FRAMES
-			this.choice_mode = true
-//			this.current_dialogue_menu = s.speakerIsLeft ? this.dialogue_menu_l : this.dialogue_menu_r
-*/
-
 		
 		if (s.menu) {
 			s.menu.draw()

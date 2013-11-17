@@ -49,38 +49,55 @@ Menu.prototype = {
 		this.spacing = Math.round("spacing" in this.opts ? this.opts.spacing : MENU_TEXT_SPACING * settings.scr_h)
 		// gutter of the menu itself
 		this.gutter = Math.round("gutter" in this.opts ? this.opts.gutter : this.ogutter * 3)
+		// text width, defaults to undefined
+		this.twidth = this.opts.width
 
 		this.x0s = [] ; this.x1s = [] ; this.y0s = [] ; this.y1s = []
 		this.w0s = [] ; this.w1s = [] ; this.h0s = [] ; this.h1s = []
+
+		// Determine the size of each text box
 		this.w0 = 0
-		this.htext = text.gettexture(this.gettext(0), this.fontsize, this.colour0).h0
-		this.h0 = this.n * this.htext + (this.n - 1) * this.spacing, dy = this.htext + this.spacing
-		if (this.header) this.h0 += dy
-		this.h1 = this.h0 + 2 * this.gutter
-		this.y0 = this.y - this.h0 * this.vanchor
-		this.y1 = this.y0 - this.gutter
-		var y = this.y0 + dy * (this.n - 1)
-		if (this.header) {
-			this.w0 = text.gettexture(this.header, this.fontsize, this.hcolour).w0
-			this.headx0 = this.x - this.w0 * this.hanchor
-			this.heady0 = y + dy
-		}
+		this.h0 = (this.n - 1) * this.spacing
 		for (var j = 0 ; j < this.n ; ++j) {
-			var tex = text.gettexture(this.gettext(j), this.fontsize, this.colour0)
-			this.w0 = Math.max(this.w0, tex.w0)
-			this.x0s.push(this.x - tex.w0 * this.hanchor)
-			this.x1s.push(this.x0s[j] - this.ogutter)
-			this.y0s.push(y)
-			y -= dy
-			this.y1s.push(this.y0s[j] - this.ogutter)
+			var tex = text.gettexture(this.gettext(j), this.fontsize, this.colour0, this.twidth)
 			this.w0s.push(tex.w0)
 			this.w1s.push(tex.w0 + 2 * this.ogutter)
+			this.w0 = Math.max(this.w0, tex.w0)
 			this.h0s.push(tex.h0)
 			this.h1s.push(tex.h0 + 2 * this.ogutter)
+			this.h0 += tex.h0
 		}
+		if (this.header) {
+			var tex = text.gettexture(this.header, this.fontsize, this.colour0, this.twidth)
+			this.headw0 = tex.w0
+			this.headw1 = tex.w0 + 2 * this.ogutter
+			this.w0 = Math.max(this.w0, tex.w0)
+			this.headh0 = tex.h0
+			this.headh1 = tex.h0 + 2 * this.ogutter
+			this.h0 += tex.h0 + this.spacing
+		}
+		this.h1 = this.h0 + 2 * this.gutter
 		this.w1 = this.w0 + 2 * this.gutter
+
+		// Determine the location of each text box
 		this.x0 = this.x - this.w0 * this.hanchor
 		this.x1 = this.x0 - this.gutter
+		this.y0 = this.y - this.h0 * this.vanchor
+		this.y1 = this.y0 - this.gutter
+		var y = this.y0 + this.h0
+		if (this.header) {
+			this.headx0 = this.x - this.w0 * this.hanchor
+			y -= this.headh0
+			this.heady0 = y
+			// Don't need headx1 and heady1 since header is never outlined
+		}
+		for (var j = 0 ; j < this.n ; ++j) {
+			this.x0s.push(this.x - this.w0s[j] * this.hanchor)
+			this.x1s.push(this.x0s[j] - this.ogutter)
+			y -= this.h0s[j] + this.spacing
+			this.y0s.push(y)
+			this.y1s.push(this.y0s[j] - this.ogutter)
+		}
 		this.sizekey = this.getkey()
 	},
 	draw: function (focused) {
@@ -90,14 +107,14 @@ Menu.prototype = {
 			graphics.drawhudrect([this.x1, this.y1], [this.w1, this.h1], this.ocolour, this.scolour)
 		}
 		if (this.header) {
-			text.drawhud(this.header, this.headx0, this.heady0, this.fontsize, this.hcolour, 0, 0)
+			text.drawhud(this.header, this.headx0, this.heady0, this.fontsize, this.hcolour, 0, 0, this.twidth)
 		}
 		for (var j = 0 ; j < this.n ; ++j) {
 			var t = this.gettext(j), x = this.x0s[j], y = this.y0s[j]
 			if (j == focused) {
-				text.drawhudborder(t, x, y, this.fontsize, this.colour1, this.ogutter, 0, 0)
+				text.drawhudborder(t, x, y, this.fontsize, this.colour1, this.ogutter, 0, 0, this.twidth)
 			} else {
-				text.drawhud(t, x, y, this.fontsize, this.colour0, 0, 0)
+				text.drawhud(t, x, y, this.fontsize, this.colour0, 0, 0, this.twidth)
 			}
 		}
 	},

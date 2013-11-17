@@ -40,8 +40,10 @@ Armour.prototype = extend(Equippable.prototype, {
 	},
 })
 
-function makeArmour(seed, mods, itemLevel) {
-	if (seed.pop) return makeArmour.apply(this, seed)  // Also accepts 3-arrays as args
+// If seed is not specified, it will be automatically generated.
+function makeArmour(mods, itemLevel, seed) {
+//	if (mods && mods.pop) return makeArmour.apply(this, mods)  // Also accepts 3-arrays as args
+	seed = seed || UFX.random.rand()
 	UFX.random.pushseed(seed)
 	var a = new Armour(UFX.random.choice(armournames))
 	if (mods) {
@@ -50,7 +52,7 @@ function makeArmour(seed, mods, itemLevel) {
 		}
 	}
 	if (itemLevel) a.itemLevel = itemLevel
-	a.spec = [].slice.call(arguments)
+	a.spec = [mods, itemLevel, seed]
 	UFX.random.popseed()
 	return a
 }

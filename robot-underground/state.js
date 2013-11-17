@@ -21,7 +21,7 @@ var robotstate = {
 		)
 		this.weaponslots = 2
 		this.weaponry = [makeWeapon("LightLaser"), makeWeapon("LightRepairKit")]
-		this.armoury = makeArmour(UFX.random.rand())
+		this.armoury = makeArmour()
 		this.maxenergy = ROBOT_INITIAL_MAX_ENERGY
 		if (protag_level && protag_level > 4) {
 			// TODO: cheat code
@@ -34,7 +34,7 @@ var robotstate = {
 		if (DEBUG.testinventory) {
 			for (var level = 1 ; level <= 22 ; ++level) {
 				this.addItem(makeWeapon(treasuretables.getRandomWeaponSpec(level)))
-				this.addItem(makeArmour(treasuretables.getRandomArmourSpec(level)))
+				this.addItem(makeArmour.apply(null, treasuretables.getRandomArmourSpec(level)))
 			}
 			//for (var j = 0 ; j < 50 ; ++j) this.addItem(makeWeapon("LightLaser"))
 			this.metal = [1000000, 1000000, 1000000, 1000000, 1000000]

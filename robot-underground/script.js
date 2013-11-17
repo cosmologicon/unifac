@@ -15,8 +15,6 @@ Script.prototype = {
 		this.blankScreen = blank === undefined ? true : blank
 	},
 
-	// TODO save_log save load
-
 	// TODO: support multiple save slots	
 	save: function () {
 		savegame()
@@ -24,7 +22,7 @@ Script.prototype = {
 
 	say_l: function (text, speaker) {
 		this.currentDialogue = text
-		if (speaker) this.leftSpeaker = speaker
+		if (speaker) this.leftSpeaker = gdata.portraits[speaker].name
 		this.currentSpeaker = this.leftSpeaker
 		this.speakerIsLeft = true
 		this.isQuestion = false
@@ -36,7 +34,7 @@ Script.prototype = {
 	},
 	say_r: function (text, speaker) {
 		this.currentDialogue = text
-		if (speaker) this.rightSpeaker = speaker
+		if (speaker) this.rightSpeaker = gdata.portraits[speaker].name
 		this.currentSpeaker = this.rightSpeaker
 		this.speakerIsLeft = false
 		this.isQuestion = false
@@ -49,12 +47,12 @@ Script.prototype = {
 
 	speaker_l: function (svg) {  // calls setLeftPortrait
 		this.currentLeftPortrait = gdata.portraits[svg]
-		this.leftSpeaker = svg
+		this.leftSpeaker = gdata.portraits[svg].name
 		this.mission.dispatch_event("on_portrait_change")
 	},
 	speaker_r: function (svg) {  // setRightPortrait
 		this.currentRightPortrait = gdata.portraits[svg]
-		this.rightSpeaker = svg
+		this.rightSpeaker = gdata.portraits[svg].name
 		this.mission.dispatch_event("on_portrait_change")
 	},
 	
@@ -79,7 +77,6 @@ Script.prototype = {
 		this.clear_r()
 	},
 
-	// options needs to be an array, not separate arguments
 	ask_l: function (text, choices, defaultOption) {
 		this.say_l(text)
 		// isQuestion seems pretty useless. Isn't it always the same as this.state == "waitChoice"?
@@ -96,6 +93,7 @@ Script.prototype = {
 		var y = DIALOGUE_BOX_TOP * settings.scr_h
 		this.menu = this.makemenu(text, choices, x, y, defaultOption || 0)
 	},
+	// TODO: handle window resize?
 	makemenu: function (header, choices, x, y, defaultOption) {
 		return new Menu(this.makechoices(choices), x, y, {
 			header: header,
@@ -104,6 +102,7 @@ Script.prototype = {
 			scolour: [0,0,0,0.8],
 			ocolour: [1,1,1,1],
 			defaultOption: defaultOption,
+			width: DIALOGUE_BOX_WIDTH * settings.scr_w,
 			spacing: DIALOGUE_BOX_SPACING * settings.scr_h,
 			vanchor: 1,
 		})
@@ -149,7 +148,7 @@ Script.prototype = {
 		// NB: this was originally assigned to last_choice, which seems pointless to me.
 		new Metal(this.mission, metal, amount, this.actor.pos)
 	},
-	// replaces drop_item. TODO: Is the item dropped always a weapon?
+	// replaces drop_item
 	drop_weapon: function (wspec, sspec) {
 		var t = new DroppedEquippable(this.mission, makeWeapon(wspec), this.actor.pos)
 		if (sspec) t.setPickUpScript(sspec)
