@@ -17,7 +17,8 @@ Equippable.prototype = {
 		return this.isIdentified ? this.appraisedname() : "Unappraised " + this.name
 	},
 	appraisedname: function () {
-		return this.modList.map(function (mod) { return getModName(mod[0]) + " " }).join("") + this.name
+		// It would take about a minute to move this into the subclasses, but I'm really lazy
+		return this.modList.map(this.isweapon ? getWeaponModName : getArmourModName).join("") + this.name
 	},
 	effects: function () {
 		return ""

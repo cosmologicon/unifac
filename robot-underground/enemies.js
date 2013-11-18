@@ -112,7 +112,7 @@ var enemyinfo = {
 	IntimidatingScorpion: [["PopGun"], [4, 4, 10, 2], 6, 40, 64, 2, 3, RangedAI, [], [20, 0, 0, 0, 0]],
 	SmallScorpion: [["WimpyClaw"], [2, 3, 3, 4], 4, 20, 4, 1, 1, StupidAI, [], [50, 0, -50, 0, 0]],
 	TinyScorpion: [["WimpyClaw"], [1, 1, 1, 5], 4, 15, 2, 1, 1, StupidAI, [], [50, 0, -50, 0, 0]],
-	// TODO: Should Variety Spiders really not show their HP for some reason?
+	// Note: in the original, Variety Spiders do not show HP when targeted. Seems like this is just a bug.
 	VarietySpiderR: [["NapalmThrower"], [7, 30, 44, 5], 5, 20, 65536, 18, 1, RangedAI, [], [0, 0, 300, 0, 0]],
 	VarietySpiderY: [["LightningGun"], [7, 30, 44, 5], 5, 20, 65536, 18, 1, RangedAI, [], [0, 0, 0, 300, 0]],
 	VarietySpiderG: [["PlasmaGun"], [7, 30, 44, 5], 5, 20, 65536, 18, 1, RangedAI, [], [0, 300, 0, 0, 300]],
