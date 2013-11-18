@@ -2,8 +2,18 @@ var settings = {
 	sx: null,
 	sy: null,
 	fonts: {},
-	easymode: window.location.href.indexOf("EASY") > -1,
 }
+
+var qopts = {}
+window.location.search.slice(1).split("&").forEach(function (qstr) {
+    var a = qstr.split("=")
+    if (a.length == 1) qopts[a[0]] = true
+    if (a.length == 2) qopts[a[0]] = JSON.parse(decodeURIComponent(a[1]))
+})
+
+settings.EASY = qopts.EASY === true ? 2.5 : qopts.EASY
+settings.RESET = qopts.RESET
+
 
 // Size of objects and text for any canvas size
 UFX.maximize.onadjust = function (canvas) {
@@ -18,12 +28,28 @@ UFX.maximize.onadjust = function (canvas) {
 			vanchor: 0.5,
 			color: "white",
 		},
+		subopen: {
+			size: 5*s0,
+			font: "Alfa Slab One",
+			hanchor: 0.5,
+			vanchor: 0.5,
+			color: "white",
+		},
 		title: {
 			size: 5*s0,
 			font: "Boogaloo",
 			hanchor: 0.5,
 			vanchor: 0.5,
-			color: "black",
+			color: "blue",
+			shadow: "black",
+		},
+		subtitle: {
+			size: 2*s0,
+			font: "Boogaloo",
+			hanchor: 0.5,
+			vanchor: 0.5,
+			color: "blue",
+			shadow: "black",
 		},
 		timer: {
 			size: 3*s0,
@@ -47,9 +73,9 @@ UFX.maximize.onadjust = function (canvas) {
 			hanchor: 0.5,
 			vanchor: 0,
 			color: "white",
-			bcolor: "black",
+			shadow: "black",
 			width: sx*0.5,
-			boxcolor: "#fca",
+			boxcolor: "#a84",
 			boxbcolor: "#f80",
 		},
 		chattip: {
@@ -57,8 +83,8 @@ UFX.maximize.onadjust = function (canvas) {
 			font: "Mouse Memoirs",
 			hanchor: 0.5,
 			vanchor: 0.5,
-			color: "white",
-			bcolor: "black",
+			color: "yellow",
+			shadow: "black",
 		},
 		iteminfo: {
 			size: s0*2,
@@ -66,10 +92,10 @@ UFX.maximize.onadjust = function (canvas) {
 			hanchor: 0.5,
 			vanchor: 0,
 			color: "white",
-			bcolor: "black",
-			width: sx*0.5,
-			boxcolor: "#fca",
-			boxbcolor: "#f80",
+			shadow: "black",
+			width: sx*0.65,
+			boxcolor: "#84a",
+			boxbcolor: "#80f",
 		},
 		itemname: {
 			size: s0*4,
@@ -77,7 +103,7 @@ UFX.maximize.onadjust = function (canvas) {
 			hanchor: 0,
 			vanchor: 0.5,
 			color: "white",
-			bcolor: "black",
+			shadow: "black",
 		},
 		gobacktip: {
 			size: s0*2,
@@ -93,23 +119,23 @@ UFX.maximize.onadjust = function (canvas) {
 			hanchor: 0.5,
 			vanchor: 0.5,
 			color: "orange",
-			bcolor: "black",
+			shadow: "black",
 		},
 		backintime: {
 			size: s0*3.3,
 			font: "Mouse Memoirs",
 			hanchor: 0.5,
 			vanchor: 0.5,
-			color: "#aac",
-			bcolor: "black",
+			color: "#77b",
+			shadow: "black",
 		},
 		saved: {
 			size: s0*2,
 			font: "Unkempt",
 			hanchor: 0.5,
 			vanchor: 0.5,
-			color: "#f9f",
-			bcolor: "black",
+			color: "black",
+			shadow: "#a8a",
 		},
 		fail: {
 			size: 3*s0,

@@ -235,10 +235,14 @@ Runner.prototype = UFX.Thing()
 			}
 		},
 		response: function () {
-			if (this.target) return "Get out of my way! I'm racing here!"
-			if (this.cheater && this.finished) {
-				if (this.winner) return "That's right, I won fair and square!"
-				return "I can't believe I lost! Why did you let me lose??"
+			if (this.target) return "Get out of the way! I'm racing here!"
+			if (this.finished) {
+				if (this.cheater) {
+					if (this.winner) return "That's right, I won fair and square!"
+					return "I can't believe I lost! Why did you let me lose??"
+				} else {
+					return "Nobody like a sore loser."
+				}
 			}
 		},
 		canchat: function () {
@@ -282,7 +286,7 @@ DogOwner.prototype = UFX.Thing()
 			return quests.lostdog.done && !items.airbag
 		},
 		chat: function () {
-			UFX.scenes.toget = "airbag"
+			UFX.scenes.game.toget = "airbag"
 			return "Wow you brought my dog to me! And no wonder, you smell terrible! I wish I could give you something valuable. Oh wait, no I don't. But you can have this bag."
 		},
 	})
@@ -342,14 +346,14 @@ Traveller.prototype = UFX.Thing()
 			if (this.target) {
 				return "Excuse me, I have to catch the last train out of town!"
 			}
-			return "Well I hope you're happy! I missed the train!"
+			return "I hope you're happy! I missed the train!"
 		},
 		canchat: function () {
 			return !items.ticket && !this.target
 		},
 		chat: function () {
-			items.ticket = true
-			return "I missed the train thanks to you! My ticket is worthless now! You take it, jerk!"
+			UFX.scenes.game.toget = "ticket"
+			return "I missed the train thanks to you, and now I'm stuck here for the end of the world. I paid good money for this ticket, and now it's worthless! Here, you take it, jerk!"
 		},
 	})
 
@@ -399,6 +403,7 @@ Squirrel.prototype = UFX.Thing()
 			return !this.trees.length && !this.target && !items.ladder
 		},
 		chat: function () {
+			UFX.scenes.game.toget = "ladder"
 			return "You scared me! Look, would you take this ladder for me? It's just slowing me down. You can use it to reach my treehouse... er... I forget which tree it's in."
 		},
 	})
@@ -422,11 +427,11 @@ Conversator.prototype = UFX.Thing()
 			this.t += dt
 			var j = clip(Math.floor(this.t / 2), 0, 4)
 			var conversation = [
-				"",
-				"testing 2",
-				"testing 3",
-				"testing 4",
-				"testing 5",
+				"What is up with all these alien invasion attempts lately?",
+				"Also it doesn't really make sense with the fantasy setting. It's too sci-fi.",
+				"Oh but there was an alien invasion minigame in Majora's Mask too. Remember, on Romani Ranch?",
+				"Is that the one where they're abducting cattle and you need to shoot them with your bow?",
+				"Yeah... the whole thing is pretty strange, when you think about it.",
 			]
 			if ((j % 2 == 0) == this.even) {
 				this.say(conversation[j])
