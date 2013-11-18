@@ -386,7 +386,6 @@ UFX.scenes.missionmode = {
 		if (p.targ) {
 			graphics.drawcursor("fire", p.targ.pos[0], p.targ.pos[1], { colour: [0.5, 0, 0] })
 		}
-		// TODO: edit_npc
 	},
 
 	draw_inventory: function () {
@@ -534,7 +533,6 @@ UFX.scenes.missionmode = {
 		}
 	},
 	on_mouse_drag: function (pos, drag, targetonly) {
-		// TODO: inventory mode etc
 		var m = this.mission
 		if (this.drag_to_move && !targetonly) {
 			m.protag.set_dest(this.get_mouse_world_coordinates())
@@ -603,7 +601,10 @@ UFX.scenes.missionmode = {
 		playsound("mine_lay")
 	},
 	on_projectile_fire: function (owner, projectile) {
-		// TODO: this horrible hack, probably should key off the projectile name
+		switch (projectile.name) {
+			case "Railgun Slug": playsound("railgun") ; break
+			default: console.log("Unknown projectile type: " + projectile.name)
+		}
 	},
 	on_projectile_move: function (pos, bearing, trailtype) {
 		this.trails.push([pos, bearing, trailtype, 10])

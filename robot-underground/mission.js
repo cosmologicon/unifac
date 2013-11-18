@@ -35,7 +35,6 @@ Mission.prototype = {
 		this.entities.add(s)
 		return s
 	},
-	// TODO: addEntity
 	// Partially replaces addEntity
 	addNPC: function (pos, bearing, name) {
 		var npc = new Actor(this, pos, undefined, undefined, bearing, false, name)

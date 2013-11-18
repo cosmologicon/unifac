@@ -240,8 +240,6 @@ MainMenuScene.prototype = extend(MenuScene.prototype, {
 })
 UFX.scenes.mainmenu = new MainMenuScene()
 
-// TODO menuingame menustart confirmsaveover menuload menuoptions
-
 UFX.scenes.options = new MenuScene([
 	[function () { return "Music: " + (settings.music ? "On" : "Off") }, function () { setmusic(!settings.music) }],
 	[function () { return "Sound effects: " + (settings.sfx ? "On" : "Off") }, function () { setsfx(!settings.sfx) }],

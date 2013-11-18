@@ -445,12 +445,12 @@ ScrollingInventoryMenu.prototype = {
 		if (this.left_popup) {
 			text.drawhudborder(this.left_popup, 0.25*settings.scr_w, 0.25*settings.scr_h,
 				INVMENU_TEXT_FONTSIZE*settings.scr_h, "white", INVMENU_PADDING * settings.scr_h, 0.5, 0.5,
-				null, "center", false, INVMENU_BORDER, INVMENU_BACKGROUND)
+				0.45 * settings.scr_w, "center", false, INVMENU_BORDER, INVMENU_BACKGROUND)
 		}
 		if (this.right_popup) {
 			text.drawhudborder(this.right_popup, 0.75*settings.scr_w, 0.25*settings.scr_h,
 				INVMENU_TEXT_FONTSIZE*settings.scr_h, "white", INVMENU_PADDING * settings.scr_h, 0.5, 0.5,
-				null, "center", false, INVMENU_BORDER, INVMENU_BACKGROUND)
+				0.45 * settings.scr_w, "center", false, INVMENU_BORDER, INVMENU_BACKGROUND)
 		}
 		if (this.menu_popup) this.menu_popup.draw()
 	},

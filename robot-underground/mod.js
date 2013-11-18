@@ -112,77 +112,38 @@ function applyArmourMod(armour, type, c) {  // c = cool
 var modtypeLevels = {'Mercury': 1, 'FlameRetardant': 1, 'Phoenix': 2, 'Chrome': 1, 'Warriors': 1, 'RapidFire': 1, 'Turtles': 2, 'Elemental': 2, 'Rubber': 1, 'WeaponMod': 1, 'SuperCooled': 1, 'Autofiring': 2, 'Conductive': 1, 'Overlords': 3, 'Overclocked': 1, 'Smart': 2, 'Berserkers': 2, 'Insulated': 1, 'BlastProof': 1, 'Holy': 2, 'Enchanted': 2, 'Asbestos': 1, 'Oiled': 1, 'Chromatic': 2, 'Glass': 1, 'Assault': 2, 'Scoped': 1, 'Inductive': 1, 'Giants': 2, 'Spiky': 1, 'Capacitative': 1, 'Sturdy': 1, 'Wooden': 1, 'Medical': 1, 'BOSS': 3, 'Crystal': 1, 'Iron': 1, 'Lightning': 2, 'Shiny': 1, 'MasterCrafted': 2, 'Energetic': 2, 'Tough': 1, 'Juggernaut': 2, 'Alcoholic': 1, 'Accurate': 1, 'ArmourMod': 1, 'Efficient': 1, 'Mighty': 2, 'HighPowered': 1}
 
 
-// Replaces mod.getName
-function getModName(modtype) {
-	// TODO: things like Giants -> Giant's and HighPowered -> High-Powered
-	return modtype
+function getWeaponModName(mod) {
+	var modtype = mod[0], a = mod[1]
+	var cname = ({
+		HighPowered: "High-Powered",
+		Overclocked: "Over-clocked",
+		RapidFire: "Rapid-fire",
+		Autofiring: "Auto-firing",
+	}[modtype] || modtype) + " "
+	var adjs = WEAPON_ADJECTIVES.length
+	if (a <= 1) return cname
+	if (a <= adjs + 1) return WEAPON_ADJECTIVES[a - 2] + cname
+	return WEAPON_ADJECTIVES[adjs-1] + cname + "+" + (a - adjs - 1)
 }
 
-
-/*
-GatlingGun
-Bazooka().applyMod(mod.Scoped(10))
-weapon.WimpyClaw(),
-weapon.LightLaser(),
-weapon.PopGun()
-weapon.Summon(Spider, 1.5, 40, 4)
-weapon.Flamethrower(),
-weapon.MachineGun(),
-weapon.Drill(),
-weapon.HeavyLaser(),
-weapon.NinjaStarLauncher(),
-weapon.NapalmThrower(),
-weapon.Railgun().applyMod(mod.HighPowered(10)),
-weapon.MachineGun().applyMod(mod.Accurate(5)),
-weapon.LightningGun(),
-weapon.RocketLauncher(),
-weapon.UberLaser(),
-weapon.PlasmaGun(),
-weapon.RocketLauncher(),
-weapon.Drill().applyMod(mod.BOSS(2)),
-weapon.UberLaser(),
-weapon.GatlingGun().applyMod(mod.BOSS(1)),
-weapon.NinjaStarLauncher().applyMod(mod.BOSS(2)),
-weapon.RocketLauncher().applyMod(mod.BOSS(2)),
-weapon.NinjaStarLauncher().applyMod(mod.BOSS(5)),
-weapon.GatlingGun().applyMod(mod.BOSS(2)),
-weapon.PlasmaGun().applyMod(mod.BOSS(2)),
-weapon.Taser(),
-weapon.Taser().applyMod(mod.Scoped(10)),
-weapon.Summon(Minument, range=5, cooldowntime=250, limit=3)
-weapon.MachineGun().applyMod(mod.Accurate(5)),
-weapon.HomingMissileLauncher(), 
-weapon.Flamethrower().applyMod(mod.Accurate(5))
-weapon.Taser().applyMod(mod.Accurate(5))
-weapon.Shotgun().applyMod(mod.BOSS(3))
-weapon.Drill().applyMod(mod.BOSS(3)).applyMod(mod.Accurate(1))
-weapon.Summon(Bat, cooldowntime=40, limit=10)
-weapon.HeavyLaser().applyMod(mod.BOSS(2))
-weapon.GatlingGun().applyMod(mod.HighPowered(-8))
-weapon.Shotgun().applyMod(mod.BOSS(2))
-weapon.RocketLauncher().applyMod(mod.BOSS(2)).applyMod(mod.SuperCooled(20))
-weapon.Summon(Copter, cooldowntime=100)
-weapon.Summon(RailgunTank, cooldowntime=150)
-weapon.Summon(MoonSpider, cooldowntime=200)
-weapon.Summon(CombatDroidZero, cooldowntime=300)
-weapon.UberLaser().applyMod(mod.BOSS(1))
-weapon.Summon(RoboCherub, range=1.5, cooldowntime=1, limit=4)
-weapon.Summon(RoboSeraph, range=1.5, cooldowntime=1, limit=4)
-weapon.UberLaser().applyMod(mod.BOSS(3))
-weapon.GatlingGun().applyMod(mod.BOSS(3))
-weapon.PlasmaGun().applyMod(mod.BOSS(3))
-weapon.NapalmThrower().applyMod(mod.BOSS(3))
-weapon.Railgun().applyMod(mod.BOSS(3))
-weapon.RocketLauncher().applyMod(mod.BOSS(3))
-weapon.Summon(MicroCopter, 1.5, 150, limit=3, supply=6)
-weapon.Summon(SentryDroid, 2.5, 25, limit=6, supply=12)
-
-*/
-
-
-
-
-
-
+function getArmourModName(mod) {
+	var modtype = mod[0], cool = mod[1]
+	if (modtype == "Giants") return "Giant's+" + cool  // Seems a little strange this one is different....
+	var cname = ({
+		Turtles: "Turtle's",
+		FlameRetardant: "Flame-Retardant",
+		Warriors: "Warrior's",
+		Berserkers: "Berserker's",
+		Overlords: "Overlord's",
+	}[modtype] || modtype) + " "
+	var adjs = ARMOUR_ADJECTIVES.length
+	if (cool > adjs + 1) {
+		cname = ARMOUR_ADJECTIVES[adjs-1] + cname
+		cool -= adjs + 1
+	}
+	if (cool <= 1) return cname
+	return ARMOUR_ADJECTIVES[cool-2] + cname
+}
+	
 
 

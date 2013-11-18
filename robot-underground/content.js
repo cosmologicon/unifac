@@ -463,7 +463,7 @@ setups["act1.firstmission"] = function (ps, m) {
 		["die_no_drop"],
 		["increment", "killedScorpions"],
 		["ifeq", "killedScorpions", 3, [
-			["drop_weapon", ["MachineGun", null, ["Autofiring", 1]], [  // TODO
+			["drop_weapon", ["MachineGun", null, ["Autofiring", 1]], [
 				["wait", 25],
 				["sound", "radio"],
 				["wait", 5],

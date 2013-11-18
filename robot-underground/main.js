@@ -27,7 +27,7 @@ UFX.scenes.load = {
 		gdata = UFX.resource.data.gdata
 		mapdata = UFX.resource.data.mapdata
 		graphics.init()
-		"shot1 shot2 shot3 bullet4 radio".split(" ").forEach(function (s) {
+		"shot1 shot2 shot3 bullet4 radio railgun1".split(" ").forEach(function (s) {
 			UFX.resource.sounds[s] = UFX.resource.Multisound(UFX.resource.sounds[s], 6)
 		})
 		UFX.resource.mergesounds("shot", "destroy", "pickup", "bullet", "lightning", "railgun")
