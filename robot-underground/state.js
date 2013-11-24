@@ -43,9 +43,13 @@ var robotstate = {
 	addXP: function (amt) {
 		this.xp += amt
 		var levelled_up = false
-		while (this.xp >= 1 << (this.level + LEVEL_0_EXPONENT)) {
+		// Can't use bit shift operators here - I found that out the hard way when I killed Pimlico.
+		var nextlevel = 1 << LEVEL_0_EXPONENT
+		for (var j = 0 ; j < this.level ; ++j) nextlevel *= 2
+		while (this.xp >= nextlevel) {
 			this.levelup()
 			levelled_up = true
+			nextlevel *= 2
 		}
 		return levelled_up
 	},

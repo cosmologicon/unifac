@@ -34,7 +34,8 @@ Issue with ctrl leaving focus - probably should be solved with UFX.key
 - missing sound: level up
 - Can't target in autofire mode - is that correct behavior?
 - Name appears as "Latimer &"
-Lightning doesn't seem to reach far enough and remains if target is dead
+- Lightning doesn't seem to reach far enough
+Lightning remains if target is dead
 - Draw bullets
 - Questions need to wrap when they're too long
 - Pancras angry/happy?
