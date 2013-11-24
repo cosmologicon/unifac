@@ -7,6 +7,7 @@ function Menu(choices, x, y, opts) {
 Menu.prototype = {
 	init: function (choices, x, y, opts) {
 		opts = opts || {}
+		choices = choices.filter(function (c) { return c[0].split || c[0]() })
 		this.texts = choices.map(function (c) { return c[0] })
 		this.fns = choices.map(function (c) { return c[1] })
 		this.n = choices.length
@@ -111,6 +112,7 @@ Menu.prototype = {
 		}
 		for (var j = 0 ; j < this.n ; ++j) {
 			var t = this.gettext(j), x = this.x0s[j], y = this.y0s[j]
+			if (!t) continue
 			if (j == focused) {
 				text.drawhudborder(t, x, y, this.fontsize, this.colour1, this.ogutter, 0, 0, this.twidth)
 			} else {
@@ -214,22 +216,22 @@ function MainMenuScene() {
 MainMenuScene.prototype = extend(MenuScene.prototype, {
 	setup: function () {
 		var choices = [
-			["New Game", function () {
-				initPlotState(plotstate)
-				robotstate.init(null)
-				UFX.scene.push("missionmode")
-			}],
+			[function () { return slotfilled() ? null : "New Game" },
+				function () {
+					initPlotState(plotstate)
+					robotstate.init(null)
+					UFX.scene.push("missionmode")
+				},
+			],
+			[function () { return slotfilled() ? "Continue Game" : null },
+				function () {
+					loadgame()
+					UFX.scene.push("missionmode")
+				}
+			],
 			["Options", pushscene("options")],
 			["Credits", pushscene("credits")],
 		]
-		if (slotfilled()) {
-			choices.splice(1, 0, 
-				["Continue Game", function () {
-					loadgame()
-					UFX.scene.push("missionmode")
-				}]
-			)
-		}
 		var opts = { music: MENU_MUSIC }
 		MenuScene.call(this, choices, opts)
 	},
@@ -242,12 +244,24 @@ MainMenuScene.prototype = extend(MenuScene.prototype, {
 UFX.scenes.mainmenu = new MainMenuScene()
 
 UFX.scenes.options = new MenuScene([
-	[function () { return "Music: " + (settings.music ? "On" : "Off") }, function () { setmusic(!settings.music) }],
-	[function () { return "Sound effects: " + (settings.sfx ? "On" : "Off") }, function () { setsfx(!settings.sfx) }],
-	[function () { return "Soft Cursor: " + (settings.cursor ? "On" : "Off") }, function () { settings.cursor = !settings.cursor }],
-	[function () { return "Line Width: " + settings.linewidth }, function () { graphics.setlinewidth(settings.linewidth % 3 + 1) }],
+	[function () { return "Music: " + (settings.music ? "On" : "Off") },
+		function () { setmusic(!settings.music) ; settings.save() }],
+	[function () { return "Sound effects: " + (settings.sfx ? "On" : "Off") },
+		function () { setsfx(!settings.sfx) ; settings.save() }],
+	[function () { return "Soft Cursor: " + (settings.cursor ? "On" : "Off") },
+		function () { settings.cursor = !settings.cursor ; settings.save() }],
+	[function () { return "Line Width: " + settings.linewidth },
+		function () { graphics.setlinewidth(settings.linewidth % 3 + 1) ; settings.save() }],
+	[function () { return slotfilled() ? "Reset Saved Game" : null },
+		pushscene("confirmreset")],
 	["Back", UFX.scene.pop.bind(UFX.scene)],
 ])
+
+UFX.scenes.confirmreset = new MenuScene([
+	["Reset saved game", function () { deletesavedgame() ; UFX.scene.pop() }],
+	["Nevermind", function () { UFX.scene.pop() }],
+])
+
 
 UFX.scenes.pause = new MenuScene([
 	["Resume Game", UFX.scene.pop.bind(UFX.scene)],
