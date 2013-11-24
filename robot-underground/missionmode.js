@@ -230,10 +230,10 @@ UFX.scenes.missionmode = {
 	
 	draw_lightning: function (srcpos, targetpos) {
 		var points = [], npoints = Math.floor(0.05 * distanceBetween(srcpos, targetpos)) + 1
-		while (points.length < 2 * npoints) {
-			var a = 0.5 * points.length / npoints
-			points.push(srcpos[0] * (1-a) + targetpos[0] * a + UFX.random.normal(5))
-			points.push(srcpos[1] * (1-a) + targetpos[1] * a + UFX.random.normal(5))
+		for (var n = 0 ; n < npoints + 1 ; ++n) {
+			var a = n / npoints
+			points.push(srcpos[0] * (1-a) + targetpos[0] * a + UFX.random.normal(0, 5))
+			points.push(srcpos[1] * (1-a) + targetpos[1] * a + UFX.random.normal(0, 5))
 		}
 		graphics.setcolour([0.8, 0.8, 1.0])
 		graphics.drawstrip(points)

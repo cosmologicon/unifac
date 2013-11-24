@@ -2942,7 +2942,7 @@ setups["act5.superdungeon"] = function (ps, m) {
 		])
 		pimlico.setDeathScript([
 			["die_no_drop"],
-			["drop_item", "SpiderThrower"],
+			["drop_weapon", "SpiderThrower"],
 		])
 	} else {
 		var enemygroups = [

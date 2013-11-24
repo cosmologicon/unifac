@@ -312,9 +312,9 @@ var projweapondata = {
 	"NapalmThrower": ["Napalm", 3, 4, 7, 10, "Napalm Thrower", 10, true],
 	"PlasmaGun": ["Plasma", 5, 3, 9, 10, "Plasma Gun", 3],
 	"RocketLauncher": ["Rocket", 8, 100, 200, 200, "Rocket Launcher"],
-	// Spider thrower?
 	"NinjaStarLauncher": ["NinjaStar", 8, 30, 10, 0, "NinjaStarLauncher"],
 	"HomingMissileLauncher": ["HomingMissile", 6, 60, 20, 0, "HomingMissileLauncher"],
+	"SpiderThrower": ["FireSpider", 6, 2, 20, 1, "Spider Thrower", 20],
 }
 // cons, damage, cooldowntime, energydrain, blast, name
 var minelayerdata = {
@@ -338,6 +338,10 @@ function makeWeapon(type, args, mods, itemLevel, seed) {
 	} else if (type in projweapondata) {
 		w = new ProjectileWeapon()
 		w.init.apply(w, projweapondata[type])
+		if (type == "SpiderThrower") {
+			w.mode = "Autofire"
+			w.canAutofire = true
+		}
 	} else if (type in minelayerdata) {
 		w = new MineLayer()
 		w.init.apply(w, minelayerdata[type])
@@ -436,7 +440,7 @@ var projdata = {
 	Shell: [15, Damage.explosion, 10, "Shell", true, 50, null, "smoke"],
 	Rocket: [10, Damage.explosion, 12, "Rocket", true, 150, null, "fire"],
 	NinjaStar: [6, Damage.physical, 8, "Ninja Star", true, null, null, null],
-	// Not implemented: FireSpider
+	FireSpider: [10, Damage.fire, 8, "Fire Spider 0", false, null, 80, null],
 	
 	// HomingMissile is a special case, since it's a subclass of Mine. Behaves differently.
 	HomingMissile: [10, null, 5, "Rocket", null, 20],
