@@ -67,9 +67,12 @@ UFX.scenes.load = {
 		var s = this.loaded ? "Click~to~begin" : "Loading~(" + (this.progress * 100).toFixed(0) + "%)..."
 		UFX.draw(this.context,
 			"fs black f0",
-			"font 48px~Hockey textalign center [ t", this.canvas.width/2, this.canvas.height/2 - 40,
+			"textalign center [ t", this.canvas.width/2, this.canvas.height/2,
+			"z", this.canvas.height/100, this.canvas.height/100,
+			"t 0 -12 font 10px~Hockey",
 			"fs yellow ft0 Robot~Underground",
-			"t 0 60 ft0", s,
+			"t 0 12 ft0", s,
+			"t 0 12 ft0 F11:~fullscreen",
 			"]"
 		)
 	},

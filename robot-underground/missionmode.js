@@ -603,6 +603,11 @@ UFX.scenes.missionmode = {
 	on_projectile_fire: function (owner, projectile) {
 		switch (projectile.name) {
 			case "Railgun Slug": playsound("railgun") ; break
+			case "Plasma": playsound("plasma") ; break
+			case "Cannonball": playsound("shotgun") ; break
+			case "Napalm": case "Fireball": playsound("fireball") ; break
+			case "FireSpider": playsound(UFX.random.choice(["plasma", "fireball"])) ; break
+			case "Ninja Star": case "Rocket": break
 			default: console.log("Unknown projectile type: " + projectile.name)
 		}
 	},

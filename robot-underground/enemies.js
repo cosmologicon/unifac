@@ -2,6 +2,7 @@
 function Enemy() {
 }
 Enemy.prototype = extend(Actor.prototype, {
+	isenemy: true,
 	init: function (mission, pos, weapons, stats, guardradius, size, xpvalue, name, bearing,
 			explosions, ai, aiargs, dropLevel) { 
 		Actor.prototype.init.call(this, mission, pos, stats, size, bearing, true, name)
@@ -126,6 +127,8 @@ var enemyinfo = {
 	InjusticeDrone: [["RocketLauncher"], [10, 30, 150, 4], 5, 40, 262144, 18, 1, RangedAI, [], [0, 0, 50, -50, 300]],
 	GiantBladeDrone: [[eweapspecs.bossdrill], [15, 30, 150, 4], 5, 40, 262144, 18, 1, StupidAI, [], [0, 300, 50, -50, 0]],
 	NinjaDrone: [[eweapspecs.bossggun2], [20, 50, 500, 5], 5, 30, 1<<22, 25, 1, RangedAI, [], [0, 300, 50, -50, 0]],
+	MiniSawDroneCW: [["HeavyLaser"], [3, 15, 10, 6], 7, 10, 256, 8, 1, DroneAI, [120, 50], [0, 0, 50, -50, 0]],
+	MiniSawDroneCCW: [["HeavyLaser"], [3, 15, 10, 6], 7, 10, 256, 8, 1, DroneAI, [60, 25], [0, 0, 50, -50, 0]],
 	
 	// Tank subclasses - base resistances: [0, 50, 0, 0, -50]
 	MiniTank: [[["LightLaser"], ["PopGun"]], [7, 5, 10, 3], 5, 12, 16, 3, 1, RangedAI, [], [0, 50, 0, 0, -50]],
@@ -203,6 +206,8 @@ var enemynameinfo = {
 	SmallScorpion: "Scorpion",
 	TinyScorpion: "Scorpion",
 	TownTank: "Railgun Tank",
+	MiniSawDroneCW: "Mini Saw Drone (Clockwise)",
+	MiniSawDroneCCW: "Mini Saw Drone (Counter-Clockwise)",
 	ChalfontAndLatimer: "Chalfont/Latimer Fusion",
 	GoldhawkReloaded: "Goldhawk",
 	Hornchurch: "Robo-Pope Hornchurch 0x0D",

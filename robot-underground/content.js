@@ -196,6 +196,20 @@ setups["act1.town"] = function (ps, m) {
 
 	m.actorTalkScript([
 		["speaker_l", "Camden"],
+		["speaker_r", "Great Portland"],
+		["if_first", 'act1.portland.intro', [
+			["say_l", "Hello!"],
+			["say_r", "Greetings, young one."],
+			["say_r", "I am Great Portland, elder of Dollis Hill."],
+			["say_r", "I sense that your arrival is a portentous one."],
+			["say_l", "Um, okay."],
+		], [
+			["say_l", "I'm not sure I want to talk to him again. He scares me."],
+		]],
+	], [1088, 280], "Great Portland", null, 90, 45)
+
+	m.actorTalkScript([
+		["speaker_l", "Camden"],
 		["speaker_r", "Hammersmith"],
 		["say_l", "Hello!"],
 		["say_r", "Hello there, son."],
@@ -1936,7 +1950,7 @@ setups["act3.assaultthebase"] = function (ps, m) {
 	
 	var droids = [], dxs = [150, 200, 300, 350], dys = [800, 750, 700, 650, 600]
 	dxs.forEach(function (dx) { dys.forEach(function (dy) {
-		var d = m.addEntity(makeEnemy("SentryDroid", m, m.map.topPos([dx, dy]), 90))
+		var d = m.addEnemy("SentryDroid", m.map.topPos([dx, dy]), 90)
 		d.hostile = false
 		d.setTalkScript([
 			["speaker_l", "Camden"],
@@ -2188,7 +2202,7 @@ setups["act4.camp"] = function (ps, m) {
 				], [
 					["say_r", "I'll need some bismuth if you want those supports."],
 				]],
-				["if_has_metals", "Bismuth", 64, [
+				["if_has_metal", "Bismuth", 64, [
 					["ask_l", "Shall I give Cockfosters 64 bismuth?", [
 						["Yes",
 							["set_plotstate", 'act4.cockfosters.questdone'],
@@ -2343,7 +2357,7 @@ setups["act4.savetheprince"] = function (ps, m) {
 	var door_in = m.entities.add(makeScenery("BlastDoor", m, m.map.rightPos([1050, 50]), 0, true))
 	var door_out = m.entities.add(makeScenery("BlastDoor", m, m.map.rightPos([1750, 750]), 90, false))
 	
-	var cnl = m.addEntity(makeEnemy("ChalfontAndLatimer", m, m.map.rightPos([1100, 700]), 270))
+	var cnl = m.addEnemy("ChalfontAndLatimer", m.map.rightPos([1100, 700]), 270)
 	cnl.hostile = false
 	cnl.setDeathScript([
 		["die"],
@@ -2592,10 +2606,10 @@ setups["act5.intro"] = function (ps, m) {
 			["I'm here to save you.",
 				["say_r", "Me? Why?"],
 				["ask_l", "", [
-					["I believe in second chances."
+					["I believe in second chances.",
 						["set_plotstate", "whyrescue", "secondchance"],
 					],
-					["Because I love you."
+					["Because I love you.",
 						["set_plotstate", "whyrescue", "love"],
 					],
 					["I lied. I'm actually here for Prince Regent.",
@@ -2608,7 +2622,7 @@ setups["act5.intro"] = function (ps, m) {
 			],
 		]],
 
-		["if_plotstate_eq", "whyrescue", "regent", [
+		["if_eq_plotstate", "whyrescue", "regent", [
 			["say_r", "What, this old lunatic?"],
 			["speaker_r", "Regent"],
 			["say_r", "Hello, moonbeams!"],
@@ -2662,7 +2676,7 @@ setups["act5.intro"] = function (ps, m) {
 				],
 			]],
 		]],
-		["if_plotstate", "whyrescue", "secondchance", [
+		["if_eq_plotstate", "whyrescue", "secondchance", [
 			["say_r", "So does that mean you're getting me out of here?"],
 			["say_l", "Yes, you and Prince Regent as well."],
 			["speaker_r", "Regent"],
@@ -2670,7 +2684,7 @@ setups["act5.intro"] = function (ps, m) {
 			["set_plotstate", "sweetheart", "Angel"],
 			["set_plotstate", "angel.rescued"],
 		]],
-		["if_plotstate", "whyrescue", "love", [
+		["if_eq_plotstate", "whyrescue", "love", [
 			["say_r", "..."],
 			["speaker_r", "Victoria"],
 			["say_r", "..."],
@@ -2683,11 +2697,13 @@ setups["act5.intro"] = function (ps, m) {
 			["say_r", "Now let us wend our wiggly way westwards."],
 			["ask_l", "Take Angel with you?", [
 				["Yes",
+					["speaker_r", "Angel"],
 					["say_r", "Camden..."],
 					["set_plotstate", "sweetheart", "Angel"],
 					["set_plotstate", "angel.rescued"],
 				],
 				["No",
+					["speaker_r", "Angel"],
 					["say_r", "Camden? I don't understand."],
 					["clear_l"],
 					["say_r", "Why are you leaving?"],
