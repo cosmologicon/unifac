@@ -106,7 +106,7 @@ DungeonGrid.prototype = {
 	},
 	hasWideLOS: function (pos1, pos2, radius) {
 		if (!radius) return this.hasLOS(pos1, pos2)
-		var dx = pos2[0] - pos1[0], dy = pos2[1] - pos1[2], d = Math.sqrt(dx * dx + dy * dy)
+		var dx = pos2[0] - pos1[0], dy = pos2[1] - pos1[1], d = Math.sqrt(dx * dx + dy * dy)
 		dx *= radius / d
 		dy *= radius / d
 		return this.hasLOS([pos1[0] + dy, pos1[1] - dx], [pos2[0] + dy, pos2[1] - dx]) &&

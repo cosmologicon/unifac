@@ -131,7 +131,7 @@ var robotstate = {
 }
 
 function getstate() {
-	var weaponspecs = robotstate.weaponry.map(function (w) { return w.getItemSpec() })
+	var weaponspecs = robotstate.weaponry.map(function (w) { return w && w.getItemSpec() })
 	var armourspec = robotstate.armoury.getItemSpec()
 	var inventoryspecs = robotstate.inventory.map(function (i) { return i.getItemSpec() })
 	return [plotstate, robotstate.xp, robotstate.level, robotstate.stats, robotstate.weaponslots,

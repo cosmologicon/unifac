@@ -26,7 +26,7 @@ Script.prototype = {
 
 	say_l: function (text, speaker) {
 		this.currentDialogue = text
-		if (speaker) this.leftSpeaker = gdata.portraits[speaker].name
+		if (speaker) this.leftSpeaker = speaker
 		this.currentSpeaker = this.leftSpeaker
 		this.speakerIsLeft = true
 		this.isQuestion = false
@@ -38,7 +38,7 @@ Script.prototype = {
 	},
 	say_r: function (text, speaker) {
 		this.currentDialogue = text
-		if (speaker) this.rightSpeaker = gdata.portraits[speaker].name
+		if (speaker) this.rightSpeaker = speaker
 		this.currentSpeaker = this.rightSpeaker
 		this.speakerIsLeft = false
 		this.isQuestion = false

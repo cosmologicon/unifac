@@ -144,7 +144,9 @@ function Summon() {
 }
 Summon.prototype = extend(Weapon.prototype, {
 	init: function (cons, range, cooldowntime, limit, supply) {
-		Weapon.prototype.init.call(this, null, range || 2, cooldowntime || 150, 0, 0, null)
+		range = range === undefined ? 2 : range
+		cooldowntime = cooldowntime === undefined ? 150 : cooldowntime
+		Weapon.prototype.init.call(this, null, range, cooldowntime, 0, 0, null)
 		this.cons = cons
 		this.limit = limit || 5
 		this.children = []
@@ -259,7 +261,7 @@ ChainLightningGun.prototype = extend(Weapon.prototype, {
 			hit[target.id] = true
 			var viabletargets = mission.entities.entitiesWithin(target.pos, 0.5*range)
 			target = null
-			var t2d = (range + 1) * (range + 1)
+			var td2 = (range + 1) * (range + 1)
 			var vtkeys = Object.keys(viabletargets)
 			vtkeys.sort()
 			vtkeys.forEach(function (vtkey) {

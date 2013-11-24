@@ -151,6 +151,7 @@ MenuScene.prototype = {
 		this.setpos()
 		this.menu = new Menu(this.choices, this.x, this.y, this.opts)
 		if (this.opts.music) playmusic(this.opts.music)
+		this.onadjust()
 	},
 	setpos: function () {
 		this.x = "x" in this.opts ? this.opts.x : Math.floor(settings.scr_w/2)

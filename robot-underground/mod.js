@@ -123,7 +123,7 @@ function getWeaponModName(mod) {
 	var adjs = WEAPON_ADJECTIVES.length
 	if (a <= 1) return cname
 	if (a <= adjs + 1) return WEAPON_ADJECTIVES[a - 2] + cname
-	return WEAPON_ADJECTIVES[adjs-1] + cname + "+" + (a - adjs - 1)
+	return WEAPON_ADJECTIVES[adjs-1] + cname + "+" + (a - adjs - 1) + " "
 }
 
 function getArmourModName(mod) {

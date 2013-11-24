@@ -62,6 +62,7 @@ Equippable.prototype = {
 }
 
 function makeItem(type, spec, isIdentified) {
+	if (type === null) return null
 	if (type.pop) return makeItem.apply(this, type)
 	if (type == "weapon") {
 		var item = makeWeapon(spec)
