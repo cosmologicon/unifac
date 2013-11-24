@@ -18,6 +18,27 @@ var settings = {
 	linewidth: 1,
 }
 settings.savename = settings.gamename + "|" + settings.version + "|save"
+settings.savesettingsname = settings.gamename + "|" + settings.version + "|settings"
+settings.save = function () {
+	localStorage[this.savesettingsname] = JSON.stringify([
+		this.music,
+		this.sfx,
+		this.cursor,
+		this.antialias,
+		this.linewidth,
+	])
+}
+settings.load = function () {
+	if (!localStorage[this.savesettingsname]) return
+	var obj = JSON.parse(localStorage[this.savesettingsname])
+	this.music = obj[0]
+	this.sfx = obj[1]
+	this.cursor = obj[2]
+	this.antialias = obj[3]
+	this.linewidth = obj[4]
+}
+settings.load()
+
 
 if (qopts.h) {
 	settings.scr_h = +qopts.h
