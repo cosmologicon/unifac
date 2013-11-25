@@ -11,6 +11,7 @@ var plotstate = {}
 
 var robotstate = {
 	init: function (protag_level) {
+		this.name = UFX.random.word()
 		this.xp = 0
 		this.level = 0
 		this.stats = CombatStats(
@@ -139,7 +140,8 @@ function getstate() {
 	var armourspec = robotstate.armoury.getItemSpec()
 	var inventoryspecs = robotstate.inventory.map(function (i) { return i.getItemSpec() })
 	return [plotstate, robotstate.xp, robotstate.level, robotstate.stats, robotstate.weaponslots,
-		weaponspecs, armourspec, robotstate.maxenergy, inventoryspecs, robotstate.metal]
+		weaponspecs, armourspec, robotstate.maxenergy, inventoryspecs, robotstate.metal,
+		robotstate.name]
 }
 
 function setstate(state) {
@@ -153,6 +155,7 @@ function setstate(state) {
 	robotstate.maxenergy = state[7]
 	robotstate.inventory = state[8].map(makeItem)
 	robotstate.metal = state[9]
+	robotstate.name = state[10]
 }
 
 function savegame(slot) {
