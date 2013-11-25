@@ -32,7 +32,6 @@ InventoryPixIcon.prototype = {
 	},
 }
 
-// TODO: Allow resizing of canvas while inventory menu is up
 function ScrollingInventoryMenu(callback) {
 	var scr_w = settings.scr_w, scr_h = settings.scr_h
 	this.callback = callback
@@ -217,7 +216,7 @@ ScrollingInventoryMenu.prototype = {
 		}
 
 		if (mstate.left.down) this.on_mouse_press()
-		if (mstate.right.down) this.on_mouse_press(true, kstate.pressed.alt, kstate.pressed.ctrl)
+		if (mstate.right.down) this.on_mouse_press(true, kstate.pressed.shift, kstate.pressed.ctrl)
 		if (mstate.left.isdown && mstate.dpos[1]) {  // drag to scroll
 			this.scroll(-mstate.dpos[1] / this.icon_height)
 		}
@@ -231,7 +230,7 @@ ScrollingInventoryMenu.prototype = {
 		if (kstate.down.enter && this.current_idx) this.icons[this.current_idx].activate()
 		if (kstate.down.esc) this.callback()
 	},
-	on_mouse_press: function (right, alt, ctrl) {
+	on_mouse_press: function (right, shift, ctrl) {
 		for (var j = 0 ; j < this.buttons.length ; ++j) {
 			if (this.buttons[j].on_mouse_press(this.mouse_x, this.mouse_y))
 				return true
@@ -240,7 +239,7 @@ ScrollingInventoryMenu.prototype = {
 		var icon = this.icons[this.current_idx]
 		if (!icon) return
 		if (!right) icon.activate()
-		else if (alt) this.do_appraise_item(icon.item)
+		else if (shift) this.do_appraise_item(icon.item)
 		else if (ctrl) this.do_sell_item(icon.item)
 		return true
 	},
@@ -452,7 +451,14 @@ ScrollingInventoryMenu.prototype = {
 				INVMENU_TEXT_FONTSIZE*settings.scr_h, "white", INVMENU_PADDING * settings.scr_h, 0.5, 0.5,
 				0.45 * settings.scr_w, "center", false, INVMENU_BORDER, INVMENU_BACKGROUND)
 		}
-		if (this.menu_popup) this.menu_popup.draw()
+		if (this.menu_popup) {
+			this.menu_popup.draw()
+		} else {
+			var fontsize = HUD_FONT_SMALL * 1.2 * settings.scr_h, dy = Math.round(fontsize * 1.3)
+		    var x = HUD_MARGIN * settings.scr_h, y = HUD_MARGIN * settings.scr_h
+    		text.drawhud("Shift + right click: quick appraise", x, y + dy, fontsize, "white", "left", "bottom")
+    		text.drawhud("Ctrl + right click: quick sell", x, y, fontsize, "white", "left", "bottom")
+		}
 	},
 }
 
