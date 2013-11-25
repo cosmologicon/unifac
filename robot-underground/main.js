@@ -112,6 +112,8 @@ UFX.resource.load(res)
 
 function clip(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
 
+function clone(obj) { return JSON.parse(JSON.stringify(obj)) }
+
 function splitcap(s) { return s.replace(/([A-Z])/g, ' $1').substr(1) }
 
 // From helpers.py

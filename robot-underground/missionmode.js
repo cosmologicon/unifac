@@ -5,7 +5,6 @@ UFX.scenes.missionmode = {
 
 		this.setsizes()
 		this.inventory_mode = false
-		this.inventory_menu = new ScrollingInventoryMenu(this.close_inventory.bind(this))
 		this.eject_mode = false
 		
 		this.choice_mode = false
@@ -84,6 +83,10 @@ UFX.scenes.missionmode = {
 		this.hud_portrait_width = this.hud_portrait_height * HUD_PORTRAIT_ASPECT
 		this.hud_portrait_xpos = scr_w - HUD_MARGIN * scr_h - this.hud_portrait_width
 		this.mouseover_pad = MOUSEOVER_PAD * scr_h
+
+		// This is a little bit of a hack - the inventory menu will reset its state when you
+		// resize the window. But it's much easier than resizing everything.
+		this.inventory_menu = new ScrollingInventoryMenu(this.close_inventory.bind(this))
 	},
 	
 	get_mouse_world_coordinates: function () {
