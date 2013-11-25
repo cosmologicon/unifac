@@ -22,7 +22,7 @@ Issue that might be my version of Chrome only?
 Sound effects when you shoot a lot
 Music loop ends eventually
 Music should restart from beginning
-Issue with ctrl leaving focus - probably should be solved with UFX.key
+- Issue with ctrl leaving focus - probably should be solved with UFX.key
 
 
 - Continue moving toward cursor until you let up
