@@ -8,6 +8,7 @@ if (DEBUG.failhard) {
 UFX.scenes.load = {
 	start: function () {
 		this.canvas = document.getElementById("loadcanvas")
+		this.canvas.style.display = "block"
 		this.canvas.width = settings.scr_w ; this.canvas.height = settings.scr_h
 		if (!DEBUG.fixcanvas) {
 			UFX.maximize.fill(this.canvas, "aspect")
@@ -77,6 +78,7 @@ UFX.scenes.load = {
 		)
 	},
 }
+document.title = settings.gamename
 UFX.scene.init({fps: 30})
 UFX.scene.push("load")
 UFX.resource.onloading = UFX.scenes.load.onloading.bind(UFX.scenes.load)
@@ -164,6 +166,7 @@ function playmusic(songname) {
 	m.play()
 	musicplaying = m
 }
+
 
 
 

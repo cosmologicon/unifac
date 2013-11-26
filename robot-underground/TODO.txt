@@ -19,9 +19,9 @@ Double GET! sometimes
 - Space in COBALT(4)
 
 Issue that might be my version of Chrome only?
-Sound effects when you shoot a lot
-Music loop ends eventually
-Music should restart from beginning
+- Sound effects when you shoot a lot
+- Music loop ends eventually
+- Music should restart from beginning
 - Issue with ctrl leaving focus - probably should be solved with UFX.key
 
 
@@ -51,6 +51,9 @@ Weapon description "energy" should be "energy usage"
 - front menu gets wonky if you fullscreen on loading
 - can eject during chalfont/latimer battle
 check all the branches on scene act5.intro
+
+- need about with license info
+- need helpful error message if javascript or webgl is disabled
 
 Story notes
 

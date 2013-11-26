@@ -252,7 +252,8 @@ UFX.scenes.options = new MenuScene([
 		function () { settings.cursor = !settings.cursor ; settings.save() }],
 	[function () { return "Line Width: " + settings.linewidth },
 		function () { graphics.setlinewidth(settings.linewidth % 3 + 1) ; settings.save() }],
-	[function () { return slotfilled() ? "Reset Saved Game" : null },
+	// TODO: hack so you don't get this option within the game
+	[function () { return slotfilled() && UFX.scene._stack.length <= 2 ? "Reset Saved Game" : null },
 		pushscene("confirmreset")],
 	["Back", UFX.scene.pop.bind(UFX.scene)],
 ])
@@ -273,6 +274,7 @@ UFX.scenes.pause = new MenuScene([
 
 UFX.scenes.credits = {
 	start: function () {
+		var licenseurl = window.location.origin + window.location.pathname + "about.html"
 		this.texts = [
 		[
 			"A Super Effective Production",
@@ -284,6 +286,10 @@ UFX.scenes.credits = {
 		].join("\n\n"), [
 			"Font 'Hockey is Lif' by Tom Murphy\nhttp://fonts.tom7.com/legal/",
 			"Music by Kevin MacLeod (incompetech.com)\n* Chase *\n* Electro Sketch *\n* How it Begins *\n* Klockworx *\n* Long Time Coming *\n* Radio Martini *",
+		].join("\n\n"), [
+			"Robot Underground is free software.",
+			"Game code, graphics, and sound effects\nare released under the BSD license.",
+			"Please see\n" + licenseurl + "\nfor license text.",
 		].join("\n\n")]
 		this.jscreen = 0
 	},

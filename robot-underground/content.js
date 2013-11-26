@@ -443,7 +443,6 @@ setups["act1.firstmission"] = function (ps, m) {
 		["say_r", "You can move around while attacking, as long as you keep the target in sight and within range of your weapons, and as long as you have at least one active weapon."],
 		["say_r", "You have a longer range than this enemy, so keep your distance and he can't hit you."],
 		["say_r", "You can activate and deactivate your weapons by clicking the weapon icons on the lower left, or pressing the number key corresponding to their position."],
-		["say_r", "You can activate and deactivate your weapons by clicking the weapon icons on the lower left."],
 		["say_r", "Right now you only have one weapon, though, so probably best to keep it on."],
 		["say_r", "Good luck, soldier."],
 	], [300 + m.map.bottom_offs[0], 0 + m.map.bottom_offs[1]], [300, 300])	
@@ -458,6 +457,7 @@ setups["act1.firstmission"] = function (ps, m) {
 		["say_r", "You'll notice that the enemy dropped some precious " + METALS[0].toLowerCase() + ", which you can pick up by moving over it."],
 		["say_r", "Now, I'm working on restoring the extraction mechanism so that you can get out of there, but you'll need to get a little closer."],
 		["say_r", "Move to the top of this area. There are more enemies on the way, but I'm sure you can handle them."],
+		["say_r", "One more thing: if you right-click or hold down Ctrl when you click, you'll target enemies but not move."],
 		["speaker_l", "Camden"],
 		["say_l", "Right, I'll do what I can."],
 		["say_r", "Just keep your distance, and remember: if you're getting hurt, switch on your repair kit. Just like a weapon, click the icon."],
