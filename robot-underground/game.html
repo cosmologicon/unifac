@@ -37,7 +37,11 @@ void main(void) {
     gl_FragColor = texture2D(sampler, vtcoord) * tfac + colour * (1.0 - tfac);
 }
 </script>
-<canvas id="loadcanvas" style="background:black"></canvas>
+<p>Robot Underground requires a modern browser with JavaScript and
+<a href="http://get.webgl.org/">webGL</a> enabled. If the game does not run properly for you,
+please try Chrome or Firefox.
+<p>
+<canvas id="loadcanvas" style="background:black;display:none"></canvas>
 <canvas id="canvas" style="background:black;display:none;cursor:none"></canvas>
 <form id="DEBUG" style="display:none">
 <label><input type="checkbox" onchange="DEBUG.skipcutscenes=this.checked"/>Skip cutscenes</label>
