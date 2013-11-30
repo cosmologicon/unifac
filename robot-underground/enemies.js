@@ -254,6 +254,7 @@ function makeEnemy(type, mission, pos, bearing) {
 function Mine() {
 }
 Mine.prototype = extend(Enemy.prototype, {
+	dontlogdamage: true,
 	init: function (owner, damageamt, blast, name, aiclass, aiargs) {
 		var weap = makeWeapon(["SuicideBomb", [damageamt, Damage.explosion, blast]])
 		var stats = CombatStats(1, 1, 1, 0)  // speed = 0 always
@@ -291,13 +292,15 @@ HomingMissile.prototype = extend(Mine.prototype, {
 	},
 })
 
-function makeMine(type, owner, damageamt, blast) {
+function makeMine(type, owner, damageamt, blast, weapid) {
 	var mine = new Mine()
 	if (type == "ProximityMine") {
 		mine.init(owner, damageamt, blast, "Proximity Mine", ProximityMineAI, [owner])
 	} else if (type == "TimedMine") {
 		mine.init(owner, damageamt, blast, "Timed Mine", TimedMineAI, [120])
 	}
+	// Mine's weapon's kills are actually credited to the mine layer
+	mine.weapon.id = weapid
 	return mine
 }
 

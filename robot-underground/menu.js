@@ -7,7 +7,7 @@ function Menu(choices, x, y, opts) {
 Menu.prototype = {
 	init: function (choices, x, y, opts) {
 		opts = opts || {}
-		choices = choices.filter(function (c) { return c[0].split || c[0]() })
+		//choices = choices.filter(function (c) { return c[0].split || c[0]() })
 		this.texts = choices.map(function (c) { return c[0] })
 		this.fns = choices.map(function (c) { return c[1] })
 		this.n = choices.length
@@ -60,7 +60,15 @@ Menu.prototype = {
 		this.w0 = 0
 		this.h0 = (this.n - 1) * this.spacing
 		for (var j = 0 ; j < this.n ; ++j) {
-			var tex = text.gettexture(this.gettext(j), this.fontsize, this.colour0, this.twidth)
+			var t = this.gettext(j)
+			if (!t) {
+				this.w0s.push(null)
+				this.w1s.push(null)
+				this.h0s.push(null)
+				this.h1s.push(null)
+				continue
+			}
+			var tex = text.gettexture(t, this.fontsize, this.colour0, this.twidth)
 			this.w0s.push(tex.w0)
 			this.w1s.push(tex.w0 + 2 * this.ogutter)
 			this.w0 = Math.max(this.w0, tex.w0)
@@ -93,6 +101,13 @@ Menu.prototype = {
 			// Don't need headx1 and heady1 since header is never outlined
 		}
 		for (var j = 0 ; j < this.n ; ++j) {
+			if (this.w0s[j] === null) {
+				this.x0s.push(null)
+				this.x1s.push(null)
+				this.y0s.push(null)
+				this.y1s.push(null)
+				continue
+			}
 			this.x0s.push(this.x - this.w0s[j] * this.hanchor)
 			this.x1s.push(this.x0s[j] - this.ogutter)
 			y -= this.h0s[j] + this.spacing
@@ -112,7 +127,7 @@ Menu.prototype = {
 		}
 		for (var j = 0 ; j < this.n ; ++j) {
 			var t = this.gettext(j), x = this.x0s[j], y = this.y0s[j]
-			if (!t) continue
+			if (!t || x === null) continue
 			if (j == focused) {
 				text.drawhudborder(t, x, y, this.fontsize, this.colour1, this.ogutter, 0, 0, this.twidth)
 			} else {
@@ -121,12 +136,18 @@ Menu.prototype = {
 		}
 	},
 	handlekeys: function (kdown) {
-		this.current += (kdown.up ? -1 : 0) + (kdown.down ? 1 : 0) + this.n
+		var dcurrent = (kdown.up ? -1 : 0) + (kdown.down ? 1 : 0)
+		this.current += dcurrent + this.n
 		this.current %= this.n
+		while (this.x0s[this.current] === null) {
+			this.current += (dcurrent || 1) + this.n
+			this.current %= this.n
+		}
 		if (kdown.enter) this.activate()
 	},
 	handlemouse: function (mx, my, clicked) {
 		for (var j = 0 ; j < this.n ; ++j) {
+			if (this.x0s[j] === null) continue
 			var dx = mx - this.x1s[j], dy = my - this.y1s[j]
 			if (0 <= dx && dx <= this.w1s[j] && 0 <= dy && dy <= this.h1s[j]) {
 				this.current = j

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<title>Robot Underground</title>
 <style type="text/css">
 @font-face {
     font-family: "Hockey";
@@ -37,7 +38,8 @@ void main(void) {
     gl_FragColor = texture2D(sampler, vtcoord) * tfac + colour * (1.0 - tfac);
 }
 </script>
-<p>Robot Underground requires a modern browser with JavaScript and
+<h1>Robot Underground</h1>
+<p>This game requires a modern browser with JavaScript and
 <a href="http://get.webgl.org/">webGL</a> enabled. If the game does not run properly for you,
 please try Chrome or Firefox.
 <p>
@@ -63,6 +65,7 @@ please try Chrome or Firefox.
 <script src="constants.js"></script>
 <script src="content.js"></script>
 <script src="state.js"></script>
+<script src="log.js"></script>
 <script src="entity.js"></script>
 <script src="actor.js"></script>
 <script src="treasure.js"></script>

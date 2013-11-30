@@ -16,6 +16,7 @@ var settings = {
 	cursor: true,
 	antialias: true,
 	linewidth: 1,
+	nolog: false,
 }
 settings.savename = settings.gamename + "|" + settings.version + "|save"
 settings.savesettingsname = settings.gamename + "|" + settings.version + "|settings"
@@ -58,6 +59,7 @@ if (qopts.DEBUG) {
 	DEBUG.fixcanvas = true
 	if (qopts.softcursoroff) settings.cursor = false
 	if (qopts.nomusic) settings.music = false
+	settings.nolog = true
 	var DEBUGform = document.getElementById("DEBUG")
 	DEBUGform.style.display = "block"
 }

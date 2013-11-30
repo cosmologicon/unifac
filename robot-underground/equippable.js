@@ -1,4 +1,9 @@
 
+
+// For logging purposes (to balance weapon strengths), every item is assigned a unique id
+// This id is *not* preserved between game sessions!
+var nitems = 0
+
 function Equippable (name) {
 	this.init(name)
 }
@@ -8,6 +13,7 @@ Equippable.prototype = {
 		this.basedescription = name
 		this.isIdentified = false
 		this.itemLevel = 1
+		this.id = nitems++
 	},
 	// These are properties/cached in the original, but there's not a lot I can do about that!
 	description: function () {
