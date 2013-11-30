@@ -13,7 +13,6 @@
 // weapon.Drill().applyMod(mod.BOSS(3)).applyMod(mod.Accurate(1))
 //   -> "Drill", null, ["BOSS", 3, "Accurate", 1]
 
-
 function Weapon() {
 }
 Weapon.prototype = extend(Equippable.prototype, {
@@ -56,7 +55,7 @@ Weapon.prototype = extend(Equippable.prototype, {
 		return owner.mission.map.hasLOS(owner.pos, target.pos)
 	},
 	fire: function (owner, target) {
-		target.takeDamage(this.getDamage() * owner.getAttack(), this.damagetype)
+		target.takeDamage(this.getDamage() * owner.getAttack(), this.damagetype, this.id)
 		this.cooldown = this.getCooldown()
 		owner.mission.dispatch_event("on_weapon_fire", this, owner, target)
 		return true
@@ -134,7 +133,7 @@ ProjectileWeapon.prototype = extend(Weapon.prototype, {
 		var bearing = truebearing + (this.cone ? UFX.random(-this.cone, this.cone) : 0)
 		// This was originally damagefunc but I don't see any reason for that.
 		var damageamt = this.getDamage() * owner.getAttack()
-		var projectile = makeProjectile(this.cons, owner, bearing, damageamt)
+		var projectile = makeProjectile(this.cons, owner, bearing, damageamt, this.id)
 		owner.mission.born[projectile.id] = projectile
 		owner.mission.dispatch_event("on_projectile_fire", owner, projectile)
 	},
@@ -200,7 +199,7 @@ MineLayer.prototype = extend(Weapon.prototype, {
 		this.cooldown = this.getCooldown()
 		// This was originally a callback damagefunc but that seems unnecessary
 		var damageamt = this.getDamage() * owner.getAttack()
-		var mine = makeMine(this.cons, owner, damageamt, this.blast)
+		var mine = makeMine(this.cons, owner, damageamt, this.blast, this.id)
 		owner.mission.born[mine.id] = mine
 		owner.mission.dispatch_event("on_mine_lay", owner, mine)
 		return true
@@ -230,7 +229,7 @@ SuicideBomb.prototype = extend(Weapon.prototype, {
 		for (var id in victims) {
 			var v = victims[id]
 			if (v === owner) continue
-			if (v.isactor) mkt.applyDamage(v, this.damageamt, this.damagetype)
+			if (v.isactor) mkt.applyDamage(v, this.damageamt, this.damagetype, this.id)
 		}
 		owner.mission.entities.add(new Explosion(owner.mission, owner.pos, this.blast, 2))
 		owner.mission.entities.add(new Explosion(owner.mission, owner.pos, 0.6 * this.blast, 0))
@@ -254,7 +253,7 @@ ChainLightningGun.prototype = extend(Weapon.prototype, {
 		var origin = owner, range = this.getRange(), hit = {}, mission = owner.mission
 		var damage = this.getDamage() * owner.getAttack()
 		while (damage > 0.5 && target) {
-			mkt.applyDamage(target, damage, this.damagetype)
+			mkt.applyDamage(target, damage, this.damagetype, this.weapid)
 			mission.dispatch_event("on_weapon_fire", this, origin, target)
 			damage *= 0.5
 			origin = target
@@ -396,7 +395,7 @@ Projectile.prototype = extend(Entity.prototype, {
 			var id = ids[j], v = victims[id]
 			if (!v.solid || v === this.owner || this.hitalready[id]) continue
 			if (v.isactor && !this.blast) {
-				this.mkt.applyDamage(v, this.damageamt, this.damagetype)
+				this.mkt.applyDamage(v, this.damageamt, this.damagetype, this.weapid)
 				this.hitalready[id] = true
 			}
 			if (this.onehit) {
@@ -446,7 +445,7 @@ var projdata = {
 	HomingMissile: [10, null, 5, "Rocket", null, 20],
 }
 
-function makeProjectile(type, owner, bearing, damageamt) {
+function makeProjectile(type, owner, bearing, damageamt, weapid) {
 	var p
 	if (type == "HomingMissile") {
 		p = new HomingMissile()
@@ -460,6 +459,7 @@ function makeProjectile(type, owner, bearing, damageamt) {
 	} else {
 		throw "Unrecognized projectile type " + type
 	}
+	p.weapid = weapid
 	return p
 }
 
@@ -493,8 +493,8 @@ function MultikillTracker(mission) {
 	this.kills = 0
 }
 MultikillTracker.prototype = {
-	applyDamage: function (target, damage, effect) {
-		target.takeDamage(damage, effect)
+	applyDamage: function (target, damage, effect, weapid) {
+		target.takeDamage(damage, effect, weapid)
 		if (target.currenthp <= 0) {
 			if (++this.kills > 1) {
 				this.mission.dispatch_event("on_multi_kill", target.pos, this.kills)

@@ -47,17 +47,15 @@ Actor.prototype = extend(Entity.prototype, {
 		this.deathScript = new Script(spec, this.mission, this)
 	},
 
-	takeDamage: function (amount, type) {
+	takeDamage: function (amount, type, weapid) {
 		if (DEBUG.onehit && this.mission.protag !== this) amount *= 1000
 		if (DEBUG.onehit && this.mission.protag === this) amount /= 1000
 		if (this.currenthp <= 0) return
 		if (!this.hostile && this.mission.protag !== this) return
 		amount /= this.getDefence() * (1 + this.getResistance(type)/100)
+		// weapid will be undefined for mines and projectiles killing themselves
+		if (weapid !== undefined) log.damage(weapid, amount, this)
 		this.currenthp -= amount
-		if (isNaN(this.currenthp)) {
-			console.log(amount, type)
-			throw "err"
-		}
 		if (this.currenthp <= 0) {
 			if (this.deathScript) {
 				this.mission.runScript(this.deathScript)

@@ -311,8 +311,7 @@ var graphics = {
 		gl.bufferData(gl.ARRAY_BUFFER, ps, gl.STATIC_DRAW)
 		var t4 = Date.now()
 		
-
-//		console.log(ps.length, t1 - t0, t2 - t1, t3 - t2, t4 - t3, (t4 - t0) + "ms")
+		log("makeworldchunk", ps.length, t4 - t0, t1 - t0, t2 - t1, t3 - t2, t4 - t3)
 	},
 	drawworldchunk: function (cx, cy, fcolour, wcolour) {
 		var cn = gridn(cx, cy)

@@ -10,6 +10,8 @@ UFX.scenes.missionmode = {
 		this.choice_mode = false
 
 		this.mission = new Mission(this)
+		log.startscene()
+
 		this.walls = this.mission.map.getWalls()
 		// this.world_chunks = {}
 		this.wall_colour = wall_colours[this.mission.style]
@@ -38,6 +40,7 @@ UFX.scenes.missionmode = {
 		this.dialogue_changed = true
 
 		this.frameno = 0
+		this.totalframeno = 0  // also includes frames during scripts
 		this.current_zoom = 1.0
 		this.desired_zoom = 1.0
 		this.current_hud_zoom = 1.0
@@ -601,7 +604,7 @@ UFX.scenes.missionmode = {
 		}
 	},
 	on_mine_lay: function (owner, mine) {
-		playsound("mine_lay")
+		playsound("click")
 	},
 	on_projectile_fire: function (owner, projectile) {
 		switch (projectile.name) {
@@ -610,7 +613,7 @@ UFX.scenes.missionmode = {
 			case "Cannonball": playsound("shotgun") ; break
 			case "Napalm": case "Fireball": playsound("fireball") ; break
 			case "FireSpider": playsound(UFX.random.choice(["plasma", "fireball"])) ; break
-			case "Ninja Star": case "Rocket": break
+			case "Ninja Star": case "Rocket": case "Shell": break
 			default: console.log("Unknown projectile type: " + projectile.name)
 		}
 	},
@@ -752,10 +755,11 @@ UFX.scenes.missionmode = {
 			this.floaties = this.floaties.filter(function (f) { return (f.offset += FLOAT_SPEED) < FLOAT_DIST })
 			if (DEBUG.killme) this.mission.protag.takeDamage(4, "physical")
 		}
-
 		if (this.mission.currentScript && this.mission.currentScript.state == "waitKey" && DEBUG.skipcutscenes) {
 			this.mission.currentScript.state = "running"
 		}
+		this.totalframeno++
+		if (this.totalframeno % 100 == 0) log("fps", UFX.ticker.getrates())
 
 		this.bullets = []
 		this.mission.tick()
@@ -771,6 +775,11 @@ UFX.scenes.missionmode = {
 		if (xp > 16777216) return (xp >> 20) + "M"
 		if (xp > 16384) return (xp >> 10) + "K"
 		return xp.toFixed(0)
+	},
+	
+	stop: function () {
+		log("nframes", this.frameno, this.totalframeno)
+		log.send()
 	},
 }
 

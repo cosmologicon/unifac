@@ -51,9 +51,10 @@ Weapon description "energy" should be "energy usage"
 - front menu gets wonky if you fullscreen on loading
 - can eject during chalfont/latimer battle
 check all the branches on scene act5.intro
-
 - need about with license info
 - need helpful error message if javascript or webgl is disabled
+set mission bosses explicitly
+
 
 Story notes
 
@@ -90,8 +91,6 @@ Things that would help fit the Hero's Journey
 * Atonement?
 * Magic Flight - escape after achieving the ultimate boon - evil coming to the known world?
 * Road back to the known world
-
-
 
 
 
@@ -166,7 +165,34 @@ I don't expect you to understand, but you would do the same. You can never deny 
 
 
 
+Mechanics I think would be cool to add
+* items
+* weapon and armour crafting
+* multiple playable characters (more below)
+* HP/energy pickups and restore points within the dungeons
+* Dialogue choices having more of an influence on the plot, or unlocking things
+  * eg: Chalfont+Latimer - if you say the right things to them, they turn themselves in, and give you an item
 
+
+Idea for multiple playable characters
+* At the beginning, you choose Camden, Angel, Victoria, or Putney
+* They each have different specialties.
+  * Camden (the soldier): extra weapon and armour slots
+  * Angel (the researcher): can appraise own weapons free of charge
+  * Victoria (the princess): extra money?
+  * Putney (the messenger):
+* For the most part, they all complete a subset of the same missions, but nobody does them all.
+* Maybe they each have 1-2 missions that are only for them, so you have to play them all.
+* Each playthrough tells different pieces of the story.
+  * Camden: a little bit of everything
+  * Angel: more info on St Pancras and ancient history
+  * Victoria: more info about the current political climate with the Church
+  * Putney: more info about the robot underground
+* Also each one has different character development
+  * Camden: the classic hero's journey, finding his courage
+  * Victoria: coming of age, stepping up as ruler
+* Putney needs more of a personality than Camden Lite. Really sarcastic, maybe?
+* Your sweetheart can be any of the other three protagonists
 
 
 

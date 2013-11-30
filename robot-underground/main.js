@@ -3,10 +3,15 @@ if (DEBUG.failhard) {
 	window.onerror = function (error, url, line) {
 		document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>"
 	}
+} else {
+	window.onerror = function (error, url, line) {
+		log.error(error, url, line)
+	}
 }
 
 UFX.scenes.load = {
 	start: function () {
+		if (this.started) return
 		this.canvas = document.getElementById("loadcanvas")
 		this.canvas.style.display = "block"
 		this.canvas.width = settings.scr_w ; this.canvas.height = settings.scr_h
@@ -16,6 +21,7 @@ UFX.scenes.load = {
 		this.context = loadcanvas.getContext("2d")
 		this.progress = 0
 		this.loaded = false
+		this.started = true
 	},
 	stop: function () {
 		this.canvas.style.display = "none"
@@ -25,6 +31,8 @@ UFX.scenes.load = {
 		this.progress = f
 	},
 	onload: function () {
+		if (!this.started) this.start()
+		this.progress = 1
 		gdata = UFX.resource.data.gdata
 		mapdata = UFX.resource.data.mapdata
 		graphics.init()
@@ -78,11 +86,6 @@ UFX.scenes.load = {
 		)
 	},
 }
-document.title = settings.gamename
-UFX.scene.init({fps: 30})
-UFX.scene.push("load")
-UFX.resource.onloading = UFX.scenes.load.onloading.bind(UFX.scenes.load)
-UFX.resource.onload = UFX.scenes.load.onload.bind(UFX.scenes.load)
 
 UFX.maximize.onadjust = function (canvas, sx, sy) {
 	settings.scr_w = sx
@@ -109,8 +112,16 @@ var res = {
 }
 songnames.forEach(function (sname) { res[sname] = "data/music/" + sname + ".ogg" })
 soundnames.forEach(function (sname) { res[sname] = "data/sfx/" + sname + ".ogg" })
-UFX.resource.load(res)
 
+if (gl) {
+	UFX.scene.init({fps: 30})
+	UFX.scene.push("load")
+	UFX.resource.onloading = UFX.scenes.load.onloading.bind(UFX.scenes.load)
+	UFX.resource.onload = UFX.scenes.load.onload.bind(UFX.scenes.load)
+	UFX.resource.load(res)
+} else {
+	throw "webGL is required: please see http://get.webgl.org"
+}
 
 function clip(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
 
