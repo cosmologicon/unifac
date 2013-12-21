@@ -176,7 +176,7 @@ UFX.scenes.missionmode = {
 		var y = (HUD_PORTRAIT_BOTTOM - HUD_SPACING) * settings.scr_h
 		var fontsize = Math.ceil(HUD_FONT_SMALL * settings.scr_h), dy = Math.round(fontsize * 1.3)
 		var texts = [
-			hp.toFixed(0) + " / " + maxhp + " hp",
+			hp.toFixed(0) + " / " + maxhp.toFixed(0) + " hp",
 			energy + "% energy",
 			"Level " + level,
 			xp + " XP",
