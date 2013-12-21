@@ -14,8 +14,6 @@ function Script(spec, mission, actor) {
 	this.waitingOn = []
 }
 Script.prototype = {
-	counters: {},
-
 	blank: function (blank) {
 		this.blankScreen = blank === undefined ? true : blank
 	},
@@ -163,7 +161,7 @@ Script.prototype = {
 
 
 	insert: function (newspec) {
-		this.spec = newspec.concat(this.spec)
+		this.spec = newspec.slice().concat(this.spec)
 	},
 	// Logic operations. Feels a little weird using if as a method name, huh? I say embrace the weird.
 	if: function (condition, ifspec, elsespec) {
@@ -289,15 +287,6 @@ Script.prototype = {
 		this.last_choice = null
 		this.denyFlag = false
 		this.spec = this.spec0.slice()
-	},
-
-	// Handle shared counters
-	increment: function (countname, amount) {
-		if (amount === undefined) amount = 1
-		this.counters[countname] = (this.counters[countname] || 0) + amount
-	},
-	ifeq: function (countname, amount, ifspec, elsespec) {
-		this.if((this.counters[countname] || 0) == amount, ifspec, elsespec)
 	},
 
 	canEject: function (can) {

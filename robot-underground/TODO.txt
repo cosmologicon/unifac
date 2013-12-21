@@ -168,10 +168,21 @@ I don't expect you to understand, but you would do the same. You can never deny 
 Mechanics I think would be cool to add
 * items
 * weapon and armour crafting
+  * Chard: likely equip costs will disappear and the main metal sink will become upgrading weapons with *additional* mods.
 * multiple playable characters (more below)
 * HP/energy pickups and restore points within the dungeons
 * Dialogue choices having more of an influence on the plot, or unlocking things
   * eg: Chalfont+Latimer - if you say the right things to them, they turn themselves in, and give you an item
+* I think the currency system is too complicated for no reason, but it doesn't seem like people agree.
+* zoom controls
+
+
+Items/upgrades that would be cool
+* treasure magnets
+* emergency repair or backup battery
+* single-use bomb
+* invisibility
+* map capability
 
 
 Idea for multiple playable characters

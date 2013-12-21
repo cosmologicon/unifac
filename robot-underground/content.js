@@ -475,8 +475,8 @@ setups["act1.firstmission"] = function (ps, m) {
 
 	var killScorpions = [
 		["die_no_drop"],
-		["increment", "killedScorpions"],
-		["ifeq", "killedScorpions", 3, [
+		["increment_plotstate", "killedScorpions"],
+		["if_plotstate_counter", "killedScorpions", 3, [
 			["drop_weapon", ["MachineGun", null, ["Autofiring", 1]], [
 				["wait", 25],
 				["sound", "radio"],
@@ -1427,6 +1427,7 @@ setups["act2.bossfight"] = function (ps, m) {
 		["change_scene", "act3.town"],
 	])
 
+
 	// This is a particularly inelegant way of handling the fact that script specs are not
 	//   arbitrary functions, like they were in the python version.
 	// Try to avoid this sort of thing, okay?
@@ -1440,8 +1441,8 @@ setups["act2.bossfight"] = function (ps, m) {
 			var latimer = m.addEnemy("Latimer", [650,550], 180)
 			var cnlkillspec = [
 				["die"],
-				["increment", "cnlkilled"],
-				["ifeq", "cnlkilled", 2, [
+				["increment_plotstate", "cnlkilled"],
+				["if_plotstate_counter", "cnlkilled", 2, [
 					["wait", 50],
 					["speaker_l", "Camden"],
 					["say_l", "Oh, my goodness."],
