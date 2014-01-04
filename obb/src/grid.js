@@ -65,12 +65,12 @@ function isedgeH(pH) {
 // The six edges surrounding the given hex
 function HedgesofhexH(pH) {
 	var x = pH[0], y = pH[1]
-	return [[x+3, y], [x, y+3], [x-3, y-3], [x-3, y], [x, y-3], [x+3, y+3]]
+	return [[x+3, y], [x, y+3], [x-3, y+3], [x-3, y], [x, y-3], [x+3, y-3]]
 }
 // The six hexes adjacent to the given hex
 function HadjacenthexestohexH(pH) {
 	var x = pH[0], y = pH[1]
-	return [[x+6, y], [x, y+6], [x-6, y-6], [x-6, y], [x, y-6], [x+6, y+6]]
+	return [[x+6, y], [x, y+6], [x-6, y+6], [x-6, y], [x, y-6], [x+6, y-6]]
 }
 // The two hexes the given edge is an edge of
 function HhexesofedgeH(pH) {
@@ -87,10 +87,10 @@ function HnearesthexH(pH) {
 	var B = x + 2 * y, C = 2 * x + y
 	return B < 6 && C < 6 ? [x0, y0]
 		: B > 12 && C > 12 ? [x0+6, y0+6]
-		: x > y : [x0+6, y0] : [x0, y0+6]
+		: x > y ? [x0+6, y0] : [x0, y0+6]
 }
 // Nearest edge to the given hex coordinates
-function HnearestedgeH(pH) 
+function HnearestedgeH(pH) {
 	var x0 = Math.floor(pH[0]/6)*6, y0 = Math.floor(pH[1]/6)*6
 	var x = pH[0] - x0, y = pH[1] - y0
 	var B = x + 2 * y, C = 2 * x + y
