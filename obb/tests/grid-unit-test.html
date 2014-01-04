@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<title>Unit test for grid module</title>
+<script type="text/javascript" src="../src/grid.js"></script>
+<script type="text/javascript" src="../../UFX/src/random.js"></script>
+<script type="text/javascript">
+function eqpos(p0, p1) {
+	return p0[0] == p1[0] && p0[1] == p1[1]
+}
+function haspos(ps, p0) {
+	return ps.some(function (p) { return eqpos(p, p0) })
+}
+function dist(p0, p1) {
+	var dx = p0[0] - p1[0], dy = p0[1] - p1[1]
+	return Math.sqrt(dx * dx + dy * dy)
+}
+function near(x, y, n) {
+	return Math.abs(x - y) < Math.pow(0.1, n || 7)
+}
+
+// origins in G and H coordinates are same
+console.assert(eqpos([0, 0], GconvertH([0, 0])))
+console.assert(eqpos([0, 0], HconvertG([0, 0])))
+// distanceG between adjacent hexes is sqrt(3)
+console.assert(near(Math.sqrt(3), dist(GconvertH([0, 0]), GconvertH([6, 0]))))
+console.assert(near(Math.sqrt(3), dist(GconvertH([0, 0]), GconvertH([0, 6]))))
+console.assert(near(Math.sqrt(3), dist(GconvertH([0, 0]), GconvertH([-6, 6]))))
+
+// test nearest hex and nearest edge algorithms
+for (var j = 0 ; j < 10000 ; ++j) {
+	var pG = [UFX.random(-5000, 5000), UFX.random(-5000, 5000)]
+
+	// nearest hex
+	var hexH = HnearesthexG(pG), hexG = GconvertH(hexH), dminG = dist(pG, hexG)
+	console.assert(ishexH(hexH))
+	// Nearest hex should always be within 1 game unit of point
+	console.assert(dminG <= 1)
+	// Find the hexes surrounding the closest hex
+	var adjsH = HadjacenthexestohexH(hexH)
+	adjsH.forEach(function (adjH) {
+		console.assert(ishexH(adjH))
+		var adjG = GconvertH(adjH)
+		// Adjacent hexes should be sqrt(3) units from central hex
+		console.assert(near(Math.sqrt(3), dist(hexG, adjG)))
+		// Adjacent hexes should be no closer to point than the central hex
+		console.assert(dminG <= dist(pG, adjG))
+	})
+
+	// nearest edge
+	var edgeH = HnearestedgeG(pG), edgeG = GconvertH(edgeH), dminG = dist(pG, edgeG)
+	console.assert(isedgeH(edgeH))
+	// Nearest edge should always be within sqrt(3)/2 game units
+	console.assert(dminG <= Math.sqrt(3)/2)
+	var edgesH = HedgesofhexH(hexH)
+	// Nearest edge should belong to nearest hex
+	console.assert(haspos(edgesH, edgeH))
+	var nedges = 0
+	edgesH.forEach(function (otheredgeH) {
+		if (eqpos(edgeH, otheredgeH)) return
+		++nedges
+		var otheredgeG = GconvertH(otheredgeH)
+		// Each edge should be sqrt(3)/2 units from hex center
+		console.assert(near(Math.sqrt(3)/2, dist(hexG, otheredgeG)))
+		// Each edge should be no closer to the point than the nearest edge
+		console.assert(dminG <= dist(pG, otheredgeG))
+	})
+	console.assert(nedges == 5)
+}
+
+
+
+
+// Number position inverse works
+var pHs = [[0, 0], [1, 0], [1, 1], [-127, 273], [16000, 16000], [-16000, 16000], [-16000, -16000], [16000, -16000]]
+pHs.forEach(function (pH) {
+	var pN = NconvertH(pH)
+	console.assert(pN == Math.floor(pN))
+	console.assert(-2147483648 <= pN && pN < 2147483648)
+	console.assert(eqpos(pH, HconvertN(pN)))
+})
+
+console.log("tests complete")
+</script>
