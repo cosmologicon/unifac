@@ -7,6 +7,9 @@ function istate() {
 	}
 }
 
+// A pseudo-scene, this goes "on top" of the currently active scene.
+// This is for messages that I would normally just send to console.log, but I want to be able to
+// see them on mobile as well.
 var debugHUD = {
 	alerts: [],
 	alert: function (text) {
@@ -18,18 +21,18 @@ var debugHUD = {
 	},
 	draw: function () {
 		if (!settings.DEBUG) return
+		text.setup()
+		var h = Math.max(0.06 * canvas.height, 12)
 		// FPS counter
-		UFX.draw("[ fs white ss gray font 40px~'Contrail~One'",
-			"t 10 10 textalign left textbaseline top lw 1 fst0",
-			UFX.ticker.getfpsstr(), "]")
+		var fpsstr = UFX.ticker.getrates().split(" ")[0]
+		text.draw(fpsstr, 0.2*h, 0.3*h, { fontsize: h })
 		this.alerts.forEach(function (alert, j, alerts) {
-			var h = canvas.height - 10 - 24 * (alerts.length - j - 1)
-			var alpha = clip(4 - (Date.now() - alert[1]) / 500, 0, 1)
-			UFX.draw("[ t 10", h, "textalign left textbaseline bottom lw 0.1",
-				"alpha", alpha, "font 20px~'Contrail~One' fs white ss black")
-			context.fillText(alert[0], 0, 0)
-			context.strokeText(alert[0], 0, 0)
-			UFX.draw("]")
+			var y = canvas.height - 10 - 24 * (alerts.length - j - 1)
+			var alpha = clamp(4 - (Date.now() - alert[1]) / 500, 0, 1)
+			text.draw(alert[0], 0.2*h, (0.3 + 1.2 * (alerts.length - j)) * h, {
+				fontsize: h,
+				alpha: alpha,
+			})
 		})
 		this.alerts = this.alerts.filter(
 			function (alert) { return Date.now() - alert[1] < 2000 }
@@ -47,7 +50,7 @@ UFX.scenes.play = {
 		debugHUD.think(dt)
 	},
 	draw: function () {
-		UFX.draw("fs gray f0")
+		graphics.clear()
 		debugHUD.draw()
 	},
 }

@@ -9,7 +9,7 @@
 //   scolor (shadow color, defaults to none)
 //   shadowx, shadowy, shadowblur (as fraction of fontsize, delauts to 0.04, 0.04, 0)
 //   hanchor (can either be "left", "center", "right", or number 0-1. defaults to 0)
-//   vanchor (can either be "bottom", "middle", "top", or number 0-1, defaults to 0)
+//   vanchor (can either be "bottom", "middle", "top", or number 0-1. defaults to 0)
 //   linespace (as a fraction of fontsize, defaults to 0.25)
 //   talign (can either be "left", "center", "right", or 0, 0.5, 1. defaults to 0)
 //   alpha (overall transparency, prefer this to setting the color transparent. defaults to 1)
@@ -52,7 +52,7 @@ var text = {
 		"uniform float alpha;",
 		"varying vec2 vtcoord;",
 		"void main(void) {",
-		"	gl_FragColor = texture2D(sampler, vtcoord) * vec4(alpha, alpha, alpha, 1.0);",
+		"	gl_FragColor = texture2D(sampler, vtcoord) * vec4(1.0, 1.0, 1.0, alpha);",
 		"}",
 	].join("\n"),
 	// Call this once to create the gl program
@@ -69,6 +69,7 @@ var text = {
 		var gl = this.program.gl
 		gl.activeTexture(gl.TEXTURE0)
 		var canvas = gl.canvas
+		gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
 		this.program.setcanvassize(gl.canvas.width, gl.canvas.height)
 		this.program.setsampler(0)
 		gl.enableVertexAttribArray(this.program.attribs.pos)
