@@ -16,6 +16,8 @@ var graphics = {
 		gl.clearColor(0, 0, 0, 1)
 
 		this.initunitsquare()
+
+		this.progs.checker = glprog(UFX.resource.data.fullvert, UFX.resource.data.checkerfrag)
 	},
 
 	clear: function () {
@@ -34,6 +36,11 @@ var graphics = {
 		gl.vertexAttribPointer(attrib, 2, gl.FLOAT, false, 0, 0)
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.unitsquarebuffer)
 		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+	},
+
+	openscreenshot: function () {
+		// TODO: this doesn't work because I don't preserve the drawing buffer.
+		window.open(canvas.toDataURL())
 	},
 
 }	

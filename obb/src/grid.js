@@ -15,8 +15,8 @@
 // mapping between lattice points in hex coordinates and positive integers. This exists so that an
 // object's position can be used as a key in a Javascript object in a way that's quick and simple to
 // convert back and forth. (In python I would use a tuple as a key, but that's not an option here.)
-// Number position is only well defined for lattice points with, roughly, -16k < x,y < 16k. But that
-// should be plenty for the purposes of this game.
+// Number position is only well defined for lattice points with, roughly, -16k < xH,yH < 16k. But
+// that should be plenty for the purposes of this game.
 
 // Viewport coordinates (V): Coordinates within the gameplay panel, with (0, 0) being the lower-left
 // corner of the panel and (panel.width, panel.height) being the top-right.

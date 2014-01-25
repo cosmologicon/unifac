@@ -42,15 +42,29 @@ var debugHUD = {
 
 // The play scene, where the main gameplay happens
 UFX.scenes.play = {
+	startargs: function () {
+		return []
+	},
+	start: function () {
+		panels = []
+		panels.push(playpanel)
+	},
+
 	thinkargs: function (dt) {
 		return [dt, istate()]
 	},
 	think: function (dt, input) {
 		var kstate = input.key, mstate = input.mouse, tstate = input.touch
 		debugHUD.think(dt)
+		state.think(dt)
+
+		if (kstate.down.F12) graphics.openscreenshot()
 	},
 	draw: function () {
 		graphics.clear()
+		
+		playpanel.draw()
+		
 		debugHUD.draw()
 	},
 }

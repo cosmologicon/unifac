@@ -32,5 +32,6 @@ UFX.resource.onload = function () {
 	text.init()
 	UFX.scene.init()
 	UFX.scene.push("play")
+	UFX.key.init()
 }
 
