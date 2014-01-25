@@ -1,3 +1,4 @@
+// User-controllable settings
 var settings = {
 
 }
@@ -7,6 +8,7 @@ if (window.location.href.indexOf("DEBUG") > -1) {
 	settings.DEBUG = true
 }
 
+// Gameplay mechanics and fixed (non-settable) display/UI constants
 var mechanics = {
 
 }
