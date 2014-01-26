@@ -21,7 +21,12 @@ var graphics = {
 	},
 
 	clear: function () {
+		gl.viewport(0, 0, canvas.width, canvas.height)
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+	},
+
+	setviewportD: function (xD, yD, wD, hD) {
+		gl.viewport(xD, yD, wD, hD)
 	},
 		
 	// The unit square buffer is used in several shaders that operate in rectangular areas.

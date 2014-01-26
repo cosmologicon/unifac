@@ -27,11 +27,27 @@ UFX.resource.load({
 	"rflamefrag": "shaders/rflame.frag",
 })
 
+UFX.touch.active = false
+canvas.ontouchstart = function () {
+	UFX.touch.active = true
+	UFX.touch.init()
+}
+
 UFX.resource.onload = function () {
 	graphics.init()
 	text.init()
-	UFX.scene.init()
+	UFX.scene.init({ fps: 60 })
 	UFX.scene.push("play")
 	UFX.key.init()
+	if (!UFX.touch.active) {
+		canvas.ontouchstart = function (event) {
+			UFX.touch.active = true
+			UFX.mouse.active = false
+			UFX.touch.init(canvas)
+			UFX.touch._ontouchstart(event)
+		}
+		UFX.mouse.capture.wheel = true
+		UFX.mouse.init(canvas)
+	}
 }
 

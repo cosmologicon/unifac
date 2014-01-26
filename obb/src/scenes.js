@@ -48,17 +48,29 @@ UFX.scenes.play = {
 	start: function () {
 		panels = []
 		panels.push(playpanel)
+		controlstate.reset()
 	},
 
 	thinkargs: function (dt) {
 		return [dt, istate()]
 	},
 	think: function (dt, input) {
-		var kstate = input.key, mstate = input.mouse, tstate = input.touch
 		debugHUD.think(dt)
-		state.think(dt)
+		var cevents = controlstate.think(dt, input)
+		cevents.forEach(function (cevent) {
+			var fname = "handle" + cevent.type
+			if (cevent.panel && cevent.panel[fname]) {
+				cevent.panel[fname](cevent)
+			}
+			if (cevents.tpanel && cevents.tpanel !== cevents.panel) {
+				fname = "handlet" + cevent.type
+				if (cevent.tpanel[fname]) {
+					cevent.tpanel[fname](cevent)
+				}
+			}
+		})
 
-		if (kstate.down.F12) graphics.openscreenshot()
+		state.think(dt)
 	},
 	draw: function () {
 		graphics.clear()
