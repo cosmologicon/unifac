@@ -1,18 +1,11 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<!-- UFX libraries -->
-<script type="text/javascript" src="../UFX/src/ticker.js"></script>
-<script type="text/javascript" src="../UFX/src/scene.js"></script>
-<script type="text/javascript" src="../UFX/src/draw.js"></script>
-<script type="text/javascript" src="../UFX/src/maximize.js"></script>
-<script type="text/javascript" src="../UFX/src/key.js"></script>
-<script type="text/javascript" src="../UFX/src/mouse.js"></script>
-<script type="text/javascript" src="../UFX/src/touch.js"></script>
-<script type="text/javascript" src="../UFX/src/resource.js"></script>
-<script type="text/javascript" src="../UFX/src/Thing.js"></script>
-<!-- Game canvas. That's it for the DOM. -->
+<!--
+grep UFX.src index.html | sed 's|.*=.||;s|.>.*||' | xargs cat > UFX.js
+scp -r test-index.html UFX.js src shaders "night@night.xen.prgmr.com:/var/www/test/obb"
+-->
+<script type="text/javascript" src="UFX.js"></script>
 <canvas id="canvas"></canvas>
-<!-- Game source code -->
 <script type="text/javascript" src="src/glprog.js"></script>
 <script type="text/javascript" src="src/settings.js"></script>
 <script type="text/javascript" src="src/grid.js"></script>
@@ -26,3 +19,4 @@
 <script type="text/javascript" src="src/panels.js"></script>
 <script type="text/javascript" src="src/scenes.js"></script>
 <script type="text/javascript" src="src/init.js"></script>
+
