@@ -52,24 +52,10 @@ var controlstate = {
 		this.wD = canvas.width
 		this.hD = canvas.height
 		
-		var hD = this.hD
-		function DconvertM(posM) {
-			return [posM[0], hD - posM[1]]
-		}
-
 		var sD = Math.min(this.wD, this.hD)
-		playpanel.wD = playpanel.hD = sD
-		playpanel.xD = Math.floor((this.wD - sD) / 2)
-		playpanel.yD = Math.floor((this.hD - sD) / 2)
+		playpanel.placeD(Math.floor((this.wD - sD) / 2), Math.floor((this.hD - sD) / 2), sD, sD)
 		
 		panels = [playpanel]
-		function catcherD(posD) {
-			if (!posD) return null
-			for (var j = panels.length - 1 ; j >= 0 ; --j) {
-				if (panels[j].catches(posD)) return panels[j]
-			}
-			return null
-		}
 
 		var cevents = []
 

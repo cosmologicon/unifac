@@ -72,13 +72,11 @@ var text = {
 		gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
 		this.program.setcanvassize(gl.canvas.width, gl.canvas.height)
 		this.program.setsampler(0)
-		gl.enableVertexAttribArray(this.program.attribs.pos)
-		gl.vertexAttribPointer(this.program.attribs.pos, 2, gl.FLOAT, false, 0, 0)
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.squarebuffer)
+		gl.vertexAttribPointer(this.program.attribs.pos, 2, gl.FLOAT, false, 0, 0)
 		gl.enable(gl.BLEND)
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	},
-	
 	gettexture: function (text, fontname, fontsize, color, ocolor, owidth, scolor, shadowx,
 		shadowy, shadowblur, linespace, talign) {
 		var key = [].join.call(arguments, ":")
@@ -168,6 +166,8 @@ var text = {
 		return tex
 	},
 	
+	// Note: this method is not to be called with this = text. This method should be bound to
+	// texture objects.
 	bounddraw: function (x, y, hanchor, vanchor, alpha) {
 		hanchor = hanchor.trim ? {left: 0, center: 0.5, right: 1}[hanchor] : hanchor
 		vanchor = vanchor.trim ? {bottom: 0, middle: 0.5, top: 1}[vanchor] : vanchor

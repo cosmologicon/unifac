@@ -50,6 +50,13 @@ function HconvertN(pN) {
 	return [(+pN >> 15) - 16384, (+pN & 32767) - 16384]
 }
 
+// Convert mouse coordinates into device coordinates
+// Uses current control state object for device size
+function DconvertM(pM) {
+	return [pM[0], controlstate.hD - pM[1]]
+}
+
+
 
 // See notes from 05-06 Feb 2013 for derivation of algorithms for hex coordinates
 
