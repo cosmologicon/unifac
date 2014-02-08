@@ -21,6 +21,7 @@ function glprog(vshader, fshader, _gl) {
 	this.getlocations()
 }
 glprog.prototype = {
+	enabledattribs: {},
 	createshader: function (scriptId, shaderType) {
 		var shader = this.gl.createShader(shaderType)
 		
@@ -72,9 +73,23 @@ glprog.prototype = {
 	},
 	use: function () {
 		this.gl.useProgram(this.program)
+		for (var a in this.enabledattribs) {
+			this.gl.disableVertexAttribArray(a)
+			// NB: this is safe http://es5.github.io/#x12.6.4
+			delete this.enabledattribs[a]
+		}
+		for (var a in this.attribs) {
+			this.gl.enableVertexAttribArray(this.attribs[a])
+			this.enabledattribs[this.attribs[a]] = 1
+		}
 	},
 	set: function(name) {
 		this.uniformsetters[name].apply(this.gl, [].slice.call(arguments, 1))
+	},
+	finish: function () {
+		for (var a in this.attribs) {
+			this.gl.disableVertexAttribArray(this.attribs[a])
+		}
 	},
 	utypesetters: {
 		float: "1f",

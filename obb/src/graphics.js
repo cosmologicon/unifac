@@ -8,6 +8,8 @@ var graphics = {
 
 	init: function () {
 		canvas = document.getElementById("canvas")
+		// TODO: Firefox gives an error here:
+		// Error: WebGL: Retrieving a WebGL context from a canvas via a request id ('webgl') different from the id used to create the context ('experimental-webgl') is not allowed.
 		gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl")
 		// TODO: better error message for missing webgl
 		if (!gl) throw "Unable to get webgl context"
@@ -18,6 +20,7 @@ var graphics = {
 		this.initunitsquare()
 
 		this.progs.checker = glprog(UFX.resource.data.fullvert, UFX.resource.data.checkerfrag)
+		this.progs.blob = glprog(UFX.resource.data.blobvert, UFX.resource.data.blobfrag)
 	},
 
 	clear: function () {
@@ -38,8 +41,8 @@ var graphics = {
 	},
 	drawunitsquare: function (attrib) {
 		gl.enableVertexAttribArray(attrib)
-		gl.vertexAttribPointer(attrib, 2, gl.FLOAT, false, 0, 0)
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.unitsquarebuffer)
+		gl.vertexAttribPointer(attrib, 2, gl.FLOAT, false, 0, 0)
 		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
 	},
 

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<canvas id="canvas"></canvas>
+<script id="vshader1" type="x-shader/x-vertex">
+attribute vec2 pos;
+attribute float color;
+varying float fcolor;
+void main() {
+   gl_Position = vec4(pos, 0, 1);
+   fcolor = color;
+}
+</script>
+<script id="vshader2" type="x-shader/x-vertex">
+attribute vec2 pos;
+void main() {
+   gl_Position = vec4(pos, 0, 1);
+}
+</script>
+<script id="fshader1" type="x-shader/x-fragment">
+precision mediump float;
+varying float fcolor;
+void main() {
+   gl_FragColor = vec4(fcolor, fcolor, 0, 1);
+}
+</script>
+<script id="fshader2" type="x-shader/x-fragment">
+precision mediump float;
+void main() {
+   gl_FragColor = vec4(1, 0, 1, 1);
+}
+</script>
+
+<script type="text/javascript" src="src/glprog.js"></script>
+<script type="text/javascript">
+var canvas = document.getElementById("canvas")
+canvas.width = 400 ; canvas.height = 400
+var gl = canvas.getContext("experimental-webgl")
+gl.clearColor(0, 0, 0, 1)
+var prog1 = glprog("vshader1", "fshader1")
+var prog2 = glprog("vshader2", "fshader2")
+
+var buffer1 = gl.createBuffer()
+gl.bindBuffer(gl.ARRAY_BUFFER, buffer1)
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0.1, 0.1, 0.6, 0.1, 0.6, 0.6, 0.1, 0.6]), gl.STATIC_DRAW)
+var buffer2 = gl.createBuffer()
+gl.bindBuffer(gl.ARRAY_BUFFER, buffer2)
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0.4, 0.4, 0.9, 0.4, 0.9, 0.9, 0.4, 0.9]), gl.STATIC_DRAW)
+var buffer3 = gl.createBuffer()
+gl.bindBuffer(gl.ARRAY_BUFFER, buffer3)
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-0.2, -0.2, 0.3, -0.2, 0.3, 0.3, -0.2, 0.3]), gl.STATIC_DRAW)
+
+var cbuffer1 = gl.createBuffer()
+gl.bindBuffer(gl.ARRAY_BUFFER, cbuffer1)
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 1, 0, 1]), gl.STATIC_DRAW)
+
+
+function go() {
+	gl.clear(gl.COLOR_BUFFER_BIT)
+	gl.viewport(0, 0, canvas.width, canvas.height)
+
+	prog2.use()
+	gl.enableVertexAttribArray(prog2.attribs.pos)
+	gl.bindBuffer(gl.ARRAY_BUFFER, buffer2)
+	gl.vertexAttribPointer(prog2.attribs.pos, 2, gl.FLOAT, false, 0, 0)
+	gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+	return
+
+//	gl.enableVertexAttribArray(prog1.attribs.pos)
+	gl.enableVertexAttribArray(prog1.attribs.color)
+	prog1.use()
+//	gl.bindBuffer(gl.ARRAY_BUFFER, buffer1)
+//	gl.vertexAttribPointer(prog1.attribs.pos, 2, gl.FLOAT, false, 0, 0)
+	gl.bindBuffer(gl.ARRAY_BUFFER, cbuffer1)
+	gl.vertexAttribPointer(prog1.attribs.color, 1, gl.FLOAT, false, 0, 0)
+//	gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+
+	gl.enableVertexAttribArray(prog2.attribs.pos)
+	prog2.use()
+	gl.bindBuffer(gl.ARRAY_BUFFER, buffer3)
+	gl.vertexAttribPointer(prog2.attribs.pos, 2, gl.FLOAT, false, 0, 0)
+	gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+}
+go()
+
+
+</script>
+
+

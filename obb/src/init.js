@@ -25,6 +25,8 @@ UFX.resource.load({
 	"fogfrag": "shaders/fog.frag",
 	"visiblefrag": "shaders/visible.frag",
 	"rflamefrag": "shaders/rflame.frag",
+	"blobfrag": "shaders/blob.frag",
+	"blobvert": "shaders/blob.vert",
 })
 
 UFX.touch.active = false
@@ -47,6 +49,7 @@ UFX.resource.onload = function () {
 			UFX.touch._ontouchstart(event)
 		}
 		UFX.mouse.capture.wheel = true
+		UFX.mouse.capture.right = true
 		UFX.mouse.init(canvas)
 	}
 }

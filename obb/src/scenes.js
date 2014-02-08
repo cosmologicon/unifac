@@ -19,11 +19,14 @@ var debugHUD = {
 	},
 	think: function (dt) {
 		if (!settings.DEBUG) return
+		this.alerts = this.alerts.filter(
+			function (alert) { return Date.now() - alert[1] < 2000 }
+		)
 	},
 	draw: function () {
 		if (!settings.DEBUG) return
 		text.setup()
-		var h = Math.max(0.06 * canvas.height, 12)
+		var h = Math.max(0.03 * canvas.height, 12)
 		// FPS counter
 		var fpsstr = UFX.ticker.getrates().split(" ")[0]
 		text.draw(fpsstr, 0.2*h, 0.3*h, { fontsize: h })
@@ -45,9 +48,6 @@ var debugHUD = {
 				alpha: alpha,
 			})
 		})
-		this.alerts = this.alerts.filter(
-			function (alert) { return Date.now() - alert[1] < 2000 }
-		)
 	},
 	starttimer: function (tname) {
 		if (!settings.DEBUG) return
@@ -58,7 +58,7 @@ var debugHUD = {
 		if (!settings.DEBUG) return
 		var timer = this.timers[tname]
 		timer.push(Date.now() - timer.t0)
-		if (timer.length > 100) timer.shift()
+		if (timer.length > 20) timer.shift()
 	},
 }
 
@@ -99,9 +99,13 @@ UFX.scenes.play = {
 	draw: function () {
 		graphics.clear()
 		
+		debugHUD.starttimer("paneldraw")
 		playpanel.draw()
+		debugHUD.stoptimer("paneldraw")
 		
+		debugHUD.starttimer("huddraw")
 		debugHUD.draw()
+		debugHUD.stoptimer("huddraw")
 	},
 }
 
