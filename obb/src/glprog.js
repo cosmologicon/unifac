@@ -71,12 +71,13 @@ glprog.prototype = {
 			}
 		})
 	},
+	// Call useProgram and also make sure the set of enabled vertex attrib arrays matches the
+	// new program.
 	use: function () {
 		this.gl.useProgram(this.program)
 		for (var a in this.enabledattribs) {
 			this.gl.disableVertexAttribArray(a)
-			// NB: this is safe http://es5.github.io/#x12.6.4
-			delete this.enabledattribs[a]
+			delete this.enabledattribs[a]  // NB: this is safe http://es5.github.io/#x12.6.4
 		}
 		for (var a in this.attribs) {
 			this.gl.enableVertexAttribArray(this.attribs[a])
@@ -96,6 +97,7 @@ glprog.prototype = {
 		vec2: "2f",
 		vec3: "3f",
 		vec4: "4f",
+		mat3: "Matrix3fv",
 		int: "1i",
 		sampler2D: "1i",
 	},

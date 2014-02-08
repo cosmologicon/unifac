@@ -2,7 +2,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <!--
 grep UFX.src index.html | sed 's|.*=.||;s|.>.*||' | xargs cat > UFX.js
-scp -r test-index.html UFX.js src shaders "night@night.xen.prgmr.com:/var/www/test/obb"
+obb$ rsync -r . "night@night.xen.prgmr.com:/var/www/test/obb"
 -->
 <script type="text/javascript" src="UFX.js"></script>
 <canvas id="canvas"></canvas>
