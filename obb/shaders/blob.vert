@@ -21,6 +21,7 @@ attribute float f;
 
 uniform vec2 canvassize;
 uniform vec2 center;  // viewport center
+uniform vec2 scenter;  // shape center
 uniform float scale;  // size of 1 unit in pixels
 uniform mat3 colormap;  // mapping of the principle channels into r,g,b
 uniform float progress;
@@ -32,14 +33,14 @@ varying float rpix;
 varying vec3 color;
 
 void main(void) {
-    vec2 p = (pos.xy - center) * 2.0 * scale / canvassize;
+    vec2 p = (pos.xy - (center - scenter)) * 2.0 * scale / canvassize;
     gl_Position = vec4(p, 0.0, 1.0);
 
     r = rad;
     rpix = progress > f ? rad * scale : -1.0;
     gl_PointSize = 2.0 * rpix;
     
-	vec3 rlight = lightpos0 - pos;
+	vec3 rlight = lightpos0 - vec3(scenter, 0) - pos;
     float lfactor = 1.0 + clamp(light0 * dot(normal, rlight) / dot(rlight, rlight), 0.0, 0.4);
     color = (colormap * pcolor + acolor) * lfactor;  // pass it along to the fragment shader
 }

@@ -42,40 +42,7 @@ function Panel(methods) {
 
 var playpanel = Panel({
 
-	initblobs: function () {
-
-xG, yG, zG, rG, nx, ny, nz, c1, c2, c3, ar, ag, ab, f
-
-		debugHUD.starttimer("initblobs")
-		this.nblob = 2000
-		var blobspec = []
-		while (blobspec.length < this.nblob) {
-			var xG = UFX.random(-1, 1)
-			var yG = UFX.random(-1, 1)
-			var zG = UFX.random(-1, 1)
-			var rG = UFX.random(0.06, 0.12)
-			var dG = Math.sqrt(xG * xG + yG * yG + zG * zG)
-			if (dG + rG > 0.8 || dG < 0.0001) continue
-			var nx = xG/dG + UFX.random(-0.05, 0.05)
-			var ny = yG/dG + UFX.random(-0.05, 0.05)
-			var nz = zG/dG + UFX.random(-0.05, 0.05)
-			var c1 = UFX.random(0.6, 0.62), c2 = 0, c3 = 0
-			var ar = 0, ag = 0, ab = 0
-			var f = dG
-			blobspec.push([xG, yG, zG, rG, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
-		}
-		blobspec.sort(function (a, b) { return a[2] - b[2] })
-		blobspec = [].concat.apply([], blobspec)
-
-		this.blobspecbuffer = gl.createBuffer()
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecbuffer)
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(blobspec), gl.STATIC_DRAW)
-		debugHUD.stoptimer("initblobs")
-	},
-
 	draw: function () {
-		if (!this.blobspecbuffer) this.initblobs()
-
 		var vs = state.viewstate
 		graphics.setviewportD(this.xD, this.yD, this.wD, this.hD)
 
@@ -92,19 +59,12 @@ xG, yG, zG, rG, nx, ny, nz, c1, c2, c3, ar, ag, ab, f
 		graphics.progs.blob.setcenter(vs.x0G, vs.y0G)
 		graphics.progs.blob.setscale(vs.VzoomG)
 		graphics.progs.blob.setcolormap(false, [0, 0.5, 0.1, 0.2, 0.2, 0.2, 0.6, 0.6, 0.6])
-		graphics.progs.blob.setprogress(1)
 		var a = Date.now() * 0.001
-		graphics.progs.blob.setlightpos0(2 * Math.sin(a), 2 * Math.cos(a), 1)
+		graphics.progs.blob.setlightpos0(2 * Math.sin(a), 2 * Math.cos(a), 2)
 		graphics.progs.blob.setlight0(0.6)
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecbuffer)
-		gl.vertexAttribPointer(graphics.progs.blob.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)
-		gl.vertexAttribPointer(graphics.progs.blob.attribs.rad, 1, gl.FLOAT, false, 14*4, 3*4)
-		gl.vertexAttribPointer(graphics.progs.blob.attribs.normal, 3, gl.FLOAT, false, 14*4, 4*4)
-		gl.vertexAttribPointer(graphics.progs.blob.attribs.pcolor, 3, gl.FLOAT, false, 14*4, 7*4)
-		gl.vertexAttribPointer(graphics.progs.blob.attribs.acolor, 3, gl.FLOAT, false, 14*4, 10*4)
-		gl.vertexAttribPointer(graphics.progs.blob.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
-		gl.drawArrays(gl.POINTS, 0, this.nblob)
+		blobscape.draw0("sphere", GconvertH([0, 0]))
+		blobscape.draw0("stalk0", GconvertH([6, 6]))
+		blobscape.draw0("sphere", GconvertH([12, -6]))
 	},
 	handleldrag: function (cevent) {
 		state.viewstate.snap(-cevent.dposD[0], -cevent.dposD[1])
