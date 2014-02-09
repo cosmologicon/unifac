@@ -37,6 +37,7 @@ canvas.ontouchstart = function () {
 
 UFX.resource.onload = function () {
 	graphics.init()
+	blobscape.init()
 	text.init()
 	UFX.scene.init({ fps: 60 })
 	UFX.scene.push("play")

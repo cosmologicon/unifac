@@ -30,7 +30,7 @@ var debugHUD = {
 		// FPS counter
 		var fpsstr = UFX.ticker.getrates().split(" ")[0]
 		text.draw(fpsstr, 0.2*h, 0.3*h, { fontsize: h })
-		var alerts = this.alerts.splice()
+		var alerts = this.alerts.slice()
 		for (var tname in this.timers) {
 			var timer = this.timers[tname]
 			if (!timer.length) continue
