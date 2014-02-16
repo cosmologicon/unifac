@@ -62,6 +62,7 @@ var controlstate = {
 		// Handle left mouse clicks
 		if (mstate) {
 			var mposD = mstate.pos && [mstate.pos[0], this.hD - mstate.pos[1]]
+			this.mposD = mposD
 			var panel = catcherD(mposD)
 			// TODO: do a better job when a mousedown and mouseup events occur in the same update
 			if (mstate.left.down) {

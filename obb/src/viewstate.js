@@ -58,6 +58,10 @@ ViewState.prototype = {
 	fly: function (vV) {
 		this.vV = vV
 	},
+	GconvertD: function (pD) {
+		var pV = playpanel.VfromcenterD(pD)
+		return [this.x0G + pV[0] / this.VzoomG, this.y0G + pV[1] / this.VzoomG]
+	}
 }
 
 

@@ -41,7 +41,9 @@ function Panel(methods) {
 }
 
 var playpanel = Panel({
-
+	GconvertD: function () {
+	
+	},
 	draw: function () {
 		var vs = state.viewstate
 		graphics.setviewportD(this.xD, this.yD, this.wD, this.hD)
@@ -56,6 +58,7 @@ var playpanel = Panel({
 		blobscape.draw("sphere", [0, 0])
 		blobscape.draw("sphere", GconvertH([12, -6]))
 		blobscape.draw("sphere", GconvertH([6, 6]))
+		blobscape.draw("stalk0", GconvertH([-12, 6]))
 	},
 	handleldrag: function (cevent) {
 		state.viewstate.snap(-cevent.dposD[0], -cevent.dposD[1])
