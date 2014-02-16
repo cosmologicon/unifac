@@ -27,6 +27,8 @@ UFX.resource.load({
 	"rflamefrag": "shaders/rflame.frag",
 	"blobfrag": "shaders/blob.frag",
 	"blobvert": "shaders/blob.vert",
+	"blobrenderfrag": "shaders/blobrender.frag",
+	"blobrendervert": "shaders/blobrender.vert",
 })
 
 UFX.touch.active = false

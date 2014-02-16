@@ -52,19 +52,10 @@ var playpanel = Panel({
 		graphics.progs.checker.setzoom(vs.VzoomG)
 		graphics.drawunitsquare(graphics.progs.checker.attribs.pos)
 
-		graphics.progs.blob.use()
-		gl.enable(gl.BLEND)
-		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-		graphics.progs.blob.setcanvassize(this.wD, this.hD)
-		graphics.progs.blob.setcenter(vs.x0G, vs.y0G)
-		graphics.progs.blob.setscale(vs.VzoomG)
-		graphics.progs.blob.setcolormap(false, [0, 0.5, 0.1, 0.2, 0.2, 0.2, 0.6, 0.6, 0.6])
-		var a = Date.now() * 0.001
-		graphics.progs.blob.setlightpos0(2 * Math.sin(a), 2 * Math.cos(a), 2)
-		graphics.progs.blob.setlight0(0.6)
-		blobscape.draw0("sphere", GconvertH([0, 0]))
-		blobscape.draw0("stalk0", GconvertH([6, 6]))
-		blobscape.draw0("sphere", GconvertH([12, -6]))
+		blobscape.setup()
+		blobscape.draw("sphere", [0, 0])
+		blobscape.draw("sphere", GconvertH([12, -6]))
+		blobscape.draw("sphere", GconvertH([6, 6]))
 	},
 	handleldrag: function (cevent) {
 		state.viewstate.snap(-cevent.dposD[0], -cevent.dposD[1])
