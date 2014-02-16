@@ -32,9 +32,9 @@ var blobscape = {
 
 		this.posbuffer = gl.createBuffer()
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.posbuffer)
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0,-1,0,-0.5,-0.8333,0.5,-0.8333,1,0,0.5,0.8333,-0.5,0.8333,-1,0]), gl.STATIC_DRAW)
+		var s = Math.sqrt(3)/2
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0,-1,0,-0.5,-s,0.5,-s,1,0,0.5,s,-0.5,s,-1,0]), gl.STATIC_DRAW)
 		
-		console.log("generating texture")
 		gl.activeTexture(gl.TEXTURE0 + 5)
 		this.ptexture = gl.createTexture()
 		gl.bindTexture(gl.TEXTURE_2D, this.ptexture)
@@ -44,13 +44,20 @@ var blobscape = {
 		this.pfbo = gl.createFramebuffer()
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.pfbo)
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.ptexture, 0)
+
+		gl.activeTexture(gl.TEXTURE0 + 6)
+		this.ntexture = gl.createTexture()
+		gl.bindTexture(gl.TEXTURE_2D, this.ntexture)
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.scapesize, this.scapesize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+		this.nfbo = gl.createFramebuffer()
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.nfbo)
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.ntexture, 0)
+
 		gl.activeTexture(gl.TEXTURE0)
-		console.log("assembling sphere")
-
-		
 		this.assemble("sphere")
-		console.log("assembly done")
-
+		this.assemble("stalk0")
 	},
 
 	build: function (shape) {
@@ -84,7 +91,7 @@ var blobscape = {
 				var c1 = UFX.random(0.6, 0.65), c2 = 0, c3 = 0
 				var ar = 0, ag = 0, ab = 0
 				var f = dG
-				data.push([xG, yG, zG, rG, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
+				data.push([xG, yG, zG, rG, 0.5+0.5*nx, 0.5+0.5*ny, 0.5+0.5*nz, c1, c2, c3, ar, ag, ab, f])
 			}
 		} else if (shape == "stalk0") {
 			var nblob = 500
@@ -97,13 +104,13 @@ var blobscape = {
 				var xG = xp/dp * 0.15
 				var yG = UFX.random(-0.866, 0.866)
 				var zG = yp/dp * 0.15
-				var nx = xp/dp + UFX.random(-0.05, 0.05)
-				var ny = 0 + UFX.random(-0.05, 0.05)
-				var nz = yp/dp + UFX.random(-0.05, 0.05)
+				var nx = xp/dp + UFX.random(-0.2, 0.2)
+				var ny = 0 + UFX.random(-0.2, 0.2)
+				var nz = yp/dp + UFX.random(-0.2, 0.2)
 				var c1 = UFX.random(0.6, 0.62), c2 = 0, c3 = 0
 				var ar = 0, ag = 0, ab = 0
 				var f = 0.4  // should be a combination of yG and dp
-				data.push([xG, yG, zG, rG, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
+				data.push([xG, yG, zG, rG, 0.5+0.5*nx, 0.5+0.5*ny, 0.5+0.5*nz, c1, c2, c3, ar, ag, ab, f])
 			}
 		}
 		return data
@@ -126,22 +133,33 @@ var blobscape = {
 	
 	// Render the given shape to the blobscape
 	assemble: function (shape) {
+		if (!this.blobspecs[shape]) this.build(shape)
 		var N = this.made[shape] = this.nmade++
+		var x = Math.floor(N/this.ntile) * this.tilesize
+		var y = N % this.ntile * this.tilesize
 
-		gl.bindFramebuffer(gl.FRAMEBUFFER, this.pfbo)
 		graphics.progs.blob.use()
 		gl.enable(gl.BLEND)
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-		var x = Math.floor(N/this.ntile) * this.tilesize
-		var y = N % this.ntile * this.tilesize
 		gl.viewport(x, y, this.tilesize, this.tilesize)
 		graphics.progs.blob.setcanvassize(this.tilesize, this.tilesize)
-		graphics.progs.blob.setcenter(0, 0)
 		graphics.progs.blob.setscale(this.scale)
-		graphics.progs.blob.setcolormap(false, [0, 0.5, 0.2, 0, 1, 0, 0, 0, 1])
-		graphics.progs.blob.setlightpos0(2, 2, 2)
-		graphics.progs.blob.setlight0(0)
-		this.draw0(shape, [0, 0])
+		graphics.progs.blob.setprogress(1)
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[shape].buffer)
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.pfbo)
+		gl.vertexAttribPointer(graphics.progs.blob.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)
+		gl.vertexAttribPointer(graphics.progs.blob.attribs.rad, 1, gl.FLOAT, false, 14*4, 3*4)
+		gl.vertexAttribPointer(graphics.progs.blob.attribs.pcolor, 3, gl.FLOAT, false, 14*4, 7*4)
+		gl.vertexAttribPointer(graphics.progs.blob.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
+		gl.drawArrays(gl.POINTS, 0, this.blobspecs[shape].n)
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.nfbo)
+		gl.vertexAttribPointer(graphics.progs.blob.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)
+		gl.vertexAttribPointer(graphics.progs.blob.attribs.rad, 1, gl.FLOAT, false, 14*4, 3*4)
+		gl.vertexAttribPointer(graphics.progs.blob.attribs.pcolor, 3, gl.FLOAT, false, 14*4, 4*4)
+		gl.vertexAttribPointer(graphics.progs.blob.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
+		gl.drawArrays(gl.POINTS, 0, this.blobspecs[shape].n)
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 //		gl.viewport(0, 0, canvas.width, canvas.height)
@@ -150,18 +168,32 @@ var blobscape = {
 
 	setup: function () {
 		graphics.progs.blobrender.use()
-		graphics.progs.blobrender.setsampler(5)
+		graphics.progs.blobrender.setpsampler(5)
+		graphics.progs.blobrender.setnsampler(6)
 		graphics.progs.blobrender.setntile(this.ntile)
 		var vs = state.viewstate
 		graphics.progs.blobrender.setcanvassize(playpanel.wD, playpanel.hD)
 		graphics.progs.blobrender.setcenter(vs.x0G, vs.y0G)
 		graphics.progs.blobrender.setscale(vs.VzoomG)
+
+		var t = Date.now() * 0.001
+		graphics.progs.blobrender.setdlight(0.8*Math.sin(t), 0.8*Math.cos(t), 0.6, 0.2)
+		if (controlstate.mposD) {
+			var mposG = state.viewstate.GconvertD(controlstate.mposD)
+			graphics.progs.blobrender.setplight0(mposG[0], mposG[1], 1, 0.3)
+		} else {
+			graphics.progs.blobrender.setplight0(0, 0, 100, 0)
+		}
 	},
 	
 	draw: function (shape, posG) {
-		graphics.progs.blobrender.setscenter(posG[0], posG[1])
-		graphics.progs.blobrender.settilelocation(0, 0)
+		var N = this.made[shape]
+		var x = Math.floor(N/this.ntile)
+		var y = N % this.ntile
+		graphics.progs.blobrender.settilelocation(x, y)
 
+		graphics.progs.blobrender.setscenter(posG[0], posG[1])
+		graphics.progs.blobrender.setcolormap(false, [0, 0.5, 0.1, 1, 0, 0, 0, 0, 1])
 		gl.enableVertexAttribArray(graphics.progs.blobrender.attribs.pos)
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.posbuffer)
 		gl.vertexAttribPointer(graphics.progs.blobrender.attribs.pos, 2, gl.FLOAT, false, 0, 0)

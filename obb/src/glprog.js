@@ -44,7 +44,7 @@ glprog.prototype = {
 		this.gl.compileShader(shader)
 
 		if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-			throw "shader compile error:" + this.gl.getShaderInfoLog(shader)
+			throw "shader compile error: " + this.gl.getShaderInfoLog(shader)
 		}
 
 		return shader
@@ -54,6 +54,9 @@ glprog.prototype = {
 		this.gl.attachShader(this.program, this.vshader)
 		this.gl.attachShader(this.program, this.fshader)
 		this.gl.linkProgram(this.program)
+		if (!this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS)) {
+			throw "program link error: " + this.gl.getProgramInfoLog(this.program)
+		}
 	},
 	getlocations: function () {
 		this.use()

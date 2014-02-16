@@ -57,7 +57,6 @@ function DconvertM(pM) {
 }
 
 
-
 // See notes from 05-06 Feb 2013 for derivation of algorithms for hex coordinates
 
 // Whether the given hex position is a hex center
