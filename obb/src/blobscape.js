@@ -1,9 +1,56 @@
 // Managing the blobscape: the procedurally-generated texture atlases used for rendering objects
 // (body parts) that use the blob shader
 
+// Textures 5, 6, and 7 are reserved for the blobscape. They're used for the primary color channel
+// (plus alpha), the additional color channel, and the normals, respectively.
+
+// A blob shape is a set of blobs, each of which has the following properties:
+
+// x, y, z, r, c0, c1, c2, nx, ny, nz, f
+
+
+
 var blobscape = {
 	init: function () {
+		this.rawdata = {}
 		this.blobspecs = {}
+
+		this.nmade = 0
+		this.made = {}
+		
+		this.ntile = 8
+		var s = Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE), 4096)
+		this.scale = 16
+		while (this.scale * this.ntile * 4 <= s) this.scale *= 2
+		if (this.scale < 32) throw "blobscape texture is too small"
+		
+		this.tilesize = this.scale * 2
+		this.scapesize = this.ntile * this.tilesize
+
+		debugHUD.alert("blobscape scale " + this.scale)
+		debugHUD.alert("blobscape size " + this.scapesize + "x" + this.scapesize)
+
+		this.posbuffer = gl.createBuffer()
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.posbuffer)
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0,-1,0,-0.5,-0.8333,0.5,-0.8333,1,0,0.5,0.8333,-0.5,0.8333,-1,0]), gl.STATIC_DRAW)
+		
+		console.log("generating texture")
+		gl.activeTexture(gl.TEXTURE0 + 5)
+		this.ptexture = gl.createTexture()
+		gl.bindTexture(gl.TEXTURE_2D, this.ptexture)
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.scapesize, this.scapesize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+		this.pfbo = gl.createFramebuffer()
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.pfbo)
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.ptexture, 0)
+		gl.activeTexture(gl.TEXTURE0)
+		console.log("assembling sphere")
+
+		
+		this.assemble("sphere")
+		console.log("assembly done")
+
 	},
 
 	build: function (shape) {
@@ -17,6 +64,7 @@ var blobscape = {
 		}
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[shape].buffer)
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW)
+		this.rawdata[shape] = data
 	},
 	
 	getdata: function (shape) {
@@ -33,7 +81,7 @@ var blobscape = {
 				var nx = xG/dG + UFX.random(-0.05, 0.05)
 				var ny = yG/dG + UFX.random(-0.05, 0.05)
 				var nz = zG/dG + UFX.random(-0.05, 0.05)
-				var c1 = UFX.random(0.6, 0.62), c2 = 0, c3 = 0
+				var c1 = UFX.random(0.6, 0.65), c2 = 0, c3 = 0
 				var ar = 0, ag = 0, ab = 0
 				var f = dG
 				data.push([xG, yG, zG, rG, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
@@ -74,6 +122,50 @@ var blobscape = {
 		gl.vertexAttribPointer(graphics.progs.blob.attribs.acolor, 3, gl.FLOAT, false, 14*4, 10*4)
 		gl.vertexAttribPointer(graphics.progs.blob.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
 		gl.drawArrays(gl.POINTS, 0, this.blobspecs[shape].n)
+	},
+	
+	// Render the given shape to the blobscape
+	assemble: function (shape) {
+		var N = this.made[shape] = this.nmade++
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.pfbo)
+		graphics.progs.blob.use()
+		gl.enable(gl.BLEND)
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+		var x = Math.floor(N/this.ntile) * this.tilesize
+		var y = N % this.ntile * this.tilesize
+		gl.viewport(x, y, this.tilesize, this.tilesize)
+		graphics.progs.blob.setcanvassize(this.tilesize, this.tilesize)
+		graphics.progs.blob.setcenter(0, 0)
+		graphics.progs.blob.setscale(this.scale)
+		graphics.progs.blob.setcolormap(false, [0, 0.5, 0.2, 0, 1, 0, 0, 0, 1])
+		graphics.progs.blob.setlightpos0(2, 2, 2)
+		graphics.progs.blob.setlight0(0)
+		this.draw0(shape, [0, 0])
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+//		gl.viewport(0, 0, canvas.width, canvas.height)
+
+	},
+
+	setup: function () {
+		graphics.progs.blobrender.use()
+		graphics.progs.blobrender.setsampler(5)
+		graphics.progs.blobrender.setntile(this.ntile)
+		var vs = state.viewstate
+		graphics.progs.blobrender.setcanvassize(playpanel.wD, playpanel.hD)
+		graphics.progs.blobrender.setcenter(vs.x0G, vs.y0G)
+		graphics.progs.blobrender.setscale(vs.VzoomG)
+	},
+	
+	draw: function (shape, posG) {
+		graphics.progs.blobrender.setscenter(posG[0], posG[1])
+		graphics.progs.blobrender.settilelocation(0, 0)
+
+		gl.enableVertexAttribArray(graphics.progs.blobrender.attribs.pos)
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.posbuffer)
+		gl.vertexAttribPointer(graphics.progs.blobrender.attribs.pos, 2, gl.FLOAT, false, 0, 0)
+		gl.drawArrays(gl.TRIANGLE_FAN, 0, 8)
 	},
 	
 

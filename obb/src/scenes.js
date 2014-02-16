@@ -13,6 +13,7 @@ function istate() {
 var debugHUD = {
 	alerts: [],
 	timers: {},
+	alerttime: 6000,
 	alert: function (text) {
 		if (!settings.DEBUG) return
 		this.alerts.push([text, Date.now()])
@@ -20,7 +21,7 @@ var debugHUD = {
 	think: function (dt) {
 		if (!settings.DEBUG) return
 		this.alerts = this.alerts.filter(
-			function (alert) { return Date.now() - alert[1] < 2000 }
+			function (alert) { return Date.now() - alert[1] < debugHUD.alerttime }
 		)
 	},
 	draw: function () {
@@ -42,7 +43,7 @@ var debugHUD = {
 		}
 		alerts.forEach(function (alert, j, alerts) {
 			var y = canvas.height - 10 - 24 * (alerts.length - j - 1)
-			var alpha = clamp(4 - (Date.now() - alert[1]) / 500, 0, 1)
+			var alpha = clamp((debugHUD.alerttime - (Date.now() - alert[1])) / 500, 0, 1)
 			text.draw(alert[0], 0.2*h, (0.3 + 1.2 * (alerts.length - j)) * h, {
 				fontsize: h,
 				alpha: alpha,
