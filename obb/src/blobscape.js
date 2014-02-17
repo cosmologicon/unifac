@@ -23,7 +23,7 @@ var blobscape = {
 		this.scale = 16
 		while (this.scale * this.ntile * 4 <= s) this.scale *= 2
 		if (this.scale < 32) throw "blobscape texture is too small"
-		
+
 		this.tilesize = this.scale * 2
 		this.scapesize = this.ntile * this.tilesize
 
@@ -39,11 +39,13 @@ var blobscape = {
 		this.ptexture = gl.createTexture()
 		gl.bindTexture(gl.TEXTURE_2D, this.ptexture)
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.scapesize, this.scapesize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
 		this.pfbo = gl.createFramebuffer()
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.pfbo)
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.ptexture, 0)
+		gl.clearColor(0, 0, 0, 0)
+		gl.clear(gl.COLOR_BUFFER_BIT)
 
 		gl.activeTexture(gl.TEXTURE0 + 6)
 		this.ntexture = gl.createTexture()
@@ -54,6 +56,8 @@ var blobscape = {
 		this.nfbo = gl.createFramebuffer()
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.nfbo)
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.ntexture, 0)
+		gl.clearColor(0.5, 0.5, 0.5, 1)
+		gl.clear(gl.COLOR_BUFFER_BIT)
 
 		gl.activeTexture(gl.TEXTURE0)
 		this.assemble("sphere")
@@ -168,6 +172,9 @@ var blobscape = {
 
 	setup: function () {
 		graphics.progs.blobrender.use()
+		gl.enable(gl.BLEND)
+		// This blend function is appropriate since the texture has premultiplied alphas.
+		gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
 		graphics.progs.blobrender.setpsampler(5)
 		graphics.progs.blobrender.setnsampler(6)
 		graphics.progs.blobrender.setntile(this.ntile)
@@ -180,7 +187,7 @@ var blobscape = {
 		graphics.progs.blobrender.setdlight(0.8*Math.sin(t), 0.8*Math.cos(t), 0.6, 0.2)
 		if (controlstate.mposD) {
 			var mposG = state.viewstate.GconvertD(controlstate.mposD)
-			graphics.progs.blobrender.setplight0(mposG[0], mposG[1], 1, 0.3)
+			graphics.progs.blobrender.setplight0(mposG[0], mposG[1], 0.5, 0.3)
 		} else {
 			graphics.progs.blobrender.setplight0(0, 0, 100, 0)
 		}

@@ -107,6 +107,9 @@ UFX.scenes.play = {
 		debugHUD.starttimer("huddraw")
 		debugHUD.draw()
 		debugHUD.stoptimer("huddraw")
+		
+		graphics.onealpha()
+
 	},
 }
 

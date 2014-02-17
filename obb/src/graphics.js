@@ -15,10 +15,9 @@ var graphics = {
 		if (!gl) throw "Unable to get webgl context"
 		UFX.maximize.fill(canvas, "total")
 
-		gl.clearColor(0, 0, 0, 1)
-
 		this.initunitsquare()
 
+		this.progs.uniform = glprog(UFX.resource.data.coververt, UFX.resource.data.uniformfrag)
 		this.progs.checker = glprog(UFX.resource.data.fullvert, UFX.resource.data.checkerfrag)
 		this.progs.blob = glprog(UFX.resource.data.blobvert, UFX.resource.data.blobfrag)
 		this.progs.blobrender = glprog(UFX.resource.data.blobrendervert, UFX.resource.data.blobrenderfrag)
@@ -27,6 +26,7 @@ var graphics = {
 	},
 
 	clear: function () {
+		gl.clearColor(0, 0, 0, 1)
 		gl.viewport(0, 0, canvas.width, canvas.height)
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	},
@@ -47,6 +47,15 @@ var graphics = {
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.unitsquarebuffer)
 		gl.vertexAttribPointer(attrib, 2, gl.FLOAT, false, 0, 0)
 		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+	},
+	// Set the alpha channel to 1 everywhere. This should be called at the end of the drawing loop
+	// because webGL allows the canvas to bleed through to the background color
+	onealpha: function () {
+		gl.enable(gl.BLEND)
+		gl.blendFunc(gl.ONE, gl.ONE)
+		this.progs.uniform.use()
+		this.progs.uniform.setcolor(0, 0, 0, 1)
+		this.drawunitsquare(this.progs.uniform.attribs.pos)
 	},
 
 	openscreenshot: function () {
