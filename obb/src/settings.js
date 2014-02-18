@@ -29,6 +29,16 @@ var constants = {
 	
 	minVzoomG: 12,
 	maxVzoomG: 120,
+
+	// Geometry constants
+	blobsizemin: 0.05,
+	blobsizemax: 0.08,
+	normaljitter: 0.2,
+	blobdensity: 4000,
+	stalkwidth: 0.15,
+	That0: [0.3, 0.90554, 0.3],
+//	That0: [1, 0, 0],
+	pathsegmentsize: 0.05,
 }
 
 
