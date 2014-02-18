@@ -52,7 +52,7 @@ var playpanel = Panel({
 		graphics.progs.checker.setcanvassize(this.wD, this.hD)
 		graphics.progs.checker.setcenter(vs.x0G, vs.y0G)
 		graphics.progs.checker.setzoom(vs.VzoomG)
-		graphics.drawunitsquare(graphics.progs.checker.attribs.pos)
+//		graphics.drawunitsquare(graphics.progs.checker.attribs.pos)
 
 		blobscape.setup()
 		blobscape.draw("sphere", [0, 0])

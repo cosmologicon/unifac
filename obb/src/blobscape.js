@@ -65,61 +65,15 @@ var blobscape = {
 	},
 
 	build: function (shape) {
-		var data = this.getdata(shape)
-		if (!data.length) throw "unrecognized blob shape " + shape
-		data.sort(function (a, b) { return a[2] - b[2] })
-		data = [].concat.apply([], data)
+		var data = geometry.getdata(shape)
 		this.blobspecs[shape] = {
 			buffer: gl.createBuffer(),
 			n: data.length / 14,
 		}
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[shape].buffer)
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW)
+		gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW)
 		this.rawdata[shape] = data
 	},
-	
-	getdata: function (shape) {
-		var data = []
-		if (shape == "sphere") {
-			var nblob = 2000
-			while (data.length < nblob) {
-				var xG = UFX.random(-1, 1)
-				var yG = UFX.random(-1, 1)
-				var zG = UFX.random(-1, 1)
-				var rG = UFX.random(0.06, 0.12)
-				var dG = Math.sqrt(xG * xG + yG * yG + zG * zG)
-				if (dG + rG > 0.8 || dG < 0.0001) continue
-				var nx = xG/dG + UFX.random(-0.05, 0.05)
-				var ny = yG/dG + UFX.random(-0.05, 0.05)
-				var nz = zG/dG + UFX.random(-0.05, 0.05)
-				var c1 = UFX.random(0.6, 0.65), c2 = 0, c3 = 0
-				var ar = 0, ag = 0, ab = 0
-				var f = dG
-				data.push([xG, yG, zG, rG, 0.5+0.5*nx, 0.5+0.5*ny, 0.5+0.5*nz, c1, c2, c3, ar, ag, ab, f])
-			}
-		} else if (shape == "stalk0") {
-			var nblob = 500
-			while (data.length < nblob) {
-				var xp = UFX.random(-1, 1)
-				var yp = UFX.random(-1, 1)
-				var rG = UFX.random(0.06, 0.12)
-				var dp = Math.sqrt(xp * xp + yp * yp)
-				if (dp * 0.15 + rG > 0.15 || dp < 0.0001) continue
-				var xG = xp/dp * 0.15
-				var yG = UFX.random(-0.866, 0.866)
-				var zG = yp/dp * 0.15
-				var nx = xp/dp + UFX.random(-0.2, 0.2)
-				var ny = 0 + UFX.random(-0.2, 0.2)
-				var nz = yp/dp + UFX.random(-0.2, 0.2)
-				var c1 = UFX.random(0.6, 0.62), c2 = 0, c3 = 0
-				var ar = 0, ag = 0, ab = 0
-				var f = 0.4  // should be a combination of yG and dp
-				data.push([xG, yG, zG, rG, 0.5+0.5*nx, 0.5+0.5*ny, 0.5+0.5*nz, c1, c2, c3, ar, ag, ab, f])
-			}
-		}
-		return data
-	},
-	
 	// Draw directly to the screen using the reference blob shader.
 	draw0: function (shape, posG, progress) {
 		if (!this.blobspecs[shape]) this.build(shape)
@@ -184,7 +138,8 @@ var blobscape = {
 		graphics.progs.blobrender.setscale(vs.VzoomG)
 
 		var t = Date.now() * 0.001
-		graphics.progs.blobrender.setdlight(0.8*Math.sin(t), 0.8*Math.cos(t), 0.6, 0.2)
+//		graphics.progs.blobrender.setdlight(0.8*Math.sin(t), 0.8*Math.cos(t), 0.6, 0.5)
+		graphics.progs.blobrender.setdlight(0, 0, 1, 0.3)
 		if (controlstate.mposD) {
 			var mposG = state.viewstate.GconvertD(controlstate.mposD)
 			graphics.progs.blobrender.setplight0(mposG[0], mposG[1], 0.5, 0.3)
