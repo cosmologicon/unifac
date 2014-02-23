@@ -4,7 +4,7 @@ if (settings.DEBUG) {
 	}
 }
 function clamp(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
-
+var tau = 6.283185307179586
 
 var canvas = document.getElementById("canvas")
 var gl = canvas.getContext("experimental-webgl")

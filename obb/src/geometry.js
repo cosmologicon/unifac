@@ -27,9 +27,13 @@ var geometry = {
 				var f = d
 				data.push([x, y, z, r, 0.5+0.5*nx, 0.5+0.5*ny, 0.5+0.5*nz, c1, c2, c3, ar, ag, ab, f])
 			}
-		} else if (shape == "stalk0") {
-			var nblob = 500
-			data = this.buildstalk(0, 1, 0, 1)
+		} else if (shape.indexOf("stalk") == 0) {
+			data = []
+			var T0 = UFX.random(0.3, 0.6)
+			for (var j = 5 ; j < shape.length ; ++j) {
+				var T1 = UFX.random(0.3, 0.6)
+				data = data.concat(this.buildstalk(0, T0, +shape[j], T1))
+			}
 		}
 
 		if (!data.length) throw "unrecognized blob shape " + shape
@@ -83,10 +87,14 @@ var geometry = {
 	// See notebook pages dated 08-11 Feb 2014 for more information.
 	buildstalk: function (edge0, T0, edge1, T1) {
 		// Bezier control points and differences between them.
-		var x0 = 0, y0 = -0.866025, z0 = 0
-		var x3 = 0, y3 = 0.866025, z3 = 0
-		var dx0 = T0*constants.That0[0], dy0 = T0*constants.That0[1], dz0 = T0*constants.That0[2]
-		var dx2 = T1*constants.That0[0], dy2 = T1*constants.That0[1], dz2 = T1*constants.That0[2]
+		var s3 = 0.866025  // sqrt(3)/2
+		var Thx = constants.That0[0], Thy = constants.That0[1], Thz = constants.That0[2]
+		var S = [0, s3, s3, 0, -s3, -s3][edge0], C = [1, 1/2, -1/2, -1, -1/2, 1/2][edge0]
+		var x0 = s3*S, y0 = -s3*C, z0 = 0
+		var dx0 = T0*(Thx*C-Thy*S), dy0 = T0*(Thx*S+Thy*C), dz0 = T0*Thz
+		var S = [0, s3, s3, 0, -s3, -s3][edge1], C = [1, 1/2, -1/2, -1, -1/2, 1/2][edge1]
+		var x3 = s3*S, y3 = -s3*C, z3 = 0
+		var dx2 = -T1*(Thx*C-Thy*S), dy2 = -T1*(Thx*S+Thy*C), dz2 = -T1*Thz
 		var x1 = x0 + dx0, y1 = y0 + dy0, z1 = z0 + dz0
 		var x2 = x3 - dx2, y2 = y3 - dy2, z2 = z3 - dz2
 		var dx1 = x2 - x1, dy1 = y2 - y1, dz1 = z2 - z1
@@ -174,6 +182,13 @@ var geometry = {
 				var x = p0[0] + g * dpx + A * u[0] + B * (v0[0] + g * dvx)
 				var y = p0[1] + g * dpy + A * u[1] + B * (v0[1] + g * dvy)
 				var z = p0[2] + g * dpz + A * u[2] + B * (v0[2] + g * dvz)
+				
+				// To ensure seamless matchup between tiles, blobs that cross the tile border are
+				// left out here, and a common set of overlap blobs will be added in.
+				var s3 = 0.8660254037844386, bound = s3 - r
+				if (Math.abs(y) > bound) continue
+				if (Math.abs(s3 * x + 0.5 * y) > bound) continue
+				if (Math.abs(s3 * x - 0.5 * y) > bound) continue
 
 				// Base normal vector is q = Au + Bv normalized to unit length.
 				var nx = (A * u[0] + B * (v0[0] + g * dvx)) / d + UFX.random(-0.2, 0.2)

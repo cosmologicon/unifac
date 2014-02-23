@@ -33,11 +33,11 @@ void main(void) {
 	// TODO: tablet fails along the section -1 < yh < 0 without this +0.01. Investigate.
 	int id = int(mod(d + 0.01, 3.0));
 	if (id == 0) {
-		gl_FragColor = vec4(0.3, 0.25, 0.25, 1.0);
+		gl_FragColor = vec4(0.1, 0.06, 0.06, 1.0);
 	} else if (id == 1) {
-		gl_FragColor = vec4(0.25, 0.3, 0.25, 1.0);
+		gl_FragColor = vec4(0.06, 0.1, 0.06, 1.0);
 	} else {
-		gl_FragColor = vec4(0.25, 0.25, 0.3, 1.0);
+		gl_FragColor = vec4(0.06, 0.06, 0.1, 1.0);
 	}
 }
 

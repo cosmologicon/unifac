@@ -60,8 +60,6 @@ var blobscape = {
 		gl.clear(gl.COLOR_BUFFER_BIT)
 
 		gl.activeTexture(gl.TEXTURE0)
-		this.assemble("sphere")
-		this.assemble("stalk0")
 	},
 
 	build: function (shape) {
@@ -139,26 +137,33 @@ var blobscape = {
 
 		var t = Date.now() * 0.001
 //		graphics.progs.blobrender.setdlight(0.8*Math.sin(t), 0.8*Math.cos(t), 0.6, 0.5)
-		graphics.progs.blobrender.setdlight(0, 0, 1, 0.3)
+		graphics.progs.blobrender.setdlight(0, 0.6, 0.8, 0.4)
 		if (controlstate.mposD) {
 			var mposG = state.viewstate.GconvertD(controlstate.mposD)
 			graphics.progs.blobrender.setplight0(mposG[0], mposG[1], 0.5, 0.3)
 		} else {
 			graphics.progs.blobrender.setplight0(0, 0, 100, 0)
 		}
+		gl.enableVertexAttribArray(graphics.progs.blobrender.attribs.pos)
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.posbuffer)
+		gl.vertexAttribPointer(graphics.progs.blobrender.attribs.pos, 2, gl.FLOAT, false, 0, 0)
 	},
 	
-	draw: function (shape, posG) {
+	draw: function (shape, posG, r) {
+		if (!(shape in this.made)) {
+			this.assemble(shape)
+			this.setup()
+		}
 		var N = this.made[shape]
 		var x = Math.floor(N/this.ntile)
 		var y = N % this.ntile
+		var s3 = 0.8660254037844386
+		var C = [1,0.5,-0.5,-1,-0.5,0.5][r], S = [0,s3,s3,0,-s3,-s3][r]
 		graphics.progs.blobrender.settilelocation(x, y)
 
 		graphics.progs.blobrender.setscenter(posG[0], posG[1])
 		graphics.progs.blobrender.setcolormap(false, [0, 0.5, 0.1, 1, 0, 0, 0, 0, 1])
-		gl.enableVertexAttribArray(graphics.progs.blobrender.attribs.pos)
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.posbuffer)
-		gl.vertexAttribPointer(graphics.progs.blobrender.attribs.pos, 2, gl.FLOAT, false, 0, 0)
+		graphics.progs.blobrender.setrotation(false, [C, -S, S, C])
 		gl.drawArrays(gl.TRIANGLE_FAN, 0, 8)
 	},
 	
