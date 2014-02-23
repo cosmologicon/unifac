@@ -100,6 +100,7 @@ glprog.prototype = {
 		vec2: "2f",
 		vec3: "3f",
 		vec4: "4f",
+		mat2: "Matrix2fv",
 		mat3: "Matrix3fv",
 		int: "1i",
 		sampler2D: "1i",

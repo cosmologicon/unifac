@@ -7,6 +7,19 @@ function State() {
 	this.jthing = 1
 	this.things = {}
 	this.viewstate = new ViewState()
+	
+	
+	this.temptiles = []
+	for (var x = -10 ; x <= 10 ; ++x) {
+		for (var y = -10 ; y <= 10 ; ++y) {
+			if (Math.abs(x + y) > 10) continue
+			this.temptiles.push({
+				pG: GconvertH([6*x, 6*y]),
+				shape: UFX.random.choice("sphere stalk1 stalk2 stalk3 stalk4 stalk5 stalk24 stalk13 stalk14 stalk34".split(" ")),
+				r: UFX.random.choice([0, 1, 2, 3, 4, 5]),
+			})
+		}
+	}
 }
 State.prototype = {
 	addthing: function (thingspec) {

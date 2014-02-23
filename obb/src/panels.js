@@ -52,13 +52,16 @@ var playpanel = Panel({
 		graphics.progs.checker.setcanvassize(this.wD, this.hD)
 		graphics.progs.checker.setcenter(vs.x0G, vs.y0G)
 		graphics.progs.checker.setzoom(vs.VzoomG)
-//		graphics.drawunitsquare(graphics.progs.checker.attribs.pos)
+		graphics.drawunitsquare(graphics.progs.checker.attribs.pos)
 
+		debugHUD.starttimer("blobsetup")
 		blobscape.setup()
-		blobscape.draw("sphere", [0, 0])
-		blobscape.draw("sphere", GconvertH([12, -6]))
-		blobscape.draw("sphere", GconvertH([6, 6]))
-		blobscape.draw("stalk0", GconvertH([-12, 6]))
+		debugHUD.stoptimer("blobsetup")
+		debugHUD.starttimer("blobdraw")
+		state.temptiles.forEach(function (tile) {
+			blobscape.draw(tile.shape, tile.pG, tile.r)
+		})
+		debugHUD.stoptimer("blobdraw")
 	},
 	handleldrag: function (cevent) {
 		state.viewstate.snap(-cevent.dposD[0], -cevent.dposD[1])
