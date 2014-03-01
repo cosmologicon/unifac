@@ -17,10 +17,10 @@ void main(void) {
 	vec3 normal = texture2D(nsampler, tcoord).xyz * 2.0 - 1.0;
 	normal.xy = rotation * normal.xy;
 
-	float lfactor = dlight.w * dot(normal, dlight.xyz);
+	float lfactor = clamp(dlight.w * dot(normal, dlight.xyz), 0.0, 0.4);
 
 	vec3 rlight = plight0.xyz - p;
-	lfactor += plight0.w * dot(normal, rlight) / dot(rlight, rlight);
+	lfactor += clamp(plight0.w * dot(normal, rlight) / dot(rlight, rlight), 0.0, 0.4);
 
 	gl_FragColor = vec4((colormap * color.rgb) * (0.6 + clamp(lfactor, 0.0, 0.4)), color.a);
 }

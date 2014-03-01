@@ -85,6 +85,10 @@ function HhexesofedgeH(pH) {
 		: [[x-3, y], [x+3, y]]
 		: [[x, y-3], [x, y+3]]
 }
+// The hex adjacent to the given hex in the direction of the given edge
+function HnexthexH(pH, e) {
+	return [pH[0] + [0, 6, 6, 0, -6, -6][e], pH[1] + [-6, -6, 0, 6, 6, 0][e]]
+}
 
 // Nearest hex to the given hex coordinates
 function HnearesthexH(pH) {

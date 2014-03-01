@@ -39,7 +39,7 @@ var constants = {
 //	blobdensity: 30000,
 	normaljitter: 0.2,
 	stalkwidth: 0.12,
-	That0: [0.3, 0.90554, 0.3],
+	That0: [0.5, 0.812404, 0.3],
 //	That0: [1, 0, 0],
 	pathsegmentsize: 0.05,
 }
