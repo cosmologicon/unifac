@@ -10,16 +10,45 @@ function State() {
 	
 	
 	this.temptiles = []
-	for (var x = -10 ; x <= 10 ; ++x) {
-		for (var y = -10 ; y <= 10 ; ++y) {
-			if (Math.abs(x + y) > 10) continue
-			this.temptiles.push({
-				pG: GconvertH([6*x, 6*y]),
-				shape: UFX.random.choice("sphere stalk1 stalk2 stalk3 stalk4 stalk5 stalk24 stalk13 stalk14 stalk34".split(" ")),
-				r: UFX.random.choice([0, 1, 2, 3, 4, 5]),
-			})
-		}
+	this.temptiles.push({
+		pG: [0, 0],
+		shape: "sphere",
+		r: 0,
+	})
+	var taken = {}
+	taken[NconvertH([0, 0])] = true
+	var nodes = [
+		[[0, 0], 0],
+		[[0, 0], 1],
+		[[0, 0], 2],
+		[[0, 0], 3],
+		[[0, 0], 4],
+		[[0, 0], 5],
+	]
+	function Hnexttile(pH, r, e) {
+		e = (e + r + 3) % 6
+		var xH = pH[0] + [0, 6, 6, 0, -6, -6][e]
+		var yH = pH[1] + [-6, -6, 0, 6, 6, 0][e]
+		return [[xH, yH], e]
 	}
+	for (var j = 0 ; j < 300 && nodes.length ; ++j) {
+		var node = UFX.random.choice(nodes, true), tileH = node[0], edge = node[1]
+		var nextH = HnexthexH(tileH, edge)
+		var pN = NconvertH(nextH)
+		if (taken[pN]) continue
+		taken[pN] = true
+
+		var shape = UFX.random.choice(["stalk1", "stalk2", "stalk3", "stalk4", "stalk5", "stalk13", "stalk14", "stalk23", "stalk24", "stalk25", "stalk34", "stalk35"])
+		for (var k = 5 ; k < shape.length ; ++k) {
+			nodes.push([nextH, (+shape[k] + edge + 3) % 6])
+		}
+		this.temptiles.push({
+			pG: GconvertH(nextH),
+			shape: shape,
+			r: (edge + 3) % 6,
+		})
+	}
+
 }
 State.prototype = {
 	addthing: function (thingspec) {

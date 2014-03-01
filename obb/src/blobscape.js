@@ -163,7 +163,7 @@ var blobscape = {
 
 		graphics.progs.blobrender.setscenter(posG[0], posG[1])
 		graphics.progs.blobrender.setcolormap(false, [0, 0.5, 0.1, 1, 0, 0, 0, 0, 1])
-		graphics.progs.blobrender.setrotation(false, [C, -S, S, C])
+		graphics.progs.blobrender.setrotation(false, [C, S, -S, C])
 		gl.drawArrays(gl.TRIANGLE_FAN, 0, 8)
 	},
 	

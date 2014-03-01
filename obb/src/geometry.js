@@ -28,11 +28,16 @@ var geometry = {
 				data.push([x, y, z, r, 0.5+0.5*nx, 0.5+0.5*ny, 0.5+0.5*nz, c1, c2, c3, ar, ag, ab, f])
 			}
 		} else if (shape.indexOf("stalk") == 0) {
-			data = []
-			var T0 = UFX.random(0.3, 0.6)
+			data = this.stalkjoiner(0, false)
 			for (var j = 5 ; j < shape.length ; ++j) {
-				var T1 = UFX.random(0.3, 0.6)
-				data = data.concat(this.buildstalk(0, T0, +shape[j], T1))
+				var T0 = UFX.random(0.2, 1.3)
+				var T1 = UFX.random(0.2, 1.3)
+				var T1 = 0.25 * (+shape[j])
+				var T0 = 1.5 - T1
+				data = data.concat(
+					this.buildstalk(0, T0, +shape[j], T1),
+					this.stalkjoiner(+shape[j], true)
+				)
 			}
 		}
 
@@ -72,6 +77,16 @@ var geometry = {
 		ret.sort()
 		return ret
 	},
+
+	normcross: function (a, b) {
+		var x = a[1] * b[2] - a[2] * b[1]
+		var y = a[2] * b[0] - a[0] * b[2]
+		var z = a[0] * b[1] - a[1] * b[0]
+		var n = Math.sqrt(x*x + y*y + z*z)
+		if (Math.abs(n) < 0.00001) throw "normcross failure"
+		return [x/n, y/n, z/n]
+	},
+
 	
 	// Generate the blobspec for a single stalk. Branching stalks should be formed by combining
 	// multiple single blobspecs.
@@ -87,7 +102,6 @@ var geometry = {
 	// See notebook pages dated 08-11 Feb 2014 for more information.
 	buildstalk: function (edge0, T0, edge1, T1) {
 		// Bezier control points and differences between them.
-		var s3 = 0.866025  // sqrt(3)/2
 		var Thx = constants.That0[0], Thy = constants.That0[1], Thz = constants.That0[2]
 		var S = [0, s3, s3, 0, -s3, -s3][edge0], C = [1, 1/2, -1/2, -1, -1/2, 1/2][edge0]
 		var x0 = s3*S, y0 = -s3*C, z0 = 0
@@ -101,14 +115,6 @@ var geometry = {
 		// The h-values of the segment boundaries.
 		var hs = this.beziersegments([x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3], constants.pathsegmentsize)
 		var w = constants.stalkwidth, nj = constants.normaljitter
-		function normcross(a, b) {
-			var x = a[1] * b[2] - a[2] * b[1]
-			var y = a[2] * b[0] - a[0] * b[2]
-			var z = a[0] * b[1] - a[1] * b[0]
-			var n = Math.sqrt(x*x + y*y + z*z)
-			if (Math.abs(n) < 0.00001) throw "buildstalk failure"
-			return [x/n, y/n, z/n]
-		}
 		var ps = [], Ts = [], data = []
 		for (var j = 0 ; j < hs.length ; ++j) {
 			// Generate the position and tangent for each segment boundary.
@@ -138,9 +144,9 @@ var geometry = {
 			// interpolated over the segment. Choose v0 perpendicular to T_(j-1) and u, and v1
 			// perpendicular to T_j and u. The v-vector will vary between v0 and v1 over the
 			// length of the segment.
-			var u = normcross(Ts[j-1], Ts[j])
-			var v0 = normcross(u, Ts[j-1])
-			var v1 = normcross(u, Ts[j])
+			var u = this.normcross(Ts[j-1], Ts[j])
+			var v0 = this.normcross(u, Ts[j-1])
+			var v1 = this.normcross(u, Ts[j])
 			var dvx = v1[0] - v0[0], dvy = v1[1] - v0[1], dvz = v1[2] - v0[2]
 
 			// s is the length of the segment. The factor dTs = |T_j - T_(j-1)| / s is related to
@@ -185,7 +191,7 @@ var geometry = {
 				
 				// To ensure seamless matchup between tiles, blobs that cross the tile border are
 				// left out here, and a common set of overlap blobs will be added in.
-				var s3 = 0.8660254037844386, bound = s3 - r
+				var bound = s3 - r
 				if (Math.abs(y) > bound) continue
 				if (Math.abs(s3 * x + 0.5 * y) > bound) continue
 				if (Math.abs(s3 * x - 0.5 * y) > bound) continue
@@ -203,7 +209,82 @@ var geometry = {
 		}
 		return data
 	},
-	
+	// Returns the blobspec for a stalk end cap at the specified edge. Blobs that appear near the
+	// edges use a predetermined set of blobs, so that when different tiles are placed adjacent
+	// they align properly at the edge. Edge numbers go from 0 to 5, and outward is a boolean
+	// representing whether the stalk is exiting or entering the tile at that point. For more
+	// detals on this convention, please see notebook page dated 17 Feb 2014.
+	stalkjoindata: {},  // Memoized return values
+	stalkjoiner: function (edge, outward) {
+		var key = edge + (outward ? 6 : 0)
+		if (key in this.stalkjoindata) return this.stalkjoindata[key]
+		if (!this.stalkjoindata0) {
+			// Generate the blobs that are used for all end caps. This part is similar to buildstalk
+			// with some simplifications. See the buildstalk method and notebook page dated
+			// 11 Feb 2014 for more information.
+			var w = constants.stalkwidth, nj = constants.normaljitter
+			var Thx = constants.That0[0], Thy = constants.That0[1], Thz = constants.That0[2]
+			var data = this.stalkjoindata0 = []
+
+			// Generate a single segment of blobs. d is 1/2 the segment length, chosen so that any
+			// blob that intersects the edge is definitely within this segment.
+			var d = w * Math.sqrt(1 - Thy * Thy) + constants.blobsizemax, s = 2 * d
+			// Starting position and displacement over the blob.
+			var p0 = [-d*Thx, -d*Thy, d*Thz]
+			var dpx = s*Thx, dpy = s*Thy, dpz = s*Thz
+			// Normal vectors perpendicular to That, to form a basis for the displacement of blobs
+			// along the segment.
+			var u = this.normcross(constants.That0, [0, 0, 1])
+			var v = this.normcross(u, constants.That0)
+
+			var nblob = Math.ceil(constants.blobdensity * 4 * w * w * s)
+			for (var k = 0 ; k < nblob ; ++k) {
+				var g = k / nblob
+				// Random displacement with respect to the central stalk axis
+				var A = UFX.random(-w, w)
+				var B = UFX.random(-w, w)
+				var d = Math.sqrt(A*A + B*B)
+				if (d > w) continue
+				// Blob size
+				var r = UFX.random(constants.blobsizemin, constants.blobsizemax)
+				// Blob position is p + q, where q is offset vector given by A u + B v.
+				var x = p0[0] + g * dpx + A * u[0] + B * v[0]
+				var y = p0[1] + g * dpy + A * u[1] + B * v[1]
+				var z = p0[2] + g * dpz + A * u[2] + B * v[2]
+				// We only want to keep blobs that overlap the edge. Blobs that don't overlap the
+				// edge are already covered by the stalk itself.
+				if (Math.abs(y) > r) continue
+				// Base normal vector is q = Au + Bv normalized to unit length.
+				var nx = (A * u[0] + B * v[0]) / d + UFX.random(-0.2, 0.2)
+				var ny = (A * u[1] + B * v[1]) / d + UFX.random(-0.2, 0.2)
+				var nz = (A * u[2] + B * v[2]) / d + UFX.random(-0.2, 0.2)
+				var c1 = UFX.random(0.6, 0.62), c2 = 0, c3 = 0
+				var ar = 0, ag = 0, ab = 0
+				var f = 0.4
+				data.push([x, y, z, r, 0.5+0.5*nx, 0.5+0.5*ny, 0.5+0.5*nz, c1, c2, c3, ar, ag, ab, f])
+			}
+		}
+		// The edge number determines the offset and the rotation matrix of the blobs within the
+		// requested edge spec.
+		var dx = [0, 0.75, 0.75, 0, -0.75, -0.75][edge], dy = [-s3, -s3/2, s3/2, s3, s3/2, -s3/2][edge]
+		var S = [0, s3, s3, 0, -s3, -s3][edge], C = [1, 0.5, -0.5, -1, -0.5, 0.5][edge]
+		if (outward) { S = -S ; C = -C }
+		this.stalkjoindata[key] = this.stalkjoindata0.map(function (blob) {
+			blob = blob.slice()
+			// Note that by normal vector components use [0,1) to represent the range (-1,1), so we
+			// convert back to the range (-1,1) here before applying the transformation, and convert
+			// back to [0,1) again afterward.
+			var x = blob[0], y = blob[1], nx = blob[4]*2-1, ny = blob[5]*2-1
+			// Offset and rotate the blobs as needed
+			blob[0] = C*x - S*y + dx
+			blob[1] = S*x + C*y + dy
+			blob[4] = (C*nx - S*ny + 1) / 2
+			blob[5] = (S*nx + C*ny + 1) / 2
+			// TODO: handle f
+			return blob
+		})
+		return this.stalkjoindata[key]
+	},
 
 }
 
