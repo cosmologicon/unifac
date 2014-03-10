@@ -28,6 +28,8 @@ UFX.resource.load({
 	"rflamefrag": "shaders/rflame.frag",
 	"blobfrag": "shaders/blob.frag",
 	"blobvert": "shaders/blob.vert",
+	"blobnormalfrag": "shaders/blobnormal.frag",
+	"blobnormalvert": "shaders/blobnormal.vert",
 	"blobrenderfrag": "shaders/blobrender.frag",
 	"blobrendervert": "shaders/blobrender.vert",
 })

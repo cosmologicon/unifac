@@ -16,7 +16,9 @@ function State() {
 		r: 0,
 	})
 	var taken = {}
-	taken[NconvertH([0, 0])] = true
+	HedgesofhexH([0, 0]).map(NconvertH).forEach(function (pN) {
+		taken[pN] = true
+	})
 	var nodes = [
 		[[0, 0], 0],
 		[[0, 0], 1],
@@ -34,21 +36,23 @@ function State() {
 	for (var j = 0 ; j < 300 && nodes.length ; ++j) {
 		var node = UFX.random.choice(nodes, true), tileH = node[0], edge = node[1]
 		var nextH = HnexthexH(tileH, edge)
-		var pN = NconvertH(nextH)
-		if (taken[pN]) continue
-		taken[pN] = true
-
-		var shape = UFX.random.choice(["stalk1", "stalk2", "stalk3", "stalk4", "stalk5", "stalk13", "stalk14", "stalk23", "stalk24", "stalk25", "stalk34", "stalk35"])
+		var shape = UFX.random.choice(["stalk1", "stalk2", "stalk3", "stalk4", "stalk5", "stalk13",
+			"stalk14", "stalk23", "stalk24", "stalk25", "stalk34", "stalk35"])
+		var nextnodes = []
 		for (var k = 5 ; k < shape.length ; ++k) {
-			nodes.push([nextH, (+shape[k] + edge + 3) % 6])
+			nextnodes.push([nextH, (+shape[k] + edge + 3) % 6])
 		}
+		var nextedgesN = nextnodes.map(function (node) { return NconvertH(HedgeofhexH(node[0], node[1])) })
+		if (nextedgesN.some(function (pN) { return taken[pN] })) continue
+
+		nextedgesN.forEach(function (pN) { taken[pN] = true })
+		nodes = nodes.concat(nextnodes)
 		this.temptiles.push({
 			pG: GconvertH(nextH),
 			shape: shape,
 			r: (edge + 3) % 6,
 		})
 	}
-
 }
 State.prototype = {
 	addthing: function (thingspec) {

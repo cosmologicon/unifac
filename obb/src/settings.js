@@ -28,12 +28,13 @@ var constants = {
 	viewtargetfactor: 20,
 	
 	minVzoomG: 12,
-	maxVzoomG: 120,
+	maxVzoomG: 320,
 
 	// Geometry constants
-	blobsizemin: 0.05,
-	blobsizemax: 0.08,
-	blobdensity: 10000,
+	blobsize: {
+		sphere: { min: 0.04, max: 0.12, density: 4000 },
+		stalk: { min: 0.02, max: 0.08, density: 8000 },
+	},
 //	blobsizemin: 0.02,
 //	blobsizemax: 0.04,
 //	blobdensity: 30000,
