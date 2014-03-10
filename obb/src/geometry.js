@@ -10,13 +10,13 @@ var geometry = {
 		var data = []
 		if (shape == "sphere") {
 			var R = 0.72
-			var nblob = constants.blobdensity * 4.189 * R * R * R
+			var nblob = constants.blobsize.sphere.density * 4.189 * R * R * R
 			var nj = constants.normaljitter
 			while (data.length < nblob) {
 				var x = UFX.random(-R, R)
 				var y = UFX.random(-R, R)
 				var z = UFX.random(-R, R)
-				var r = UFX.random(constants.blobsizemin, constants.blobsizemax)
+				var r = UFX.random(constants.blobsize.sphere.min, constants.blobsize.sphere.max)
 				var d = Math.sqrt(x * x + y * y + z * z)
 				if (d > R || d < 0.0001) continue
 				var nx = x/d + UFX.random(-nj, nj)
@@ -25,7 +25,7 @@ var geometry = {
 				var c1 = UFX.random(0.6, 0.65), c2 = 0, c3 = 0
 				var ar = 0, ag = 0, ab = 0
 				var f = d
-				data.push([x, y, z, r, 0.5+0.5*nx, 0.5+0.5*ny, 0.5+0.5*nz, c1, c2, c3, ar, ag, ab, f])
+				data.push([x, y, z, r, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
 			}
 		} else if (shape.indexOf("stalk") == 0) {
 			data = this.stalkjoiner(0, false)
@@ -157,7 +157,7 @@ var geometry = {
 			var dTs = Math.sqrt(dTx*dTx + dTy*dTy + dTz*dTz) / s
 
 			// Distribute this many blobs uniformly distributed along the segment.
-			var nblob = Math.ceil(constants.blobdensity * 4 * w * w * s)
+			var nblob = Math.ceil(constants.blobsize.stalk.density * 4 * w * w * s)
 			for (var k = 0 ; k < nblob ; ++k) {
 				var g = k / nblob
 
@@ -179,7 +179,7 @@ var geometry = {
 				if (UFX.random() < 2 * B * dTs / (1 + B * dTs)) B = -B
 
 				// blob size
-				var r = UFX.random(constants.blobsizemin, constants.blobsizemax)
+				var r = UFX.random(constants.blobsize.stalk.min, constants.blobsize.stalk.max)
 				// v vector linearly interpolated between v0 and v1
 				var vx = v0[0]+dvx*g, vy = v0[1]+dvy*g, vz = v0[2]+dvz*g
 				
@@ -204,7 +204,7 @@ var geometry = {
 				var c1 = UFX.random(0.6, 0.62), c2 = 0, c3 = 0
 				var ar = 0, ag = 0, ab = 0
 				var f = 0.4
-				data.push([x, y, z, r, 0.5+0.5*nx, 0.5+0.5*ny, 0.5+0.5*nz, c1, c2, c3, ar, ag, ab, f])
+				data.push([x, y, z, r, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
 			}
 		}
 		return data
@@ -228,7 +228,7 @@ var geometry = {
 
 			// Generate a single segment of blobs. d is 1/2 the segment length, chosen so that any
 			// blob that intersects the edge is definitely within this segment.
-			var d = w * Math.sqrt(1 - Thy * Thy) + constants.blobsizemax, s = 2 * d
+			var d = w * Math.sqrt(1 - Thy * Thy) + constants.blobsize.stalk.max, s = 2 * d
 			// Starting position and displacement over the blob.
 			var p0 = [-d*Thx, -d*Thy, d*Thz]
 			var dpx = s*Thx, dpy = s*Thy, dpz = s*Thz
@@ -237,7 +237,7 @@ var geometry = {
 			var u = this.normcross(constants.That0, [0, 0, 1])
 			var v = this.normcross(u, constants.That0)
 
-			var nblob = Math.ceil(constants.blobdensity * 4 * w * w * s)
+			var nblob = Math.ceil(constants.blobsize.stalk.density * 4 * w * w * s)
 			for (var k = 0 ; k < nblob ; ++k) {
 				var g = k / nblob
 				// Random displacement with respect to the central stalk axis
@@ -246,7 +246,7 @@ var geometry = {
 				var d = Math.sqrt(A*A + B*B)
 				if (d > w) continue
 				// Blob size
-				var r = UFX.random(constants.blobsizemin, constants.blobsizemax)
+				var r = UFX.random(constants.blobsize.stalk.min, constants.blobsize.stalk.max)
 				// Blob position is p + q, where q is offset vector given by A u + B v.
 				var x = p0[0] + g * dpx + A * u[0] + B * v[0]
 				var y = p0[1] + g * dpy + A * u[1] + B * v[1]
@@ -261,7 +261,7 @@ var geometry = {
 				var c1 = UFX.random(0.6, 0.62), c2 = 0, c3 = 0
 				var ar = 0, ag = 0, ab = 0
 				var f = 0.4
-				data.push([x, y, z, r, 0.5+0.5*nx, 0.5+0.5*ny, 0.5+0.5*nz, c1, c2, c3, ar, ag, ab, f])
+				data.push([x, y, z, r, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
 			}
 		}
 		// The edge number determines the offset and the rotation matrix of the blobs within the
@@ -271,15 +271,12 @@ var geometry = {
 		if (outward) { S = -S ; C = -C }
 		this.stalkjoindata[key] = this.stalkjoindata0.map(function (blob) {
 			blob = blob.slice()
-			// Note that by normal vector components use [0,1) to represent the range (-1,1), so we
-			// convert back to the range (-1,1) here before applying the transformation, and convert
-			// back to [0,1) again afterward.
-			var x = blob[0], y = blob[1], nx = blob[4]*2-1, ny = blob[5]*2-1
+			var x = blob[0], y = blob[1], nx = blob[4], ny = blob[5]
 			// Offset and rotate the blobs as needed
 			blob[0] = C*x - S*y + dx
 			blob[1] = S*x + C*y + dy
-			blob[4] = (C*nx - S*ny + 1) / 2
-			blob[5] = (S*nx + C*ny + 1) / 2
+			blob[4] = C*nx - S*ny
+			blob[5] = S*nx + C*ny
 			// TODO: handle f
 			return blob
 		})

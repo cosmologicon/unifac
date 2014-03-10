@@ -8,6 +8,8 @@
 
 // x, y, z, r, c0, c1, c2, nx, ny, nz, f
 
+// (I decided at some point that I need to use texture atlases rather than texture arrays. I don't
+// remember the reason for this choice now, but at any rate texture atlases seem to work fine.)
 
 
 var blobscape = {
@@ -35,6 +37,7 @@ var blobscape = {
 		var s = Math.sqrt(3)/2
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0,-1,0,-0.5,-s,0.5,-s,1,0,0.5,s,-0.5,s,-1,0]), gl.STATIC_DRAW)
 		
+		// The primary color channel framebuffer
 		gl.activeTexture(gl.TEXTURE0 + 5)
 		this.ptexture = gl.createTexture()
 		gl.bindTexture(gl.TEXTURE_2D, this.ptexture)
@@ -44,9 +47,11 @@ var blobscape = {
 		this.pfbo = gl.createFramebuffer()
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.pfbo)
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.ptexture, 0)
+		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) throw "Incomple primary framebuffer"
 		gl.clearColor(0, 0, 0, 0)
 		gl.clear(gl.COLOR_BUFFER_BIT)
 
+		// The normal channel framebuffer
 		gl.activeTexture(gl.TEXTURE0 + 6)
 		this.ntexture = gl.createTexture()
 		gl.bindTexture(gl.TEXTURE_2D, this.ntexture)
@@ -56,6 +61,7 @@ var blobscape = {
 		this.nfbo = gl.createFramebuffer()
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.nfbo)
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.ntexture, 0)
+		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) throw "Incomple normal framebuffer"
 		gl.clearColor(0.5, 0.5, 0.5, 1)
 		gl.clear(gl.COLOR_BUFFER_BIT)
 
@@ -96,6 +102,7 @@ var blobscape = {
 
 		graphics.progs.blob.use()
 		gl.enable(gl.BLEND)
+		gl.enable(gl.DEPTH_TEST)
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 		gl.viewport(x, y, this.tilesize, this.tilesize)
 		graphics.progs.blob.setcanvassize(this.tilesize, this.tilesize)
@@ -110,16 +117,24 @@ var blobscape = {
 		gl.vertexAttribPointer(graphics.progs.blob.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
 		gl.drawArrays(gl.POINTS, 0, this.blobspecs[shape].n)
 
+		graphics.progs.blobnormal.use()
+		gl.blendFunc(gl.ONE, gl.ZERO)
+		gl.viewport(x, y, this.tilesize, this.tilesize)
+		graphics.progs.blobnormal.setcanvassize(this.tilesize, this.tilesize)
+		graphics.progs.blobnormal.setscale(this.scale)
+		graphics.progs.blobnormal.setprogress(1)
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[shape].buffer)
+
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.nfbo)
-		gl.vertexAttribPointer(graphics.progs.blob.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)
-		gl.vertexAttribPointer(graphics.progs.blob.attribs.rad, 1, gl.FLOAT, false, 14*4, 3*4)
-		gl.vertexAttribPointer(graphics.progs.blob.attribs.pcolor, 3, gl.FLOAT, false, 14*4, 4*4)
-		gl.vertexAttribPointer(graphics.progs.blob.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
+		gl.vertexAttribPointer(graphics.progs.blobnormal.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)
+		gl.vertexAttribPointer(graphics.progs.blobnormal.attribs.rad, 1, gl.FLOAT, false, 14*4, 3*4)
+		gl.vertexAttribPointer(graphics.progs.blobnormal.attribs.normal, 3, gl.FLOAT, false, 14*4, 4*4)
+		gl.vertexAttribPointer(graphics.progs.blobnormal.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
 		gl.drawArrays(gl.POINTS, 0, this.blobspecs[shape].n)
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 //		gl.viewport(0, 0, canvas.width, canvas.height)
-
+		gl.disable(gl.DEPTH_TEST)
 	},
 
 	setup: function () {
@@ -137,7 +152,7 @@ var blobscape = {
 
 		var t = Date.now() * 0.001
 //		graphics.progs.blobrender.setdlight(0.8*Math.sin(t), 0.8*Math.cos(t), 0.6, 0.5)
-		graphics.progs.blobrender.setdlight(0, 0.6, 0.8, 0.4)
+		graphics.progs.blobrender.setdlight(0.5/s3, 0.5/s3, 0.5/s3, 1.0)
 		if (controlstate.mposD) {
 			var mposG = state.viewstate.GconvertD(controlstate.mposD)
 			graphics.progs.blobrender.setplight0(mposG[0], mposG[1], 0.5, 0.3)

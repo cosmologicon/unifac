@@ -73,6 +73,11 @@ function HedgesofhexH(pH) {
 	var x = pH[0], y = pH[1]
 	return [[x+3, y], [x, y+3], [x-3, y+3], [x-3, y], [x, y-3], [x+3, y-3]]
 }
+// The edge bordering the given hex in the given edge direction
+// Note that the resulting edge position does not keep any orientation information.
+function HedgeofhexH(pH, e) {
+	return [pH[0] + [0, 3, 3, 0, -3, -3][e], pH[1] + [-3, -3, 0, 3, 3, 0][e]]
+}
 // The six hexes adjacent to the given hex
 function HadjacenthexestohexH(pH) {
 	var x = pH[0], y = pH[1]
@@ -89,6 +94,7 @@ function HhexesofedgeH(pH) {
 function HnexthexH(pH, e) {
 	return [pH[0] + [0, 6, 6, 0, -6, -6][e], pH[1] + [-6, -6, 0, 6, 6, 0][e]]
 }
+
 
 // Nearest hex to the given hex coordinates
 function HnearesthexH(pH) {
