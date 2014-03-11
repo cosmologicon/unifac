@@ -9,7 +9,7 @@ function State() {
 	this.viewstate = new ViewState()
 	
 	
-	this.temptiles = []
+	var temptiles = this.temptiles = []
 	this.temptiles.push({
 		pG: [0, 0],
 		shape: "sphere",
@@ -43,7 +43,10 @@ function State() {
 			nextnodes.push([nextH, (+shape[k] + edge + 3) % 6])
 		}
 		var nextedgesN = nextnodes.map(function (node) { return NconvertH(HedgeofhexH(node[0], node[1])) })
-		if (nextedgesN.some(function (pN) { return taken[pN] })) continue
+		if (nextedgesN.some(function (pN) { return taken[pN] })) {
+			nodes.push(node)
+			continue
+		}
 
 		nextedgesN.forEach(function (pN) { taken[pN] = true })
 		nodes = nodes.concat(nextnodes)
@@ -53,6 +56,13 @@ function State() {
 			r: (edge + 3) % 6,
 		})
 	}
+	nodes.forEach(function (node) {
+		temptiles.push({
+			pG: GconvertH(HnexthexH(node[0], node[1])),
+			shape: "stump",
+			r: (node[1] + 3) % 6,
+		})
+	})
 }
 State.prototype = {
 	addthing: function (thingspec) {

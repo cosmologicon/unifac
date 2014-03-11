@@ -36,34 +36,42 @@ var blobscape = {
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.posbuffer)
 		var s = Math.sqrt(3)/2
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0,-1,0,-0.5,-s,0.5,-s,1,0,0.5,s,-0.5,s,-1,0]), gl.STATIC_DRAW)
-		
+
+		// https://www.khronos.org/registry/webgl/sdk/tests/conformance/textures/mipmap-fbo.html
+
 		// The primary color channel framebuffer
 		gl.activeTexture(gl.TEXTURE0 + 5)
 		this.ptexture = gl.createTexture()
 		gl.bindTexture(gl.TEXTURE_2D, this.ptexture)
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.scapesize, this.scapesize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.scapesize, this.scapesize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
+		gl.bindTexture(gl.TEXTURE_2D, null)
+
 		this.pfbo = gl.createFramebuffer()
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.pfbo)
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.ptexture, 0)
 		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) throw "Incomple primary framebuffer"
 		gl.clearColor(0, 0, 0, 0)
 		gl.clear(gl.COLOR_BUFFER_BIT)
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 
 		// The normal channel framebuffer
 		gl.activeTexture(gl.TEXTURE0 + 6)
 		this.ntexture = gl.createTexture()
 		gl.bindTexture(gl.TEXTURE_2D, this.ntexture)
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.scapesize, this.scapesize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+		gl.bindTexture(gl.TEXTURE_2D, null)
+
 		this.nfbo = gl.createFramebuffer()
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.nfbo)
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.ntexture, 0)
 		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) throw "Incomple normal framebuffer"
 		gl.clearColor(0.5, 0.5, 0.5, 1)
 		gl.clear(gl.COLOR_BUFFER_BIT)
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 
 		gl.activeTexture(gl.TEXTURE0)
 	},
@@ -100,10 +108,25 @@ var blobscape = {
 		var x = Math.floor(N/this.ntile) * this.tilesize
 		var y = N % this.ntile * this.tilesize
 
-		graphics.progs.blob.use()
 		gl.enable(gl.BLEND)
-		gl.enable(gl.DEPTH_TEST)
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+//		gl.enable(gl.DEPTH_TEST)
+		if (constants.outlinewidth) {
+			graphics.progs.bloboutline.use()
+			gl.viewport(x, y, this.tilesize, this.tilesize)
+			graphics.progs.bloboutline.setcanvassize(this.tilesize, this.tilesize)
+			graphics.progs.bloboutline.setscale(this.scale)
+			graphics.progs.bloboutline.setprogress(1)
+			graphics.progs.bloboutline.setwidth(constants.outlinewidth)
+			gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[shape].buffer)
+			gl.bindFramebuffer(gl.FRAMEBUFFER, this.pfbo)
+			gl.vertexAttribPointer(graphics.progs.bloboutline.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)
+			gl.vertexAttribPointer(graphics.progs.bloboutline.attribs.rad, 1, gl.FLOAT, false, 14*4, 3*4)
+			gl.vertexAttribPointer(graphics.progs.bloboutline.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
+			gl.drawArrays(gl.POINTS, 0, this.blobspecs[shape].n)
+		}
+
+		graphics.progs.blob.use()
 		gl.viewport(x, y, this.tilesize, this.tilesize)
 		graphics.progs.blob.setcanvassize(this.tilesize, this.tilesize)
 		graphics.progs.blob.setscale(this.scale)
@@ -134,7 +157,15 @@ var blobscape = {
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 //		gl.viewport(0, 0, canvas.width, canvas.height)
-		gl.disable(gl.DEPTH_TEST)
+//		gl.disable(gl.DEPTH_TEST)
+
+		// http://stackoverflow.com/questions/5291980/is-regeneration-of-mipmaps-when-using-render-to-target-via-fbos-required
+		gl.activeTexture(gl.TEXTURE0 + 5)
+		gl.bindTexture(gl.TEXTURE_2D, this.ptexture)
+		gl.generateMipmap(gl.TEXTURE_2D)
+		gl.activeTexture(gl.TEXTURE0 + 6)
+		gl.bindTexture(gl.TEXTURE_2D, this.ntexture)
+		gl.generateMipmap(gl.TEXTURE_2D)
 	},
 
 	setup: function () {

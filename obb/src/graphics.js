@@ -21,6 +21,7 @@ var graphics = {
 		this.progs.checker = glprog(UFX.resource.data.fullvert, UFX.resource.data.checkerfrag)
 		this.progs.blob = glprog(UFX.resource.data.blobvert, UFX.resource.data.blobfrag)
 		this.progs.blobnormal = glprog(UFX.resource.data.blobnormalvert, UFX.resource.data.blobnormalfrag)
+		this.progs.bloboutline = glprog(UFX.resource.data.bloboutlinevert, UFX.resource.data.bloboutlinefrag)
 		this.progs.blobrender = glprog(UFX.resource.data.blobrendervert, UFX.resource.data.blobrenderfrag)
 		
 		debugHUD.alert("max texture: " + gl.getParameter(gl.MAX_TEXTURE_SIZE) + " " + gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS))
