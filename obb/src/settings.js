@@ -33,16 +33,17 @@ var constants = {
 	// Geometry constants
 	blobsize: {
 		sphere: { min: 0.04, max: 0.12, density: 4000 },
-		stalk: { min: 0.02, max: 0.08, density: 8000 },
+		stalk: { min: 0.03, max: 0.08, density: 16000 },
 	},
-//	blobsizemin: 0.02,
-//	blobsizemax: 0.04,
-//	blobdensity: 30000,
 	normaljitter: 0.2,
-	stalkwidth: 0.12,
-	That0: [0.5, 0.812404, 0.3],
-//	That0: [1, 0, 0],
+	stalkwidth: 0.13,
+	stalkrfactor: 0.7,
+	stumplength: 0.25,
+//	That0: [0.5, 0.812404, 0.3],
+	That0: [0.3, 0.93238, 0.2],
+//	That0: [0.001, 1, 0],
 	pathsegmentsize: 0.05,
+	outlinewidth: 0.03,
 }
 
 

@@ -32,13 +32,15 @@ var geometry = {
 			for (var j = 5 ; j < shape.length ; ++j) {
 				var T0 = UFX.random(0.2, 1.3)
 				var T1 = UFX.random(0.2, 1.3)
-				var T1 = 0.25 * (+shape[j])
-				var T0 = 1.5 - T1
+				var T1 = 0.15 * (+shape[j])
+				var T0 = 0.9 - T1
 				data = data.concat(
 					this.buildstalk(0, T0, +shape[j], T1),
 					this.stalkjoiner(+shape[j], true)
 				)
 			}
+		} else if (shape == "stump") {
+			data = this.stalkjoiner(0, false).concat(this.buildstump())
 		}
 
 		if (!data.length) throw "unrecognized blob shape " + shape
@@ -114,7 +116,8 @@ var geometry = {
 		var dx1 = x2 - x1, dy1 = y2 - y1, dz1 = z2 - z1
 		// The h-values of the segment boundaries.
 		var hs = this.beziersegments([x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3], constants.pathsegmentsize)
-		var w = constants.stalkwidth, nj = constants.normaljitter
+		var w = constants.stalkwidth, nj = constants.normaljitter, ow = constants.outlinewidth
+		var rf = constants.stalkrfactor
 		var ps = [], Ts = [], data = []
 		for (var j = 0 ; j < hs.length ; ++j) {
 			// Generate the position and tangent for each segment boundary.
@@ -166,7 +169,11 @@ var geometry = {
 				var A = UFX.random(-w, w)
 				var B = UFX.random(-w, w)
 				var d = Math.sqrt(A*A + B*B)
-				if (d > w) continue
+
+				// blob size
+				var r = UFX.random(constants.blobsize.stalk.min, constants.blobsize.stalk.max)
+
+				if (d + rf * r > w) continue
 
 				// The mirror transformation. The point of this is to compensate for the fact that
 				// when the segment is curved, there's less volume on the inside of the curve than
@@ -178,8 +185,6 @@ var geometry = {
 				// For a derivation of this formula, please see notebook page dated 08 Feb 2014.
 				if (UFX.random() < 2 * B * dTs / (1 + B * dTs)) B = -B
 
-				// blob size
-				var r = UFX.random(constants.blobsize.stalk.min, constants.blobsize.stalk.max)
 				// v vector linearly interpolated between v0 and v1
 				var vx = v0[0]+dvx*g, vy = v0[1]+dvy*g, vz = v0[2]+dvz*g
 				
@@ -191,7 +196,7 @@ var geometry = {
 				
 				// To ensure seamless matchup between tiles, blobs that cross the tile border are
 				// left out here, and a common set of overlap blobs will be added in.
-				var bound = s3 - r
+				var bound = s3 - (r + ow)
 				if (Math.abs(y) > bound) continue
 				if (Math.abs(s3 * x + 0.5 * y) > bound) continue
 				if (Math.abs(s3 * x - 0.5 * y) > bound) continue
@@ -222,7 +227,8 @@ var geometry = {
 			// Generate the blobs that are used for all end caps. This part is similar to buildstalk
 			// with some simplifications. See the buildstalk method and notebook page dated
 			// 11 Feb 2014 for more information.
-			var w = constants.stalkwidth, nj = constants.normaljitter
+			var w = constants.stalkwidth, nj = constants.normaljitter, ow = constants.outlinewidth
+			var rf = constants.stalkrfactor
 			var Thx = constants.That0[0], Thy = constants.That0[1], Thz = constants.That0[2]
 			var data = this.stalkjoindata0 = []
 
@@ -244,16 +250,16 @@ var geometry = {
 				var A = UFX.random(-w, w)
 				var B = UFX.random(-w, w)
 				var d = Math.sqrt(A*A + B*B)
-				if (d > w) continue
 				// Blob size
 				var r = UFX.random(constants.blobsize.stalk.min, constants.blobsize.stalk.max)
+				if (d + rf * r > w) continue
 				// Blob position is p + q, where q is offset vector given by A u + B v.
 				var x = p0[0] + g * dpx + A * u[0] + B * v[0]
 				var y = p0[1] + g * dpy + A * u[1] + B * v[1]
 				var z = p0[2] + g * dpz + A * u[2] + B * v[2]
 				// We only want to keep blobs that overlap the edge. Blobs that don't overlap the
 				// edge are already covered by the stalk itself.
-				if (Math.abs(y) > r) continue
+				if (Math.abs(y) > r + ow) continue
 				// Base normal vector is q = Au + Bv normalized to unit length.
 				var nx = (A * u[0] + B * v[0]) / d + UFX.random(-0.2, 0.2)
 				var ny = (A * u[1] + B * v[1]) / d + UFX.random(-0.2, 0.2)
@@ -281,6 +287,40 @@ var geometry = {
 			return blob
 		})
 		return this.stalkjoindata[key]
+	},
+	buildstump: function () {
+		var w0 = constants.stalkwidth, nj = constants.normaljitter
+		var s = constants.stumplength, rf = constants.stalkrfactor
+		var Thx = constants.That0[0], Thy = constants.That0[1], Thz = constants.That0[2]
+		var data = []
+		var p0 = [0, -s3, 0]
+		var dpx = s*Thx, dpy = s*Thy, dpz = s*Thz
+		var u = this.normcross(constants.That0, [0, 0, 1])
+		var v = this.normcross(u, constants.That0)
+		var nblob = Math.ceil(constants.blobsize.stalk.density * 4 * w0 * w0 * s)
+		for (var k = 0 ; k < nblob ; ++k) {
+			var g = k / nblob, b = Math.sqrt(1 - g) * 0.8 + 0.2
+			var w = w0 * b
+			var A = UFX.random(-w, w)
+			var B = UFX.random(-w, w)
+			var d = Math.sqrt(A*A + B*B)
+			var r = UFX.random(constants.blobsize.stalk.min, constants.blobsize.stalk.max) * b
+			if (d + rf * r > w) continue
+			// Blob position is p + q, where q is offset vector given by A u + B v.
+			var x = p0[0] + g * dpx + A * u[0] + B * v[0]
+			var y = p0[1] + g * dpy + A * u[1] + B * v[1]
+			var z = p0[2] + g * dpz + A * u[2] + B * v[2]
+			if (y - r < p0[1]) continue
+			// Base normal vector is q = Au + Bv normalized to unit length.
+			var nx = (A * u[0] + B * v[0]) / d + UFX.random(-0.2, 0.2)
+			var ny = (A * u[1] + B * v[1]) / d + UFX.random(-0.2, 0.2)
+			var nz = (A * u[2] + B * v[2]) / d + UFX.random(-0.2, 0.2)
+			var c1 = UFX.random(0.6, 0.62), c2 = 0, c3 = 0
+			var ar = 0, ag = 0, ab = 0
+			var f = 0.4
+			data.push([x, y, z, r, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
+		}
+		return data
 	},
 
 }
