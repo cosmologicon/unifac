@@ -15,10 +15,12 @@ attribute vec2 pos;
 
 varying vec2 tcoord;
 varying vec2 tpos;
+varying float shadefactor;
 
 void main(void) {
 	tcoord = (tilelocation + (pos + 1.0) * 0.5) / ntile;
 	tpos = rotation * pos + scenter;
+	shadefactor = 1.0;
 	vec2 p = (rotation * pos + scenter - center) * 2.0 * scale / canvassize;
 	gl_Position = vec4(p, 0.0, 1.0);
 }

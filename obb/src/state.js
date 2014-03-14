@@ -33,7 +33,7 @@ function State() {
 		var yH = pH[1] + [-6, -6, 0, 6, 6, 0][e]
 		return [[xH, yH], e]
 	}
-	for (var j = 0 ; j < 300 && nodes.length ; ++j) {
+	for (var j = 0 ; j < 1000 && nodes.length ; ++j) {
 		var node = UFX.random.choice(nodes, true), tileH = node[0], edge = node[1]
 		var nextH = HnexthexH(tileH, edge)
 		var shape = UFX.random.choice(["stalk1", "stalk2", "stalk3", "stalk4", "stalk5", "stalk13",

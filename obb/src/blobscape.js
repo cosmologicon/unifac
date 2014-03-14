@@ -203,10 +203,8 @@ var blobscape = {
 		var N = this.made[shape]
 		var x = Math.floor(N/this.ntile)
 		var y = N % this.ntile
-		var s3 = 0.8660254037844386
 		var C = [1,0.5,-0.5,-1,-0.5,0.5][r], S = [0,s3,s3,0,-s3,-s3][r]
 		graphics.progs.blobrender.settilelocation(x, y)
-
 		graphics.progs.blobrender.setscenter(posG[0], posG[1])
 		graphics.progs.blobrender.setcolormap(false, [0, 0.5, 0.1, 1, 0, 0, 0, 0, 1])
 		graphics.progs.blobrender.setrotation(false, [C, S, -S, C])

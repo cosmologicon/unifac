@@ -44,6 +44,13 @@ var playpanel = Panel({
 	GconvertD: function () {
 	
 	},
+	// (Lower limit of) how far off the panel the given point is (0 = visible)
+	GfromvisibleG: function (pG) {
+		return Math.max(0,
+			Math.abs(pG[0] - state.viewstate.x0G) - this.wD / (2 * state.viewstate.VzoomG),
+			Math.abs(pG[1] - state.viewstate.y0G) - this.hD / (2 * state.viewstate.VzoomG)
+		)
+	},
 	draw: function () {
 		var vs = state.viewstate
 		graphics.setviewportD(this.xD, this.yD, this.wD, this.hD)
@@ -59,7 +66,9 @@ var playpanel = Panel({
 		debugHUD.stoptimer("blobsetup")
 		debugHUD.starttimer("blobdraw")
 		state.temptiles.forEach(function (tile) {
-			blobscape.draw(tile.shape, tile.pG, tile.r)
+			if (playpanel.GfromvisibleG(tile.pG) < 1.1) {
+				blobscape.draw(tile.shape, tile.pG, tile.r)
+			}
 		})
 		debugHUD.stoptimer("blobdraw")
 	},

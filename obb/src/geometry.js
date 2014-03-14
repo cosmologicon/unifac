@@ -9,7 +9,7 @@ var geometry = {
 	getdata: function (shape) {
 		var data = []
 		if (shape == "sphere") {
-			var R = 0.72
+			var R = 0.63
 			var nblob = constants.blobsize.sphere.density * 4.189 * R * R * R
 			var nj = constants.normaljitter
 			while (data.length < nblob) {
@@ -26,6 +26,12 @@ var geometry = {
 				var ar = 0, ag = 0, ab = 0
 				var f = d
 				data.push([x, y, z, r, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
+			}
+			for (var j = 0 ; j < 6 ; ++j) {
+				data = data.concat(
+					this.buildshoulder(j),
+					this.stalkjoiner(j, true)
+				)
 			}
 		} else if (shape.indexOf("stalk") == 0) {
 			data = this.stalkjoiner(0, false)
@@ -164,16 +170,24 @@ var geometry = {
 			for (var k = 0 ; k < nblob ; ++k) {
 				var g = k / nblob
 
-				// Randomly generate the offset vector q. A and B are the magnitudes of q projected
-				// onto the u and v unit vectors. The magnitude of q must be within the stalk width.
-				var A = UFX.random(-w, w)
-				var B = UFX.random(-w, w)
-				var d = Math.sqrt(A*A + B*B)
+				if (UFX.random() < 0.002) {
+					do {
+						var theta = UFX.random(tau)
+						var d = w, A = d * Math.sin(theta), B = d * Math.cos(theta)
+					} while (Math.abs(B) < 0.7 * d)
+					var r = 1.2 * constants.blobsize.stalk.max
+				} else {
+					// Randomly generate the offset vector q. A and B are the magnitudes of q projected
+					// onto the u and v unit vectors. The magnitude of q must be within the stalk width.
+					var A = UFX.random(-w, w)
+					var B = UFX.random(-w, w)
+					var d = Math.sqrt(A*A + B*B)
 
-				// blob size
-				var r = UFX.random(constants.blobsize.stalk.min, constants.blobsize.stalk.max)
+					// blob size
+					var r = UFX.random(constants.blobsize.stalk.min, constants.blobsize.stalk.max)
 
-				if (d + rf * r > w) continue
+					if (d + rf * r > w) continue
+				}
 
 				// The mirror transformation. The point of this is to compensate for the fact that
 				// when the segment is curved, there's less volume on the inside of the curve than
@@ -290,7 +304,7 @@ var geometry = {
 	},
 	buildstump: function () {
 		var w0 = constants.stalkwidth, nj = constants.normaljitter
-		var s = constants.stumplength, rf = constants.stalkrfactor
+		var s = constants.stumplength, rf = constants.stalkrfactor, ow = constants.outlinewidth
 		var Thx = constants.That0[0], Thy = constants.That0[1], Thz = constants.That0[2]
 		var data = []
 		var p0 = [0, -s3, 0]
@@ -310,7 +324,48 @@ var geometry = {
 			var x = p0[0] + g * dpx + A * u[0] + B * v[0]
 			var y = p0[1] + g * dpy + A * u[1] + B * v[1]
 			var z = p0[2] + g * dpz + A * u[2] + B * v[2]
-			if (y - r < p0[1]) continue
+			if (y - (r + ow) < p0[1]) continue
+			// Base normal vector is q = Au + Bv normalized to unit length.
+			var nx = (A * u[0] + B * v[0]) / d + UFX.random(-0.2, 0.2)
+			var ny = (A * u[1] + B * v[1]) / d + UFX.random(-0.2, 0.2)
+			var nz = (A * u[2] + B * v[2]) / d + UFX.random(-0.2, 0.2)
+			var c1 = UFX.random(0.6, 0.62), c2 = 0, c3 = 0
+			var ar = 0, ag = 0, ab = 0
+			var f = 0.4
+			data.push([x, y, z, r, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
+		}
+		return data
+	},
+	buildshoulder: function (edge) {
+		var w0 = constants.stalkwidth, nj = constants.normaljitter, ow = constants.outlinewidth
+		var s = constants.stumplength, rf = constants.stalkrfactor
+		var Thx = constants.That0[0], Thy = constants.That0[1], Thz = constants.That0[2]
+		var data = []
+		var x0 = [0, 0.75, 0.75, 0, -0.75, -0.75][edge], y0 = [-s3, -s3/2, s3/2, s3, s3/2, -s3/2][edge]
+		var S = [0, s3, s3, 0, -s3, -s3][edge], C = [1, 0.5, -0.5, -1, -0.5, 0.5][edge]
+		var s = 0.4
+		var nThx = (C*Thx-S*Thy), nThy = (S*Thx+C*Thy)
+		Thx = nThx ; Thy = nThy
+		var dpx = s*Thx, dpy = s*Thy, dpz = s*Thz
+		var p0 = [x0, y0, 0]
+		var u = this.normcross([Thx, Thy, Thz], [0, 0, 1])
+		var v = this.normcross(u, [Thx, Thy, Thz])
+		var nblob = Math.ceil(constants.blobsize.stalk.density * 4 * w0 * w0 * s)
+		for (var k = 0 ; k < nblob ; ++k) {
+			var g = k / nblob, b = 1 + 0.7 * g
+			var w = w0 * b
+			var A = UFX.random(-w, w)
+			var B = UFX.random(-w, w)
+			var d = Math.sqrt(A*A + B*B)
+			var r = UFX.random(constants.blobsize.stalk.min, constants.blobsize.stalk.max) * b
+			if (d + rf * r > w) continue
+			var x = p0[0] + g * dpx + A * u[0] + B * v[0]
+			var y = p0[1] + g * dpy + A * u[1] + B * v[1]
+			var z = p0[2] + g * dpz + A * u[2] + B * v[2]
+			var bound = s3 - (r + ow)
+			if (Math.abs(y) > bound) continue
+			if (Math.abs(s3 * x + 0.5 * y) > bound) continue
+			if (Math.abs(s3 * x - 0.5 * y) > bound) continue
 			// Base normal vector is q = Au + Bv normalized to unit length.
 			var nx = (A * u[0] + B * v[0]) / d + UFX.random(-0.2, 0.2)
 			var ny = (A * u[1] + B * v[1]) / d + UFX.random(-0.2, 0.2)
