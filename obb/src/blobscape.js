@@ -168,7 +168,7 @@ var blobscape = {
 		gl.generateMipmap(gl.TEXTURE_2D)
 	},
 
-	setup: function () {
+	setup: function (fsquirm) {
 		graphics.progs.blobrender.use()
 		gl.enable(gl.BLEND)
 		// This blend function is appropriate since the texture has premultiplied alphas.
@@ -180,8 +180,10 @@ var blobscape = {
 		graphics.progs.blobrender.setcanvassize(playpanel.wD, playpanel.hD)
 		graphics.progs.blobrender.setcenter(vs.x0G, vs.y0G)
 		graphics.progs.blobrender.setscale(vs.VzoomG)
+		graphics.progs.blobrender.setfsquirm(0)
 
 		var t = Date.now() * 0.001
+		graphics.progs.blobrender.sett(t % 1000)
 //		graphics.progs.blobrender.setdlight(0.8*Math.sin(t), 0.8*Math.cos(t), 0.6, 0.5)
 		graphics.progs.blobrender.setdlight(0.5/s3, 0.5/s3, 0.5/s3, 1.0)
 		if (controlstate.mposD) {
@@ -195,7 +197,7 @@ var blobscape = {
 		gl.vertexAttribPointer(graphics.progs.blobrender.attribs.pos, 2, gl.FLOAT, false, 0, 0)
 	},
 	
-	draw: function (shape, posG, r) {
+	draw: function (shape, posG, r, jsquirm) {
 		if (!(shape in this.made)) {
 			this.assemble(shape)
 			this.setup()
@@ -204,6 +206,7 @@ var blobscape = {
 		var x = Math.floor(N/this.ntile)
 		var y = N % this.ntile
 		var C = [1,0.5,-0.5,-1,-0.5,0.5][r], S = [0,s3,s3,0,-s3,-s3][r]
+		graphics.progs.blobrender.setjsquirm(jsquirm)
 		graphics.progs.blobrender.settilelocation(x, y)
 		graphics.progs.blobrender.setscenter(posG[0], posG[1])
 		graphics.progs.blobrender.setcolormap(false, [0, 0.5, 0.1, 1, 0, 0, 0, 0, 1])

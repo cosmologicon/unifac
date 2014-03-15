@@ -40,6 +40,8 @@ var geometry = {
 				var T1 = UFX.random(0.2, 1.3)
 				var T1 = 0.15 * (+shape[j])
 				var T0 = 0.9 - T1
+				var T0 = [0, 0.3, 0.8, 0.9, 0.8, 0.5][+shape[j]]
+				var T1 = [0, 0.5, 0.8, 0.9, 0.8, 0.3][+shape[j]]
 				data = data.concat(
 					this.buildstalk(0, T0, +shape[j], T1),
 					this.stalkjoiner(+shape[j], true)

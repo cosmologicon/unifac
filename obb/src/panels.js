@@ -62,15 +62,18 @@ var playpanel = Panel({
 		graphics.drawunitsquare(graphics.progs.checker.attribs.pos)
 
 		debugHUD.starttimer("blobsetup")
-		blobscape.setup()
+		blobscape.setup(UFX.scenes.play.fsquirm)
 		debugHUD.stoptimer("blobsetup")
 		debugHUD.starttimer("blobdraw")
-		state.temptiles.forEach(function (tile) {
+		state.temptiles.forEach(function (tile, j) {
 			if (playpanel.GfromvisibleG(tile.pG) < 1.1) {
-				blobscape.draw(tile.shape, tile.pG, tile.r)
+				blobscape.draw(tile.shape, tile.pG, tile.r, j)
 			}
 		})
 		debugHUD.stoptimer("blobdraw")
+	},
+	handlemousedown: function (cevent) {
+		
 	},
 	handleldrag: function (cevent) {
 		state.viewstate.snap(-cevent.dposD[0], -cevent.dposD[1])

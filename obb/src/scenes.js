@@ -72,6 +72,8 @@ UFX.scenes.play = {
 		panels = []
 		panels.push(playpanel)
 		controlstate.reset()
+		this.fsquirm = 0
+		this.squirming = true
 	},
 
 	thinkargs: function (dt) {
@@ -96,6 +98,7 @@ UFX.scenes.play = {
 		debugHUD.stoptimer("control")
 
 		state.think(dt)
+		this.fsquirm = clamp(this.fsquirm + 0.5 * dt * (this.squirming ? 1 : -1), 0, 1)
 	},
 	draw: function () {
 		graphics.clear()
