@@ -39,9 +39,11 @@ var constants = {
 	stalkwidth: 0.13,
 	stalkrfactor: 0.7,
 	stumplength: 0.25,
-//	That0: [0.5, 0.812404, 0.3],
-	That0: [0.3, 0.93238, 0.2],
-//	That0: [0.001, 1, 0],
+	That0: [
+		[0.3, 0.93238, 0.2],
+		[0.1, 0.88741, 0.45],
+		[-0.3, 0.93238, 0.2],
+	],
 	pathsegmentsize: 0.05,
 	outlinewidth: 0.03,
 	// growth transitions
@@ -56,8 +58,8 @@ var constants = {
 constants.colors = {
 	system0: [0, 0.6, 0.2],
 	system1: [0.6, 0.2, 0],
-	system2: [0.3, 0, 0.7],
-	core: [0, 0.7, 0],
+	system2: [0.4, 0, 0.9],
+	core: [0.3, 0.5, 0],
 	brain: [1, 0.85, 0.85],
 }
 
