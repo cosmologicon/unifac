@@ -46,7 +46,7 @@ UFX.resource.onload = function () {
 	graphics.init()
 	blobscape.init()
 	text.init()
-	UFX.scene.init({ fps: 60 })
+	UFX.scene.init({ minups: 10, maxups: 120 })
 	UFX.scene.push("play")
 	UFX.key.init()
 	if (!UFX.touch.active) {

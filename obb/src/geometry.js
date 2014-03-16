@@ -24,7 +24,7 @@ var geometry = {
 				var nz = z/d + UFX.random(-nj, nj)
 				var c1 = UFX.random(0.6, 0.65), c2 = 0, c3 = 0
 				var ar = 0, ag = 0, ab = 0
-				var f = d
+				var f = d/R * 0.95
 				data.push([x, y, z, r, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
 			}
 			for (var j = 0 ; j < 6 ; ++j) {
@@ -48,7 +48,7 @@ var geometry = {
 				)
 			}
 		} else if (shape == "stump") {
-			data = this.stalkjoiner(0, false).concat(this.buildstump())
+			data = this.stalkjoiner(0, false, true).concat(this.buildstump())
 		}
 
 		if (!data.length) throw "unrecognized blob shape " + shape
@@ -72,11 +72,11 @@ var geometry = {
 		var x2 = bspec[6] - bspec[0], y2 = bspec[7] - bspec[1], z2 = bspec[8] - bspec[2]
 		var x3 = bspec[9] - bspec[0], y3 = bspec[10] - bspec[1], z3 = bspec[11] - bspec[2]
 		var s2 = s * s
-		var ret = [0, 1]
+		var hs = [0, 1]
 		function subdivide(h0, px0, py0, pz0, h1, px1, py1, pz1) {
 			if ((px1-px0)*(px1-px0) + (py1-py0)*(py1-py0) + (pz1-pz0)*(pz1-pz0) <= s2) return
 			var h = (h0 + h1) / 2
-			ret.push(h)
+			hs.push(h)
 			var px = 3*h*(1-h)*((1-h)*x1 + h*x2) + h*h*h*x3
 			var py = 3*h*(1-h)*((1-h)*y1 + h*y2) + h*h*h*y3
 			var pz = 3*h*(1-h)*((1-h)*z1 + h*z2) + h*h*h*z3
@@ -84,8 +84,18 @@ var geometry = {
 			subdivide(h, px, py, pz, h1, px1, py1, pz1)
 		}
 		subdivide(0, 0, 0, 0, 1, x3, y3, z3)
-		ret.sort()
-		return ret
+		hs.sort()
+		var px0 = 0, py0 = 0, pz0 = 0, Ls = [0]
+		for (var j = 1 ; j < hs.length ; ++j) {
+			var h = hs[j]
+			var px1 = 3*h*(1-h)*((1-h)*x1 + h*x2) + h*h*h*x3
+			var py1 = 3*h*(1-h)*((1-h)*y1 + h*y2) + h*h*h*y3
+			var pz1 = 3*h*(1-h)*((1-h)*z1 + h*z2) + h*h*h*z3
+			var d = Math.sqrt((px1-px0)*(px1-px0) + (py1-py0)*(py1-py0) + (pz1-pz0)*(pz1-pz0))
+			Ls.push(Ls[j-1] + d)
+			px0 = px1 ; py0 = py1 ; pz0 = pz1
+		}
+		return [hs, Ls]
 	},
 
 	normcross: function (a, b) {
@@ -123,7 +133,9 @@ var geometry = {
 		var x2 = x3 - dx2, y2 = y3 - dy2, z2 = z3 - dz2
 		var dx1 = x2 - x1, dy1 = y2 - y1, dz1 = z2 - z1
 		// The h-values of the segment boundaries.
-		var hs = this.beziersegments([x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3], constants.pathsegmentsize)
+		var hLs = this.beziersegments([x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3], constants.pathsegmentsize)
+		var hs = hLs[0], Ls = hLs[1]
+		var L = Ls[Ls.length - 1], fa = 0.5 * (3 - L * constants.growdf0), fb = 1 - fa
 		var w = constants.stalkwidth, nj = constants.normaljitter, ow = constants.outlinewidth
 		var rf = constants.stalkrfactor
 		var ps = [], Ts = [], data = []
@@ -224,7 +236,11 @@ var geometry = {
 
 				var c1 = UFX.random(0.6, 0.62), c2 = 0, c3 = 0
 				var ar = 0, ag = 0, ab = 0
-				var f = 0.4
+				var C = Ls[j-1] + g * (Ls[j] - Ls[j-1])
+				C -= constants.stumplength * (1 - d / w)
+				var fx = -1 + 2 * C/L, fy = fx * (fa + fb * fx * fx)
+				var f = 0.5 + 0.5 * fy
+				f = clamp(f, 0.01, 0.99)
 				data.push([x, y, z, r, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
 			}
 		}
@@ -236,8 +252,8 @@ var geometry = {
 	// representing whether the stalk is exiting or entering the tile at that point. For more
 	// detals on this convention, please see notebook page dated 17 Feb 2014.
 	stalkjoindata: {},  // Memoized return values
-	stalkjoiner: function (edge, outward) {
-		var key = edge + (outward ? 6 : 0)
+	stalkjoiner: function (edge, outward, advanced) {
+		var key = edge + (outward ? 6 : 0) + (advanced ? 12 : 0)
 		if (key in this.stalkjoindata) return this.stalkjoindata[key]
 		if (!this.stalkjoindata0) {
 			// Generate the blobs that are used for all end caps. This part is similar to buildstalk
@@ -282,7 +298,8 @@ var geometry = {
 				var nz = (A * u[2] + B * v[2]) / d + UFX.random(-0.2, 0.2)
 				var c1 = UFX.random(0.6, 0.62), c2 = 0, c3 = 0
 				var ar = 0, ag = 0, ab = 0
-				var f = 0.4
+				var C = g*s - s/2
+				var f = constants.stumplength * constants.growdf0 * (C/constants.stumplength + d*d/(w*w) - 1)
 				data.push([x, y, z, r, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
 			}
 		}
@@ -299,6 +316,8 @@ var geometry = {
 			blob[1] = S*x + C*y + dy
 			blob[4] = C*nx - S*ny
 			blob[5] = S*nx + C*ny
+			if (outward || advanced) blob[13] += 1
+			blob[13] = clamp(blob[13], 0.01, 0.99)
 			// TODO: handle f
 			return blob
 		})
@@ -333,7 +352,9 @@ var geometry = {
 			var nz = (A * u[2] + B * v[2]) / d + UFX.random(-0.2, 0.2)
 			var c1 = UFX.random(0.6, 0.62), c2 = 0, c3 = 0
 			var ar = 0, ag = 0, ab = 0
-			var f = 0.4
+			// See notes dated 15 Mar 2014
+			var C = g * s
+			var f = clamp(1 + s * constants.growdf0 * (C/s + d*d/(w0*w0) - 1), 0.01, 0.99)
 			data.push([x, y, z, r, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
 		}
 		return data
@@ -374,7 +395,9 @@ var geometry = {
 			var nz = (A * u[2] + B * v[2]) / d + UFX.random(-0.2, 0.2)
 			var c1 = UFX.random(0.6, 0.62), c2 = 0, c3 = 0
 			var ar = 0, ag = 0, ab = 0
-			var f = 0.4
+			// See notes dated 15 Mar 2014
+			var C = -g * s
+			var f = clamp(1 + constants.stumplength * constants.growdf0 * (C/constants.stumplength + d*d/(w*w) - 1), 0.01, 0.99)
 			data.push([x, y, z, r, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
 		}
 		return data

@@ -62,18 +62,35 @@ var playpanel = Panel({
 		graphics.drawunitsquare(graphics.progs.checker.attribs.pos)
 
 		debugHUD.starttimer("blobsetup")
-		blobscape.setup(UFX.scenes.play.fsquirm)
+		state.parts.forEach(function (part) {
+			if (playpanel.GfromvisibleG(part.pG) < 1.1) {
+				blobscape.gettile(part.shape, part.f)
+			}
+		})
+		state.stumps.forEach(function (stump) {
+			if (playpanel.GfromvisibleG(stump.pG) < 1.1) {
+				blobscape.gettile(stump.shape, stump.parent.f)
+			}
+		})
+		graphics.setviewportD(this.xD, this.yD, this.wD, this.hD)
+		blobscape.setup()
 		debugHUD.stoptimer("blobsetup")
 		debugHUD.starttimer("blobdraw")
-		state.temptiles.forEach(function (tile, j) {
-			if (playpanel.GfromvisibleG(tile.pG) < 1.1) {
-				blobscape.draw(tile.shape, tile.pG, tile.r, j)
+		state.parts.forEach(function (part) {
+			if (playpanel.GfromvisibleG(part.pG) < 1.1) {
+				blobscape.draw(part.shape, part.pG, part.r, part.f)
+			}
+		})
+		state.stumps.forEach(function (stump) {
+			if (playpanel.GfromvisibleG(stump.pG) < 1.1) {
+				blobscape.draw(stump.shape, stump.pG, stump.r, stump.parent.f)
 			}
 		})
 		debugHUD.stoptimer("blobdraw")
 	},
-	handlemousedown: function (cevent) {
-		
+	handlelclick: function (cevent) {
+		var part = state.addrandompart()
+		state.viewstate.target(part.pG)
 	},
 	handleldrag: function (cevent) {
 		state.viewstate.snap(-cevent.dposD[0], -cevent.dposD[1])
@@ -83,6 +100,8 @@ var playpanel = Panel({
 	},
 	handletap: function (cevent) {
 		debugHUD.alert("tap " + cevent.posD)
+		var part = state.addrandompart()
+		state.viewstate.target(part.pG)
 	},
 	handletrelease: function (cevent) {
 		var vV = [-cevent.vD[0], -cevent.vD[1]]

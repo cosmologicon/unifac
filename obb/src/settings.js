@@ -44,6 +44,10 @@ var constants = {
 //	That0: [0.001, 1, 0],
 	pathsegmentsize: 0.05,
 	outlinewidth: 0.03,
+	// growth transitions
+	growrate: 2.0,
+	growframes: 16,
+	growdf0: 0.6,
 }
 
 

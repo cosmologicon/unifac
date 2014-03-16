@@ -55,6 +55,10 @@ ViewState.prototype = {
 			this.clampzoom()
 		}
 	},
+	target: function (pG) {
+		this.targetx0G = pG[0]
+		this.targety0G = pG[1]
+	},
 	fly: function (vV) {
 		this.vV = vV
 	},
