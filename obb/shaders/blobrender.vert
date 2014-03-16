@@ -5,35 +5,41 @@ precision mediump float;
 uniform vec2 tilelocation;
 uniform float ntile;
 
-uniform vec2 canvassize;
-uniform vec2 center;  // viewport center
-uniform vec2 scenter;  // shape center
-uniform float scale;  // size of 1 unit in pixels
-uniform mat2 rotation;
-uniform float t;
-uniform int jsquirm;
-uniform float fsquirm;
+uniform vec2 canvassizeD;
+attribute vec2 posG;  // position of vertex with respect to shape center
+uniform vec2 vcenterG;  // viewport center
+uniform vec2 scenterG;  // shape center
+uniform float DscaleG;  // size of 1 unit in pixels
+uniform float rotC;
+uniform float rotS;
 
-attribute vec2 pos;
+
+// Squirm factors
+attribute float jsquirm;
+uniform float tsquirm;
+uniform float fsquirm;
 
 varying vec2 tcoord;
 varying vec2 tpos;
 varying float shadefactor;
 
-vec2 squirm(vec2 p, float t) {
-	return 0.08 * sin(vec2(p.y*19.876+0.7*t, p.x*12.923+0.8*t));
-}
+float tau = 6.283185307179586;
 
 void main(void) {
-	tcoord = (tilelocation + (pos + 1.0) * 0.5) / ntile;
+	mat2 invrotation = mat2(rotC, -rotS, rotS, rotC);
+	tcoord = (tilelocation + (invrotation * posG + 1.0) * 0.5) / ntile;
+//	tcoord = (tilelocation + (posG + 1.0) * 0.5) / ntile;
 	shadefactor = 1.0;
-	vec2 p = rotation * pos + scenter;
-	if (length(p) > 1.2) {
-		p += fsquirm * squirm(p, t + (length(pos) > 0.5 ? 0.0 : 18.73) * float(jsquirm));
-	}
-	tpos = p;
-	p = p - center;
-	p = p * 2.0 * scale / canvassize;
+	vec2 pG = posG + scenterG;
+
+	vec2 squirmG = jsquirm == 0.0 ? vec2(0.0, 0.0) : vec2(
+		sin((12.0 + mod(jsquirm, 12.0)) * tau * tsquirm + 1.1 * jsquirm),
+		sin((13.0 + mod(jsquirm, 13.0)) * tau * tsquirm + 1.7 * jsquirm)
+	);
+
+	pG += fsquirm * squirmG;
+	tpos = pG;
+	vec2 p = (pG - vcenterG) * 2.0 * DscaleG / canvassizeD;
 	gl_Position = vec4(p, 0.0, 1.0);
 }
 

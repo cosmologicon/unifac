@@ -55,8 +55,12 @@ var blobscape = {
 
 		this.posbuffer = gl.createBuffer()
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.posbuffer)
-		var s = Math.sqrt(3)/2
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0,-1,0,-0.5,-s,0.5,-s,1,0,0.5,s,-0.5,s,-1,0]), gl.STATIC_DRAW)
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0,-1,0,-0.5,-s3,0.5,-s3,1,0,0.5,s3,-0.5,s3,-1,0]), gl.STATIC_DRAW)
+
+		this.jsquirmbuffer = gl.createBuffer()
+		this.jsquirmdata = []
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.jsquirmbuffer)
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.jsquirmdata), gl.STATIC_DRAW)
 
 		// https://www.khronos.org/registry/webgl/sdk/tests/conformance/textures/mipmap-fbo.html
 
@@ -224,6 +228,32 @@ var blobscape = {
 			return N
 		}
 	},
+	
+	jsquirmindices: {},
+	getjsquirmindex: function (part) {
+		var key = part.pH[0] + "," + part.pH[1] + "," + part.r + "," + part.fixes
+		if (key in this.jsquirmindices) return this.jsquirmindices[key]
+		var dvHs = [[0,0], [-4,2], [-2,-2], [2,-4], [4,-2], [2,2], [-2,4], [-4,2]]
+		var data = dvHs.map(function (dvH, j) {
+			var vpH = [part.pH[0] + dvH[0], part.pH[1] + dvH[1]]
+			var vpG = GconvertH(vpH)
+			if (vpG[0]*vpG[0] + vpG[1]*vpG[1] < 1.2*1.2) return 0
+			var vpN = NconvertH(vpH)
+			if (j == 0) vpN += part.r
+			UFX.random.pushseed(vpN)
+			UFX.random.rand()
+			UFX.random.rand()
+			UFX.random.rand()
+			var n = UFX.random.rand(1, 100)
+			UFX.random.popseed()
+			return n
+		})
+		var index = this.jsquirmindices[key] = 4 * this.jsquirmdata.length
+		this.jsquirmdata = this.jsquirmdata.concat(data)
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.jsquirmbuffer)
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.jsquirmdata), gl.STATIC_DRAW)
+		return index
+	},
 
 	setup: function () {
 		graphics.progs.blobrender.use()
@@ -234,14 +264,14 @@ var blobscape = {
 		graphics.progs.blobrender.setnsampler(6)
 		graphics.progs.blobrender.setntile(this.ntile)
 		var vs = state.viewstate
-		graphics.progs.blobrender.setcanvassize(playpanel.wD, playpanel.hD)
-		graphics.progs.blobrender.setcenter(vs.x0G, vs.y0G)
-		graphics.progs.blobrender.setscale(vs.VzoomG)
-		graphics.progs.blobrender.setfsquirm(0)
+		graphics.progs.blobrender.setcanvassizeD(playpanel.wD, playpanel.hD)
+		graphics.progs.blobrender.setvcenterG(vs.x0G, vs.y0G)
+		graphics.progs.blobrender.setDscaleG(vs.VzoomG)
 
-		var t = Date.now() * 0.001
-		graphics.progs.blobrender.sett(t % 1000)
-//		graphics.progs.blobrender.setdlight(0.8*Math.sin(t), 0.8*Math.cos(t), 0.6, 0.5)
+		var tsquirm = Date.now() * 0.001 / constants.Tsquirm % 1
+		graphics.progs.blobrender.settsquirm(tsquirm)
+		graphics.progs.blobrender.setfsquirm(constants.fsquirm0)
+
 		graphics.progs.blobrender.setdlight(0.5/s3, 0.5/s3, 0.5/s3, 1.0)
 		if (controlstate.mposD) {
 			var mposG = state.viewstate.GconvertD(controlstate.mposD)
@@ -249,25 +279,28 @@ var blobscape = {
 		} else {
 			graphics.progs.blobrender.setplight0(0, 0, 100, 0)
 		}
-		gl.enableVertexAttribArray(graphics.progs.blobrender.attribs.pos)
+		gl.enableVertexAttribArray(graphics.progs.blobrender.attribs.posG)
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.posbuffer)
-		gl.vertexAttribPointer(graphics.progs.blobrender.attribs.pos, 2, gl.FLOAT, false, 0, 0)
+		gl.vertexAttribPointer(graphics.progs.blobrender.attribs.posG, 2, gl.FLOAT, false, 0, 0)
 	},
 	
-	draw: function (shape, posG, r, f) {
-		var N = this.gettile(shape, f)
+	draw: function (part) {
+		var N = this.gettile(part.shape, part.f)
 		var x = N % this.ntile
 		var y = Math.floor(N/this.ntile)
-		var C = [1,0.5,-0.5,-1,-0.5,0.5][r], S = [0,s3,s3,0,-s3,-s3][r]
-		graphics.progs.blobrender.setjsquirm(0)
+		var C = [1,0.5,-0.5,-1,-0.5,0.5][part.r], S = [0,s3,s3,0,-s3,-s3][part.r]
 		graphics.progs.blobrender.settilelocation(x, y)
-		graphics.progs.blobrender.setscenter(posG[0], posG[1])
+		graphics.progs.blobrender.setscenterG(part.pG[0], part.pG[1])
 		graphics.progs.blobrender.setcolormap(false, [0, 0.5, 0.1, 1, 0, 0, 0, 0, 1])
-		graphics.progs.blobrender.setrotation(false, [C, S, -S, C])
+		graphics.progs.blobrender.setrotC(C)
+		graphics.progs.blobrender.setrotS(S)
+
+		gl.enableVertexAttribArray(graphics.progs.blobrender.attribs.jsquirm)
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.jsquirmbuffer)
+		gl.vertexAttribPointer(graphics.progs.blobrender.attribs.jsquirm, 1, gl.FLOAT, false, 0, this.getjsquirmindex(part))
+
 		gl.drawArrays(gl.TRIANGLE_FAN, 0, 8)
 	},
-	
-
 }
 
 

@@ -78,12 +78,12 @@ var playpanel = Panel({
 		debugHUD.starttimer("blobdraw")
 		state.parts.forEach(function (part) {
 			if (playpanel.GfromvisibleG(part.pG) < 1.1) {
-				blobscape.draw(part.shape, part.pG, part.r, part.f)
+				blobscape.draw(part)
 			}
 		})
 		state.stumps.forEach(function (stump) {
 			if (playpanel.GfromvisibleG(stump.pG) < 1.1) {
-				blobscape.draw(stump.shape, stump.pG, stump.r, stump.parent.f)
+				blobscape.draw(stump)
 			}
 		})
 		debugHUD.stoptimer("blobdraw")
