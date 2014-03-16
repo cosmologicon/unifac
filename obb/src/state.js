@@ -96,6 +96,9 @@ State.prototype = {
 				part.f = Math.min(part.f + dt * constants.growrate, 1)
 			}
 		})
+		this.stumps.forEach(function (stump) {
+			stump.f = stump.parent.f
+		})
 	},
 	getspec: function () {
 		var thingspecs = {}

@@ -48,6 +48,9 @@ var constants = {
 	growrate: 2.0,
 	growframes: 16,
 	growdf0: 0.6,
+	
+	fsquirm0: 0.09,
+	Tsquirm: 140,
 }
 
 
