@@ -53,4 +53,11 @@ var constants = {
 	Tsquirm: 140,
 }
 
+constants.colors = {
+	system0: [0, 0.6, 0.2],
+	system1: [0.6, 0.2, 0],
+	system2: [0.3, 0, 0.7],
+	core: [0, 0.7, 0],
+	brain: [1, 0.85, 0.85],
+}
 

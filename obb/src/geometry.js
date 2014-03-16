@@ -9,7 +9,7 @@ var geometry = {
 	getdata: function (shape) {
 		var data = []
 		if (shape == "sphere") {
-			var R = 0.63
+			var R = 0.6
 			var nblob = constants.blobsize.sphere.density * 4.189 * R * R * R
 			var nj = constants.normaljitter
 			while (data.length < nblob) {
@@ -22,8 +22,10 @@ var geometry = {
 				var nx = x/d + UFX.random(-nj, nj)
 				var ny = y/d + UFX.random(-nj, nj)
 				var nz = z/d + UFX.random(-nj, nj)
-				var c1 = UFX.random(0.6, 0.65), c2 = 0, c3 = 0
-				var ar = 0, ag = 0, ab = 0
+				var c1 = 0, c2 = 0, c3 = 0
+				var ar = constants.colors.core[0] * 0.6
+				var ag = constants.colors.core[1] * 0.6
+				var ab = constants.colors.core[2] * 0.6
 				var f = d/R * 0.95
 				data.push([x, y, z, r, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
 			}
@@ -393,8 +395,13 @@ var geometry = {
 			var nx = (A * u[0] + B * v[0]) / d + UFX.random(-0.2, 0.2)
 			var ny = (A * u[1] + B * v[1]) / d + UFX.random(-0.2, 0.2)
 			var nz = (A * u[2] + B * v[2]) / d + UFX.random(-0.2, 0.2)
-			var c1 = UFX.random(0.6, 0.62), c2 = 0, c3 = 0
-			var ar = 0, ag = 0, ab = 0
+			var c1 = 0.6, c2 = 0, c3 = 0
+			var ar = constants.colors.core[0] * 0.6
+			var ag = constants.colors.core[1] * 0.6
+			var ab = constants.colors.core[2] * 0.6
+			ag *= g
+			ab *= g
+			c1 *= 1 - g
 			// See notes dated 15 Mar 2014
 			var C = -g * s
 			var f = clamp(1 + constants.stumplength * constants.growdf0 * (C/constants.stumplength + d*d/(w*w) - 1), 0.01, 0.99)

@@ -98,6 +98,23 @@ var blobscape = {
 		gl.clear(gl.COLOR_BUFFER_BIT)
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 
+		// The additional color channel framebuffer
+		gl.activeTexture(gl.TEXTURE0 + 7)
+		this.atexture = gl.createTexture()
+		gl.bindTexture(gl.TEXTURE_2D, this.atexture)
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.scapesize, this.scapesize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
+		gl.bindTexture(gl.TEXTURE_2D, null)
+
+		this.afbo = gl.createFramebuffer()
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.afbo)
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.atexture, 0)
+		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) throw "Incomple additional framebuffer"
+		gl.clearColor(0, 0, 0, 0)
+		gl.clear(gl.COLOR_BUFFER_BIT)
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+
 		gl.activeTexture(gl.TEXTURE0)
 	},
 
@@ -163,12 +180,34 @@ var blobscape = {
 		graphics.progs.blob.setprogress(f)
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[shape].buffer)
 
-//		gl.bindFramebuffer(gl.FRAMEBUFFER, this.pfbo)
 		gl.vertexAttribPointer(graphics.progs.blob.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)
 		gl.vertexAttribPointer(graphics.progs.blob.attribs.rad, 1, gl.FLOAT, false, 14*4, 3*4)
 		gl.vertexAttribPointer(graphics.progs.blob.attribs.pcolor, 3, gl.FLOAT, false, 14*4, 7*4)
 		gl.vertexAttribPointer(graphics.progs.blob.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
 		gl.drawArrays(gl.POINTS, 0, this.blobspecs[shape].n)
+
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.afbo)
+		if (clear) {
+			gl.enable(gl.SCISSOR_TEST)
+			gl.scissor(x, y, this.tilesize, this.tilesize)
+			gl.clearColor(0, 0, 0, 0)
+			gl.clear(gl.COLOR_BUFFER_BIT)
+			gl.disable(gl.SCISSOR_TEST)
+		}
+
+//		graphics.progs.blob.use()
+//		graphics.progs.blob.setcanvassize(this.tilesize, this.tilesize)
+//		graphics.progs.blob.setscale(this.scale)
+//		graphics.progs.blob.setprogress(f)
+//		gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[shape].buffer)
+
+		gl.vertexAttribPointer(graphics.progs.blob.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)
+		gl.vertexAttribPointer(graphics.progs.blob.attribs.rad, 1, gl.FLOAT, false, 14*4, 3*4)
+		gl.vertexAttribPointer(graphics.progs.blob.attribs.pcolor, 3, gl.FLOAT, false, 14*4, 10*4)
+		gl.vertexAttribPointer(graphics.progs.blob.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
+		gl.drawArrays(gl.POINTS, 0, this.blobspecs[shape].n)
+
 
 		graphics.progs.blobnormal.use()
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.nfbo)
@@ -202,6 +241,9 @@ var blobscape = {
 		gl.generateMipmap(gl.TEXTURE_2D)
 		gl.activeTexture(gl.TEXTURE0 + 6)
 		gl.bindTexture(gl.TEXTURE_2D, this.ntexture)
+		gl.generateMipmap(gl.TEXTURE_2D)
+		gl.activeTexture(gl.TEXTURE0 + 7)
+		gl.bindTexture(gl.TEXTURE_2D, this.atexture)
 		gl.generateMipmap(gl.TEXTURE_2D)
 	},
 	
@@ -262,6 +304,7 @@ var blobscape = {
 		gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
 		graphics.progs.blobrender.setpsampler(5)
 		graphics.progs.blobrender.setnsampler(6)
+		graphics.progs.blobrender.setasampler(7)
 		graphics.progs.blobrender.setntile(this.ntile)
 		var vs = state.viewstate
 		graphics.progs.blobrender.setcanvassizeD(playpanel.wD, playpanel.hD)
@@ -291,7 +334,9 @@ var blobscape = {
 		var C = [1,0.5,-0.5,-1,-0.5,0.5][part.r], S = [0,s3,s3,0,-s3,-s3][part.r]
 		graphics.progs.blobrender.settilelocation(x, y)
 		graphics.progs.blobrender.setscenterG(part.pG[0], part.pG[1])
-		graphics.progs.blobrender.setcolormap(false, [0, 0.5, 0.1, 1, 0, 0, 0, 0, 1])
+		var cs = constants.colors
+		var colormap = cs.system0.concat(cs.system1, cs.system2)
+		graphics.progs.blobrender.setcolormap(false, colormap)
 		graphics.progs.blobrender.setrotC(C)
 		graphics.progs.blobrender.setrotS(S)
 
