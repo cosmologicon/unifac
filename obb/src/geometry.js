@@ -9,7 +9,7 @@ var geometry = {
 	getdata: function (shape) {
 		var data = []
 		if (shape == "sphere") {
-			var R = 0.6
+			var R = 0.55
 			var nblob = constants.blobsize.sphere.density * 4.189 * R * R * R
 			var nj = constants.normaljitter
 			while (data.length < nblob) {
@@ -30,14 +30,16 @@ var geometry = {
 				data.push([x, y, z, r, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
 			}
 			for (var j = 0 ; j < 6 ; ++j) {
+				var jsystem = j % 3
 				data = data.concat(
-					this.buildshoulder(j),
-					this.stalkjoiner(j, true)
+					this.buildshoulder(j, jsystem),
+					this.stalkjoiner(j, true, false, jsystem)
 				)
 			}
 		} else if (shape.indexOf("stalk") == 0) {
-			data = this.stalkjoiner(0, false)
-			for (var j = 5 ; j < shape.length ; ++j) {
+			var jsystem = +shape[5]
+			data = this.stalkjoiner(0, false, false, jsystem)
+			for (var j = 6 ; j < shape.length ; ++j) {
 				var T0 = UFX.random(0.2, 1.3)
 				var T1 = UFX.random(0.2, 1.3)
 				var T1 = 0.15 * (+shape[j])
@@ -45,12 +47,13 @@ var geometry = {
 				var T0 = [0, 0.3, 0.8, 0.9, 0.8, 0.5][+shape[j]]
 				var T1 = [0, 0.5, 0.8, 0.9, 0.8, 0.3][+shape[j]]
 				data = data.concat(
-					this.buildstalk(0, T0, +shape[j], T1),
-					this.stalkjoiner(+shape[j], true)
+					this.buildstalk(0, T0, +shape[j], T1, jsystem),
+					this.stalkjoiner(+shape[j], true, false, jsystem)
 				)
 			}
-		} else if (shape == "stump") {
-			data = this.stalkjoiner(0, false, true).concat(this.buildstump())
+		} else if (shape.indexOf("stump") == 0) {
+			var jsystem = +shape[5]
+			data = this.stalkjoiner(0, false, true, jsystem).concat(this.buildstump(jsystem))
 		}
 
 		if (!data.length) throw "unrecognized blob shape " + shape
@@ -122,9 +125,12 @@ var geometry = {
 	// well. Finally, there's a correction term depending on the segment's curvature, so that more
 	// blobs get placed on the outside curve to keep the density of blobs more uniform.
 	// See notebook pages dated 08-11 Feb 2014 for more information.
-	buildstalk: function (edge0, T0, edge1, T1) {
+	buildstalk: function (edge0, T0, edge1, T1, jsystem) {
+		var color = [0, 0, 0]
+		color[jsystem] = 0.6
 		// Bezier control points and differences between them.
-		var Thx = constants.That0[0], Thy = constants.That0[1], Thz = constants.That0[2]
+		var That0 = constants.That0[jsystem]
+		var Thx = That0[0], Thy = That0[1], Thz = That0[2]
 		var S = [0, s3, s3, 0, -s3, -s3][edge0], C = [1, 1/2, -1/2, -1, -1/2, 1/2][edge0]
 		var x0 = s3*S, y0 = -s3*C, z0 = 0
 		var dx0 = T0*(Thx*C-Thy*S), dy0 = T0*(Thx*S+Thy*C), dz0 = T0*Thz
@@ -236,14 +242,13 @@ var geometry = {
 				var ny = (A * u[1] + B * (v0[1] + g * dvy)) / d + UFX.random(-0.2, 0.2)
 				var nz = (A * u[2] + B * (v0[2] + g * dvz)) / d + UFX.random(-0.2, 0.2)
 
-				var c1 = UFX.random(0.6, 0.62), c2 = 0, c3 = 0
 				var ar = 0, ag = 0, ab = 0
 				var C = Ls[j-1] + g * (Ls[j] - Ls[j-1])
 				C -= constants.stumplength * (1 - d / w)
 				var fx = -1 + 2 * C/L, fy = fx * (fa + fb * fx * fx)
 				var f = 0.5 + 0.5 * fy
 				f = clamp(f, 0.01, 0.99)
-				data.push([x, y, z, r, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
+				data.push([x, y, z, r, nx, ny, nz, color[0], color[1], color[2], ar, ag, ab, f])
 			}
 		}
 		return data
@@ -254,8 +259,8 @@ var geometry = {
 	// representing whether the stalk is exiting or entering the tile at that point. For more
 	// detals on this convention, please see notebook page dated 17 Feb 2014.
 	stalkjoindata: {},  // Memoized return values
-	stalkjoiner: function (edge, outward, advanced) {
-		var key = edge + (outward ? 6 : 0) + (advanced ? 12 : 0)
+	stalkjoiner: function (edge, outward, advanced, jsystem) {
+		var key = edge + (outward ? 6 : 0) + (advanced ? 12 : 0) + (jsystem * 36)
 		if (key in this.stalkjoindata) return this.stalkjoindata[key]
 		if (!this.stalkjoindata0) {
 			// Generate the blobs that are used for all end caps. This part is similar to buildstalk
@@ -263,7 +268,8 @@ var geometry = {
 			// 11 Feb 2014 for more information.
 			var w = constants.stalkwidth, nj = constants.normaljitter, ow = constants.outlinewidth
 			var rf = constants.stalkrfactor
-			var Thx = constants.That0[0], Thy = constants.That0[1], Thz = constants.That0[2]
+			var That0 = constants.That0[jsystem]
+			var Thx = That0[0], Thy = That0[1], Thz = That0[2]
 			var data = this.stalkjoindata0 = []
 
 			// Generate a single segment of blobs. d is 1/2 the segment length, chosen so that any
@@ -274,8 +280,8 @@ var geometry = {
 			var dpx = s*Thx, dpy = s*Thy, dpz = s*Thz
 			// Normal vectors perpendicular to That, to form a basis for the displacement of blobs
 			// along the segment.
-			var u = this.normcross(constants.That0, [0, 0, 1])
-			var v = this.normcross(u, constants.That0)
+			var u = this.normcross(That0, [0, 0, 1])
+			var v = this.normcross(u, That0)
 
 			var nblob = Math.ceil(constants.blobsize.stalk.density * 4 * w * w * s)
 			for (var k = 0 ; k < nblob ; ++k) {
@@ -318,6 +324,9 @@ var geometry = {
 			blob[1] = S*x + C*y + dy
 			blob[4] = C*nx - S*ny
 			blob[5] = S*nx + C*ny
+			var c = blob[7]
+			blob[7] = blob[8] = blob[9] = 0
+			blob[7+jsystem] = c
 			if (outward || advanced) blob[13] += 1
 			blob[13] = clamp(blob[13], 0.01, 0.99)
 			// TODO: handle f
@@ -325,15 +334,18 @@ var geometry = {
 		})
 		return this.stalkjoindata[key]
 	},
-	buildstump: function () {
+	buildstump: function (jsystem) {
+		var color = [0, 0, 0]
+		color[jsystem] = 0.6
 		var w0 = constants.stalkwidth, nj = constants.normaljitter
 		var s = constants.stumplength, rf = constants.stalkrfactor, ow = constants.outlinewidth
-		var Thx = constants.That0[0], Thy = constants.That0[1], Thz = constants.That0[2]
+		var That0 = constants.That0[jsystem]
+		var Thx = That0[0], Thy = That0[1], Thz = That0[2]
 		var data = []
 		var p0 = [0, -s3, 0]
 		var dpx = s*Thx, dpy = s*Thy, dpz = s*Thz
-		var u = this.normcross(constants.That0, [0, 0, 1])
-		var v = this.normcross(u, constants.That0)
+		var u = this.normcross(That0, [0, 0, 1])
+		var v = this.normcross(u, That0)
 		var nblob = Math.ceil(constants.blobsize.stalk.density * 4 * w0 * w0 * s)
 		for (var k = 0 ; k < nblob ; ++k) {
 			var g = k / nblob, b = Math.sqrt(1 - g) * 0.8 + 0.2
@@ -352,23 +364,25 @@ var geometry = {
 			var nx = (A * u[0] + B * v[0]) / d + UFX.random(-0.2, 0.2)
 			var ny = (A * u[1] + B * v[1]) / d + UFX.random(-0.2, 0.2)
 			var nz = (A * u[2] + B * v[2]) / d + UFX.random(-0.2, 0.2)
-			var c1 = UFX.random(0.6, 0.62), c2 = 0, c3 = 0
 			var ar = 0, ag = 0, ab = 0
 			// See notes dated 15 Mar 2014
 			var C = g * s
 			var f = clamp(1 + s * constants.growdf0 * (C/s + d*d/(w0*w0) - 1), 0.01, 0.99)
-			data.push([x, y, z, r, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
+			data.push([x, y, z, r, nx, ny, nz, color[0], color[1], color[2], ar, ag, ab, f])
 		}
 		return data
 	},
-	buildshoulder: function (edge) {
+	buildshoulder: function (edge, jsystem) {
+		var color = [0, 0, 0]
+		color[jsystem] = 0.6
 		var w0 = constants.stalkwidth, nj = constants.normaljitter, ow = constants.outlinewidth
 		var s = constants.stumplength, rf = constants.stalkrfactor
-		var Thx = constants.That0[0], Thy = constants.That0[1], Thz = constants.That0[2]
+		var That0 = constants.That0[jsystem]
+		var Thx = That0[0], Thy = That0[1], Thz = That0[2]
 		var data = []
 		var x0 = [0, 0.75, 0.75, 0, -0.75, -0.75][edge], y0 = [-s3, -s3/2, s3/2, s3, s3/2, -s3/2][edge]
 		var S = [0, s3, s3, 0, -s3, -s3][edge], C = [1, 0.5, -0.5, -1, -0.5, 0.5][edge]
-		var s = 0.4
+		var s = 0.6
 		var nThx = (C*Thx-S*Thy), nThy = (S*Thx+C*Thy)
 		Thx = nThx ; Thy = nThy
 		var dpx = s*Thx, dpy = s*Thy, dpz = s*Thz
@@ -377,7 +391,7 @@ var geometry = {
 		var v = this.normcross(u, [Thx, Thy, Thz])
 		var nblob = Math.ceil(constants.blobsize.stalk.density * 4 * w0 * w0 * s)
 		for (var k = 0 ; k < nblob ; ++k) {
-			var g = k / nblob, b = 1 + 0.7 * g
+			var g = k / nblob, b = 1 + 0.9 * g
 			var w = w0 * b
 			var A = UFX.random(-w, w)
 			var B = UFX.random(-w, w)
@@ -395,17 +409,17 @@ var geometry = {
 			var nx = (A * u[0] + B * v[0]) / d + UFX.random(-0.2, 0.2)
 			var ny = (A * u[1] + B * v[1]) / d + UFX.random(-0.2, 0.2)
 			var nz = (A * u[2] + B * v[2]) / d + UFX.random(-0.2, 0.2)
-			var c1 = 0.6, c2 = 0, c3 = 0
-			var ar = constants.colors.core[0] * 0.6
-			var ag = constants.colors.core[1] * 0.6
-			var ab = constants.colors.core[2] * 0.6
-			ag *= g
-			ab *= g
-			c1 *= 1 - g
+			var sg = g
+			var c0 = color[0] * (1 - sg)
+			var c1 = color[1] * (1 - sg)
+			var c2 = color[2] * (1 - sg)
+			var ar = constants.colors.core[0] * 0.6 * sg
+			var ag = constants.colors.core[1] * 0.6 * sg
+			var ab = constants.colors.core[2] * 0.6 * sg
 			// See notes dated 15 Mar 2014
 			var C = -g * s
 			var f = clamp(1 + constants.stumplength * constants.growdf0 * (C/constants.stumplength + d*d/(w*w) - 1), 0.01, 0.99)
-			data.push([x, y, z, r, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
+			data.push([x, y, z, r, nx, ny, nz, c0, c1, c2, ar, ag, ab, f])
 		}
 		return data
 	},

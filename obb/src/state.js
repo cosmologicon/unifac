@@ -26,7 +26,7 @@ function State() {
 			pH: pH,
 			pG: GconvertH(pH),
 			pE: EconvertH(pH, r),
-			shape: "stump",
+			shape: "stump" + (edge % 3),
 			r: r,
 			parent: core,
 		}
@@ -40,7 +40,7 @@ State.prototype = {
 	},
 	canaddpart: function (shape, pH, edge) {
 		if (shape.slice(0, 5) == "stalk") {
-			for (var j = 5 ; j < shape.length ; ++j) {
+			for (var j = 6 ; j < shape.length ; ++j) {
 				var nedge = (+shape[j] + edge) % 6
 				var pedgeN = NedgeofhexH(pH, nedge)
 				if (this.claimededges[pedgeN]) return false
@@ -60,7 +60,7 @@ State.prototype = {
 		}
 		this.parts.push(part)
 		if (shape.slice(0, 5) == "stalk") {
-			for (var j = 5 ; j < shape.length ; ++j) {
+			for (var j = 6 ; j < shape.length ; ++j) {
 				var nedge = (+shape[j] + edge) % 6
 				var pstumpH = HnexthexH(pH, nedge)
 				var r = (nedge + 3) % 6
@@ -68,7 +68,7 @@ State.prototype = {
 					pH: pstumpH,
 					pG: GconvertH(pstumpH),
 					pE: EconvertH(pstumpH, r),
-					shape: "stump",
+					shape: "stump" + shape[5],
 					r: r,
 					parent: part,
 				})
@@ -81,8 +81,9 @@ State.prototype = {
 	addrandompart: function () {
 		while (true) {
 			var stump = UFX.random.choice(this.stumps)
-			var shape = UFX.random.choice(["stalk1", "stalk2", "stalk3", "stalk4", "stalk5", "stalk13",
-				"stalk14", "stalk23", "stalk24", "stalk25", "stalk34", "stalk35"])
+			var jsystem = stump.shape[5]
+			var shape = "stalk" + jsystem + UFX.random.choice([
+				"1", "2", "3", "4", "5", "13", "14", "23", "24", "25", "34", "35"])
 			var pH = stump.pH
 			var edge = stump.r
 			if (!this.canaddpart(shape, pH, edge)) continue
