@@ -26,6 +26,10 @@
 
 // Mouse coordinates (M): Very similar to device coordinates, but y = 0 on the top of the window.
 
+// Edge position (E): This is a special variant of number position that's only defined for edges. As
+// such, it's only a single number and is suitable for being used as an object key. Edge position
+// preserves orientation of the edge, so is useful when you need directionality.
+
 
 // Convert hex coordinates to game coordinates
 function GconvertH(pH) {
@@ -78,6 +82,10 @@ function HedgesofhexH(pH) {
 function HedgeofhexH(pH, e) {
 	return [pH[0] + [0, 3, 3, 0, -3, -3][e], pH[1] + [-3, -3, 0, 3, 3, 0][e]]
 }
+// Number position of the edge bordering the given hex in the given edge direction.
+function NedgeofhexH(pH, e) {
+	return NconvertH(HedgeofhexH(pH, e))
+}
 // The six hexes adjacent to the given hex
 function HadjacenthexestohexH(pH) {
 	var x = pH[0], y = pH[1]
@@ -93,6 +101,18 @@ function HhexesofedgeH(pH) {
 // The hex adjacent to the given hex in the direction of the given edge
 function HnexthexH(pH, e) {
 	return [pH[0] + [0, 6, 6, 0, -6, -6][e], pH[1] + [-6, -6, 0, 6, 6, 0][e]]
+}
+// Convert hex + edge number to edge position
+// The hex is the "parent" hex, and the edge number is for the outward edge with respect to the
+// parent hex.
+function EconvertH(pH, e) {
+	return NconvertH([pH[0]+e, pH[1]])
+}
+// Convert edge position back to parent hex + outward edge number
+// returns [pH, e]
+function HconvertE(pE) {
+	var pH = HconvertN(+pE), e = pH[0] % 6
+	return [[pH[0]-e, pH[1]], e]
 }
 
 

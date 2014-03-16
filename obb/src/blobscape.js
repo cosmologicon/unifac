@@ -17,10 +17,31 @@ var blobscape = {
 		this.rawdata = {}
 		this.blobspecs = {}
 
-		this.nmade = 0
-		this.made = {}
-		
+		// The blobscape itself is square, and consists of ntile x ntile square tiles, which are
+		// filled in as requested. Tiles are numbered starting at 0 in the lower left and counting
+		// up left to right and bottom to top.
 		this.ntile = 8
+
+		// Map from a tile specification (generally the name of the shape) to the tile number.
+		this.made = {}
+		// Number of tiles assembled so far.
+		this.nmade = 0
+
+		// A certain number of tiles are "quick" tiles. These can be overdrawn as needed, and are
+		// used for tile specifications that are only needed briefly (typically 1 frame). The main
+		// use case is growth transition frames. The top nquick tile spots are reserved for quick
+		// tiles.
+		this.nquick = 8
+		// The next quick tile to assemble. This value rotates through the available quick tiles so
+		// that once they're assembled they stick around in case they need to be reused.
+		this.jquick = 0
+		// Tile number of first quick tile.
+		this.quick0 = this.ntile * this.ntile - this.nquick
+		// Maps from tile spec to quick tile number and back (these are deleted when a quick tile
+		// is overwritten).
+		this.qmade = {}
+		this.qspec = {}
+
 		var s = Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE), 4096)
 		this.scale = 16
 		while (this.scale * this.ntile * 4 <= s) this.scale *= 2
@@ -102,24 +123,30 @@ var blobscape = {
 	},
 	
 	// Render the given shape to the blobscape
-	assemble: function (shape) {
+	assemble: function (N, shape, f, clear) {
 		if (!this.blobspecs[shape]) this.build(shape)
-		var N = this.made[shape] = this.nmade++
-		var x = Math.floor(N/this.ntile) * this.tilesize
-		var y = N % this.ntile * this.tilesize
+		if (f === undefined) f = 1
+		var x = N % this.ntile * this.tilesize
+		var y = Math.floor(N/this.ntile) * this.tilesize
 
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.pfbo)
 		gl.enable(gl.BLEND)
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-//		gl.enable(gl.DEPTH_TEST)
+		gl.viewport(x, y, this.tilesize, this.tilesize)
+		if (clear) {
+			gl.enable(gl.SCISSOR_TEST)
+			gl.scissor(x, y, this.tilesize, this.tilesize)
+			gl.clearColor(0, 0, 0, 0)
+			gl.clear(gl.COLOR_BUFFER_BIT)
+			gl.disable(gl.SCISSOR_TEST)
+		}
 		if (constants.outlinewidth) {
 			graphics.progs.bloboutline.use()
-			gl.viewport(x, y, this.tilesize, this.tilesize)
 			graphics.progs.bloboutline.setcanvassize(this.tilesize, this.tilesize)
 			graphics.progs.bloboutline.setscale(this.scale)
-			graphics.progs.bloboutline.setprogress(1)
+			graphics.progs.bloboutline.setprogress(f)
 			graphics.progs.bloboutline.setwidth(constants.outlinewidth)
 			gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[shape].buffer)
-			gl.bindFramebuffer(gl.FRAMEBUFFER, this.pfbo)
 			gl.vertexAttribPointer(graphics.progs.bloboutline.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)
 			gl.vertexAttribPointer(graphics.progs.bloboutline.attribs.rad, 1, gl.FLOAT, false, 14*4, 3*4)
 			gl.vertexAttribPointer(graphics.progs.bloboutline.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
@@ -127,13 +154,12 @@ var blobscape = {
 		}
 
 		graphics.progs.blob.use()
-		gl.viewport(x, y, this.tilesize, this.tilesize)
 		graphics.progs.blob.setcanvassize(this.tilesize, this.tilesize)
 		graphics.progs.blob.setscale(this.scale)
-		graphics.progs.blob.setprogress(1)
+		graphics.progs.blob.setprogress(f)
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[shape].buffer)
 
-		gl.bindFramebuffer(gl.FRAMEBUFFER, this.pfbo)
+//		gl.bindFramebuffer(gl.FRAMEBUFFER, this.pfbo)
 		gl.vertexAttribPointer(graphics.progs.blob.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)
 		gl.vertexAttribPointer(graphics.progs.blob.attribs.rad, 1, gl.FLOAT, false, 14*4, 3*4)
 		gl.vertexAttribPointer(graphics.progs.blob.attribs.pcolor, 3, gl.FLOAT, false, 14*4, 7*4)
@@ -141,14 +167,21 @@ var blobscape = {
 		gl.drawArrays(gl.POINTS, 0, this.blobspecs[shape].n)
 
 		graphics.progs.blobnormal.use()
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.nfbo)
+		if (clear) {
+			gl.enable(gl.SCISSOR_TEST)
+			gl.scissor(x, y, this.tilesize, this.tilesize)
+			gl.clearColor(0.5, 0.5, 0.5, 1)
+			gl.clear(gl.COLOR_BUFFER_BIT)
+			gl.disable(gl.SCISSOR_TEST)
+		}
 		gl.blendFunc(gl.ONE, gl.ZERO)
 		gl.viewport(x, y, this.tilesize, this.tilesize)
 		graphics.progs.blobnormal.setcanvassize(this.tilesize, this.tilesize)
 		graphics.progs.blobnormal.setscale(this.scale)
-		graphics.progs.blobnormal.setprogress(1)
+		graphics.progs.blobnormal.setprogress(f)
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[shape].buffer)
 
-		gl.bindFramebuffer(gl.FRAMEBUFFER, this.nfbo)
 		gl.vertexAttribPointer(graphics.progs.blobnormal.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)
 		gl.vertexAttribPointer(graphics.progs.blobnormal.attribs.rad, 1, gl.FLOAT, false, 14*4, 3*4)
 		gl.vertexAttribPointer(graphics.progs.blobnormal.attribs.normal, 3, gl.FLOAT, false, 14*4, 4*4)
@@ -167,8 +200,32 @@ var blobscape = {
 		gl.bindTexture(gl.TEXTURE_2D, this.ntexture)
 		gl.generateMipmap(gl.TEXTURE_2D)
 	},
+	
+	gettile: function (shape, f) {
+		if (f === undefined || f == 1) {
+			if (shape in this.made) return this.made[shape]
+			var N = this.made[shape] = this.nmade++
+			this.assemble(N, shape)
+			this.setup()
+			return N
+		} else {
+			f = Math.round(f * constants.growframes) / constants.growframes
+			var spec = shape + "|" + f
+			if (spec in this.qmade) return this.qmade[spec]
+			var N = this.qmade[spec] = this.quick0 + this.jquick
+			this.jquick = (this.jquick + 1) % this.nquick
+			if (this.qspec[N]) {
+				delete this.qmade[this.qspec[N]]
+				delete this.qspec[N]
+			}
+			this.qspec[N] = spec
+			this.assemble(N, shape, f, true)
+			this.setup()
+			return N
+		}
+	},
 
-	setup: function (fsquirm) {
+	setup: function () {
 		graphics.progs.blobrender.use()
 		gl.enable(gl.BLEND)
 		// This blend function is appropriate since the texture has premultiplied alphas.
@@ -197,16 +254,12 @@ var blobscape = {
 		gl.vertexAttribPointer(graphics.progs.blobrender.attribs.pos, 2, gl.FLOAT, false, 0, 0)
 	},
 	
-	draw: function (shape, posG, r, jsquirm) {
-		if (!(shape in this.made)) {
-			this.assemble(shape)
-			this.setup()
-		}
-		var N = this.made[shape]
-		var x = Math.floor(N/this.ntile)
-		var y = N % this.ntile
+	draw: function (shape, posG, r, f) {
+		var N = this.gettile(shape, f)
+		var x = N % this.ntile
+		var y = Math.floor(N/this.ntile)
 		var C = [1,0.5,-0.5,-1,-0.5,0.5][r], S = [0,s3,s3,0,-s3,-s3][r]
-		graphics.progs.blobrender.setjsquirm(jsquirm)
+		graphics.progs.blobrender.setjsquirm(0)
 		graphics.progs.blobrender.settilelocation(x, y)
 		graphics.progs.blobrender.setscenter(posG[0], posG[1])
 		graphics.progs.blobrender.setcolormap(false, [0, 0.5, 0.1, 1, 0, 0, 0, 0, 1])

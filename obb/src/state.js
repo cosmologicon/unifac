@@ -7,61 +7,29 @@ function State() {
 	this.jthing = 1
 	this.things = {}
 	this.viewstate = new ViewState()
-	
-	
-	var temptiles = this.temptiles = []
-	this.temptiles.push({
+
+	var core = {
+		pH: [0, 0],
 		pG: [0, 0],
 		shape: "sphere",
 		r: 0,
-	})
-	var taken = {}
-	HedgesofhexH([0, 0]).map(NconvertH).forEach(function (pN) {
-		taken[pN] = true
-	})
-	var nodes = [
-		[[0, 0], 0],
-		[[0, 0], 1],
-		[[0, 0], 2],
-		[[0, 0], 3],
-		[[0, 0], 4],
-		[[0, 0], 5],
-	]
-	function Hnexttile(pH, r, e) {
-		e = (e + r + 3) % 6
-		var xH = pH[0] + [0, 6, 6, 0, -6, -6][e]
-		var yH = pH[1] + [-6, -6, 0, 6, 6, 0][e]
-		return [[xH, yH], e]
+		f: 1,
 	}
-	for (var j = 0 ; j < 1000 && nodes.length ; ++j) {
-		var node = UFX.random.choice(nodes, true), tileH = node[0], edge = node[1]
-		var nextH = HnexthexH(tileH, edge)
-		var shape = UFX.random.choice(["stalk1", "stalk2", "stalk3", "stalk4", "stalk5", "stalk13",
-			"stalk14", "stalk23", "stalk24", "stalk25", "stalk34", "stalk35"])
-		var nextnodes = []
-		for (var k = 5 ; k < shape.length ; ++k) {
-			nextnodes.push([nextH, (+shape[k] + edge + 3) % 6])
-		}
-		var nextedgesN = nextnodes.map(function (node) { return NconvertH(HedgeofhexH(node[0], node[1])) })
-		if (nextedgesN.some(function (pN) { return taken[pN] })) {
-			nodes.push(node)
-			continue
-		}
-
-		nextedgesN.forEach(function (pN) { taken[pN] = true })
-		nodes = nodes.concat(nextnodes)
-		this.temptiles.push({
-			pG: GconvertH(nextH),
-			shape: shape,
-			r: (edge + 3) % 6,
-		})
-	}
-	nodes.forEach(function (node) {
-		temptiles.push({
-			pG: GconvertH(HnexthexH(node[0], node[1])),
+	this.parts = [core]
+	var claimededges = this.claimededges = {}
+	this.stumps = [0, 1, 2, 3, 4, 5].map(function (edge) {
+		var pH = HnexthexH([0, 0], edge)
+		var r = (edge + 3) % 6
+		var pedgeN = NedgeofhexH([0, 0], edge)
+		claimededges[pedgeN] = true
+		return {
+			pH: pH,
+			pG: GconvertH(pH),
+			pE: EconvertH(pH, r),
 			shape: "stump",
-			r: (node[1] + 3) % 6,
-		})
+			r: r,
+			parent: core,
+		}
 	})
 }
 State.prototype = {
@@ -70,8 +38,64 @@ State.prototype = {
 		things[thingspec.id] = makething(thingspec)
 		things[thingspec.id].state = this
 	},
+	canaddpart: function (shape, pH, edge) {
+		if (shape.slice(0, 5) == "stalk") {
+			for (var j = 5 ; j < shape.length ; ++j) {
+				var nedge = (+shape[j] + edge) % 6
+				var pedgeN = NedgeofhexH(pH, nedge)
+				if (this.claimededges[pedgeN]) return false
+			}
+		}
+		return true
+	},
+	addpart: function (shape, pH, edge) {
+		var stumpE = EconvertH(pH, edge)
+		this.stumps = this.stumps.filter(function (stump) { return stump.pE != stumpE })
+		var part = {
+			shape: shape,
+			pH: pH,
+			pG: GconvertH(pH),
+			r: edge,
+			f: 0,
+		}
+		this.parts.push(part)
+		if (shape.slice(0, 5) == "stalk") {
+			for (var j = 5 ; j < shape.length ; ++j) {
+				var nedge = (+shape[j] + edge) % 6
+				var pstumpH = HnexthexH(pH, nedge)
+				var r = (nedge + 3) % 6
+				this.stumps.push({
+					pH: pstumpH,
+					pG: GconvertH(pstumpH),
+					pE: EconvertH(pstumpH, r),
+					shape: "stump",
+					r: r,
+					parent: part,
+				})
+				var pedgeN = NedgeofhexH(pH, nedge)
+				this.claimededges[pedgeN] = true
+			}
+		}
+		return part
+	},
+	addrandompart: function () {
+		while (true) {
+			var stump = UFX.random.choice(this.stumps)
+			var shape = UFX.random.choice(["stalk1", "stalk2", "stalk3", "stalk4", "stalk5", "stalk13",
+				"stalk14", "stalk23", "stalk24", "stalk25", "stalk34", "stalk35"])
+			var pH = stump.pH
+			var edge = stump.r
+			if (!this.canaddpart(shape, pH, edge)) continue
+			return this.addpart(shape, pH, edge)
+		}
+	},
 	think: function (dt) {
 		this.viewstate.think(dt)
+		this.parts.forEach(function (part) {
+			if (part.f < 1) {
+				part.f = Math.min(part.f + dt * constants.growrate, 1)
+			}
+		})
 	},
 	getspec: function () {
 		var thingspecs = {}
