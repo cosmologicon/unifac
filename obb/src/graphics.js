@@ -23,6 +23,7 @@ var graphics = {
 		this.progs.blobnormal = glprog(UFX.resource.data.blobnormalvert, UFX.resource.data.blobnormalfrag)
 		this.progs.bloboutline = glprog(UFX.resource.data.bloboutlinevert, UFX.resource.data.bloboutlinefrag)
 		this.progs.blobrender = glprog(UFX.resource.data.blobrendervert, UFX.resource.data.blobrenderfrag)
+		this.progs.starscape = glprog(UFX.resource.data.starscapevert, UFX.resource.data.starscapefrag)
 		
 		debugHUD.alert("max texture: " + gl.getParameter(gl.MAX_TEXTURE_SIZE) + " " + gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS))
 	},

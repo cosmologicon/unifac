@@ -41,8 +41,8 @@ var constants = {
 	stumplength: 0.25,
 	That0: [
 		[0.3, 0.93238, 0.2],
-		[0.1, 0.88741, 0.45],
 		[-0.3, 0.93238, 0.2],
+		[0.1, 0.88741, 0.45],
 	],
 	pathsegmentsize: 0.05,
 	outlinewidth: 0.03,

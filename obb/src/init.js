@@ -34,6 +34,8 @@ UFX.resource.load({
 	"blobnormalvert": "shaders/blobnormal.vert",
 	"blobrenderfrag": "shaders/blobrender.frag",
 	"blobrendervert": "shaders/blobrender.vert",
+	"starscapefrag": "shaders/starscape.frag",
+	"starscapevert": "shaders/starscape.vert",
 })
 
 UFX.touch.active = false
@@ -45,6 +47,7 @@ canvas.ontouchstart = function () {
 UFX.resource.onload = function () {
 	graphics.init()
 	blobscape.init()
+	background.init()
 	text.init()
 	UFX.scene.init({ minups: 10, maxups: 120 })
 	UFX.scene.push("play")
