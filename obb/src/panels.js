@@ -55,10 +55,12 @@ var playpanel = Panel({
 		var vs = state.viewstate
 		graphics.setviewportD(this.xD, this.yD, this.wD, this.hD)
 
-		graphics.progs.checker.use()
-		graphics.progs.checker.setcanvassize(this.wD, this.hD)
-		graphics.progs.checker.setcenter(vs.x0G, vs.y0G)
-		graphics.progs.checker.setzoom(vs.VzoomG)
+		background.drawstarscape()
+
+//		graphics.progs.checker.use()
+//		graphics.progs.checker.setcanvassize(this.wD, this.hD)
+//		graphics.progs.checker.setcenter(vs.x0G, vs.y0G)
+//		graphics.progs.checker.setzoom(vs.VzoomG)
 //		graphics.drawunitsquare(graphics.progs.checker.attribs.pos)
 
 		debugHUD.starttimer("blobsetup")
