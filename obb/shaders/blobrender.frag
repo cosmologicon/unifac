@@ -3,7 +3,6 @@ precision mediump float;
 uniform sampler2D psampler;
 uniform sampler2D nsampler;
 uniform sampler2D asampler;
-uniform mat3 colormap;
 uniform vec4 dlight;  // directional light
 uniform vec4 plight0;  // point light 0
 uniform float rotC;
@@ -15,8 +14,6 @@ varying float tshadefactor;  // 0.0 = gray, 1.0 = full color
 
 void main(void) {
 	vec4 color = texture2D(psampler, tcoord);
-	color.rgb = colormap * color.rgb;
-	color.rgb += texture2D(asampler, tcoord).rgb;
 
 	vec3 p = vec3(tpos, 0.0); // TODO: this somehow needs to use depth for the z coordinate
 	vec3 normal = texture2D(nsampler, tcoord).xyz * 2.0 - 1.0;
