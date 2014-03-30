@@ -11,7 +11,7 @@ uniform float rotS;
 
 varying vec2 tcoord;
 varying vec2 tpos;
-varying float shadefactor;  // 0.0 = gray, 1.0 = full color
+varying float tshadefactor;  // 0.0 = gray, 1.0 = full color
 
 void main(void) {
 	vec4 color = texture2D(psampler, tcoord);
@@ -31,9 +31,10 @@ void main(void) {
 	vec3 bcolor = color.rgb * (0.6 + 0.4 * min(lfactor, 1.0));
 	
 	// http://stackoverflow.com/questions/687261/converting-rgb-to-grayscale-intensity
-	float gshade = dot(bcolor, vec3(0.2989, 0.5870, 0.1140));
+	float gshade = 0.5 * dot(bcolor, vec3(0.2989, 0.5870, 0.1140));
 	vec3 gcolor = vec3(gshade);
 
+	float shadefactor = clamp(1.0 - 4.0 * (1.0 - tshadefactor), 0.2, 1.0);
 	gl_FragColor = vec4((1.0 - shadefactor) * gcolor + shadefactor * bcolor, color.a);
 }
 

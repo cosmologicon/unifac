@@ -21,6 +21,7 @@ UFX.resource.load({
 	"coververt": "shaders/cover.vert",
 	"fullvert": "shaders/full.vert",
 	"boxvert": "shaders/box.vert",
+	"gameposvert": "shaders/gamepos.vert",
 	"uniformfrag": "shaders/uniform.frag",
 	"checkerfrag": "shaders/checker.frag",
 	"fogfrag": "shaders/fog.frag",

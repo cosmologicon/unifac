@@ -41,9 +41,6 @@ function Panel(methods) {
 }
 
 var playpanel = Panel({
-	GconvertD: function () {
-	
-	},
 	// (Lower limit of) how far off the panel the given point is (0 = visible)
 	GfromvisibleG: function (pG) {
 		return Math.max(0,
@@ -56,6 +53,8 @@ var playpanel = Panel({
 		graphics.setviewportD(this.xD, this.yD, this.wD, this.hD)
 
 		background.drawstarscape()
+
+		if (controlstate.gridalpha) background.drawgrid()
 
 //		graphics.progs.checker.use()
 //		graphics.progs.checker.setcanvassize(this.wD, this.hD)
@@ -91,8 +90,14 @@ var playpanel = Panel({
 		debugHUD.stoptimer("blobdraw")
 	},
 	handlelclick: function (cevent) {
-		var part = state.addrandompart()
-		state.viewstate.target(part.pG)
+		if (!controlstate.selectedshape) return
+		var pG = state.viewstate.GconvertD(cevent.posD)
+		var edgeH = HnearestedgeG(pG)
+		if (state.canaddpartatedgeH(controlstate.selectedshape, edgeH)) {
+			var part = state.addpartatedgeH(controlstate.selectedshape, edgeH)
+			delete controlstate.selectedshape
+			background.updategrid()
+		}
 	},
 	handleldrag: function (cevent) {
 		state.viewstate.snap(-cevent.dposD[0], -cevent.dposD[1])
@@ -102,8 +107,7 @@ var playpanel = Panel({
 	},
 	handletap: function (cevent) {
 		debugHUD.alert("tap " + cevent.posD)
-		var part = state.addrandompart()
-		state.viewstate.target(part.pG)
+		this.handlelclick(cevent)
 	},
 	handletrelease: function (cevent) {
 		var vV = [-cevent.vD[0], -cevent.vD[1]]
@@ -116,6 +120,54 @@ var playpanel = Panel({
 		state.viewstate.scootch(0, 0, cevent.dz, this.VfromcenterD(cevent.posD))
 	},
 })
+
+var stalkpanel = Panel({
+	draw: function () {
+		graphics.setviewportD(this.xD, this.yD, this.wD, this.hD)
+		if (controlstate.selectedshape) {
+			var c = controlstate.selectedshape[5]
+			var color = constants.colors["system" + c]
+		} else {
+			var color = [0.4, 0.4, 0.4]
+		}
+		graphics.progs.uniform.use()
+		graphics.progs.uniform.setcolor(color[0]/3, color[1]/3, color[2]/3, 1)
+		graphics.drawunitsquare(graphics.progs.uniform.attribs.pos)
+
+		if (controlstate.selectedshape) {
+			blobscape.setup()
+			graphics.progs.blobrender.setcanvassizeD(this.wD, this.hD)
+			graphics.progs.blobrender.setvcenterG(0, 0)
+			graphics.progs.blobrender.setDscaleG(Math.min(this.wD, this.hD) / 2)
+			graphics.progs.blobrender.setfsquirm(0)
+			graphics.progs.blobrender.setplight0(0, 0, 100, 0)
+
+			blobscape.draw({
+				shape: controlstate.selectedshape,
+				f: 1,
+				r: 0,
+				pG: [0, 0],
+				pH: [0, 0],
+				fixes: [true, true, true, true, true, true, true],
+			})
+		}
+	},
+	handlelclick: function () {
+		if (controlstate.selectedshape) {
+			delete controlstate.selectedshape
+		} else {
+			var jsystem = UFX.random.choice(["0", "1", "2"])
+			var branches = UFX.random.choice(["1", "2", "3", "4", "5", "13", "14", "23", "24", "25", "34", "35"])
+			controlstate.selectedshape = "stalk" + jsystem + branches
+			state.sethighlight(controlstate.selectedshape)
+		}
+	},
+	handletap: function (cevent) {
+		this.handlelclick(cevent)
+	},
+})
+
+
 
 var panels = []
 

@@ -14,81 +14,117 @@ function State() {
 		shape: "sphere",
 		r: 0,
 		f: 1,
+		parent: null,
+		children: {},
 	}
 	this.parts = [core]
-	var claimededges = this.claimededges = {}
-	this.stumps = [0, 1, 2, 3, 4, 5].map(function (edge) {
-		var pH = HnexthexH([0, 0], edge)
-		var r = (edge + 3) % 6
-		var pedgeN = NedgeofhexH([0, 0], edge)
-		claimededges[pedgeN] = true
-		return {
-			pH: pH,
-			pG: GconvertH(pH),
-			pE: EconvertH(pH, r),
-			shape: "stump" + (edge % 3),
-			r: r,
-			parent: core,
-		}
+	this.stumps = []
+	this.partsbyedgeN = {}  // map pN -> part
+	var that = this
+	;[0, 1, 2, 0, 1, 2].forEach(function (jsystem, jedge) {
+		that.addstump(core, jedge, jsystem)
 	})
 }
 State.prototype = {
-	addthing: function (thingspec) {
-		if (!thingspec.id) thingspec.id = this.jthing++
-		things[thingspec.id] = makething(thingspec)
-		things[thingspec.id].state = this
+	// Temporary API while developing - haven't figured it all out yet.
+	
+	addstump: function (parent, jedge, jsystem) {
+		var oedge = (parent.r + jedge) % 6, iedge = (oedge + 3) % 6
+		var pH = HnexthexH(parent.pH, oedge)
+		var edgeH = HedgeofhexH(parent.pH, oedge)
+		var edgeN = NconvertH(edgeH)
+		var stump = {
+			isstump: true,
+			pH: pH,
+			pG: GconvertH(pH),
+			pE: EconvertH(pH, iedge),
+			edgeH: edgeH,
+			shape: "stump" + jsystem,
+			r: iedge,
+			parent: parent,
+			jedge: jedge,
+		}
+		parent.children[jedge] = stump
+		this.stumps.push(stump)
+		this.partsbyedgeN[edgeN] = stump
+		return stump
 	},
-	canaddpart: function (shape, pH, edge) {
-		if (shape.slice(0, 5) == "stalk") {
+	
+	canextendstump: function (stumpshape, partshape) {
+		if (partshape.substr(0, 5) == "stalk") {
+			var jsystem = +partshape[5], stumpjsystem = +stumpshape[5]
+			return jsystem == stumpjsystem
+		}
+		return false
+	},
+
+	canaddpartatedgeH: function (shape, edgeH) {
+		var edgeN = NconvertH(edgeH)
+		var stump = this.partsbyedgeN[edgeN]
+		if (!stump || !stump.isstump) return false
+		if (!this.canextendstump(stump.shape, shape)) return false
+		var pH = stump.pH, r = stump.r
+		if (shape.substr(0, 5) == "stalk") {
 			for (var j = 6 ; j < shape.length ; ++j) {
-				var nedge = (+shape[j] + edge) % 6
-				var pedgeN = NedgeofhexH(pH, nedge)
-				if (this.claimededges[pedgeN]) return false
+				var jedge = +shape[j]
+				var oedge = (r + jedge) % 6
+				var oedgeN = NconvertH(HedgeofhexH(pH, oedge))
+				if (this.partsbyedgeN[oedgeN]) return false
 			}
 		}
 		return true
 	},
-	addpart: function (shape, pH, edge) {
-		var stumpE = EconvertH(pH, edge)
-		this.stumps = this.stumps.filter(function (stump) { return stump.pE != stumpE })
+	
+	addpartatedgeH: function (shape, edgeH) {
+		var edgeN = NconvertH(edgeH)
+		var stump = this.partsbyedgeN[edgeN]
+		var pH = stump.pH, r = stump.r
 		var part = {
-			shape: shape,
 			pH: pH,
 			pG: GconvertH(pH),
-			r: edge,
+			shape: shape,
+			r: r,
 			f: 0,
+			parent: stump.parent,
+			children: {},
+			jedge: stump.jedge,
 		}
+		part.parent.children[part.jedge] = part
+		this.partsbyedgeN[edgeN] = part
 		this.parts.push(part)
-		if (shape.slice(0, 5) == "stalk") {
+		this.stumps = this.stumps.filter(function (s) { return s !== stump })
+		if (shape.substr(0, 5) == "stalk") {
+			var jsystem = +shape[5]
 			for (var j = 6 ; j < shape.length ; ++j) {
-				var nedge = (+shape[j] + edge) % 6
-				var pstumpH = HnexthexH(pH, nedge)
-				var r = (nedge + 3) % 6
-				this.stumps.push({
-					pH: pstumpH,
-					pG: GconvertH(pstumpH),
-					pE: EconvertH(pstumpH, r),
-					shape: "stump" + shape[5],
-					r: r,
-					parent: part,
-				})
-				var pedgeN = NedgeofhexH(pH, nedge)
-				this.claimededges[pedgeN] = true
+				var jedge = +shape[j]
+				this.addstump(part, jedge, jsystem)
 			}
 		}
 		return part
 	},
-	addrandompart: function () {
-		while (true) {
-			var stump = UFX.random.choice(this.stumps)
-			var jsystem = stump.shape[5]
-			var shape = "stalk" + jsystem + UFX.random.choice([
-				"1", "2", "3", "4", "5", "13", "14", "23", "24", "25", "34", "35"])
-			var pH = stump.pH
-			var edge = stump.r
-			if (!this.canaddpart(shape, pH, edge)) continue
-			return this.addpart(shape, pH, edge)
-		}
+	sethighlight: function (shape) {
+		var that = this
+		this.stumps.forEach(function (stump) {
+			var h = stump.highlit = that.canaddpartatedgeH(shape, stump.edgeH)
+			stump.shademode = [h, h, h, h, h, h, h]
+		})
+		this.parts.forEach(function (part) {
+			part.shademode = [false, false, false, false, false, false, false]
+			for (var jedge = 0 ; jedge < 6 ; ++jedge) {
+				if (part.children[jedge] && part.children[jedge].highlit) {
+					var kedge = (jedge + 1) % 6
+					part.shademode[(jedge + part.r) % 6 + 1] = true
+					part.shademode[(kedge + part.r) % 6 + 1] = true
+				}
+			}
+		})
+	},
+
+	// Actual API
+	addthing: function (thingspec) {
+		if (!thingspec.id) thingspec.id = this.jthing++
+		things[thingspec.id] = makething(thingspec)
+		things[thingspec.id].state = this
 	},
 	think: function (dt) {
 		this.viewstate.think(dt)

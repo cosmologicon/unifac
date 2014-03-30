@@ -19,6 +19,7 @@ var graphics = {
 
 		this.progs.uniform = glprog(UFX.resource.data.coververt, UFX.resource.data.uniformfrag)
 		this.progs.checker = glprog(UFX.resource.data.fullvert, UFX.resource.data.checkerfrag)
+		this.progs.grid = glprog(UFX.resource.data.gameposvert, UFX.resource.data.uniformfrag)
 		this.progs.blob = glprog(UFX.resource.data.blobvert, UFX.resource.data.blobfrag)
 		this.progs.blobnormal = glprog(UFX.resource.data.blobnormalvert, UFX.resource.data.blobnormalfrag)
 		this.progs.bloboutline = glprog(UFX.resource.data.bloboutlinevert, UFX.resource.data.bloboutlinefrag)
