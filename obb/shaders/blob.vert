@@ -15,11 +15,13 @@
 attribute vec3 pos;
 attribute float rad;
 attribute vec3 pcolor;  // color within the principle channels
+attribute vec3 acolor;  // color within the additional color channels
 attribute float f;
 
 uniform vec2 canvassize;
 uniform float scale;  // size of 1 unit in pixels
 uniform float progress;
+uniform mat3 colormap;  // map of principle colors to rgb
 
 varying float r;
 varying float rpix;
@@ -32,8 +34,8 @@ void main(void) {
     r = rad;
     rpix = progress > f ? rad * scale : -1.0;
     gl_PointSize = 2.0 * rpix;
-    
-    color = pcolor;  // pass it along to the fragment shader
+
+	color = colormap * pcolor + acolor;  // Combine principle and additional colors
 }
 
 

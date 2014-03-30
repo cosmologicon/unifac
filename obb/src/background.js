@@ -54,7 +54,8 @@ var background = {
 		graphics.progs.grid.setcanvassizeD(playpanel.wD, playpanel.hD)
 		graphics.progs.grid.setvcenterG(vs.x0G, vs.y0G)
 		graphics.progs.grid.setDscaleG(vs.VzoomG)
-		graphics.progs.grid.setcolor(0.4, 0.4, 0.9, controlstate.gridalpha)
+		var afactor = clamp(vs.VzoomG * 0.02, 0.2, 1)
+		graphics.progs.grid.setcolor(0.4, 0.4, 0.9, controlstate.gridalpha * afactor)
 
 		gl.enableVertexAttribArray(graphics.progs.grid.attribs.posD)
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.gridbuffer)
