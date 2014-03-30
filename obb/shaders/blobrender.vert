@@ -13,15 +13,18 @@ uniform float DscaleG;  // size of 1 unit in pixels
 uniform float rotC;
 uniform float rotS;
 
-
 // Squirm factors
 attribute float jsquirm;
 uniform float tsquirm;
 uniform float fsquirm;
 
+// Shading
+attribute float shadefactor;
+
+
 varying vec2 tcoord;
 varying vec2 tpos;
-varying float shadefactor;
+varying float tshadefactor;
 
 float tau = 6.283185307179586;
 
@@ -29,7 +32,7 @@ void main(void) {
 	mat2 invrotation = mat2(rotC, -rotS, rotS, rotC);
 	tcoord = (tilelocation + (invrotation * posG + 1.0) * 0.5) / ntile;
 //	tcoord = (tilelocation + (posG + 1.0) * 0.5) / ntile;
-	shadefactor = 1.0;
+	tshadefactor = shadefactor;
 	vec2 pG = posG + scenterG;
 
 	vec2 squirmG = jsquirm == 0.0 ? vec2(0.0, 0.0) : vec2(

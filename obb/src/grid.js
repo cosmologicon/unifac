@@ -77,6 +77,11 @@ function HedgesofhexH(pH) {
 	var x = pH[0], y = pH[1]
 	return [[x+3, y], [x, y+3], [x-3, y+3], [x-3, y], [x, y-3], [x+3, y-3]]
 }
+// The six vertices surrounding the given hex
+function HverticesofhexH(pH) {
+	var x = pH[0], y = pH[1]
+	return [[x+2, y-4], [x+4, y-2], [x+2, y+2], [x-2, y+4], [x-4, y+2], [x-2, y-2]]
+}
 // The edge bordering the given hex in the given edge direction
 // Note that the resulting edge position does not keep any orientation information.
 function HedgeofhexH(pH, e) {

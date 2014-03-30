@@ -105,6 +105,7 @@ UFX.scenes.play = {
 		
 		debugHUD.starttimer("paneldraw")
 		playpanel.draw()
+		stalkpanel.draw()
 		debugHUD.stoptimer("paneldraw")
 		
 		debugHUD.starttimer("huddraw")

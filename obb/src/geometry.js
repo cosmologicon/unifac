@@ -192,7 +192,7 @@ var geometry = {
 			for (var k = 0 ; k < nblob ; ++k) {
 				var g = k / nblob
 
-				if (UFX.random() < 0.002) {
+				if (UFX.random() < 0.001) {
 					do {
 						var theta = UFX.random(tau)
 						var d = w, A = d * Math.sin(theta), B = d * Math.cos(theta)
@@ -259,10 +259,11 @@ var geometry = {
 	// representing whether the stalk is exiting or entering the tile at that point. For more
 	// detals on this convention, please see notebook page dated 17 Feb 2014.
 	stalkjoindata: {},  // Memoized return values
+	stalkjoindata0: {},
 	stalkjoiner: function (edge, outward, advanced, jsystem) {
 		var key = edge + (outward ? 6 : 0) + (advanced ? 12 : 0) + (jsystem * 36)
 		if (key in this.stalkjoindata) return this.stalkjoindata[key]
-		if (!this.stalkjoindata0) {
+		if (!this.stalkjoindata0[jsystem]) {
 			// Generate the blobs that are used for all end caps. This part is similar to buildstalk
 			// with some simplifications. See the buildstalk method and notebook page dated
 			// 11 Feb 2014 for more information.
@@ -270,7 +271,7 @@ var geometry = {
 			var rf = constants.stalkrfactor
 			var That0 = constants.That0[jsystem]
 			var Thx = That0[0], Thy = That0[1], Thz = That0[2]
-			var data = this.stalkjoindata0 = []
+			var data = this.stalkjoindata0[jsystem] = []
 
 			// Generate a single segment of blobs. d is 1/2 the segment length, chosen so that any
 			// blob that intersects the edge is definitely within this segment.
@@ -316,7 +317,7 @@ var geometry = {
 		var dx = [0, 0.75, 0.75, 0, -0.75, -0.75][edge], dy = [-s3, -s3/2, s3/2, s3, s3/2, -s3/2][edge]
 		var S = [0, s3, s3, 0, -s3, -s3][edge], C = [1, 0.5, -0.5, -1, -0.5, 0.5][edge]
 		if (outward) { S = -S ; C = -C }
-		this.stalkjoindata[key] = this.stalkjoindata0.map(function (blob) {
+		this.stalkjoindata[key] = this.stalkjoindata0[jsystem].map(function (blob) {
 			blob = blob.slice()
 			var x = blob[0], y = blob[1], nx = blob[4], ny = blob[5]
 			// Offset and rotate the blobs as needed

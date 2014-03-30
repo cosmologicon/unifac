@@ -13,7 +13,7 @@ void main(void) {
 	if (rpix <= 0.0 || d > 1.0) discard;
 	vec3 blobnormal = vec3(blobproj, sqrt(1.0 - d * d));
 
-	float fbase = 0.5;
+	float fbase = 0.6;
 	vec3 normal = normalize(fbase * basenormal + (1.0 - fbase) * blobnormal);
 	
 	// TODO: put the depth into the alpha channel

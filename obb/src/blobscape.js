@@ -62,6 +62,11 @@ var blobscape = {
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.jsquirmbuffer)
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.jsquirmdata), gl.STATIC_DRAW)
 
+		this.shadefactorbuffer = gl.createBuffer()
+		this.shadefactordata = []
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.shadefactorbuffer)
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.shadefactordata), gl.STATIC_DRAW)
+
 		// https://www.khronos.org/registry/webgl/sdk/tests/conformance/textures/mipmap-fbo.html
 
 		// The primary color channel framebuffer
@@ -297,6 +302,18 @@ var blobscape = {
 		return index
 	},
 
+	shadefactorindices: {},
+	getshadefactorindex: function (mode) {
+		var key = "" + mode
+		if (key in this.shadefactorindices) return this.shadefactorindices[key]
+		var data = mode ? [0, 6, 1, 2, 3, 4, 5, 6].map(function (k) { return mode[k] ? 1 : 0 }) : [1, 1, 1, 1, 1, 1, 1, 1]
+		var index = this.shadefactorindices[key] = 4 * this.shadefactordata.length
+		this.shadefactordata = this.shadefactordata.concat(data)
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.shadefactorbuffer)
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.shadefactordata), gl.STATIC_DRAW)
+		return index
+	},
+
 	setup: function () {
 		graphics.progs.blobrender.use()
 		gl.enable(gl.BLEND)
@@ -313,7 +330,8 @@ var blobscape = {
 
 		var tsquirm = Date.now() * 0.001 / constants.Tsquirm % 1
 		graphics.progs.blobrender.settsquirm(tsquirm)
-		graphics.progs.blobrender.setfsquirm(constants.fsquirm0)
+		var f = controlstate.fsquirm, g = f * f * (3 - 2 * f)
+		graphics.progs.blobrender.setfsquirm(constants.fsquirm0 * g)
 
 		graphics.progs.blobrender.setdlight(0.5/s3, 0.5/s3, 0.5/s3, 1.0)
 		if (controlstate.mposD) {
@@ -325,6 +343,12 @@ var blobscape = {
 		gl.enableVertexAttribArray(graphics.progs.blobrender.attribs.posG)
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.posbuffer)
 		gl.vertexAttribPointer(graphics.progs.blobrender.attribs.posG, 2, gl.FLOAT, false, 0, 0)
+
+		var shadeindex = this.getshadefactorindex()
+		gl.enableVertexAttribArray(graphics.progs.blobrender.attribs.shadefactor)
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.shadefactorbuffer)
+		gl.vertexAttribPointer(graphics.progs.blobrender.attribs.shadefactor, 1, gl.FLOAT, false, 0, shadeindex)
+
 	},
 	
 	draw: function (part) {
@@ -343,6 +367,13 @@ var blobscape = {
 		gl.enableVertexAttribArray(graphics.progs.blobrender.attribs.jsquirm)
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.jsquirmbuffer)
 		gl.vertexAttribPointer(graphics.progs.blobrender.attribs.jsquirm, 1, gl.FLOAT, false, 0, this.getjsquirmindex(part))
+
+		if (controlstate.selectedshape) {
+			var shadeindex = this.getshadefactorindex(part.shademode)
+			gl.enableVertexAttribArray(graphics.progs.blobrender.attribs.shadefactor)
+			gl.bindBuffer(gl.ARRAY_BUFFER, this.shadefactorbuffer)
+			gl.vertexAttribPointer(graphics.progs.blobrender.attribs.shadefactor, 1, gl.FLOAT, false, 0, shadeindex)
+		}
 
 		gl.drawArrays(gl.TRIANGLE_FAN, 0, 8)
 	},

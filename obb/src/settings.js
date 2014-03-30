@@ -32,7 +32,7 @@ var constants = {
 
 	// Geometry constants
 	blobsize: {
-		sphere: { min: 0.04, max: 0.12, density: 4000 },
+		sphere: { min: 0.02, max: 0.08, density: 4000 },
 		stalk: { min: 0.03, max: 0.08, density: 16000 },
 	},
 	normaljitter: 0.2,
@@ -56,9 +56,9 @@ var constants = {
 }
 
 constants.colors = {
-	system0: [0, 0.6, 0.2],
+	system0: [0, 0.5, 0.1],
 	system1: [0.6, 0.2, 0],
-	system2: [0.4, 0, 0.9],
+	system2: [0.5, 0, 1],
 	core: [0.3, 0.5, 0],
 	brain: [1, 0.85, 0.85],
 }

@@ -41,21 +41,43 @@ var controlstate = {
 		this.lstart = null
 		this.tstart = null
 		this.tstuck = false
+		
+		this.fsquirm = 1
+		this.gridalpha = 0
 	},
 	// Call this once per frame, passing in dt and input.
 	// Will return an object with all relevant state.
 	think: function (dt, input) {
+	
+		this.fsquirm = clamp(this.fsquirm + (this.selectedshape ? -0.5 : 0.3) * dt, 0, 1)
+		this.gridalpha = clamp(this.gridalpha + (this.selectedshape ? 2 : -4) * dt, 0, 0.6)
+		
 		var kstate = input.key, mstate = input.mouse, tstate = input.touch
 		var kdown = kstate ? kstate.down : {}
 
 		// Set the size of the canvas and the panels		
 		this.wD = canvas.width
 		this.hD = canvas.height
+
+		if (this.wD > 1.5 * this.hD) {  // three-panel horizontal
+			var swD = Math.floor(0.25 * this.hD), pwD = this.wD - 2 * swD
+			stalkpanel.placeD(0, 0, swD, this.hD)
+			playpanel.placeD(swD, 0, pwD, this.hD)
+		} else if (this.wD > this.hD) { // two-panel horizontal
+			var swD = Math.floor(this.wD / 6), pwD = this.wD - swD
+			stalkpanel.placeD(0, 0, swD, this.hD)
+			playpanel.placeD(swD, 0, pwD, this.hD)
+		} else if (this.hD < 1.5 * this.wD) {  // two-panel vertical
+			var shD = Math.floor(this.hD / 6), phD = this.hD - shD
+			stalkpanel.placeD(0, phD, this.wD, shD)
+			playpanel.placeD(0, 0, this.wD, phD)
+		} else {  // three-panel vertical
+			var shD = Math.floor(0.25 * this.wD), phD = this.hD - 2 * shD
+			stalkpanel.placeD(0, shD+phD, this.wD, shD)
+			playpanel.placeD(0, shD, this.wD, phD)
+		}
 		
-		var sD = Math.min(this.wD, this.hD)
-		playpanel.placeD(Math.floor((this.wD - sD) / 2), Math.floor((this.hD - sD) / 2), sD, sD)
-		
-		panels = [playpanel]
+		panels = [playpanel, stalkpanel]
 
 		var cevents = []
 
