@@ -13,6 +13,7 @@ var Stands = {
 		if (this.parent) {
 			if (!this.parent.supports(this)) {
 				this.drop()
+				this.y += 0.002
 			}
 		} else {
 			if (this.upward) {
@@ -85,6 +86,12 @@ var DrawLine = {
 	},
 }
 
+var DrawPlacable = {
+	think: function (dt) {
+		this.color = state.canplace(this) ? "white" : "red"
+	},
+}
+
 
 
 function You(x, y) {
@@ -107,6 +114,7 @@ You.prototype = UFX.Thing()
 function Platform(x, y, dx) {
 	this.setpos(x, y)
 	this.dx = dx
+	state.claimtiles(this)
 }
 Platform.prototype = UFX.Thing()
 	.addcomp(WorldBound)
@@ -120,4 +128,5 @@ function VirtualPlatform(x, y, dx) {
 VirtualPlatform.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(DrawLine, "white")
+	.addcomp(DrawPlacable)
 
