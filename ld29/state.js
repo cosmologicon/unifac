@@ -1,6 +1,7 @@
 var state = {
 	init: function () {
 		this.you = new You(0, 2)
+		this.buildings = []
 		this.taken = {}
 		this.platforms = [
 			new Platform(-2, 0, 4),
@@ -9,7 +10,28 @@ var state = {
 		for (var j = 3 ; j < 5000 ; ++j) {
 			this.platforms.push(new Platform(UFX.random.rand(-j, j), j, 3))
 		}
+		this.addhouse(-10, -3)
 		this.sortplatforms()
+		
+		this.monsters = [
+			new Bat(2, 3),
+		]
+		
+		this.njump = 1
+	},
+	addhouse: function (x, y) {
+		var p = new Platform(x - 4, y, 8)
+		var h = new House(x, y)
+		h.parent = p
+		p.house = h
+		this.buildings.push(h)
+		this.platforms.push(p)
+	},
+	nearhouse: function (you) {
+		if (!you.parent) return false
+		if (!you.parent.house) return false
+		if (Math.abs(you.x - you.parent.house.x) > 2) return false
+		return you.parent.house
 	},
 	sortplatforms: function () {
 		this.platforms.sort(function (p1, p2) { return p1.y - p2.y })

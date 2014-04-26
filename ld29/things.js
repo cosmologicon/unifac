@@ -27,8 +27,14 @@ var Stands = {
 				this.hover = Math.max(this.hover - dt, 0)
 			} else {
 				this.oldy = this.y
-				this.y += dt * this.vy + 0.5 * dt * dt * this.ay
-				this.vy += dt * this.ay
+				if (this.hanging) {
+					var a = -settings.ahang
+					this.hanging = Math.max(this.hanging - dt, 0)
+				} else {
+					var a = this.ay
+				}
+				this.y += dt * this.vy + 0.5 * dt * dt * a
+				this.vy += dt * a
 			}
 		}
 	},
@@ -46,6 +52,32 @@ var Stands = {
 		this.vy = 0
 		this.upward = false
 		this.hover = false
+	},
+}
+
+var HasHealth = {
+	heal: function (dhp) {
+		if (dhp === undefined) {
+			this.hp = this.maxhp
+		} else {
+			this.hp = Math.min(this.hp + dhp, this.maxhp)
+		}
+	},
+	takedamage: function (dhp) {
+		this.hp = Math.max(this.hp - dhp, 0)
+	},
+}
+
+var MercyInvulnerable = {
+	takedamage: function () {
+		this.tmercy = settings.tmercy
+	},
+	think: function (dt) {
+		this.tmercy = Math.max(this.tmercy - dt, 0)
+	},
+	draw: function () {
+		if (!this.tmercy) return
+		UFX.draw("alpha", this.tmercy * 20 % 2 >= 1 ? 0.1 : 0.9)
 	},
 }
 
@@ -74,6 +106,7 @@ var MultiLeaper = {
 		this.parent = null
 		this.upward = true
 		this.dup = settings.dup
+		this.hanging = settings.hangtime
 	},
 }
 
@@ -92,12 +125,40 @@ var DrawPlacable = {
 	},
 }
 
+var FliesLissajous = {
+	settrack: function (x0, y0, dx, dy, omegax, omegay) {
+		this.tfly = 0
+		this.x0 = x0
+		this.y0 = y0
+		this.dx = dx || 3
+		this.dy = dy || 1
+		this.omegax = omegax || 1.1
+		this.omegay = omegay || 1.6
+	},
+	think: function (dt) {
+		this.tfly += dt
+		this.x = this.x0 + this.dx * Math.sin(this.tfly * this.omegax)
+		this.y = this.y0 + this.dy * Math.sin(this.tfly * this.omegay)
+	},
+}
+
+
+var HitZone = {
+	init: function (r) {
+		this.r = r || 0
+	},
+	hits: function (x, y, r) {
+		return Math.abs(x - this.x) < r + this.r && Math.abs(y - this.y) < r + this.r
+	},
+}
 
 
 function You(x, y) {
 	this.setpos(x, y)
 	this.parent = null
 	this.leap()
+	this.maxhp = 3
+	this.heal()
 }
 
 You.prototype = UFX.Thing()
@@ -105,6 +166,8 @@ You.prototype = UFX.Thing()
 	.addcomp(Stands)
 	.addcomp(MultiLeaper)
 	.addcomp(MovesHorizontal)
+	.addcomp(HasHealth)
+	.addcomp(MercyInvulnerable)
 	.addcomp({
 		draw: function () {
 			UFX.draw("fs green fr -0.2 0 0.4 0.6")
@@ -130,3 +193,28 @@ VirtualPlatform.prototype = UFX.Thing()
 	.addcomp(DrawLine, "white")
 	.addcomp(DrawPlacable)
 
+function House(x, y) {
+	this.setpos(x, y)
+}
+House.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp({
+		draw: function () {
+			UFX.draw("fs #026 fr -1 0 2 2.4")
+		},
+	})
+
+
+function Bat(x0, y0) {
+	this.setpos(x0, y0)
+	this.settrack(x0, y0)
+}
+Bat.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(FliesLissajous)
+	.addcomp(HitZone, 0.2)
+	.addcomp({
+		draw: function () {
+			UFX.draw("fs #A00 fr -0.2 -0.2 0.4 0.4")
+		},
+	})
