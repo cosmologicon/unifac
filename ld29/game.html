@@ -1,0 +1,41 @@
+<!doctype html>
+<title>Ludum Dare 29</title>
+<canvas id=canvas></canvas>
+<script src="../UFX/src/resource.js"></script>
+<script src="../UFX/src/draw.js"></script>
+<script src="../UFX/src/maximize.js"></script>
+<script src="../UFX/src/key.js"></script>
+<script src="../UFX/src/ticker.js"></script>
+<script src="../UFX/src/scene.js"></script>
+<script src="../UFX/src/Thing.js"></script>
+
+<script src="play.js"></script>
+<script src="state.js"></script>
+<script src="things.js"></script>
+<script src="camera.js"></script>
+<script src="settings.js"></script>
+<script>
+var canvas = document.getElementById("canvas")
+var context = canvas.getContext("2d")
+UFX.draw.setcontext(context)
+UFX.key.init()
+UFX.key.qdown = true
+
+UFX.maximize.fill(canvas, "total")
+
+UFX.scenes.title = {
+	think: function () {
+		UFX.scene.push("play")
+	},
+}
+
+UFX.resource.onload = function () {
+	UFX.scene.init()
+	UFX.scene.push("title")
+}
+
+UFX.resource.loadwebfonts("Viga")
+
+</script>
+
+
