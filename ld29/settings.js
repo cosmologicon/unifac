@@ -1,9 +1,12 @@
 var settings = {
 	vyup: 20,
 	dup: 1.1,
-	hover: 0.1,
+	hover: 0.15,
 	aydown: 40,
 	vx: 6,
+	hangtime: 0.2,
+	ahang: 1.4,
+	tmercy: 1.6,
 }
 var qobj = {}
 var qstring = window.location.search.slice(1)

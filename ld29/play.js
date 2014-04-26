@@ -13,6 +13,9 @@ UFX.scenes.play = {
 			if (kstate.down.up) {
 				state.you.leap()
 			}
+			if (state.you.hanging && !kstate.pressed.up) {
+				state.you.hanging = 0
+			}
 			if (state.you.parent && kstate.down.down) {
 				state.you.drop()
 			}
@@ -60,6 +63,15 @@ UFX.scenes.play = {
 					if (platform.catches(state.you)) state.you.land(platform)
 				})
 			}
+			var px = state.you.x, py = state.you.y + 0.3, pr = 0.2
+			state.monsters.forEach(function (m) {
+				m.think(dt)
+				if (m.hits(px, py, pr)) {
+					if (!state.you.tmercy) {
+						state.you.takedamage(1)
+					}
+				}
+			})
 		}
 
 		if (this.mode == "build") this.vplatform.think(dt)
@@ -75,12 +87,19 @@ UFX.scenes.play = {
 			obj.draw()
 			context.restore()
 		}
+		state.buildings.forEach(draw)
 		state.forplatforms(camera.ymin, camera.ymax, draw)
+		state.monsters.forEach(draw)
 		draw(state.you)
 		if (this.mode == "build") {
 			draw(this.vplatform)
 		}
 		context.restore()
+
+		if (state.nearhouse(state.you)) {
+			UFX.draw("fs white font 38px~'Viga' textalign center",
+				"[ t", canvas.width / 2, canvas.height * 0.7, "ft0 Space:~talk ]")
+		}
 		
 		if (DEBUG) {
 			var texts = [
@@ -89,8 +108,9 @@ UFX.scenes.play = {
 				"F3: toggle fly mode",
 				"F4: destroy parent",
 			]
+			UFX.draw("fs white textalign left font 16px~'Viga'")
 			texts.forEach(function (text, j) {
-				UFX.draw("fs white [ t 4", 20 * j + 20, "ft0", text.replace(/ /g, "~"), "]")
+				UFX.draw("[ t 4", 20 * j + 20, "ft0", text.replace(/ /g, "~"), "]")
 			})
 		}
 	},
