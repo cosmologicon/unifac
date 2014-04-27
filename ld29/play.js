@@ -3,14 +3,14 @@ UFX.scenes.play = {
 		state.init()
 		this.mode = "play"
 		this.buildoff = [0, 0]
-		this.vplatform = new VirtualPlatform(0, 0, 3)
+		this.vplatform = new VirtualPlatform(0, 0, settings.psize)
 	},
 	thinkargs: function (dt) {
 		return [dt, UFX.key.state()]
 	},
 	think: function (dt, kstate) {
 		if (this.mode == "play") {
-			if (kstate.down.up) {
+			if (kstate.down.up && state.you.kjump < state.njump) {
 				state.you.leap()
 			}
 			if (state.you.hanging && !kstate.pressed.up) {
@@ -26,8 +26,20 @@ UFX.scenes.play = {
 				this.vplatform.y = Math.floor(state.you.y) + this.buildoff[1]
 			}
 			if (DEBUG && kstate.down.F4 && state.you.parent) {
-				state.platforms = state.platforms.filter(function (p) { return p !== state.you.parent })
+				state.removeplatform(state.you.parent)
 				state.you.drop()
+			}
+			if (DEBUG && kstate.down.F5) {
+				this.vplatform.dx = settings.psize -= 1
+			}
+			if (DEBUG && kstate.down.F6) {
+				this.vplatform.dx = settings.psize += 1
+			}
+			if (DEBUG && kstate.down.F7 && state.you.parent) {
+				state.you.parent.ischeck = !state.you.parent.ischeck
+			}
+			if (DEBUG && kstate.down.F11) {
+				state.dump()
 			}
 		} else if (this.mode == "build") {
 			if (kstate.down.left) this.buildoff[0] -= 1
@@ -62,6 +74,10 @@ UFX.scenes.play = {
 				state.forplatforms(state.you.y - 1, state.you.oldy + 1, function (platform) {
 					if (platform.catches(state.you)) state.you.land(platform)
 				})
+			}
+			if (state.you.y < state.lastlanding.y - settings.maxfall) {
+				state.you.takedamage(1)
+				state.resetfall()
 			}
 			var px = state.you.x, py = state.you.y + 0.3, pr = 0.2
 			state.effects = state.effects.filter(function (e, j) {
@@ -109,17 +125,34 @@ UFX.scenes.play = {
 		state.splats.forEach(draw)
 		context.restore()
 
+		var r0 = 0.4 * Math.min(canvas.width, canvas.height) / camera.z
+		UFX.draw("[ t", canvas.width/2, canvas.height/2, "z", camera.z, camera.z)
+		for (var h in state.houses) {
+			var house = state.houses[h]
+			var dx = house.x - camera.x0, dy = house.y - camera.y0
+			var r = Math.sqrt(dx * dx + dy * dy), D = r / r0
+			if (D < 1) continue
+			var theta = Math.atan2(-dx, -dy)
+			UFX.draw("[ r", theta, "t 0", r0, "( m 0 2 l -0.5 0 l 0.5 0 ) fs #006 f ss #666 lw 0.05 s",
+				"t 0 -0.5 r", -theta, "fs white ss black textalign center z 0.01 0.01 font 120px~Viga lw 6 fst0", h, "]")
+		}
+		UFX.draw("]")
+
+
 		if (state.nearhouse(state.you)) {
 			UFX.draw("fs white font 38px~'Viga' textalign center",
 				"[ t", canvas.width / 2, canvas.height * 0.7, "ft0 Space:~talk ]")
 		}
-		
+				
 		if (DEBUG) {
 			var texts = [
 				UFX.ticker.getrates(),
 				"pos: " + Math.floor(state.you.x) + ", " + Math.floor(state.you.y),
 				"F3: toggle fly mode",
 				"F4: destroy parent",
+				"F5/F6: adjust psize " + settings.psize,
+				"F7: toggle checkpoint",
+				"F11: dump state",
 			]
 			UFX.draw("fs white textalign left font 16px~'Viga'")
 			texts.forEach(function (text, j) {
