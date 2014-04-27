@@ -14,6 +14,7 @@ var settings = {
 	rmask: 10,
 	pcost: 5,
 	housegp: 20,
+	musicvolume: 0.4,
 }
 var qobj = {}
 var qstring = window.location.search.slice(1)
