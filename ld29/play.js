@@ -8,11 +8,13 @@ UFX.scenes.play = {
 			size: 512,
 			scale: 16,
 		})
+		stone.context.drawImage(UFX.texture.roughshade({size: 512}), 0, 0)
 		this.backdrop = document.createElement("canvas")
 		this.backdrop.width = this.backdrop.height = 512
-		UFX.draw(this.backdrop.getContext("2d"), "[ drawimage0", stone, "] fs rgba(0,0,0,0.7) f0")
+		UFX.draw(this.backdrop.getContext("2d"), "[ drawimage0", stone, "] fs rgba(0,0,0,0.5) f0")
 		camera.focus = state.you
 		camera.think(1)
+		playmusic("song" + state.njump)
 	},
 	thinkargs: function (dt) {
 		return [dt, UFX.key.state()]
@@ -42,8 +44,10 @@ UFX.scenes.play = {
 				while (true) {
 					var h = UFX.random.choice(Object.keys(HouseNames))
 					if (!state.done["know" + h] || !state.done["rescue" + h]) continue
+					if (state.you.parent && state.you.parent.house && state.you.parent.house.name == h) continue
 					state.lastlanding = state.houses[h].parent
 					state.resetfall()
+					playsound("warp")
 					break
 				}
 			}
@@ -248,6 +252,15 @@ UFX.scenes.play = {
 		texts.forEach(function (text, j) {
 			UFX.draw("[ t 4", h * 1.3 * (j + 1), "ft0", text.replace(/ /g, "~"), "]")
 		})
+		if (this.mode == "build" && state.gp < settings.pcost) {
+			UFX.draw("[ t", canvas.width / 2, canvas.height * 0.2,
+				"textalign center font", h+"px~'Sansita~One' fs red ss black lw 1",
+				"fst0 platforms~require~" + settings.pcost + "gp ]")
+		} else if (this.mode == "build" && this.vplatform.y > 110) {
+			UFX.draw("[ t", canvas.width / 2, canvas.height * 0.2,
+				"textalign center font", h+"px~'Sansita~One' fs red ss black lw 1",
+				"fst0 platforms~cannot~be~built~above~60~fathoms ]")
+		}
 	},
 }
 

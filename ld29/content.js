@@ -110,9 +110,9 @@ var HouseNames = {
 var cutscenes = {
 	mission1: [
 		"Apprentice, my time is short. My thoughts of late have turned to Heaven.",
-		"You have heard the story of Heaven, yes? But do you know what that word means?",
+		"You've heard the story of Heaven, yes? But do you know what that word means?",
 		"What we know as Heaven is in fact the surface of this world, which our ancestors abandoned 100 generations ago.",
-		"That there is a place beyond the darkness, a place that might still be there, seems to have been forgotten by our people.",
+		"There is a place beyond the darkness, a place that might still be there, but this fact seems to have been forgotten by our people.",
 		"Promise me that you will keep this knowledge alive.",
 		"Go to the House of Avex. There you will find a powerful tool.",
 	],
@@ -137,8 +137,8 @@ var cutscenes = {
 		"Our ancestors were builders, you know. Very little existed here before they came.",
 		"Although most of their technologies have been lost, I can teach you one.",
 		"Press and hold Space to create a platform. Use Arrow keys to place it.",
-		"Platforms cost " + settings.pcost + "GP each. If you run low slay some monsters or visit any House.",
-		"Now you must go to the House of Zume.",
+		"Platforms cost " + settings.pcost + "GP each. If you run low, slay some monsters or visit any House.",
+		"Please visit the House of Zume. I believe your path lies there.",
 	],
 	buildusage: [
 		"Have you learned to build pathways?",
@@ -160,7 +160,7 @@ var cutscenes = {
 	],
 	mission5: [
 		"This is where we once controlled the Artificial Sun, but we have not seen daylight in many years.",
-		"I could repair it, I know, if only I had the knowledge....",
+		"I could repair it, I know, if only I had replacement parts....",
 		"The technology of our ancestors is thought to be lost, but it is simply scattered.",
 		"Perhaps if you visit the Houses of Mentix, Querda, and Cogno, you may find what I need.",
 		"Learned Double Jump! Tap Up twice.",
@@ -222,7 +222,11 @@ UFX.scenes.cutscene = {
 	think: function (dt, kstate) {
 		if (kstate.down.space) {
 			this.texts.shift()
-			if (!this.texts.length) UFX.scene.pop()
+			if (!this.texts.length) {
+				UFX.scene.pop()
+				playsound("powerup")
+				playmusic("song" + state.njump)
+			}
 		}
 	},
 	draw: function () {
@@ -240,8 +244,15 @@ UFX.scenes.cutscene = {
 UFX.scenes.endscene = {
 	start: function (texts) {
 		this.texts = [
-			"The end bub",
-			"Yup the end",
+			"Whoa, you okay? Did you just come out of that hole in the ground?",
+			"You having trouble seeing? It's just sunlight. Let's get you inside.",
+			"Now, how long have you been down there? Your whole life?!",
+			"What? Is this 'Heaven'? Yeah sure, whatever you want. Just sit tight for a minute.",
+			"How many of you people are underground? A whole race?! Holy smokes, what a find!",
+			"Hey, do you have an agent? Of course not, I'll be your agent. I'm your best friend, after all!",
+			"A race of subterranian people... hey, are you a cannibal? No? Okay, well, maybe we can say you are anyway.",
+			"I can see it now... front pages... talk shows... here we come!",
+			"Welcome to Heaven, kid, you're gonna love it!",
 		]
 	},
 	thinkargs: function (dt) {
@@ -250,7 +261,7 @@ UFX.scenes.endscene = {
 	think: function (dt, kstate) {
 		if (kstate.down.space) {
 			this.texts.shift()
-			if (!this.texts.length) UFX.scene.pop()
+			if (!this.texts.length) { UFX.scene.pop() ; UFX.scene.swap("reset") }
 		}
 	},
 	draw: function () {

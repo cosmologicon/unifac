@@ -203,6 +203,7 @@ var state = {
 			if (this.bosses[h].length && !this.bosses[h].some(function (b) { return b.alive })) {
 				delete this.bosses[h]
 				this.done["rescue" + h] = true
+				playsound("defeat")
 				this.savegame()
 				console.log("saved", h)
 			}
@@ -264,9 +265,11 @@ var state = {
 		for (var j = 0 ; j < obj.pdata.length ; ++j) {
 			var p = obj.pdata[j]
 			var platform = new Platform(p[0], p[1], p[2])
+			console.log(platform)
 			this.platforms.push(platform)
 			this.newplatforms.push(platform)
 		}
+		this.sortplatforms()
 	},
 }
 

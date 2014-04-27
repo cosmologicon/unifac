@@ -92,6 +92,7 @@ var GivesMoney = {
 		this.amt = amt || 1
 	},
 	die: function () {
+		playsound("pickup")
 		state.gp += this.amt
 	},
 }
@@ -131,6 +132,7 @@ var IsSurface = {
 
 var MultiLeaper = {
 	leap: function () {
+		playsound("jump")
 		this.kjump += 1
 		this.parent = null
 		this.upward = true
@@ -307,6 +309,9 @@ You.prototype = UFX.Thing()
 			state.lastlanding = parent
 			if (parent.ischeck) state.savegame()
 		},
+		takedamage: function () {
+			playsound("hurt")
+		},
 	})
 
 function Platform(x, y, dx) {
@@ -443,6 +448,9 @@ Lance.prototype = UFX.Thing()
 			UFX.draw("ss #B00 lw 5 b m -80 0 l 80 0 m 0 -80 l 0 80 s")
 			UFX.draw("fs #700 fr -30 -30 60 60")
 		},
+		die: function () {
+			playsound("explosion")
+		},
 	})
 
 function Wilson(x0, y0, tfrac) {
@@ -466,6 +474,9 @@ Wilson.prototype = UFX.Thing()
 			UFX.draw("ss #B00 lw 5 b m -80 0 l 80 0 m 0 -80 l 0 80 s")
 			UFX.draw("fs #700 fr -30 -30 60 60")
 		},
+		die: function () {
+			playsound("explosion")
+		},
 	})
 
 function Percy(x0, y0) {
@@ -488,6 +499,9 @@ Percy.prototype = UFX.Thing()
 			UFX.draw("r", this.tfly * 5 % tau)
 			UFX.draw("ss #B00 lw 5 b m -80 0 l 80 0 m 0 -80 l 0 80 s")
 			UFX.draw("fs #700 fr -30 -30 60 60")
+		},
+		die: function () {
+			playsound("explosion")
 		},
 	})
 
