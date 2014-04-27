@@ -26,13 +26,38 @@ var canvas = document.getElementById("canvas")
 var context = canvas.getContext("2d")
 UFX.draw.setcontext(context)
 UFX.key.init()
+UFX.key.remaparrows(true)
 UFX.key.qdown = true
 
 UFX.maximize.fill(canvas, "total")
 
 UFX.scenes.title = {
 	think: function () {
-		UFX.scene.push("play")
+		if (UFX.key.ispressed.space) {
+			UFX.scene.swap("play")
+		}
+	},
+	draw: function () {
+		UFX.draw("fs brown f0")
+	},
+}
+
+UFX.scenes.death = {
+	start: function () {
+		this.t = 0
+	},
+	think: function (dt) {
+		this.t += dt
+		if (this.t > 2) UFX.scene.swap("title")
+	},
+	draw: function () {
+		if (this.t < 1) {
+			UFX.scenes.play.draw()
+		} else {
+			UFX.scenes.title.draw()
+		}
+		var alpha = 1 - Math.abs(this.t - 1)
+		UFX.draw("[ fs red alpha", alpha, "f0 ]")
 	},
 }
 

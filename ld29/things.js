@@ -82,7 +82,7 @@ var HasHealth = {
 }
 
 var SplatsOnDeath = {
-	die: function () {
+	takedamage: function () {
 		new Splat(this.x, this.y, 1)
 	},
 }
@@ -137,7 +137,7 @@ var MultiLeaper = {
 		this.dup = settings.dup
 		this.hanging = settings.hangtimes[state.jhang]
 		if (state.jhang > 0) {
-			new Slash(this.x, this.y + 0.3, 0.8)
+			new Slash(this.x, this.y + 0.3, settings.slashsizes[state.jhang])
 		}
 	},
 }
@@ -147,6 +147,16 @@ var DrawLine = {
 		this.color = color || "white"
 	},
 	draw: function () {
+		var color = this.ischeck ? "yellow" : this.color
+		UFX.draw("ss", color, "lw 8 b m 0 0 l", this.dx*100, "0 s")
+	},
+}
+var DrawDebugLine = {
+	init: function (color) {
+		this.color = color || "white"
+	},
+	draw: function () {
+		if (!DEBUG) return
 		var color = this.ischeck ? "yellow" : this.color
 		UFX.draw("ss", color, "lw 8 b m 0 0 l", this.dx*100, "0 s")
 	},
@@ -210,6 +220,40 @@ var FliesToroidal = {
 	},
 }
 
+var FliesErratic = {
+	init: function (dx, dy, v) {
+		this.dx = dx || 1
+		this.dy = dy || 1
+		this.v = v || 3
+	},
+	settrack: function (x0, y0) {
+		this.tfly = 0
+		this.x0 = x0
+		this.y0 = y0
+		this.x = this.x0
+		this.y = this.y0
+	},
+	think: function (dt) {
+		this.tfly += dt
+		if (!this.target) {
+			this.target = [
+				this.x0 + this.dx * UFX.random(-1, 1),
+				this.y0 + this.dy * UFX.random(-1, 1),
+			]
+		}
+		var dx = this.target[0] - this.x, dy = this.target[1] - this.y
+		var d = Math.sqrt(dx * dx + dy * dy)
+		if (d < this.v * dt) {
+			this.x = this.target[0]
+			this.y = this.target[1]
+			this.target = null
+			return
+		}
+		this.x += (this.v * dt) * dx / d
+		this.y += (this.v * dt) * dy / d
+	},
+}
+
 
 var HitZone = {
 	init: function (r) {
@@ -252,7 +296,12 @@ You.prototype = UFX.Thing()
 	.addcomp(MercyInvulnerable)
 	.addcomp({
 		draw: function () {
-			UFX.draw("fs green fr -20 0 40 60")
+			if (state.jhang) {
+				var a = this.upward || this.hover ? -0.9 : this.parent || this.hanging ? 0.15 : 0.8
+				UFX.draw("fs white [ t 0 50 r", a, "( m 0 0 l 80 0 l 40 20 ) f ]")
+				UFX.draw("fs white [ t 0 50 r", -a, "( m 0 0 l -80 0 l -40 20 ) f ]")
+			}
+			UFX.draw("fs green ( m -25 0 l -15 60 l 15 60 l 25 0 ) f")
 		},
 		land: function (parent) {
 			state.lastlanding = parent
@@ -275,7 +324,7 @@ Platform.prototype = UFX.Thing()
 			UFX.draw("fs", this.grad, "fr 0 -100", this.dx*100, 100)
 		},
 	})
-//	.addcomp(DrawLine, "#266")
+	.addcomp(DrawDebugLine, "#266")
 
 function VirtualPlatform(x, y, dx) {
 	this.setpos(x, y)
@@ -295,7 +344,10 @@ House.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp({
 		draw: function () {
-			UFX.draw("fs #026 fr -100 0 200 240")
+			UFX.draw("fs #424 ss #848 lw 8 ( m -85 0 q -85 100 0 200 q 85 100 85 0 ) f s")
+			UFX.draw("fs #242 ss #484 lw 8 ( m -20 0 c -20 100 -100 100 -60 180 c -50 100 50 100 60 180 c 100 100 20 100 20 0 ) f s")
+			UFX.draw("fs #224 ss #448 lw 8 ( m -100 0 q 0 -20 100 0 q 100 15 90 30 q 0 18 -90 30 q -100 15 -100 0 ) f s")
+//			UFX.draw("fs #026 fr -100 0 200 240")
 		},
 	})
 
@@ -320,6 +372,52 @@ Bat.prototype = UFX.Thing()
 			var h = 20 * [0, 1, 0, -1][Math.floor(this.tfly * 20 % 4)]
 			UFX.draw("ss #B00 lw 5 b m -50", h, "l 0 0 l 50", h, "s")
 			UFX.draw("fs #700 fr -20 -20 40 40")
+		},
+	})
+
+function Zat(x0, y0) {
+	this.setpos(x0, y0)
+	this.settrack(x0, y0)
+	this.tfly = UFX.random(1000)
+	this.heal()
+	state.monsters.push(this)
+}
+Zat.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(WithinSector)
+	.addcomp(FliesLissajous, 5, 3, 0.7, 1.2)
+	.addcomp(HitZone, 0.3)
+	.addcomp(HasHealth, 1)
+	.addcomp(GivesMoney, 2)
+	.addcomp(SplatsOnDeath)
+	.addcomp({
+		draw: function () {
+			var h = 20 * [0, 1, 0, -1][Math.floor(this.tfly * 20 % 4)]
+			UFX.draw("z 1.5 1.5 ss #BB0 lw 5 b m -50", h, "l 0 0 l 50", h, "s")
+			UFX.draw("fs #770 fr -20 -20 40 40")
+		},
+	})
+
+function Wat(x0, y0) {
+	this.setpos(x0, y0)
+	this.settrack(x0, y0)
+	this.tfly = UFX.random(1000)
+	this.heal()
+	state.monsters.push(this)
+}
+Wat.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(WithinSector)
+	.addcomp(FliesLissajous, 5, 3, 0.7, 1.2)
+	.addcomp(HitZone, 0.4)
+	.addcomp(HasHealth, 1)
+	.addcomp(GivesMoney, 3)
+	.addcomp(SplatsOnDeath)
+	.addcomp({
+		draw: function () {
+			var h = 20 * [0, 1, 0, -1][Math.floor(this.tfly * 20 % 4)]
+			UFX.draw("z 2 2 ss #0BB lw 5 b m -50", h, "l 0 0 l 50", h, "s")
+			UFX.draw("fs #077 fr -20 -20 40 40")
 		},
 	})
 
@@ -370,5 +468,27 @@ Wilson.prototype = UFX.Thing()
 		},
 	})
 
+function Percy(x0, y0) {
+	this.setpos(x0, y0)
+	this.settrack(x0, y0)
+	this.tfly = UFX.random(100)
+	this.heal()
+	state.monsters.push(this)
+}
+Percy.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(WithinSector)
+	.addcomp(FliesErratic, 5, 2, 5)
+	.addcomp(HitZone, 0.4)
+	.addcomp(HasHealth, 1)
+	.addcomp(SplatsOnDeath)
+	.addcomp(CheckBoss)
+	.addcomp({
+		draw: function () {
+			UFX.draw("r", this.tfly * 5 % tau)
+			UFX.draw("ss #B00 lw 5 b m -80 0 l 80 0 m 0 -80 l 0 80 s")
+			UFX.draw("fs #700 fr -30 -30 60 60")
+		},
+	})
 
 
