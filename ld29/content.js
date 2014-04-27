@@ -80,6 +80,9 @@ var content = {
 			this.cutscene("complete")
 		}
 	},
+	talksarf: function () {
+		UFX.scene.push("endscene")
+	},
 	cutscene: function (cname) {
 		UFX.scene.push("cutscene", cutscenes[cname])
 	},
@@ -233,6 +236,35 @@ UFX.scenes.cutscene = {
 		UFX.draw("]")
 	},
 }
+
+UFX.scenes.endscene = {
+	start: function (texts) {
+		this.texts = [
+			"The end bub",
+			"Yup the end",
+		]
+	},
+	thinkargs: function (dt) {
+		return [dt, UFX.key.state()]
+	},
+	think: function (dt, kstate) {
+		if (kstate.down.space) {
+			this.texts.shift()
+			if (!this.texts.length) UFX.scene.pop()
+		}
+	},
+	draw: function () {
+		UFX.scenes.play.draw()
+		UFX.draw("fs rgba(0,0,0,0.9) f0")
+		if (!this.texts[0]) return
+		UFX.draw("[ fs white sh #00A 1 1 0 font 40px~'Pirata~One' textalign center")
+		wordwrap(this.texts[0], 500, context).forEach(function (t, j, ts) {
+			context.fillText(t, canvas.width / 2, canvas.height / 2 + 50 * (j - ts.length / 2))
+		})
+		UFX.draw("]")
+	},
+}
+
 
 function wordwrap(text, twidth, con) {
     con = con || context
