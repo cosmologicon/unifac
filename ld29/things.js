@@ -87,6 +87,15 @@ var SplatsOnDeath = {
 	},
 }
 
+var GivesMoney = {
+	init: function (amt) {
+		this.amt = amt || 1
+	},
+	die: function () {
+		state.gp += this.amt
+	},
+}
+
 var MercyInvulnerable = {
 	takedamage: function () {
 		this.tmercy = settings.tmercy
@@ -217,6 +226,14 @@ var CheckBoss = {
 	},
 }
 
+var WithinSector = {
+	settrack: function (x0, y0) {
+		var sx = Math.floor(x0 / settings.sectorsize)
+		var sy = Math.floor(y0 / settings.sectorsize)
+		this.sectorkey = sx + "," + sy
+	},
+}
+
 
 function You(x, y) {
 	this.setpos(x, y)
@@ -247,7 +264,7 @@ function Platform(x, y, dx) {
 	this.setpos(x, y)
 	this.dx = dx
 	state.claimtiles(this)
-	var c = UFX.random.rand(40, 50) + "," + UFX.random.rand(40, 50) + "," + UFX.random.rand(40, 50)
+	var c = UFX.random.rand(100,120) + "," + UFX.random.rand(100,120) + "," + UFX.random.rand(100,120)
 	this.grad = UFX.draw.lingrad(0, 0, 0, -100, 0, "rgb(" + c + ")", 1, "rgba(" + c + ",0)")
 }
 Platform.prototype = UFX.Thing()
@@ -292,9 +309,11 @@ function Bat(x0, y0) {
 }
 Bat.prototype = UFX.Thing()
 	.addcomp(WorldBound)
+	.addcomp(WithinSector)
 	.addcomp(FliesLissajous, 3, 1, 0.7, 0.4)
 	.addcomp(HitZone, 0.2)
 	.addcomp(HasHealth, 1)
+	.addcomp(GivesMoney, 1)
 	.addcomp(SplatsOnDeath)
 	.addcomp({
 		draw: function () {
@@ -313,6 +332,7 @@ function Lance(x0, y0, tfrac) {
 }
 Lance.prototype = UFX.Thing()
 	.addcomp(WorldBound)
+	.addcomp(WithinSector)
 	.addcomp(FliesLissajous, 2, 1, 1, 2)
 	.addcomp(LissajousPulses)
 	.addcomp(HitZone, 0.4)
@@ -336,6 +356,7 @@ function Wilson(x0, y0, tfrac) {
 }
 Wilson.prototype = UFX.Thing()
 	.addcomp(WorldBound)
+	.addcomp(WithinSector)
 	.addcomp(FliesToroidal)
 	.addcomp(HitZone, 0.4)
 	.addcomp(HasHealth, 1)

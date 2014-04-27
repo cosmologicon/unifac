@@ -6,31 +6,36 @@ var state = {
 		this.houses = {}
 		this.taken = {}
 		this.platforms = []
+		this.newplatforms = []
+		this.hsectors = {}
 		this.addhouse(0, 0, "elgo")
 		this.addhouse(-2, 1, "wari")
 		this.addhouse(3, 1, "semt")
 		this.addhouse(-3, 3, "pald")
+		this.addhouse(0, 5, "lume")
+		this.addhouse(2, 3, "lige")
+		this.addhouse(-3, -4, "sank")
+		this.addhouse(-6, 4, "mian")
+		this.addhouse(3, 8, "sarf")
 		this.load(UFX.resource.data.gamedata)
 		this.you = new You(this.houses.elgo.x, this.houses.elgo.y + 4)
 		this.sortplatforms()
 		
 		this.monsters = []
-		this.fillsector(-1, 0)
-		this.fillsector(-2, 0)
-		this.fillsector(-1, 1)
-		this.fillsector(0, 1)
-		this.fillsector(1, 1)
-		this.fillsector(2, 1)
-		this.fillsector(1, 0)
-		this.fillsector(2, 0)
-		this.fillsector(3, 0)
+		this.basesector = null
+		this.filledsectors = {}
 		
 		this.njump = 1
-		this.jhang = 1
+		this.jhang = 0
+		this.canbuild = false
+		this.canwarp = false
+		this.sun = false
+		this.gp = 0
 		
 		this.lastlanding = this.houses.elgo.parent
 
 		this.done = {
+			knowelgo: true,
 			rescueelgo: true,
 			rescuewari: true,
 		}
@@ -38,21 +43,14 @@ var state = {
 		this.bosses = {
 			semt: [],
 			pald: [],
+			lume: [],
+			lige: [],
+			sank: [],
+			mian: [],
+			sarf: [],
 		}
 
 		this.loadgame()
-		if (!this.done.rescuesemt) {
-			var x = this.houses.semt.x, y = this.houses.semt.y + 1
-			for (var j = 0 ; j < 9 ; ++j) {
-				this.bosses.semt.push(new Lance(x, y, j/9))
-			}
-		}
-		if (!this.done.rescuepald) {
-			var x = this.houses.pald.x, y = this.houses.pald.y + 1
-			for (var j = 0 ; j < 11 ; ++j) {
-				this.bosses.pald.push(new Wilson(x, y, j/11))
-			}
-		}
 	},
 	resetfall: function () {
 		this.you.x = this.lastlanding.x + this.lastlanding.dx * 0.5
@@ -69,13 +67,18 @@ var state = {
 		this.buildings.push(h)
 		this.platforms.push(p)
 		this.houses[hname] = h
+		this.hsectors[sx + "," + sy] = h
 	},
 	nearhouse: function (you) {
 		if (!you.parent) return false
 		if (!you.parent.house) return false
 		if (Math.abs(you.x - you.parent.house.x) > 2) return false
-		if (!this.rescued[you.parent.house.name]) return false
+		if (!this.done["rescue" + you.parent.house.name]) return false
 		return you.parent.house
+	},
+	talk: function (house) {
+		content["talk" + house.name]()
+		this.savegame()
 	},
 	sortplatforms: function () {
 		this.platforms.sort(function (p1, p2) { return p1.y - p2.y })
@@ -104,9 +107,48 @@ var state = {
 	},
 	fillsector: function (sx, sy) {
 		var s = settings.sectorsize
-		UFX.random.spread(16).forEach(function (p) {
-			new Bat(s * (sx + p[0]), s * (sy + p[1]))
-		})
+		var h = this.hsectors[sx + "," + sy]
+		if (h) {
+			if (this.done["rescue" + h.name]) return
+			hx = h.x, hy = h.y + 1
+			this.bosses[h.name] = []
+			if (h.name == "semt") {
+				for (var j = 0 ; j < 9 ; ++j) {
+					this.bosses.semt.push(new Lance(h.x, h.y, j/9))
+				}
+			} else if (h.name == "pald") {
+				for (var j = 0 ; j < 11 ; ++j) {
+					this.bosses.pald.push(new Wilson(h.x, h.y, j/11))
+				}
+			}
+		} else {
+			UFX.random.spread(16).forEach(function (p) {
+				new Bat(s * (sx + p[0]), s * (sy + p[1]))
+			})
+		}
+	},
+	clearsector: function (key) {
+		this.monsters = this.monsters.filter(function (m) { return m.sectorkey != key })
+	},
+	checksectors: function () {
+		var sx0 = Math.floor(this.you.x / settings.sectorsize)
+		var sy0 = Math.floor(this.you.y / settings.sectorsize)
+		var nbasesector = sx0 + "," + sy0
+		if (this.basesector == nbasesector) return
+		var nfilledsectors = {}
+		for (var dx = -1 ; dx <= 1 ; ++dx) {
+			for (var dy = -1 ; dy <= 1 ; ++dy) {
+				var sx = sx0 + dx, sy = sy0 + dy, key = sx + "," + sy
+				if (!this.filledsectors[key]) this.fillsector(sx, sy)
+				nfilledsectors[key] = 1
+			}
+		}
+		for (var key in this.filledsectors) {
+			if (!nfilledsectors[key]) this.clearsector(key)
+		}
+		this.basesector = nbasesector
+		this.filledsectors = nfilledsectors
+		console.log(this.monsters.length)
 	},
 	forplatforms: function (y0, y1, callback) {
 		// j = lowest index <= y0, k = highest index > y0
@@ -125,7 +167,7 @@ var state = {
 	},
 	checkbosses: function () {
 		for (var h in this.bosses) {
-			if (this.rescued[h]) continue
+			if (this.done["rescue" + h]) continue
 			if (!this.bosses[h].some(function (b) { return b.alive })) {
 				delete this.bosses[h]
 				this.done["rescue" + h] = true
@@ -156,10 +198,20 @@ var state = {
 	gamename: "LD29save",
 	savegame: function () {
 		console.log("saving")
+		var pdata = this.newplatforms.map(function (p) {
+			return [p.x, p.y, p.dx]
+		})
 		var obj = {
 			youpos: [this.you.x, this.you.y],
-			hp: this.you.hp,
+			maxhp: this.you.maxhp,
 			done: this.done,
+			njump: this.njump,
+			jhang: this.jhang,
+			canbuild: this.canbuild,
+			canwarp: this.canwarp,
+			gp: this.gp,
+			pdata: pdata,
+			sun: this.sun,
 		}
 		localStorage[this.gamename] = JSON.stringify(obj)
 	},
@@ -168,9 +220,21 @@ var state = {
 		var obj = JSON.parse(localStorage[this.gamename])
 		this.you.x = obj.youpos[0]
 		this.you.y = obj.youpos[1] + 0.4
-		this.you.hp = obj.hp
+		this.you.hp = this.you.maxhp = obj.maxhp
 		this.you.drop()
 		this.done = obj.done
+		this.njump = obj.njump
+		this.jhang = obj.jhang
+		this.canbuild = obj.canbuild
+		this.canwarp = obj.canwarp
+		this.gp = obj.gp
+		this.sun = obj.sun
+		for (var j = 0 ; j < obj.pdata.length ; ++j) {
+			var p = obj.pdata[j]
+			var platform = new Platform(p[0], p[1], p[2])
+			this.platforms.push(platform)
+			this.newplatforms.push(platform)
+		}
 	},
 }
 
