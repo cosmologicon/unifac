@@ -4,6 +4,14 @@ UFX.scenes.play = {
 		this.mode = "play"
 		this.buildoff = [0, 0]
 		this.vplatform = new VirtualPlatform(0, 0, settings.psize)
+		var stone = UFX.texture.stone({
+			size: 512,
+			scale: 16,
+		})
+		this.backdrop = document.createElement("canvas")
+		this.backdrop.width = this.backdrop.height = 512
+		UFX.draw(this.backdrop.getContext("2d"), "[ drawimage0", stone, "] fs rgba(20,20,20,1) f0")
+		
 	},
 	thinkargs: function (dt) {
 		return [dt, UFX.key.state()]
@@ -60,6 +68,10 @@ UFX.scenes.play = {
 			if (kstate.down.right) state.you.x += 1
 			if (kstate.down.up) state.you.y += 1
 			if (kstate.down.down) state.you.y -= 1
+			if (kstate.down[4]) state.you.x -= 10
+			if (kstate.down[6]) state.you.x += 10
+			if (kstate.down[2]) state.you.y -= 10
+			if (kstate.down[8]) state.you.y -= 10
 		}
 
 		if (DEBUG && kstate.down.F3) this.mode = this.mode == "fly" ? "play" : "fly"
@@ -105,7 +117,17 @@ UFX.scenes.play = {
 		camera.think(dt)
 	},
 	draw: function () {
-		UFX.draw("fs black f0")
+		var x0 = -camera.x0*camera.z/2, y0 = camera.y0*camera.z/2
+		UFX.draw("fs #600 f0 [ t", x0, y0)
+		var i0 = Math.floor(-x0 / 512), i1 = 1 + Math.floor((-x0 + canvas.width) / 512)
+		var j0 = Math.floor(-y0 / 512), j1 = 1 + Math.floor((-y0 + canvas.height) / 512)
+		for (var i = i0 ; i < i1 ; ++i) {
+			for (var j = j0 ; j < j1 ; ++j) {
+				UFX.draw("drawimage", this.backdrop, 512*i, 512*j)
+			}
+		}
+		UFX.draw("]")
+
 		context.save()
 		camera.transform()
 		function draw(obj) {
@@ -125,19 +147,28 @@ UFX.scenes.play = {
 		state.splats.forEach(draw)
 		context.restore()
 
+		var sx2 = canvas.width / 2, sy2 = canvas.height / 2, r = settings.rmask * camera.z
+		var r1 = UFX.random(0.5, 0.52)
+		var r2 = UFX.random(0.7, 0.72)
+		var grad = UFX.draw.radgrad(sx2, sy2, 0, sx2, sy2, r,
+			0, "rgba(0,0,0,0)",
+			r1, "rgba(0,0,0,0)",
+			r2, "rgba(0,0,0,0.1)",
+			1, "rgba(0,0,0,1)")
+		UFX.draw("fs", grad, "f0")
+
 		var r0 = 0.4 * Math.min(canvas.width, canvas.height) / camera.z
-		UFX.draw("[ t", canvas.width/2, canvas.height/2, "z", camera.z, camera.z)
+		UFX.draw("[ t", canvas.width/2, canvas.height/2, "z", 0.01*camera.z, 0.01*camera.z)
 		for (var h in state.houses) {
 			var house = state.houses[h]
 			var dx = house.x - camera.x0, dy = house.y - camera.y0
 			var r = Math.sqrt(dx * dx + dy * dy), D = r / r0
 			if (D < 1) continue
 			var theta = Math.atan2(-dx, -dy)
-			UFX.draw("[ r", theta, "t 0", r0, "( m 0 2 l -0.5 0 l 0.5 0 ) fs #006 f ss #666 lw 0.05 s",
-				"t 0 -0.5 r", -theta, "fs white ss black textalign center z 0.01 0.01 font 120px~Viga lw 6 fst0", h, "]")
+			UFX.draw("[ r", theta, "t 0", 100*r0, "( m 0 200 l -50 0 l 50 0 ) fs #006 f ss #666 lw 5 s",
+				"t 0 -50 r", -theta, "fs white ss black textalign center font 120px~Viga lw 6 fst0", h, "]")
 		}
 		UFX.draw("]")
-
 
 		if (state.nearhouse(state.you)) {
 			UFX.draw("fs white font 38px~'Viga' textalign center",

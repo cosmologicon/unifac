@@ -4,7 +4,7 @@ var WorldBound = {
 		this.y = y
 	},
 	draw: function () {
-		UFX.draw("t", this.x, this.y)
+		UFX.draw("t", this.x*100, this.y*100)
 	},
 }
 
@@ -139,7 +139,7 @@ var DrawLine = {
 	},
 	draw: function () {
 		var color = this.ischeck ? "yellow" : this.color
-		UFX.draw("ss", color, "lw 0.08 b m 0 0 l", this.dx, "0 s")
+		UFX.draw("ss", color, "lw 8 b m 0 0 l", this.dx*100, "0 s")
 	},
 }
 
@@ -235,7 +235,7 @@ You.prototype = UFX.Thing()
 	.addcomp(MercyInvulnerable)
 	.addcomp({
 		draw: function () {
-			UFX.draw("fs green fr -0.2 0 0.4 0.6")
+			UFX.draw("fs green fr -20 0 40 60")
 		},
 		land: function (parent) {
 			state.lastlanding = parent
@@ -247,11 +247,18 @@ function Platform(x, y, dx) {
 	this.setpos(x, y)
 	this.dx = dx
 	state.claimtiles(this)
+	var c = UFX.random.rand(40, 50) + "," + UFX.random.rand(40, 50) + "," + UFX.random.rand(40, 50)
+	this.grad = UFX.draw.lingrad(0, 0, 0, -100, 0, "rgb(" + c + ")", 1, "rgba(" + c + ",0)")
 }
 Platform.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(IsSurface)
-	.addcomp(DrawLine, "#266")
+	.addcomp({
+		draw: function () {
+			UFX.draw("fs", this.grad, "fr 0 -100", this.dx*100, 100)
+		},
+	})
+//	.addcomp(DrawLine, "#266")
 
 function VirtualPlatform(x, y, dx) {
 	this.setpos(x, y)
@@ -262,15 +269,16 @@ VirtualPlatform.prototype = UFX.Thing()
 	.addcomp(DrawLine, "white")
 	.addcomp(DrawPlacable)
 
-function House(x, y) {
+function House(x, y, name) {
 	this.setpos(x, y)
+	this.name = name
 	this.r = 3
 }
 House.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp({
 		draw: function () {
-			UFX.draw("fs #026 fr -1 0 2 2.4")
+			UFX.draw("fs #026 fr -100 0 200 240")
 		},
 	})
 
@@ -290,9 +298,9 @@ Bat.prototype = UFX.Thing()
 	.addcomp(SplatsOnDeath)
 	.addcomp({
 		draw: function () {
-			var h = 0.2 * [0, 1, 0, -1][Math.floor(this.tfly * 20 % 4)]
-			UFX.draw("ss #B00 lw 0.05 b m -0.5", h, "l 0 0 l 0.5", h, "s")
-			UFX.draw("fs #700 fr -0.2 -0.2 0.4 0.4")
+			var h = 20 * [0, 1, 0, -1][Math.floor(this.tfly * 20 % 4)]
+			UFX.draw("ss #B00 lw 5 b m -50", h, "l 0 0 l 50", h, "s")
+			UFX.draw("fs #700 fr -20 -20 40 40")
 		},
 	})
 
@@ -314,8 +322,8 @@ Lance.prototype = UFX.Thing()
 	.addcomp({
 		draw: function () {
 			UFX.draw("r", this.tfly * 5 % tau)
-			UFX.draw("ss #B00 lw 0.05 b m -0.8 0 l 0.8 0 m 0 -0.8 l 0 0.8 s")
-			UFX.draw("fs #700 fr -0.3 -0.3 0.6 0.6")
+			UFX.draw("ss #B00 lw 5 b m -80 0 l 80 0 m 0 -80 l 0 80 s")
+			UFX.draw("fs #700 fr -30 -30 60 60")
 		},
 	})
 
@@ -336,8 +344,8 @@ Wilson.prototype = UFX.Thing()
 	.addcomp({
 		draw: function () {
 			UFX.draw("r", this.tfly * 5 % tau)
-			UFX.draw("ss #B00 lw 0.05 b m -0.8 0 l 0.8 0 m 0 -0.8 l 0 0.8 s")
-			UFX.draw("fs #700 fr -0.3 -0.3 0.6 0.6")
+			UFX.draw("ss #B00 lw 5 b m -80 0 l 80 0 m 0 -80 l 0 80 s")
+			UFX.draw("fs #700 fr -30 -30 60 60")
 		},
 	})
 

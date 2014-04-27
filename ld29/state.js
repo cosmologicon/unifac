@@ -30,9 +30,9 @@ var state = {
 		
 		this.lastlanding = this.houses.elgo.parent
 
-		this.rescued = {
-			elgo: true,
-			wari: true,
+		this.done = {
+			rescueelgo: true,
+			rescuewari: true,
 		}
 		
 		this.bosses = {
@@ -41,13 +41,13 @@ var state = {
 		}
 
 		this.loadgame()
-		if (!this.rescued.semt) {
+		if (!this.done.rescuesemt) {
 			var x = this.houses.semt.x, y = this.houses.semt.y + 1
 			for (var j = 0 ; j < 9 ; ++j) {
 				this.bosses.semt.push(new Lance(x, y, j/9))
 			}
 		}
-		if (!this.rescued.pald) {
+		if (!this.done.rescuepald) {
 			var x = this.houses.pald.x, y = this.houses.pald.y + 1
 			for (var j = 0 ; j < 11 ; ++j) {
 				this.bosses.pald.push(new Wilson(x, y, j/11))
@@ -74,6 +74,7 @@ var state = {
 		if (!you.parent) return false
 		if (!you.parent.house) return false
 		if (Math.abs(you.x - you.parent.house.x) > 2) return false
+		if (!this.rescued[you.parent.house.name]) return false
 		return you.parent.house
 	},
 	sortplatforms: function () {
@@ -127,7 +128,7 @@ var state = {
 			if (this.rescued[h]) continue
 			if (!this.bosses[h].some(function (b) { return b.alive })) {
 				delete this.bosses[h]
-				this.rescued[h] = true
+				this.done["rescue" + h] = true
 				this.savegame()
 				console.log("saved", h)
 			}
@@ -158,7 +159,7 @@ var state = {
 		var obj = {
 			youpos: [this.you.x, this.you.y],
 			hp: this.you.hp,
-			rescued: this.rescued,
+			done: this.done,
 		}
 		localStorage[this.gamename] = JSON.stringify(obj)
 	},
@@ -169,7 +170,7 @@ var state = {
 		this.you.y = obj.youpos[1] + 0.4
 		this.you.hp = obj.hp
 		this.you.drop()
-		this.rescued = obj.rescued
+		this.done = obj.done
 	},
 }
 
