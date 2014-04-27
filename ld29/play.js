@@ -64,13 +64,23 @@ UFX.scenes.play = {
 				})
 			}
 			var px = state.you.x, py = state.you.y + 0.3, pr = 0.2
-			state.monsters.forEach(function (m) {
+			state.effects = state.effects.filter(function (e, j) {
+				e.think(dt)
+				return e.alive
+			})
+			state.splats = state.splats.filter(function (e, j) {
+				e.think(dt)
+				return e.alive
+			})
+			state.monsters = state.monsters.filter(function (m) {
+				if (!m.alive) return false
 				m.think(dt)
 				if (m.hits(px, py, pr)) {
 					if (!state.you.tmercy) {
 						state.you.takedamage(1)
 					}
 				}
+				return true
 			})
 		}
 
@@ -83,6 +93,7 @@ UFX.scenes.play = {
 		context.save()
 		camera.transform()
 		function draw(obj) {
+			if (!camera.visible(obj.x, obj.y, obj.r || 0.5)) return
 			context.save()
 			obj.draw()
 			context.restore()
@@ -94,6 +105,8 @@ UFX.scenes.play = {
 		if (this.mode == "build") {
 			draw(this.vplatform)
 		}
+		state.effects.forEach(draw)
+		state.splats.forEach(draw)
 		context.restore()
 
 		if (state.nearhouse(state.you)) {

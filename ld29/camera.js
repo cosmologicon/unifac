@@ -13,12 +13,19 @@ var camera = {
 			this.x0 = this.focus.x
 			this.y0 = this.focus.y
 		}
-		this.ymin = this.y0 - canvas.height / this.z * 0.6
-		this.ymax = this.y0 + canvas.height / this.z * 0.6
+		this.ymin = this.y0 - canvas.height / this.z * 0.55
+		this.ymax = this.y0 + canvas.height / this.z * 0.55
+		this.xmin = this.x0 - canvas.width / this.z * 0.55
+		this.xmax = this.x0 + canvas.width / this.z * 0.55
+		
 	},
 	
 	transform: function () {
 		UFX.draw("t", canvas.width/2, canvas.height/2, "z", this.z, -this.z, "t", -this.x0, -this.y0)
-	}
+	},
+	
+	visible: function (x, y, r) {
+		return x > this.xmin - r && x < this.xmax + r && y > this.ymin - r && y < this.ymax + r
+	},
 }
 

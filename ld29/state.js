@@ -1,12 +1,11 @@
 var state = {
 	init: function () {
+		this.effects = []
+		this.splats = []
 		this.you = new You(0, 2)
 		this.buildings = []
 		this.taken = {}
-		this.platforms = [
-			new Platform(-2, 0, 4),
-			new Platform(1, 2, 4),
-		]
+		this.platforms = []
 		for (var j = 3 ; j < 5000 ; ++j) {
 			this.platforms.push(new Platform(UFX.random.rand(-j, j), j, 3))
 		}
@@ -14,8 +13,9 @@ var state = {
 		this.sortplatforms()
 		
 		this.monsters = [
-			new Bat(2, 3),
 		]
+		this.fillsector(-1, 0)
+		this.fillsector(0, 0)
 		
 		this.njump = 1
 	},
@@ -50,6 +50,12 @@ var state = {
 			if (this.taken[y][platform.x + j]) return false
 		}
 		return true
+	},
+	fillsector: function (sx, sy) {
+		var s = settings.sectorsize
+		UFX.random.spread(50).forEach(function (p) {
+			new Bat(s * (sx + p[0]), s * (sy + p[1]))
+		})
 	},
 	forplatforms: function (y0, y1, callback) {
 		// j = lowest index <= y0, k = highest index > y0

@@ -7,6 +7,7 @@ var settings = {
 	hangtime: 0.2,
 	ahang: 1.4,
 	tmercy: 1.6,
+	sectorsize: 40,
 }
 var qobj = {}
 var qstring = window.location.search.slice(1)
