@@ -1,5 +1,5 @@
 <!doctype html>
-<title>Ludum Dare 29</title>
+<title>Ad Astra</title>
 <canvas id=canvas></canvas>
 <script src="../UFX/src/resource.js"></script>
 <script src="../UFX/src/draw.js"></script>
@@ -33,12 +33,24 @@ UFX.maximize.fill(canvas, "total")
 
 UFX.scenes.title = {
 	think: function () {
-		if (UFX.key.ispressed.space) {
+		if (loadf == 1 && UFX.key.ispressed.space) {
 			UFX.scene.swap("play")
 		}
 	},
 	draw: function () {
-		UFX.draw("fs brown f0")
+		UFX.draw("fs #444 f0")
+		UFX.draw("fs white ss black")
+		var h = Math.floor(Math.min(canvas.width / 20, canvas.height / 10))
+		UFX.draw("[ lw 2 textalign center t", canvas.width / 2, canvas.height / 2)
+		UFX.draw("font", 2*h + "px~'Piedra' fst Ad~Astra 0", -2.4*h)
+		UFX.draw("font", h + "px~'Piedra' fst by~Christopher~Night 0 0")
+		UFX.draw("font", h + "px~'Piedra' fst Universe~Factory~Games 0", 1.2*h)
+		if (loadf == 1) {
+			UFX.draw("font", 1.4*h + "px~'Piedra' fst press~Space~to~" + (localStorage.LD29save ? "continue" : "begin"), 0, 4*h)
+		} else {
+			UFX.draw("font", 1.4*h + "px~'Piedra' fst Loading:~" + Math.round(100*loadf) + "%", 0, 4*h)
+		}
+		UFX.draw("]")
 	},
 }
 
@@ -56,17 +68,23 @@ UFX.scenes.death = {
 		} else {
 			UFX.scenes.title.draw()
 		}
-		var alpha = 1 - Math.abs(this.t - 1)
+		var alpha = Math.min(Math.max(1 - Math.abs(this.t - 1), 0), 1)
 		UFX.draw("[ fs red alpha", alpha, "f0 ]")
 	},
 }
 
+var loadf = 0
+UFX.scene.init()
+UFX.scene.push("title")
+
+UFX.resource.onloading = function (f) {
+	loadf = f
+}
 UFX.resource.onload = function () {
-	UFX.scene.init()
-	UFX.scene.push("title")
+	loadf = 1
 }
 
-UFX.resource.loadwebfonts("Viga", "Pirata One", "Sansita One")
+UFX.resource.loadwebfonts("Viga", "Pirata One", "Sansita One", "Piedra")
 UFX.resource.load({
 	gamedata: "gamedata.json",
 })

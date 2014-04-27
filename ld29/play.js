@@ -11,6 +11,8 @@ UFX.scenes.play = {
 		this.backdrop = document.createElement("canvas")
 		this.backdrop.width = this.backdrop.height = 512
 		UFX.draw(this.backdrop.getContext("2d"), "[ drawimage0", stone, "] fs rgba(0,0,0,0.7) f0")
+		camera.focus = state.you
+		camera.think(1)
 	},
 	thinkargs: function (dt) {
 		return [dt, UFX.key.state()]
@@ -137,7 +139,6 @@ UFX.scenes.play = {
 		}
 
 		if (this.mode == "build") this.vplatform.think(dt)
-		camera.focus = state.you
 		camera.think(dt)
 		
 		state.checksectors()
