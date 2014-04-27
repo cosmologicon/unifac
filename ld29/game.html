@@ -18,6 +18,7 @@
 <script src="settings.js"></script>
 <script src="effects.js"></script>
 <script>
+var tau = 6.283185307179586
 var canvas = document.getElementById("canvas")
 var context = canvas.getContext("2d")
 UFX.draw.setcontext(context)
@@ -38,6 +39,9 @@ UFX.resource.onload = function () {
 }
 
 UFX.resource.loadwebfonts("Viga")
+UFX.resource.load({
+	gamedata: "gamedata.json",
+})
 
 </script>
 

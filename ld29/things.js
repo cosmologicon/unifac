@@ -13,6 +13,7 @@ var Stands = {
 		if (this.parent) {
 			if (!this.parent.supports(this)) {
 				this.drop()
+				this.kjump = 1
 				this.y += 0.002
 			}
 		} else {
@@ -47,6 +48,7 @@ var Stands = {
 		this.parent = null
 	},
 	land: function (parent) {
+		this.kjump = 0
 		this.parent = parent
 		this.y = this.parent.y
 		this.vy = 0
@@ -120,11 +122,14 @@ var IsSurface = {
 
 var MultiLeaper = {
 	leap: function () {
+		this.kjump += 1
 		this.parent = null
 		this.upward = true
 		this.dup = settings.dup
-		this.hanging = settings.hangtime
-		new Slash(this.x, this.y + 0.3, 0.8)
+		this.hanging = settings.hangtimes[state.jhang]
+		if (state.jhang > 0) {
+			new Slash(this.x, this.y + 0.3, 0.8)
+		}
 	},
 }
 
@@ -133,7 +138,8 @@ var DrawLine = {
 		this.color = color || "white"
 	},
 	draw: function () {
-		UFX.draw("ss", this.color, "lw 0.08 b m 0 0 l", this.dx, "0 s")
+		var color = this.ischeck ? "yellow" : this.color
+		UFX.draw("ss", color, "lw 0.08 b m 0 0 l", this.dx, "0 s")
 	},
 }
 
@@ -144,19 +150,54 @@ var DrawPlacable = {
 }
 
 var FliesLissajous = {
-	settrack: function (x0, y0, dx, dy, omegax, omegay) {
-		this.tfly = 0
-		this.x0 = x0
-		this.y0 = y0
+	init: function (dx, dy, omegax, omegay) {
 		this.dx = dx || 3
 		this.dy = dy || 1
 		this.omegax = omegax || 1.1
 		this.omegay = omegay || 1.6
 	},
+	settrack: function (x0, y0) {
+		this.tfly = 0
+		this.x0 = x0
+		this.y0 = y0
+	},
 	think: function (dt) {
 		this.tfly += dt
 		this.x = this.x0 + this.dx * Math.sin(this.tfly * this.omegax)
 		this.y = this.y0 + this.dy * Math.sin(this.tfly * this.omegay)
+	},
+}
+var LissajousPulses = {
+	init: function () {
+		this.tpulse = 0
+		this.dx0 = this.dx
+		this.dy0 = this.dy
+	},
+	think: function (dt) {
+		this.tpulse += dt
+		this.dx = (1 + 0.4 * Math.sin(2 * this.tpulse)) * this.dx0
+		this.dy = (1 + 0.4 * Math.cos(2 * this.tpulse)) * this.dy0
+	},
+}	
+
+var FliesToroidal = {
+	init: function (r0, dr, omegar, omegap) {
+		this.r0 = r0 || 1
+		this.dr = dr || 0.8
+		this.omegar = omegar || 5
+		this.omegap = omegap || 1
+	},
+	settrack: function (x0, y0) {
+		this.tfly = 0
+		this.x0 = x0
+		this.y0 = y0
+	},
+	think: function (dt) {
+		this.tfly += dt
+		var r = this.r0 + this.dr * Math.sin(this.tfly * this.omegar)
+		var phi = this.tfly * this.omegap
+		this.x = this.x0 + 2 * r * Math.sin(phi)
+		this.y = this.y0 + 0.6 * r * Math.cos(phi)
 	},
 }
 
@@ -170,11 +211,18 @@ var HitZone = {
 	},
 }
 
+var CheckBoss = {
+	die: function () {
+		state.checkbosses()
+	},
+}
+
 
 function You(x, y) {
 	this.setpos(x, y)
 	this.parent = null
-	this.leap()
+	this.kjump = 999
+	this.drop()
 	this.heal()
 }
 
@@ -188,6 +236,10 @@ You.prototype = UFX.Thing()
 	.addcomp({
 		draw: function () {
 			UFX.draw("fs green fr -0.2 0 0.4 0.6")
+		},
+		land: function (parent) {
+			state.lastlanding = parent
+			if (parent.ischeck) state.savegame()
 		},
 	})
 
@@ -232,7 +284,7 @@ function Bat(x0, y0) {
 }
 Bat.prototype = UFX.Thing()
 	.addcomp(WorldBound)
-	.addcomp(FliesLissajous)
+	.addcomp(FliesLissajous, 3, 1, 0.7, 0.4)
 	.addcomp(HitZone, 0.2)
 	.addcomp(HasHealth, 1)
 	.addcomp(SplatsOnDeath)
@@ -243,3 +295,51 @@ Bat.prototype = UFX.Thing()
 			UFX.draw("fs #700 fr -0.2 -0.2 0.4 0.4")
 		},
 	})
+
+function Lance(x0, y0, tfrac) {
+	this.setpos(x0, y0)
+	this.settrack(x0, y0)
+	this.tfly = tau * tfrac
+	this.heal()
+	state.monsters.push(this)
+}
+Lance.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(FliesLissajous, 2, 1, 1, 2)
+	.addcomp(LissajousPulses)
+	.addcomp(HitZone, 0.4)
+	.addcomp(HasHealth, 1)
+	.addcomp(SplatsOnDeath)
+	.addcomp(CheckBoss)
+	.addcomp({
+		draw: function () {
+			UFX.draw("r", this.tfly * 5 % tau)
+			UFX.draw("ss #B00 lw 0.05 b m -0.8 0 l 0.8 0 m 0 -0.8 l 0 0.8 s")
+			UFX.draw("fs #700 fr -0.3 -0.3 0.6 0.6")
+		},
+	})
+
+function Wilson(x0, y0, tfrac) {
+	this.setpos(x0, y0)
+	this.settrack(x0, y0)
+	this.tfly = tau * tfrac
+	this.heal()
+	state.monsters.push(this)
+}
+Wilson.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(FliesToroidal)
+	.addcomp(HitZone, 0.4)
+	.addcomp(HasHealth, 1)
+	.addcomp(SplatsOnDeath)
+	.addcomp(CheckBoss)
+	.addcomp({
+		draw: function () {
+			UFX.draw("r", this.tfly * 5 % tau)
+			UFX.draw("ss #B00 lw 0.05 b m -0.8 0 l 0.8 0 m 0 -0.8 l 0 0.8 s")
+			UFX.draw("fs #700 fr -0.3 -0.3 0.6 0.6")
+		},
+	})
+
+
+

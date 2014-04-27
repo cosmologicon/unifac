@@ -4,10 +4,12 @@ var settings = {
 	hover: 0.15,
 	aydown: 40,
 	vx: 6,
-	hangtime: 0.2,
+	hangtimes: [0, 0.2, 0.3, 0.4, 0.5],
 	ahang: 1.4,
 	tmercy: 1.6,
-	sectorsize: 40,
+	sectorsize: 20,
+	psize: 3,
+	maxfall: 8,
 }
 var qobj = {}
 var qstring = window.location.search.slice(1)
