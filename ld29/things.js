@@ -56,6 +56,10 @@ var Stands = {
 }
 
 var HasHealth = {
+	init: function (maxhp) {
+		this.maxhp = maxhp || 1
+		this.alive = true
+	},
 	heal: function (dhp) {
 		if (dhp === undefined) {
 			this.hp = this.maxhp
@@ -64,7 +68,20 @@ var HasHealth = {
 		}
 	},
 	takedamage: function (dhp) {
+		if (this.hp <= 0) return
 		this.hp = Math.max(this.hp - dhp, 0)
+		if (this.hp <= 0) {
+			this.die()
+		}
+	},
+	die: function () {
+		this.alive = false
+	},
+}
+
+var SplatsOnDeath = {
+	die: function () {
+		new Splat(this.x, this.y, 1)
 	},
 }
 
@@ -107,6 +124,7 @@ var MultiLeaper = {
 		this.upward = true
 		this.dup = settings.dup
 		this.hanging = settings.hangtime
+		new Slash(this.x, this.y + 0.3, 0.8)
 	},
 }
 
@@ -157,7 +175,6 @@ function You(x, y) {
 	this.setpos(x, y)
 	this.parent = null
 	this.leap()
-	this.maxhp = 3
 	this.heal()
 }
 
@@ -166,7 +183,7 @@ You.prototype = UFX.Thing()
 	.addcomp(Stands)
 	.addcomp(MultiLeaper)
 	.addcomp(MovesHorizontal)
-	.addcomp(HasHealth)
+	.addcomp(HasHealth, 3)
 	.addcomp(MercyInvulnerable)
 	.addcomp({
 		draw: function () {
@@ -195,6 +212,7 @@ VirtualPlatform.prototype = UFX.Thing()
 
 function House(x, y) {
 	this.setpos(x, y)
+	this.r = 3
 }
 House.prototype = UFX.Thing()
 	.addcomp(WorldBound)
@@ -208,13 +226,20 @@ House.prototype = UFX.Thing()
 function Bat(x0, y0) {
 	this.setpos(x0, y0)
 	this.settrack(x0, y0)
+	this.tfly = UFX.random(1000)
+	this.heal()
+	state.monsters.push(this)
 }
 Bat.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(FliesLissajous)
 	.addcomp(HitZone, 0.2)
+	.addcomp(HasHealth, 1)
+	.addcomp(SplatsOnDeath)
 	.addcomp({
 		draw: function () {
-			UFX.draw("fs #A00 fr -0.2 -0.2 0.4 0.4")
+			var h = 0.2 * [0, 1, 0, -1][Math.floor(this.tfly * 20 % 4)]
+			UFX.draw("ss #B00 lw 0.05 b m -0.5", h, "l 0 0 l 0.5", h, "s")
+			UFX.draw("fs #700 fr -0.2 -0.2 0.4 0.4")
 		},
 	})
