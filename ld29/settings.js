@@ -10,6 +10,7 @@ var settings = {
 	sectorsize: 20,
 	psize: 3,
 	maxfall: 8,
+	rmask: 10,
 }
 var qobj = {}
 var qstring = window.location.search.slice(1)

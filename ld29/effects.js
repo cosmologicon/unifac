@@ -12,7 +12,7 @@ var Particles = {
 	},
 	draw: function () {
 		var z = this.r * (0.3 + 0.7 * this.f), r = 0.1 / z
-		UFX.draw("z", z, z, "fs", this.color)
+		UFX.draw("z", 100*z, 100*z, "fs", this.color)
 		this.particles.forEach(function (p) {
 			UFX.draw("b o", p[0], p[1], r, "f")
 		})

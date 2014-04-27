@@ -51,8 +51,8 @@ Slash.prototype = UFX.Thing()
 	.addcomp(HurtsEnemies)
 	.addcomp({
 		draw: function () {
-			var r = 1.3 * this.r * (0.5 + 0.5 * this.f)
-			UFX.draw("ss rgba(255,255,0,0.5) lw 0.1",
+			var r = 130 * this.r * (0.5 + 0.5 * this.f)
+			UFX.draw("ss rgba(255,255,0,0.5) lw 10",
 				"b a 0 0", r, "-0.9 0.9 s",
 				"b a 0 0", r, "2.24 4.04 s")
 		},
