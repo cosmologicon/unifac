@@ -8,7 +8,10 @@ var camera = {
 	z: 32,
 	focus: null,
 	
+	zoverride: 0,
+	
 	think: function (dt) {
+		this.z = this.zoverride || Math.min(canvas.width, canvas.height) / (state.sun ? 32 : 20)
 		if (this.focus) {
 			this.x0 = this.focus.x
 			this.y0 = this.focus.y
@@ -17,7 +20,6 @@ var camera = {
 		this.ymax = this.y0 + canvas.height / this.z * 0.55
 		this.xmin = this.x0 - canvas.width / this.z * 0.55
 		this.xmax = this.x0 + canvas.width / this.z * 0.55
-		
 	},
 	
 	transform: function () {

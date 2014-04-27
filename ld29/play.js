@@ -10,8 +10,7 @@ UFX.scenes.play = {
 		})
 		this.backdrop = document.createElement("canvas")
 		this.backdrop.width = this.backdrop.height = 512
-		UFX.draw(this.backdrop.getContext("2d"), "[ drawimage0", stone, "] fs rgba(20,20,20,1) f0")
-		
+		UFX.draw(this.backdrop.getContext("2d"), "[ drawimage0", stone, "] fs rgba(0,0,0,0.7) f0")
 	},
 	thinkargs: function (dt) {
 		return [dt, UFX.key.state()]
@@ -29,9 +28,22 @@ UFX.scenes.play = {
 			}
 			state.you.hmove((kstate.pressed.right ? 1 : 0) - (kstate.pressed.left ? 1 : 0))
 			if (kstate.down.space) {
-				this.mode = "build"
-				this.vplatform.x = Math.floor(state.you.x) + this.buildoff[0]
-				this.vplatform.y = Math.floor(state.you.y) + this.buildoff[1]
+				if (state.nearhouse(state.you)) {
+					state.talk(state.nearhouse(state.you))
+				} else if (state.canbuild) {
+					this.mode = "build"
+					this.vplatform.x = Math.floor(state.you.x) + this.buildoff[0]
+					this.vplatform.y = Math.floor(state.you.y) + this.buildoff[1]
+				}
+			}
+			if (state.canwarp && kstate.down.tab) {
+				while (true) {
+					var h = UFX.random.choice(Object.keys(HouseNames))
+					if (!state.done["rescue" + h]) continue
+					state.lastlanding = state.houses[h].parent
+					state.resetfall()
+					break
+				}
 			}
 			if (DEBUG && kstate.down.F4 && state.you.parent) {
 				state.removeplatform(state.you.parent)
@@ -48,6 +60,15 @@ UFX.scenes.play = {
 			}
 			if (DEBUG && kstate.down.F11) {
 				state.dump()
+			}
+			if (DEBUG && kstate.down.F9) {
+				state.sun = true
+				state.canwarp = true
+				state.canbuild = true
+				for (h in HouseNames) state.done["know" + h] = true
+				for (h in HouseNames) state.done["rescue" + h] = true
+				state.njump = 3
+				state.jhang = 3
 			}
 		} else if (this.mode == "build") {
 			if (kstate.down.left) this.buildoff[0] -= 1
@@ -68,10 +89,10 @@ UFX.scenes.play = {
 			if (kstate.down.right) state.you.x += 1
 			if (kstate.down.up) state.you.y += 1
 			if (kstate.down.down) state.you.y -= 1
-			if (kstate.down[4]) state.you.x -= 10
-			if (kstate.down[6]) state.you.x += 10
-			if (kstate.down[2]) state.you.y -= 10
-			if (kstate.down[8]) state.you.y -= 10
+			if (kstate.down.np4) state.you.x -= 5
+			if (kstate.down.np6) state.you.x += 5
+			if (kstate.down.np2) state.you.y -= 5
+			if (kstate.down.np8) state.you.y += 5
 		}
 
 		if (DEBUG && kstate.down.F3) this.mode = this.mode == "fly" ? "play" : "fly"
@@ -115,6 +136,8 @@ UFX.scenes.play = {
 		if (this.mode == "build") this.vplatform.think(dt)
 		camera.focus = state.you
 		camera.think(dt)
+		
+		state.checksectors()
 	},
 	draw: function () {
 		var x0 = -camera.x0*camera.z/2, y0 = camera.y0*camera.z/2
@@ -147,36 +170,57 @@ UFX.scenes.play = {
 		state.splats.forEach(draw)
 		context.restore()
 
-		var sx2 = canvas.width / 2, sy2 = canvas.height / 2, r = settings.rmask * camera.z
-		var r1 = UFX.random(0.5, 0.52)
-		var r2 = UFX.random(0.7, 0.72)
-		var grad = UFX.draw.radgrad(sx2, sy2, 0, sx2, sy2, r,
-			0, "rgba(0,0,0,0)",
-			r1, "rgba(0,0,0,0)",
-			r2, "rgba(0,0,0,0.1)",
-			1, "rgba(0,0,0,1)")
-		UFX.draw("fs", grad, "f0")
+		if (!state.sun) {
+			var sx2 = canvas.width / 2, sy2 = canvas.height / 2, r = settings.rmask * camera.z
+			var r1 = UFX.random(0.5, 0.52)
+			var r2 = UFX.random(0.7, 0.72)
+			var grad = UFX.draw.radgrad(sx2, sy2, 0, sx2, sy2, r,
+				0, "rgba(0,0,0,0.5)",
+				r1, "rgba(0,0,0,0.5)",
+				r2, "rgba(0,0,0,0.55)",
+				1, "rgba(0,0,0,1)")
+			UFX.draw("fs", grad, "f0")
+		}
 
 		var r0 = 0.4 * Math.min(canvas.width, canvas.height) / camera.z
 		UFX.draw("[ t", canvas.width/2, canvas.height/2, "z", 0.01*camera.z, 0.01*camera.z)
 		for (var h in state.houses) {
+			if (!state.done["know" + h]) continue
 			var house = state.houses[h]
 			var dx = house.x - camera.x0, dy = house.y - camera.y0
 			var r = Math.sqrt(dx * dx + dy * dy), D = r / r0
 			if (D < 1) continue
 			var theta = Math.atan2(-dx, -dy)
 			UFX.draw("[ r", theta, "t 0", 100*r0, "( m 0 200 l -50 0 l 50 0 ) fs #006 f ss #666 lw 5 s",
-				"t 0 -50 r", -theta, "fs white ss black textalign center font 120px~Viga lw 6 fst0", h, "]")
+				"t 0 -50 r", -theta, "fs white ss black textalign center font 60px~'Pirata~One' sh black 2 2 0 ft0", HouseNames[h], "]")
 		}
 		UFX.draw("]")
 
 		if (state.nearhouse(state.you)) {
-			UFX.draw("fs white font 38px~'Viga' textalign center",
-				"[ t", canvas.width / 2, canvas.height * 0.7, "ft0 Space:~talk ]")
+			var t = "House~of~" + HouseNames[state.nearhouse(state.you).name] + "~(Space:~talk)"
+			UFX.draw("fs white font 22px~'Sansita~One' textalign center",
+				"[ t", canvas.width / 2, canvas.height * 0.7, "ft0", t, "]")
 		}
 				
+		var texts = []
+		texts.push("Depth: " + (200 - Math.floor(state.you.y)) + " fathoms")
+		texts.push("Health: " + state.you.hp + "/" + state.you.maxhp)
+		if (state.jhang) {
+			texts.push("GP: " + state.gp)
+		}
+		texts.push("Left/right or A/D: move")
+		texts.push("Down or S: drop")
+		if (state.jhang) {
+			texts.push("Up or W: Slash (hold to glide)")
+		} else {
+			texts.push("Up or W: Jump")
+		}
+		if (state.canbuild) {
+			texts.push("Hold Space + use arrows: Build (cost 4gp)")
+		}
+
 		if (DEBUG) {
-			var texts = [
+			texts = texts.concat([
 				UFX.ticker.getrates(),
 				"pos: " + Math.floor(state.you.x) + ", " + Math.floor(state.you.y),
 				"F3: toggle fly mode",
@@ -184,12 +228,12 @@ UFX.scenes.play = {
 				"F5/F6: adjust psize " + settings.psize,
 				"F7: toggle checkpoint",
 				"F11: dump state",
-			]
-			UFX.draw("fs white textalign left font 16px~'Viga'")
-			texts.forEach(function (text, j) {
-				UFX.draw("[ t 4", 20 * j + 20, "ft0", text.replace(/ /g, "~"), "]")
-			})
+			])
 		}
+		UFX.draw("fs white textalign left font 16px~'Sansita~One'")
+		texts.forEach(function (text, j) {
+			UFX.draw("[ t 4", 20 * j + 20, "ft0", text.replace(/ /g, "~"), "]")
+		})
 	},
 }
 
