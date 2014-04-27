@@ -39,7 +39,7 @@ UFX.scenes.play = {
 			if (state.canwarp && kstate.down.tab) {
 				while (true) {
 					var h = UFX.random.choice(Object.keys(HouseNames))
-					if (!state.done["rescue" + h]) continue
+					if (!state.done["know" + h] || !state.done["rescue" + h]) continue
 					state.lastlanding = state.houses[h].parent
 					state.resetfall()
 					break
@@ -79,8 +79,11 @@ UFX.scenes.play = {
 			this.vplatform.y = Math.floor(state.you.y) + this.buildoff[1]
 			if (!kstate.pressed.space) {
 				if (state.canplace(this.vplatform)) {
-					state.platforms.push(new Platform(this.vplatform.x, this.vplatform.y, this.vplatform.dx))
+					var p = new Platform(this.vplatform.x, this.vplatform.y, this.vplatform.dx)
+					state.platforms.push(p)
+					state.newplatforms.push(p)
 					state.sortplatforms()
+					state.gp -= settings.pcost
 				}
 				this.mode = "play"
 			}
@@ -138,6 +141,7 @@ UFX.scenes.play = {
 		camera.think(dt)
 		
 		state.checksectors()
+		if (state.you.hp <= 0) UFX.scene.swap("death")
 	},
 	draw: function () {
 		var x0 = -camera.x0*camera.z/2, y0 = camera.y0*camera.z/2
@@ -150,6 +154,10 @@ UFX.scenes.play = {
 			}
 		}
 		UFX.draw("]")
+		if (state.you.y > 140) {
+			var alpha = Math.min(Math.max((state.you.y - 140) / 20, 0), 1)
+			UFX.draw("fs rgba(220,220,255," + alpha + ") f0")
+		}
 
 		context.save()
 		camera.transform()
@@ -159,8 +167,8 @@ UFX.scenes.play = {
 			obj.draw()
 			context.restore()
 		}
-		state.buildings.forEach(draw)
 		state.forplatforms(camera.ymin, camera.ymax, draw)
+		state.buildings.forEach(draw)
 		state.monsters.forEach(draw)
 		draw(state.you)
 		if (this.mode == "build") {
@@ -174,11 +182,12 @@ UFX.scenes.play = {
 			var sx2 = canvas.width / 2, sy2 = canvas.height / 2, r = settings.rmask * camera.z
 			var r1 = UFX.random(0.5, 0.52)
 			var r2 = UFX.random(0.7, 0.72)
+			var c = state.you.tmercy ? Math.floor(128 * state.you.tmercy / settings.tmercy) : 0
 			var grad = UFX.draw.radgrad(sx2, sy2, 0, sx2, sy2, r,
-				0, "rgba(0,0,0,0.5)",
-				r1, "rgba(0,0,0,0.5)",
-				r2, "rgba(0,0,0,0.55)",
-				1, "rgba(0,0,0,1)")
+				0, "rgba(" + c + ",0,0,0.5)",
+				r1, "rgba(" + c + ",0,0,0.5)",
+				r2, "rgba(" + c + ",0,0,0.55)",
+				1, "rgba(" + c + ",0,0,1)")
 			UFX.draw("fs", grad, "f0")
 		}
 
@@ -203,10 +212,10 @@ UFX.scenes.play = {
 		}
 				
 		var texts = []
-		texts.push("Depth: " + (200 - Math.floor(state.you.y)) + " fathoms")
+		texts.push("Depth: " + (170 - Math.floor(state.you.y)) + " fathoms")
 		texts.push("Health: " + state.you.hp + "/" + state.you.maxhp)
 		if (state.jhang) {
-			texts.push("GP: " + state.gp)
+			texts.push("GP: " + (state.gp > 100000 ? "unlimited" : state.gp))
 		}
 		texts.push("Left/right or A/D: move")
 		texts.push("Down or S: drop")
@@ -216,7 +225,10 @@ UFX.scenes.play = {
 			texts.push("Up or W: Jump")
 		}
 		if (state.canbuild) {
-			texts.push("Hold Space + use arrows: Build (cost 4gp)")
+			texts.push("Hold Space + use arrows: Build (cost " + settings.pcost + "GP)")
+		}
+		if (state.canwarp) {
+			texts.push("Tab: warp to random House.")
 		}
 
 		if (DEBUG) {
@@ -230,9 +242,10 @@ UFX.scenes.play = {
 				"F11: dump state",
 			])
 		}
-		UFX.draw("fs white textalign left font 16px~'Sansita~One'")
+		var h = Math.floor(canvas.height / 30)
+		UFX.draw("fs white textalign left font", h + "px~'Sansita~One'")
 		texts.forEach(function (text, j) {
-			UFX.draw("[ t 4", 20 * j + 20, "ft0", text.replace(/ /g, "~"), "]")
+			UFX.draw("[ t 4", h * 1.3 * (j + 1), "ft0", text.replace(/ /g, "~"), "]")
 		})
 	},
 }

@@ -31,6 +31,7 @@ var state = {
 		this.canwarp = false
 		this.sun = false
 		this.gp = 0
+		this.builddepth = 110
 		
 		this.lastlanding = this.houses.elgo.parent
 
@@ -38,6 +39,7 @@ var state = {
 			knowelgo: true,
 			rescueelgo: true,
 			rescuewari: true,
+			rescuesarf: true,
 		}
 		
 		this.bosses = {
@@ -47,9 +49,7 @@ var state = {
 			lige: [],
 			sank: [],
 			mian: [],
-			sarf: [],
 		}
-
 		this.loadgame()
 	},
 	resetfall: function () {
@@ -78,6 +78,8 @@ var state = {
 	},
 	talk: function (house) {
 		content["talk" + house.name]()
+		this.you.hp = this.you.maxhp
+		this.gp = Math.max(this.gp, settings.housegp)
 		this.savegame()
 	},
 	sortplatforms: function () {
@@ -99,6 +101,8 @@ var state = {
 	},
 	canplace: function (platform) {
 		var y = platform.y
+		if (y > this.builddepth) return false
+		if (this.gp < settings.pcost) return false
 		if (!this.taken[y]) return true
 		for (var j = 0 ; j < platform.dx ; ++j) {
 			if (this.taken[y][platform.x + j]) return false
@@ -114,16 +118,44 @@ var state = {
 			this.bosses[h.name] = []
 			if (h.name == "semt") {
 				for (var j = 0 ; j < 9 ; ++j) {
-					this.bosses.semt.push(new Lance(h.x, h.y, j/9))
+					this.bosses[h.name].push(new Lance(hx, hy, j/9))
 				}
 			} else if (h.name == "pald") {
 				for (var j = 0 ; j < 11 ; ++j) {
-					this.bosses.pald.push(new Wilson(h.x, h.y, j/11))
+					this.bosses[h.name].push(new Wilson(hx, hy, j/11))
+				}
+			} else if (h.name == "lume") {
+				for (var j = 0 ; j < 10 ; ++j) {
+					this.bosses[h.name].push(new Percy(hx, hy))
+				}
+			} else if (h.name == "lige") {
+				for (var j = 0 ; j < 9 ; ++j) {
+					this.bosses[h.name].push(new Lance(hx, hy, j/9))
+					this.bosses[h.name].push(new Percy(hx, hy))
+				}
+			} else if (h.name == "mian") {
+				for (var j = 0 ; j < 11 ; ++j) {
+					this.bosses[h.name].push(new Wilson(hx, hy, j/11))
+					this.bosses[h.name].push(new Percy(hx, hy))
+				}
+			} else if (h.name == "sank") {
+				for (var j = 0 ; j < 11 ; ++j) {
+					this.bosses[h.name].push(new Wilson(hx, hy, j/11))
+					this.bosses[h.name].push(new Lance(hx, hy, j/11))
 				}
 			}
-		} else {
-			UFX.random.spread(16).forEach(function (p) {
-				new Bat(s * (sx + p[0]), s * (sy + p[1]))
+		} else if (sy < 8) {
+			var batprob = 16
+			var zatprob = 2 * Math.max(this.you.maxhp - 3, 0)
+			var watprob = 4 * Math.max(this.you.maxhp - 5, 0)
+			UFX.random.spread(200).forEach(function (p) {
+				var r = UFX.random(200)
+				r -= batprob
+				if (r < 0) { new Bat(s * (sx + p[0]), s * (sy + p[1])) ; return }
+				r -= zatprob
+				if (r < 0) { new Zat(s * (sx + p[0]), s * (sy + p[1])) ; return }
+				r -= watprob
+				if (r < 0) { new Wat(s * (sx + p[0]), s * (sy + p[1])) ; return }
 			})
 		}
 	},
@@ -168,7 +200,7 @@ var state = {
 	checkbosses: function () {
 		for (var h in this.bosses) {
 			if (this.done["rescue" + h]) continue
-			if (!this.bosses[h].some(function (b) { return b.alive })) {
+			if (this.bosses[h].length && !this.bosses[h].some(function (b) { return b.alive })) {
 				delete this.bosses[h]
 				this.done["rescue" + h] = true
 				this.savegame()
