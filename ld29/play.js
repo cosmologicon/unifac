@@ -76,6 +76,9 @@ UFX.scenes.play = {
 				state.njump = 3
 				state.jhang = 3
 			}
+			if (DEBUG && kstate.down.F2) {
+				makeworldmap()
+			}
 		} else if (this.mode == "build") {
 			if (kstate.down.left) this.buildoff[0] -= 1
 			if (kstate.down.right) this.buildoff[0] += 1
@@ -263,4 +266,45 @@ UFX.scenes.play = {
 		}
 	},
 }
+
+function makeworldmap() {
+	console.log("world map time")
+	var ocanvas = canvas, ocontext = context
+	canvas = document.createElement("canvas")
+	context = canvas.getContext("2d")
+	UFX.draw.setcontext(context)
+
+	canvas.width = canvas.height = 1600
+	camera.x0 = 0
+	camera.y0 = 40
+	camera.z = 4
+	
+	UFX.draw("fs black f0")
+	context.save()
+	camera.transform()
+	for (var y = -210 ; y < 200 ; y += 20) {
+		UFX.draw("lw 20 ss #222 b m -20000", 100*y, "l 20000", 100*y, "s")
+		UFX.draw("[ fs #444 font 400px~'Sansita~One' t -15000", 100*y, "vflip ft0", (170 - y) + "~fathoms ]")
+	}
+
+	function draw(obj) {
+		context.save()
+		obj.draw()
+		context.restore()
+	}
+	state.platforms.forEach(draw)
+	state.buildings.forEach(draw)
+	state.buildings.forEach(function (b) {
+		UFX.draw("[ t", 100*b.x, 100*(b.y + 3), "fs #AAA font 600px~'Pirata~One' vflip textalign center ft0", HouseNames[b.name], "]")
+	})
+
+	context.restore()
+	
+	window.open(canvas.toDataURL())
+
+	canvas = ocanvas ; context = ocontext
+	UFX.draw.setcontext(context)
+}
+
+
 
