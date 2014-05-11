@@ -9,7 +9,6 @@ display.set_caption(settings.gamename)
 
 scene.scenes.append(play.Scene())
 
-
 while scene.scenes:
 	s = scene.scenes[-1]
 	dt = min(0.001 * clock.tick(settings.fps), 0.1)
@@ -22,6 +21,8 @@ while scene.scenes:
 			kdowns.append(e.key)
 	s.think(dt, kpressed, kdowns)
 	s.draw()
+	if settings.DEBUG:
+		display.set_caption("%s %.1ffps" % (settings.gamename, clock.get_fps()))
 	display.flip()
 
 

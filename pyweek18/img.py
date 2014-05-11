@@ -11,6 +11,10 @@ def getimg(imgname):
 	elif imgname == "brown":
 		img = Surface((20, 20)).convert_alpha()
 		img.fill((255, 128, 0))
+	elif imgname.startswith("rgb"):
+		cs = map(int, imgname[3:].split(","))
+		img = Surface((40, 40)).convert_alpha()
+		img.fill(cs)
 	cache[imgname] = img
 	return img
 

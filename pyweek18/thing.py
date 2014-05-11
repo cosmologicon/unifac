@@ -13,12 +13,14 @@ class Thing(object):
 		self.tilt = None
 
 	def think(self, dt):
-		if self.y < state.y0 - 10:
+		if self.y < state.yc:
 			self.alive = False
 
 	def getlayers(self):
 		if self.tilt:
-			raise NotImplementedError
+			dxdy, dzdy = self.tilt
+			for layername, dy in self.layers:
+				yield layername, self.x + dy * dxdy, self.y + dy, self.z + dy * dzdy, self.theta, self
 		else:
 			for layername, dy in self.layers:
 				yield layername, self.x, self.y + dy, self.z, self.theta, self
