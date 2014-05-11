@@ -15,6 +15,8 @@ class Scene(object):
 		jumping = K_UP in kdowns
 		shooting = kpressed[K_SPACE]
 		state.player.control(dx, jumping, shooting)
+		if K_SPACE in kdowns:
+			state.addheal(state.player)
 		state.think(dt)
 	def draw(self):
 		camera.drawbackdrop()
