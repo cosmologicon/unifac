@@ -12,7 +12,7 @@ class Scene(object):
 		if kpressed[K_ESCAPE]:
 			scene.pop()
 		dx = int(kpressed[K_RIGHT]) - int(kpressed[K_LEFT])
-		jumping = K_RIGHT in kdowns
+		jumping = K_UP in kdowns
 		shooting = kpressed[K_SPACE]
 		state.player.control(dx, jumping, shooting)
 		state.think(dt)
