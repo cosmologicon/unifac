@@ -6,8 +6,8 @@ pscale = 30
 
 def drawbackdrop():
 	screen = display.get_surface()
-	screen.fill((200, 200, 255))
-	screen.fill((100, 100, 255), (0, settings.yv, settings.sx, settings.sy))
+	screen.fill((80, 80, 120))
+	screen.fill((40, 40, 60), (0, settings.yv, settings.sx, settings.sy))
 
 def drawlayer(layer):
 	imgname, px, py, pz, theta, obj = layer
@@ -24,8 +24,8 @@ def drawlayer(layer):
 	#x = x0 + settings.scale0 * scale * px
 	#y = y0 - settings.scale0 * scale * pz
 
-	x = settings.sx / 2 + 20 * px
-	y = settings.yv + settings.yr - 5 * (py - state.y0) - 20 * pz
+	x = settings.sx / 2 + 100 * px
+	y = settings.yv + settings.yr - 50 * (py - state.y0) - 100 * pz
 	
 	iw, ih = srz.get_size()
 	try:
@@ -34,3 +34,7 @@ def drawlayer(layer):
 		print pos, x0, y0, x, y, iw, ih
 		raise
 
+def drawwave(py):
+	y = settings.yv + settings.yr - 50 * (py - state.y0)
+	display.get_surface().fill((128,128,255,50), (0, y, settings.sx, settings.sy))
+	

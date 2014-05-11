@@ -8,3 +8,7 @@ yf = 10
 fps = 30
 scale0 = 10
 
+ax = 6
+vxmax = 3
+xslow = 20
+
