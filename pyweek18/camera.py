@@ -6,9 +6,7 @@ import settings, img, state
 pscale = 30
 
 def drawbackdrop():
-	screen = display.get_surface()
-	screen.fill((80, 80, 120))
-	screen.fill((40, 40, 60), (0, settings.Yh, settings.sX, settings.sY))
+	display.get_surface().blit(img.getimg("backdrop"), (0, 0))
 
 def drawlayer(layer):
 	imgname, x, y, z, theta, obj = layer
@@ -17,7 +15,7 @@ def drawlayer(layer):
 	yd = y - state.yc  # distance from camera to object
 	if not settings.yrange[0] < yd < settings.yrange[1]:
 		return
-	k = settings.k0 * settings.dyc / yd  # scale in screen pixels of 1 game unit at distance of object
+	k = settings.k0 * settings.dynormal / yd  # scale in screen pixels of 1 game unit at distance of object
 	srz = transform.rotozoom(img.getimg(imgname), degrees(theta), k / settings.ik)
 
 	Y0 = int(settings.Yh + k * settings.zc)  # Y-coordinate at z = 0
@@ -27,15 +25,13 @@ def drawlayer(layer):
 	X = int(Xc - iw / 2)
 	Y = int(Yc - ih / 2)
 
-	try:
-		if Y + ih >= Y0:
-			area = 0, 0, iw, Y0 - Y  # don't draw the area below the water
-		else:
-			area = None
-		display.get_surface().blit(srz, (X, Y), area)
-	except:
-		print pos, x0, y0, x, y, iw, ih
-		raise
+	if Y >= Y0:
+		return
+	elif Y + ih >= Y0:
+		area = 0, 0, iw, Y0 - Y  # don't draw the area below the water
+	else:
+		area = None
+	display.get_surface().blit(srz, (X, Y), area)
 
 def drawshroud():
 	display.get_surface().blit(img.getimg("shroud"), (0, 0))
