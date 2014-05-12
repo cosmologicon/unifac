@@ -1,4 +1,5 @@
 from pygame import *
+import datetime
 import settings, play, scene
 
 clock = time.Clock()
@@ -19,10 +20,14 @@ while scene.scenes:
 			del scene.scenes[:]
 		if e.type == KEYDOWN:
 			kdowns.append(e.key)
+	if settings.DEBUG and K_F12 in kdowns:
+		fname = datetime.datetime.now().strftime("screenshots/screenshot-%Y%m%d%H%M%S.png")
+		image.save(display.get_surface(), fname)
 	s.think(dt, kpressed, kdowns)
 	s.draw()
 	if settings.DEBUG:
 		display.set_caption("%s %.1ffps" % (settings.gamename, clock.get_fps()))
 	display.flip()
+quit()
 
 

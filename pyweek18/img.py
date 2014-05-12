@@ -30,12 +30,23 @@ def getimg(imgname):
 	elif imgname == "brown":
 		img = Surface((30, 30)).convert_alpha()
 		img.fill((255, 128, 0))
+	elif imgname == "cannonball":
+		img = Surface((12, 12)).convert_alpha()
+		img.fill((0, 0, 0))
 	elif imgname == "splash":
-		img = Surface((18, 18)).convert_alpha()
-		img.fill((255, 255, 255, 100))
+		img = Surface((32, 32)).convert_alpha()
+		img.fill((0, 0, 0, 0))
+		for _ in range(10):
+			r = 2
+			x, y = randrange(r, 32-r), randrange(r, 32-r)
+			draw.circle(img, (255, 255, 255, 100), (x, y), r)
 	elif imgname == "smoke":
-		img = Surface((18, 18)).convert_alpha()
-		img.fill((0, 0, 0, 100))
+		img = Surface((32, 32)).convert_alpha()
+		img.fill((0, 0, 0, 0))
+		for _ in range(10):
+			r = 2
+			x, y = randrange(r, 32-r), randrange(r, 32-r)
+			draw.circle(img, (0, 0, 0, 100), (x, y), r)
 	elif imgname == "heal":
 		img = Surface((18, 18)).convert_alpha()
 		img.fill((255, 0, 0, 100))
@@ -50,9 +61,21 @@ def getimg(imgname):
 		img = drawtext(imgname[5:])
 	elif imgname.startswith("text0:"):
 		img = drawtext(imgname[6:], False)
+	elif imgname.startswith("rock"):
+		w, h = [int(settings.ik * float(v)) for v in imgname[4:].split(",")]
+		img = Surface((w, h)).convert_alpha()
+		img.fill((0, 0, 0, 0))
+		r = 6
+		for y in range(r, h-r):
+			x = randrange(r, w-r)
+			color = randrange(100, 160), randrange(50, 80), 0
+			draw.circle(img, color, (x, y), r)
 	elif imgname.startswith("shroud"):
 		img = Surface(settings.size).convert_alpha()
 		img.fill((20, 20, 60, 90))
+	elif imgname == "grayfill":
+		img = Surface(settings.size).convert_alpha()
+		img.fill((0, 0, 0, 200))
 	elif imgname == "backdrop":
 		img = Surface(settings.size).convert_alpha()
 		img.fill((200, 200, 255))

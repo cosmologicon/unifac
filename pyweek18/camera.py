@@ -9,14 +9,20 @@ def drawbackdrop():
 	display.get_surface().blit(img.getimg("backdrop"), (0, 0))
 
 def drawlayer(layer):
-	imgname, x, y, z, theta, obj = layer
+	try:
+		imgname, x, y, z, theta, ascale, obj = layer
+	except:
+		print layer
+		raise
 	if imgname == "shroud":
 		return drawshroud()
+	if ascale is None:
+		ascale = 1
 	yd = y - state.yc  # distance from camera to object
 	if not settings.yrange[0] < yd < settings.yrange[1]:
 		return
 	k = settings.k0 * settings.dynormal / yd  # scale in screen pixels of 1 game unit at distance of object
-	srz = transform.rotozoom(img.getimg(imgname), degrees(theta), k / settings.ik)
+	srz = transform.rotozoom(img.getimg(imgname), degrees(theta), k * ascale / settings.ik)
 
 	Y0 = int(settings.Yh + k * settings.zc)  # Y-coordinate at z = 0
 	iw, ih = srz.get_size()

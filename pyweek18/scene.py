@@ -2,5 +2,6 @@
 scenes = []
 
 def pop():
-	del scenes[-1]
+	if scenes:
+		del scenes[-1]
 
