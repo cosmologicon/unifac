@@ -4,14 +4,12 @@ from thing import *
 import settings, state
 
 class Ship(Thing):
+
 	def __init__(self, pos):
 		Thing.__init__(self, pos)
-		self.vx = 0
-		self.vy = 0
-		self.vz = 0
-		self.ax = 0
 		self.njump = 0
 		self.tilt = [0, 0]
+		self.flashtime = 0
 
 	def think(self, dt):
 		Thing.think(self, dt)
@@ -29,6 +27,7 @@ def randomcolor():
 	return "rgb%s,%s,%s" % (randint(100, 200), randint(100, 200), randint(100, 200))
 
 class PlayerShip(Ship):
+	alwaysinrange = True
 	
 	def __init__(self, pos):
 		Ship.__init__(self, pos)
@@ -36,9 +35,15 @@ class PlayerShip(Ship):
 		dys = [0.08 * x for x in range(-3, 4)]
 		for dy in dys:
 			self.layers.append([randomcolor(), dy])
+		self.falling = False
 
 	def think(self, dt):
-		self.vy = 10
+		Ship.think(self, dt)
+
+	def move(self, dt):
+		ytarget = state.yc + (settings.dyfall if self.falling else settings.dyjump if self.z > 0 else settings.dynormal)
+		self.ay = 6 * (ytarget - self.y)
+		self.vy += self.ay * dt
 		self.y += self.vy * dt
 		ax = self.ax
 		vx0 = self.vx
@@ -61,18 +66,17 @@ class PlayerShip(Ship):
 				self.z = self.vz = 0
 				self.njump = 0
 				state.addsplash(self)
-		Ship.think(self, dt)
-		self.alive = True
+		self.vy += (settings.vyc - self.vy) * 3 * dt
 
 	def control(self, dx, jumping, shooting):
 		self.ax = dx * settings.ax
 		if jumping:
 			self.jump()
 
-	def jump(self):
+	def jump(self, f=1):
 		if self.njump > 0:
 			return
 		self.njump += 1
-		self.vz = 12
+		self.vz = 12 * f
 		self.z = max(self.z, 0)
 
