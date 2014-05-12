@@ -7,8 +7,11 @@ class Thing(object):
 	]
 	alive = True
 	flashtime = 0
+	cooltime = 0
 	hp0 = 1
 	alwaysinrange = False
+	tlive = 0
+	ascale = None
 
 	def __init__(self, pos):
 		self.x, self.y, self.z = pos
@@ -23,6 +26,10 @@ class Thing(object):
 		self.t += dt
 		if self.flashtime:
 			self.flashtime = max(self.flashtime - dt, 0)
+		if self.cooltime:
+			self.cooltime = max(self.cooltime - dt, 0)
+		if self.tlive and self.t > self.tlive:
+			self.alive = False
 		if self.hp <= 0:
 			self.alive = False
 		if not self.alwaysinrange and self.y < state.yc:
@@ -48,13 +55,39 @@ class Thing(object):
 		if self.tilt:
 			dxdy, dzdy = self.tilt
 			for layername, dy in self.layers:
-				yield layername, self.x + dy * dxdy, self.y + dy, self.z + dy * dzdy, self.theta, self
+				x = self.x + dy * dxdy
+				y = self.y + dy
+				z = self.z + dy * dzdy
+				yield layername, x, y, z, self.theta, self.ascale, self
 		else:
 			for layername, dy in self.layers:
-				yield layername, self.x, self.y + dy, self.z, self.theta, self
+				yield layername, self.x, self.y + dy, self.z, self.theta, self.ascale, self
 
 class Rock(Thing):
-	pass
-	
+	def __init__(self, pos, size):
+		Thing.__init__(self, pos)
+		self.size = self.w, self.h = size
+		w1, h1 = self.w - 0.1, self.h - 0.1
+		w2, h2 = self.w - 0.2, self.h - 0.2
+		self.layers = [
+			["rock%s,%s" % (w2, h2), 0.2],
+			["rock%s,%s" % (w1, h1), 0.1],
+			["rock%s,%s" % (self.w, self.h), 0],
+			["rock%s,%s" % (w1, h1), -0.1],
+			["rock%s,%s" % (w2, h2), -0.2],
+		]
+
+class Projectile(Thing):
+	vy0 = 20
+	tlive = 1
+	layers = [["cannonball", 0]]
+	def __init__(self, obj):
+		Thing.__init__(self, (obj.x, obj.y, obj.z + 0.2))
+		self.vy = self.vy0
+		self.vx = obj.vx / obj.vy * self.vy if obj.vy else 0
+		#self.vz = obj.vz / obj.vy * self.vy if obj.vy else 0
+		self.move(0.1)
+
+
 
 

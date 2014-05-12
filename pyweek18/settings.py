@@ -1,5 +1,7 @@
+import sys
+
 gamename = "Pesos de Ocho"
-DEBUG = True
+DEBUG = "--DEBUG" in sys.argv
 
 
 size = sX, sY = 600, 600

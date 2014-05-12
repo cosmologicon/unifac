@@ -2,29 +2,27 @@ from random import *
 from thing import *
 
 class Particles(Thing):
-	nparticle = 20
-	vz0 = 20
+	nparticle = 5
+	vz0 = 10
 	az = -30
-	vspread = 8
+	vspread = 4
 	tlive = 1
 	vy = 0
+	aspread = 3
 
 	def __init__(self, pos):
 		Thing.__init__(self, pos)
 		self.particles = [
-			(uniform(-1, 1), uniform(-1, 1), uniform(-1, 1)) for _ in range(self.nparticle)
+			(uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1))
+			for _ in range(self.nparticle)
 		]
 		self.vz = self.vz0
 
-	def think(self, dt):
-		Thing.think(self, dt)
-		if self.t > self.tlive:
-			self.alive = False
-
 	def getlayers(self):
 		a = self.t * self.vspread
-		for px, py, pz in self.particles:
-			yield self.imgname, self.x + a * px, self.y + a * py, self.z + a * pz, 0, self
+		self.ascale = 1 + self.t * self.aspread
+		for px, py, pz, theta in self.particles:
+			yield self.imgname, self.x + a * px, self.y + a * py, self.z + a * pz, theta, self.ascale, self
 
 
 class Splash(Particles):
@@ -74,7 +72,7 @@ class Corpse(Thing):
 		
 	def think(self, dt):
 		Thing.think(self, dt)
-		
+
 	def getlayers(self):
 		dxdy, dzdy = self.tilt
 		for (layername, dy), dtheta, (dx, dz) in zip(self.layers, self.thetas, self.ds):
@@ -82,6 +80,6 @@ class Corpse(Thing):
 			x = self.x + self.t * dx + dy * dxdy
 			y = self.y + dy
 			z = self.z + self.t * dz + dy * dzdy
-			yield layername, x, y, z, theta, self
+			yield layername, x, y, z, theta, None, self
 
 
