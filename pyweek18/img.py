@@ -24,7 +24,16 @@ def drawtext(text, filled=True):
 def getimg(imgname):
 	if imgname in cache:
 		return cache[imgname]
-	if imgname == "purple":
+	if imgname.endswith(".png"):
+		img = image.load("img/" + imgname).convert_alpha()
+		for x in range(img.get_width()):
+			for y in range(img.get_height()):
+				r, g, b, a = img.get_at((x, y))
+				r = min(max(int(r * uniform(0.9, 1.1)), 0), 255)
+				g = min(max(int(g * uniform(0.9, 1.1)), 0), 255)
+				b = min(max(int(b * uniform(0.9, 1.1)), 0), 255)
+				img.set_at((x, y), (r, g, b, a))
+	elif imgname == "purple":
 		img = Surface((40, 40)).convert_alpha()
 		img.fill((255, 0, 255))
 	elif imgname == "brown":
@@ -33,6 +42,12 @@ def getimg(imgname):
 	elif imgname == "cannonball":
 		img = Surface((12, 12)).convert_alpha()
 		img.fill((0, 0, 0))
+	elif imgname == "mine":
+		img = Surface((32, 32)).convert_alpha()
+		img.fill((0, 0, 0, 0))
+		draw.circle(img, (255, 100, 100, 50), (16, 12), 12)
+		draw.circle(img, (255, 100, 100, 120), (16, 12), 8)
+		draw.circle(img, (255, 100, 100, 255), (16, 12), 4)
 	elif imgname == "splash":
 		img = Surface((32, 32)).convert_alpha()
 		img.fill((0, 0, 0, 0))
@@ -57,6 +72,12 @@ def getimg(imgname):
 		cs = map(int, imgname[3:].split(","))
 		img = Surface((40, 40)).convert_alpha()
 		img.fill(cs)
+	elif imgname.startswith("bosshp:"):
+		hp, hp0 = [int(x) for x in imgname[7:].split("/")]
+		img = Surface((10, 200)).convert_alpha()
+		img.fill((0,0,0,255))
+		if hp:
+			img.fill((255,0,0,255), (0,200*hp//hp0,10,200))
 	elif imgname.startswith("text:"):
 		img = drawtext(imgname[5:])
 	elif imgname.startswith("text0:"):

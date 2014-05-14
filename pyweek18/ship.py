@@ -59,6 +59,7 @@ class Ship(Thing):
 			dx, dy = h.x - self.x, h.y - self.y
 			if dx ** 2 + dy ** 2 < 1 and self.z <= 0:
 				self.hurt()
+				h.causedamage()
 
 
 class PirateShip(Ship):
@@ -84,8 +85,8 @@ class PlayerShip(Ship):
 		Ship.__init__(self, pos)
 		self.layers = []
 		dys = [0.08 * x for x in range(-3, 4)]
-		for dy in dys:
-			self.layers.append([randomcolor(), dy])
+		for j, dy in enumerate(dys):
+			self.layers.append(["you-%s.png" % j, dy])
 		self.falling = False
 
 	def think(self, dt):
@@ -120,6 +121,9 @@ class PlayerShip(Ship):
 		self.vy += (settings.vyc - self.vy) * 3 * dt
 
 	def control(self, dx, jumping, shooting):
+		if self.falling:
+			self.ax = 0
+			return
 		self.ax = dx * settings.ax
 		if jumping:
 			self.jump()
