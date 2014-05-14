@@ -1,4 +1,4 @@
-import state
+import state, settings
 
 class Thing(object):
 
@@ -63,6 +63,9 @@ class Thing(object):
 			for layername, dy in self.layers:
 				yield layername, self.x, self.y + dy, self.z, self.theta, self.ascale, self
 
+	def causedamage(self):
+		pass
+
 class Rock(Thing):
 	def __init__(self, pos, size):
 		Thing.__init__(self, pos)
@@ -77,6 +80,31 @@ class Rock(Thing):
 			["rock%s,%s" % (w2, h2), -0.2],
 		]
 
+class Mine(Thing):
+	layers = [
+		["mine", 0],
+	]
+	def __init__(self, pos, vel):
+		Thing.__init__(self, pos)
+		self.vx, self.vy, self.vz = vel
+		self.landed = False
+		self.az = -30
+
+	def think(self, dt):
+		Thing.think(self, dt)
+		if not self.landed and self.z <= 0 and self.vz < 0:
+			self.landed = True
+			self.vy = settings.vyc - 3
+			self.vz = 0
+			self.vx = 0
+			self.z = 0.2
+			self.az = 0
+
+	def causedamage(self):
+		self.alive = False
+		import effect
+		state.effects.append(effect.Splode((self.x, self.y, self.z)))
+
 class Projectile(Thing):
 	vy0 = 20
 	tlive = 1
@@ -87,7 +115,8 @@ class Projectile(Thing):
 		self.vx = obj.vx / obj.vy * self.vy if obj.vy else 0
 		#self.vz = obj.vz / obj.vy * self.vy if obj.vy else 0
 		self.move(0.1)
-
+	def causedamage(self):
+		self.alive = False
 
 
 

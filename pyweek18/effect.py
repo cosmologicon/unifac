@@ -39,6 +39,13 @@ class Heal(Particles):
 	az = -30
 	vspread = 5
 
+class Splode(Thing):
+	tlive = 0.3
+	layers = [["mine", 0]]
+	def think(self, dt):
+		Thing.think(self, dt)
+		self.ascale = 1 + 20 * self.t
+
 class Decoration(Thing):
 	pass
 
@@ -54,7 +61,7 @@ class Instructions(Thing):
 #			["text0:" + text, 0.05],
 		]
 		self.tilt = 1, -1
-		self.vy = -8
+		self.vy = -14
 
 class Corpse(Thing):
 	tlive = 1

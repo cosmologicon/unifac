@@ -4,7 +4,7 @@ gamename = "Pesos de Ocho"
 DEBUG = "--DEBUG" in sys.argv
 
 
-size = sX, sY = 600, 600
+size = sX, sY = 540, 720
 fps = 30
 
 zc = 5  # height of camera in game units

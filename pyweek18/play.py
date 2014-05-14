@@ -22,6 +22,10 @@ class Scene(object):
 			state.player.hurt()
 		if settings.DEBUG and K_F3 in kdowns:
 			state.player.hp = state.maxhp = 1000
+		if settings.DEBUG and K_F4 in kdowns:
+			state.addboss()
+		if settings.DEBUG and K_F5 in kdowns:
+			state.beatboss()
 		state.think(dt)
 	def draw(self):
 		camera.drawbackdrop()
@@ -32,6 +36,11 @@ class Scene(object):
 		screen = display.get_surface()
 		i = img.getimg("text:hull: %s/%s" % (state.player.hp, state.hpmax))
 		screen.blit(i, (0, 0))
+		if state.mode == "boss" and state.bosses:
+			hp = sum(b.hp for b in state.bosses)
+			hp0 = sum(b.hp0 for b in state.bosses)
+			i = img.getimg("bosshp:%s/%s" % (hp, hp0))
+			screen.blit(i, i.get_rect(topright=(settings.sX-5, 5)))
 
 class PauseScene(object):
 	def __init__(self, scene0):
