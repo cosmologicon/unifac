@@ -48,9 +48,13 @@ class Smoke(Particles):
 
 class Heal(Particles):
 	imgname = "heal"
-	vz0 = 0
-	az0 = -30
-	vspread = 5
+	vz0 = 5
+	az0 = -20
+	vspread = 1
+	aspread = 1
+	def __init__(self, *args, **kwargs):
+		Particles.__init__(self, *args, **kwargs)
+		self.vy = settings.vyc
 
 class Splode(Thing):
 	tlive = 0.3

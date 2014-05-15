@@ -11,7 +11,7 @@ class Ship(Thing):
 	tflash = 1
 	smokes = False
 	twake = 0.1
-	r = 0.2
+	r = 0.4
 	h = 1
 
 	def __init__(self, pos):
@@ -68,13 +68,13 @@ class Ship(Thing):
 				continue
 			dx, dy = h.x - self.x, h.y - self.y
 			if dx ** 2 + dy ** 2 < (self.r + h.r) ** 2 and abs(self.z - h.z) < (self.h + h.h) / 2:
-				self.hurt()
+				self.hurt(h.dhp)
 				h.causedamage()
 
 
 class PirateShip(Ship):
-	hp0 = 3
-	tflash = 0.2
+	hp0 = 1
+	tflash = 0.01
 	def __init__(self, pos, v, level):
 		Ship.__init__(self, pos)
 		self.vx, self.vy = v
@@ -83,6 +83,16 @@ class PirateShip(Ship):
 		dys = [0.08 * x for x in range(-1, 2)]
 		for dy in dys:
 			self.layers.append([randomcolor(), dy])
+
+class MineShip(PirateShip):
+	def fire(self, dt):
+		if random() * 2 < dt:
+			pos = self.x, self.y + 0.1, 0.2
+			vel = uniform(-5, 5), self.vy + 4, 10
+			state.hazards.append(Mine(pos, vel))
+	def think(self, dt):
+		self.fire(dt)
+		PirateShip.think(self, dt)
 
 class Blockade(Ship):
 	hp0 = 999999
@@ -145,9 +155,12 @@ class PlayerShip(Ship):
 		]
 		self.falling = False
 		self.cannontick = 0
+		self.tblitz = 0
 
 	def think(self, dt):
 		Ship.think(self, dt)
+		if self.tblitz:
+			self.tblitz = max(self.tblitz - dt, 0)
 
 	def move(self, dt):
 		ytarget = state.yc + (settings.dyfall if self.falling else settings.dyjump if self.z > 0 else settings.dynormal)
@@ -194,4 +207,11 @@ class PlayerShip(Ship):
 		self.cannontick += 1
 		self.cannontick %= len(self.cannons)
 		self.cooltime = self.tcooldown
+		if self.tblitz:
+			self.cooltime /= 10
+
+	def hurt(self, dhp=1):
+		if dhp >= 0:
+			return Ship.hurt(self, dhp)
+		state.addhp(-dhp)
 

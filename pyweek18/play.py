@@ -14,9 +14,10 @@ class Scene(object):
 				scene.pop()
 			else:
 				scene.scenes.append(PauseScene(self))
-		dx = int(kpressed[K_RIGHT]) - int(kpressed[K_LEFT])
-		jumping = K_UP in kdowns
-		shooting = kpressed[K_SPACE]
+		dx = int(kpressed[K_RIGHT] or kpressed[K_d] or kpressed[K_e]) - int(kpressed[K_LEFT] or kpressed[K_a])
+		jumping = any(k in kdowns for k in (K_UP, K_w, K_COMMA, K_SPACE, K_RETURN, K_DOWN, K_s, K_o))
+		shooting = state.mode in ["quest", "boss"]
+		#shooting = kpressed[K_SPACE]
 		state.player.control(dx, jumping, shooting)
 		if settings.DEBUG and K_F2 in kdowns:
 			state.player.hurt()
