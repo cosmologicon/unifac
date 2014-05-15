@@ -24,10 +24,10 @@ def drawlayer(layer):
 	k = settings.k0 * settings.dynormal / yd  # scale in screen pixels of 1 game unit at distance of object
 	srz = transform.rotozoom(img.getimg(imgname), degrees(theta), k * ascale / settings.ik)
 
-	Y0 = int(settings.Yh + k * settings.zc)  # Y-coordinate at z = 0
+	Y0 = int(settings.Yh + k * state.zc)  # Y-coordinate at z = 0
 	iw, ih = srz.get_size()
 	Xc = settings.sX / 2 + k * x
-	Yc = settings.Yh + k * (settings.zc - z)
+	Yc = settings.Yh + k * (state.zc - z)
 	X = int(Xc - iw / 2)
 	Y = int(Yc - ih / 2)
 

@@ -1,5 +1,6 @@
 from __future__ import division
 from random import *
+from math import *
 from thing import *
 from effect import *
 import settings, state
@@ -9,6 +10,9 @@ class Ship(Thing):
 	tcooldown = 2
 	tflash = 1
 	smokes = False
+	twake = 0.1
+	r = 0.2
+	h = 1
 
 	def __init__(self, pos):
 		Thing.__init__(self, pos)
@@ -16,18 +20,24 @@ class Ship(Thing):
 		self.tilt = [0, 0]
 		self.flashtime = 0
 		self.cooltime = 0
+		self.waket = 0
 
 	def think(self, dt):
 		Thing.think(self, dt)
 		if self.vy:
-			tiltx = 2.5 * self.vx / self.vy
-			tilty = 2.5 * self.vz / self.vy
+			tiltx = 7.5 * self.vx / self.vy
+			tilty = 7.5 * self.vz / self.vy
 		else:
 			tiltx, tilty = 0, 0
 		self.tilt[0] += (tiltx - self.tilt[0]) * 5 * dt
 		self.tilt[1] += (tilty - self.tilt[1]) * 5 * dt
 		theta = 0.03 * self.ax
 		self.theta += (theta - self.theta) * 5 * dt
+		if self.z <= 0 and self.twake:
+			self.waket += dt
+			while self.waket > self.twake:
+				state.effects.append(Wake((self.x, self.y, self.z)))
+				self.waket -= self.twake
 
 	def jump(self, f=1):
 		if self.njump > 0:
@@ -57,7 +67,7 @@ class Ship(Thing):
 			if not h.alive:
 				continue
 			dx, dy = h.x - self.x, h.y - self.y
-			if dx ** 2 + dy ** 2 < 1 and self.z <= 0:
+			if dx ** 2 + dy ** 2 < (self.r + h.r) ** 2 and abs(self.z - h.z) < (self.h + h.h) / 2:
 				self.hurt()
 				h.causedamage()
 
@@ -74,20 +84,67 @@ class PirateShip(Ship):
 		for dy in dys:
 			self.layers.append([randomcolor(), dy])
 
+class Blockade(Ship):
+	hp0 = 999999
+	tflash = 0
+	layers = [["rgb0,0,0", 0]]
+	twake = 0
+	r = 0.4
+
+	def __init__(self, x0, dx, y0, omega):
+		self.x0 = x0
+		self.omega = omega
+		self.dx = dx
+		Ship.__init__(self, (x0, y0 + state.yc, -2))
+		self.vy = settings.vyc
+		self.vz = 0.5
+		self.t = uniform(0, 1000)
+	
+	def think(self, dt):
+		self.vx = 0
+		Ship.think(self, dt)
+		self.x = self.x0 + self.dx * cos(self.omega * self.t)
+		if self.z >= 0:
+			self.z = 0
+			self.vz = 0
+
+	def hurt(self, dhp=1):
+		pass
+
+
 def randomcolor():
 	return "rgb%s,%s,%s" % (randint(100, 200), randint(100, 200), randint(100, 200))
 
 class PlayerShip(Ship):
 	alwaysinrange = True
 	smokes = True
+	twake = 0.02
 	
 	def __init__(self, pos):
 		Ship.__init__(self, pos)
 		self.layers = []
-		dys = [0.08 * x for x in range(-3, 4)]
-		for j, dy in enumerate(dys):
-			self.layers.append(["you-%s.png" % j, dy])
+		self.layers = [
+			["you-back.png", -0.18],
+			["you-body-2.png", -0.15],
+			["you-body-2.png", -0.12],
+			["you-sail-1.png", -0.12],
+			["you-body-3.png", -0.09],
+			["you-body-3.png", -0.06],
+			["you-sail-2.png", -0.06],
+			["you-body-3.png", -0.03],
+			["you-body-3.png", 0],
+			["you-body-2.png", 0.03],
+			["you-sail-1.png", 0.03],
+			["you-body-2.png", 0.06],
+			["you-body-2.png", 0.09],
+			["you-sail-2.png", 0.09],
+			["you-body-1.png", 0.12],
+			["you-body-1.png", 0.15],
+			["you-body-1.png", 0.18],
+			["you-front.png", 0.21],
+		]
 		self.falling = False
+		self.cannontick = 0
 
 	def think(self, dt):
 		Ship.think(self, dt)
@@ -129,4 +186,12 @@ class PlayerShip(Ship):
 			self.jump()
 		if shooting:
 			self.fire()
+
+	def fire(self):
+		if self.cooltime > 0:
+			return False
+		state.projectiles.append(self.shottype(self, self.cannons[self.cannontick]))
+		self.cannontick += 1
+		self.cannontick %= len(self.cannons)
+		self.cooltime = self.tcooldown
 

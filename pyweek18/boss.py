@@ -10,15 +10,16 @@ class Boss(Ship):
 	ky = 4
 	betax = 1
 	betay = 4
-	def __init__(self, pos):
+	def __init__(self, pos, dytarget):
 		Ship.__init__(self, pos)
 		self.layers = []
+		self.dytarget = dytarget
 		dys = [0.08 * x for x in range(-3, 4)]
 		for dy in dys:
 			self.layers.append([randomcolor(), dy])
 		self.xtarget = 0
 	def move(self, dt):
-		self.ytarget = state.yc + 8
+		self.ytarget = state.yc + self.dytarget
 		self.ay = self.ky * (self.ytarget - self.y)
 		self.ax = self.kx * (self.xtarget - self.x)
 		Ship.move(self, dt)
@@ -40,6 +41,16 @@ class Boss(Ship):
 			vel = uniform(-5, 5), self.vy + 4, 10
 			state.hazards.append(Mine(pos, vel))
 
+class Bosslet(Boss):
+	hp0 = 20
+	def fire(self, dt):
+		nboss = sum(b.alive for b in state.bosses)
+		if random() * 0.5 * nboss < dt:
+			pos = self.x, self.y + 0.1, 0.2
+			vel = uniform(-5, 5), self.vy + 4, 10
+			state.hazards.append(Mine(pos, vel))
+	
+
 class Balloon(Boss):
 	alwaysinrange = True
 	ky = 1
@@ -60,6 +71,7 @@ class Balloon(Boss):
 			vel = uniform(-5, 5), self.vy + uniform(-2, 2), 4
 			state.hazards.append(Mine(pos, vel))
 	
+
 
 	
 

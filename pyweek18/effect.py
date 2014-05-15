@@ -1,10 +1,11 @@
 from random import *
 from thing import *
+import state
 
 class Particles(Thing):
 	nparticle = 5
 	vz0 = 10
-	az = -30
+	az0 = -30
 	vspread = 4
 	tlive = 1
 	vy = 0
@@ -17,6 +18,7 @@ class Particles(Thing):
 			for _ in range(self.nparticle)
 		]
 		self.vz = self.vz0
+		self.az = self.az0
 
 	def getlayers(self):
 		a = self.t * self.vspread
@@ -28,15 +30,26 @@ class Particles(Thing):
 class Splash(Particles):
 	imgname = "splash"
 
+class Wake(Thing):
+	layers = [["wake", 0]]
+	def __init__(self, pos):
+		Thing.__init__(self, pos)
+		self.vx = uniform(-5, 5)
+		self.vy = uniform(-5, 5)
+		self.vz = 2
+		self.az = -8
+		self.z = -0.1
+		
+
 class Smoke(Particles):
 	imgname = "smoke"
 	vz0 = 12
-	az = 0
+	az0 = 0
 
 class Heal(Particles):
 	imgname = "heal"
 	vz0 = 0
-	az = -30
+	az0 = -30
 	vspread = 5
 
 class Splode(Thing):
@@ -61,10 +74,13 @@ class Instructions(Thing):
 #			["text0:" + text, 0.05],
 		]
 		self.tilt = 1, -1
-		self.vy = -14
+		self.vy = -18
+	def think(self, dt):
+		Thing.think(self, dt)
+		self.z = state.zc
 
 class Corpse(Thing):
-	tlive = 1
+	tlive = 2
 	def __init__(self, obj):
 		Thing.__init__(self, (obj.x, obj.y, obj.z))
 		self.layers = obj.layers
