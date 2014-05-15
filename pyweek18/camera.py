@@ -21,10 +21,23 @@ def drawlayer(layer):
 	yd = y - state.yc  # distance from camera to object
 	if not settings.yrange[0] < yd < settings.yrange[1]:
 		return
-	k = settings.k0 * settings.dynormal / yd  # scale in screen pixels of 1 game unit at distance of object
-	srz = transform.rotozoom(img.getimg(imgname), degrees(theta), k * ascale / settings.ik)
 
+
+	k = settings.k0 * settings.dynormal / yd  # scale in screen pixels of 1 game unit at distance of object
 	Y0 = int(settings.Yh + k * state.zc)  # Y-coordinate at z = 0
+	i = img.getimg(imgname)
+	if theta == 0:
+		iw0, ih0 = i.get_size()
+		iw = iw0 * k * ascale / settings.ik
+		ih = ih0 * k * ascale / settings.ik
+		if abs(k * x) > iw/2 + settings.sX/2:
+			return
+		if abs(settings.Yh + k * (state.zc - z) - settings.sY / 2) > settings.sY/2 + ih/2:
+			return
+		srz = transform.smoothscale(i, (int(iw), int(ih)))
+	else:
+		srz = transform.rotozoom(i, degrees(theta), k * ascale / settings.ik)
+
 	iw, ih = srz.get_size()
 	Xc = settings.sX / 2 + k * x
 	Yc = settings.Yh + k * (state.zc - z)

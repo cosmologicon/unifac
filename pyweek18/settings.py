@@ -5,7 +5,7 @@ DEBUG = "--DEBUG" in sys.argv
 
 
 size = sX, sY = 540, 720
-fps = 30
+fps = 60
 
 zc = 5  # height of camera in game units
 yrange = 1, 50  # range of distances (wrt camera) that we draw

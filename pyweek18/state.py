@@ -7,7 +7,7 @@ def init():
 	global ships, player, hazards, effects, projectiles, bosses, mode, yc, zc, stage
 	global hpmax
 	mode = "quest"
-	stage = 1
+	stage = 3
 	player = ship.PlayerShip((0, 0, 0))
 	ships = [player]
 	hazards = []
@@ -25,6 +25,8 @@ def init():
 		[-0.4, 0, 0, 0],
 		[0.4, 0, 7, 0],
 	]
+	player.tcooldown = 0.4
+	player.cannons = [[0,0,0,0]]
 	yc = 0
 	zc = settings.zc
 	addtext(settings.gamename)
@@ -75,22 +77,42 @@ def think(dt):
 def addquest(dt):
 	if random() * 2 < dt:
 		pos = uniform(-settings.lwidth, settings.lwidth), yc + 60, 0
-		w = choice([1, 1.4, 1.8])
-		h = choice([1.5, 2, 2.5])
-		hazards.append(thing.Rock(pos, (w, h)))
-	if random() * 2 < dt:
-		pos = uniform(-settings.lwidth, settings.lwidth), yc + 60, 0
 		hazards.append(thing.Shipwreck(pos))
-	if random() * 5 < dt:
-		pos = choice([-20, -15, -10 -7, 7, 10, 15, 20]), yc + 60, 0
-		effects.append(effect.Island(pos))
+	return
+	if random() * 1 < dt:
+		t = 8
+		x, vx = choice([(5, 1.5), (-5, -1.5)])
+		y = player.y + t * player.vy
+		vy = uniform(4, 6)
+		ships.append(ship.MineShip((x - t * vx, y - t * vy, 0), (vx, vy), 1))
+	return
 	if random() * 5 < dt:
 		t = 12
 		x, y = player.x, player.y + t * player.vy
-		vx, vy = uniform(-1, 1), uniform(6, 8)
+		vx, vy = uniform(-1, 1), uniform(4, 6)
 		ships.append(ship.PirateShip((x - t * vx, y - t * vy, 0), (vx, vy), 1))
+	if random() * 0.5 < dt:
+		pos = uniform(-settings.lwidth - 5, settings.lwidth + 5), yc + 60, 0
+		w = choice([1, 1.5, 2, 2.5])
+		h = choice([2, 3, 5, 8])
+		h = 8
+		hazards.append(thing.Rock(pos, (w, h)))
+	return
+	if random() * 5 < dt:
+		pos = choice([-20, -15, -10 -7, 7, 10, 15, 20]), yc + 60, 0
+		effects.append(effect.Island(pos))
 
+def addsilver(obj):
+	silver = thing.Silver((obj.x, obj.y, obj.z))
+	hazards.append(silver)
 
+def addhp(dhp):
+	player.hp += dhp
+	if player.hp > hpmax:
+		player.hp = hpmax
+		player.tblitz = 5
+	else:
+		addheal(player)
 
 def addsplash(obj):
 	splash = effect.Splash((obj.x, obj.y, 0))

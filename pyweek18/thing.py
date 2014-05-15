@@ -13,6 +13,8 @@ class Thing(object):
 	tlive = 0
 	ascale = None
 	h = 1
+	
+	dhp = 1
 
 	def __init__(self, pos):
 		self.x, self.y, self.z = pos
@@ -71,14 +73,15 @@ class Rock(Thing):
 	def __init__(self, pos, size):
 		Thing.__init__(self, pos)
 		self.size = self.w, self.h = size
-		w1, h1 = self.w - 0.1, self.h - 0.1
-		w2, h2 = self.w - 0.2, self.h - 0.2
+		w0, h0 = self.w, self.h + 0.7
+		w1, h1 = w0 - 0.2, h0 - 0.2
+		w2, h2 = w0 - 0.4, h0 - 0.4
 		self.r = self.w / 2
 		self.layers = [
-			["rock%s,%s" % (w2, h2), 0.2],
-			["rock%s,%s" % (w1, h1), 0.1],
-			["rock%s,%s" % (self.w, self.h), 0],
-			["rock%s,%s" % (w1, h1), -0.1],
+			["rock%s,%s" % (w2, h2), 0.4],
+			["rock%s,%s" % (w1, h1), 0.2],
+			["rock%s,%s" % (w0, h0), 0],
+			["rock%s,%s" % (w1, h1), -0.4],
 			["rock%s,%s" % (w2, h2), -0.2],
 		]
 	def hitany(self, objs):
@@ -93,7 +96,7 @@ class Rock(Thing):
 
 
 class Shipwreck(Thing):
-	r = 0.3
+	r = 0.4
 	h = 0.5
 	layers = [["rgb255,255,0", 0]]
 	def hitany(self, objs):
@@ -106,8 +109,8 @@ class Shipwreck(Thing):
 			if dx ** 2 + dy ** 2 < (self.r + h.r) ** 2:
 				self.alive = False
 				state.addsmoke(self)
+				state.addsilver(self)
 				h.causedamage()
-
 
 class Mine(Thing):
 	layers = [
@@ -153,5 +156,26 @@ class Projectile(Thing):
 		self.move(0.001)
 	def causedamage(self):
 		self.alive = False
+
+class Silver(Thing):
+	layers = [["rgb200,200,200", 0]]
+	dhp = -1
+	r = 0.2
+	h = 0.4
+	def __init__(self, pos):
+		Thing.__init__(self, pos)
+		self.vx = 0
+		self.vy = 10
+		self.vz = 20
+		self.az = -60
+	def think(self, dt):
+		Thing.think(self, dt)
+		if self.z < 0:
+			self.vy = self.z = self.vz = self.az = 0
+	def causedamage(self):
+		self.alive = False
+	def hitany(self, objs):
+		pass
+
 
 

@@ -73,8 +73,12 @@ def getimg(imgname):
 			x, y = randrange(r, 32-r), randrange(r, 32-r)
 			draw.circle(img, (0, 0, 0, 100), (x, y), r)
 	elif imgname == "heal":
-		img = Surface((18, 18)).convert_alpha()
-		img.fill((255, 0, 0, 100))
+		img = Surface((32, 32)).convert_alpha()
+		img.fill((0, 0, 0, 0))
+		for _ in range(10):
+			r = 2
+			x, y = randrange(r, 32-r), randrange(r, 32-r)
+			draw.circle(img, (200, 200, 200, 100), (x, y), r)
 	elif imgname == "island":
 		img = Surface((120, 120)).convert_alpha()
 		img.fill((0, 255, 0))
