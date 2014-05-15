@@ -12,6 +12,7 @@ class Thing(object):
 	alwaysinrange = False
 	tlive = 0
 	ascale = None
+	h = 1
 
 	def __init__(self, pos):
 		self.x, self.y, self.z = pos
@@ -72,6 +73,7 @@ class Rock(Thing):
 		self.size = self.w, self.h = size
 		w1, h1 = self.w - 0.1, self.h - 0.1
 		w2, h2 = self.w - 0.2, self.h - 0.2
+		self.r = self.w / 2
 		self.layers = [
 			["rock%s,%s" % (w2, h2), 0.2],
 			["rock%s,%s" % (w1, h1), 0.1],
@@ -79,11 +81,40 @@ class Rock(Thing):
 			["rock%s,%s" % (w1, h1), -0.1],
 			["rock%s,%s" % (w2, h2), -0.2],
 		]
+	def hitany(self, objs):
+		for h in objs:
+			if not h.alive:
+				continue
+			if h.z > self.h/2:
+				continue
+			dx, dy = h.x - self.x, h.y - self.y
+			if dx ** 2 + dy ** 2 < (self.r + h.r) ** 2:
+				h.causedamage()
+
+
+class Shipwreck(Thing):
+	r = 0.3
+	h = 0.5
+	layers = [["rgb255,255,0", 0]]
+	def hitany(self, objs):
+		for h in objs:
+			if not h.alive:
+				continue
+			if h.z > self.r:
+				continue
+			dx, dy = h.x - self.x, h.y - self.y
+			if dx ** 2 + dy ** 2 < (self.r + h.r) ** 2:
+				self.alive = False
+				state.addsmoke(self)
+				h.causedamage()
+
 
 class Mine(Thing):
 	layers = [
 		["mine", 0],
 	]
+	h = 0.1
+	r = 0.05
 	def __init__(self, pos, vel):
 		Thing.__init__(self, pos)
 		self.vx, self.vy, self.vz = vel
@@ -97,7 +128,7 @@ class Mine(Thing):
 			self.vy = settings.vyc - 3
 			self.vz = 0
 			self.vx = 0
-			self.z = 0.2
+			self.z = 0.05
 			self.az = 0
 
 	def causedamage(self):
@@ -105,18 +136,22 @@ class Mine(Thing):
 		import effect
 		state.effects.append(effect.Splode((self.x, self.y, self.z)))
 
+	def hitany(self, objs):
+		pass
+
 class Projectile(Thing):
 	vy0 = 20
 	tlive = 1
+	r = 0.1
+	h = 0.2
 	layers = [["cannonball", 0]]
-	def __init__(self, obj):
-		Thing.__init__(self, (obj.x, obj.y, obj.z + 0.2))
-		self.vy = self.vy0
-		self.vx = obj.vx / obj.vy * self.vy if obj.vy else 0
+	def __init__(self, obj, (dx, dy, dvx, dvy)):
+		Thing.__init__(self, (obj.x + dx, obj.y + dy, obj.z + 0.2))
+		self.vy = self.vy0 + dvy
+		self.vx = (obj.vx / obj.vy * self.vy if obj.vy else 0) + dvx
 		#self.vz = obj.vz / obj.vy * self.vy if obj.vy else 0
-		self.move(0.1)
+		self.move(0.001)
 	def causedamage(self):
 		self.alive = False
-
 
 

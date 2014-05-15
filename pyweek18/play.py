@@ -9,7 +9,7 @@ class Scene(object):
 		self.t = 0
 	def think(self, dt, kpressed, kdowns):
 		self.t += dt
-		if kpressed[K_ESCAPE]:
+		if K_ESCAPE in kdowns or K_p in kdowns:
 			if settings.DEBUG:
 				scene.pop()
 			else:
@@ -34,19 +34,23 @@ class Scene(object):
 			camera.drawlayer(l)
 		
 		screen = display.get_surface()
-		i = img.getimg("text:hull: %s/%s" % (state.player.hp, state.hpmax))
-		screen.blit(i, (0, 0))
+		i = img.getimg("text-44:Stage %s" % state.stage)
+		screen.blit(i, i.get_rect(bottomleft=(10, settings.sY+5)))
+		i = img.getimg("hp:%s/%s" % (state.player.hp, state.hpmax))
+		screen.blit(i, i.get_rect(bottomright=(settings.sX-8, settings.sY-8)))
 		if state.mode == "boss" and state.bosses:
+			i = img.getimg("text-44:BOSS")
+			screen.blit(i, i.get_rect(midtop=(settings.sX//2, 2)))
 			hp = sum(b.hp for b in state.bosses)
 			hp0 = sum(b.hp0 for b in state.bosses)
 			i = img.getimg("bosshp:%s/%s" % (hp, hp0))
-			screen.blit(i, i.get_rect(topright=(settings.sX-5, 5)))
+			screen.blit(i, i.get_rect(midtop=(settings.sX//2, 60)))
 
 class PauseScene(object):
 	def __init__(self, scene0):
 		self.scene0 = scene0
 	def think(self, dt, kpressed, kdowns):
-		if K_ESCAPE in kdowns:
+		if K_ESCAPE in kdowns or K_p in kdowns:
 			scene.pop()
 		if K_q in kdowns:
 			scene.pop()

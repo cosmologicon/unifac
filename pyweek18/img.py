@@ -1,38 +1,43 @@
+from __future__ import division
+
 from pygame import *
 from random import *
+from math import *
 import settings
 
 cache = {}
-font0 = None
+fonts = {}
 
-def drawtext(text, filled=True):
-	global font0
-	if font0 is None:
-		font0 = font.Font(None, 64)
-	ix, iy = font0.size(text)
+def drawtext(text, filled=True, size=64):
+	if size not in fonts:
+		fonts[size] = font.Font("font/Trade_Winds/TradeWinds-Regular.ttf", size)
+	ix, iy = fonts[size].size(text)
 	d = 1
 	surf = Surface((ix+2*d, iy+2*d)).convert_alpha()
 	surf.fill((0,0,0,0))
-	i0 = font0.render(text, True, (0, 0, 0))
+	i0 = fonts[size].render(text, True, (0, 0, 0))
 	for off in ((d, 0), (0, d), (d, 2*d), (2*d, d)):
 		surf.blit(i0, off)
 	if filled:
-		i1 = font0.render(text, True, (255, 255, 255))
+		i1 = fonts[size].render(text, True, (255, 255, 255))
 		surf.blit(i1, (d, d))
 	return surf
+
+def speckle(img):
+	for x in range(img.get_width()):
+		for y in range(img.get_height()):
+			r, g, b, a = img.get_at((x, y))
+			r = min(max(int(r * uniform(0.9, 1.1)), 0), 255)
+			g = min(max(int(g * uniform(0.9, 1.1)), 0), 255)
+			b = min(max(int(b * uniform(0.9, 1.1)), 0), 255)
+			img.set_at((x, y), (r, g, b, a))
 
 def getimg(imgname):
 	if imgname in cache:
 		return cache[imgname]
 	if imgname.endswith(".png"):
 		img = image.load("img/" + imgname).convert_alpha()
-		for x in range(img.get_width()):
-			for y in range(img.get_height()):
-				r, g, b, a = img.get_at((x, y))
-				r = min(max(int(r * uniform(0.9, 1.1)), 0), 255)
-				g = min(max(int(g * uniform(0.9, 1.1)), 0), 255)
-				b = min(max(int(b * uniform(0.9, 1.1)), 0), 255)
-				img.set_at((x, y), (r, g, b, a))
+		speckle(img)
 	elif imgname == "purple":
 		img = Surface((40, 40)).convert_alpha()
 		img.fill((255, 0, 255))
@@ -40,8 +45,10 @@ def getimg(imgname):
 		img = Surface((30, 30)).convert_alpha()
 		img.fill((255, 128, 0))
 	elif imgname == "cannonball":
-		img = Surface((12, 12)).convert_alpha()
-		img.fill((0, 0, 0))
+		img = Surface((14, 14)).convert_alpha()
+		img.fill((0, 0, 0, 0))
+		draw.circle(img, (0, 0, 0), (7, 7), 7)
+		draw.circle(img, (60, 60, 60), (7, 7), 5)
 	elif imgname == "mine":
 		img = Surface((32, 32)).convert_alpha()
 		img.fill((0, 0, 0, 0))
@@ -55,6 +62,9 @@ def getimg(imgname):
 			r = 2
 			x, y = randrange(r, 32-r), randrange(r, 32-r)
 			draw.circle(img, (255, 255, 255, 100), (x, y), r)
+	elif imgname == "wake":
+		img = Surface((4, 4)).convert_alpha()
+		img.fill((255, 255, 255, 100))
 	elif imgname == "smoke":
 		img = Surface((32, 32)).convert_alpha()
 		img.fill((0, 0, 0, 0))
@@ -72,14 +82,28 @@ def getimg(imgname):
 		cs = map(int, imgname[3:].split(","))
 		img = Surface((40, 40)).convert_alpha()
 		img.fill(cs)
+	elif imgname.startswith("hp:"):
+		hp, hpmax = [int(x) for x in imgname[3:].split("/")]
+		img = Surface((60, 60)).convert_alpha()
+		img.fill((0,0,0,0))
+		if hp > 0:
+			thetas = [2*pi*x/(3*hpmax) for x in range(3*hp+1)]
+			ps = [(30, 30)] + [(30 + 30*sin(theta), 30-30*cos(theta)) for theta in thetas]
+			draw.polygon(img, (180,180,180), ps, 0)
+			speckle(img)
 	elif imgname.startswith("bosshp:"):
 		hp, hp0 = [int(x) for x in imgname[7:].split("/")]
-		img = Surface((10, 200)).convert_alpha()
-		img.fill((0,0,0,255))
-		if hp:
-			img.fill((255,0,0,255), (0,200*hp//hp0,10,200))
+		w = 400
+		img = Surface((w, 16)).convert_alpha()
+		img.fill((255,255,255,255))
+		img.fill((192,192,192,255), (2,2,w-4,12))
+		if hp < hp0:
+			img.fill((128,0,0,255), (2,2,(w-4)-(w-4)*hp//hp0,12))
 	elif imgname.startswith("text:"):
 		img = drawtext(imgname[5:])
+	elif imgname.startswith("text-"):
+		size, t = imgname[5:].split(":")
+		img = drawtext(t, size=int(size))
 	elif imgname.startswith("text0:"):
 		img = drawtext(imgname[6:], False)
 	elif imgname.startswith("rock"):
@@ -93,7 +117,7 @@ def getimg(imgname):
 			draw.circle(img, color, (x, y), r)
 	elif imgname.startswith("shroud"):
 		img = Surface(settings.size).convert_alpha()
-		img.fill((20, 20, 60, 90))
+		img.fill(shroudcolor)
 	elif imgname == "grayfill":
 		img = Surface(settings.size).convert_alpha()
 		img.fill((0, 0, 0, 200))
@@ -109,4 +133,14 @@ def getimg(imgname):
 			img.blit(line, (0, Y))
 	cache[imgname] = img
 	return img
+
+shroudcolor = 20, 20, 60, 90
+def setshroud(color):
+	global shroudcolor
+	if color == shroudcolor:
+		return
+	if "shroud" in cache:
+		del cache["shroud"]
+	shroudcolor = tuple(x + cmp(y, x) for x, y in zip(shroudcolor, color))
+
 
