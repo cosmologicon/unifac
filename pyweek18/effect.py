@@ -1,6 +1,8 @@
 from random import *
+from math import *
 from thing import *
 import state
+tau = 2 * pi
 
 class Particles(Thing):
 	nparticle = 5
@@ -10,6 +12,7 @@ class Particles(Thing):
 	tlive = 1
 	vy = 0
 	aspread = 3
+	casts = False
 
 	def __init__(self, pos):
 		Thing.__init__(self, pos)
@@ -29,8 +32,10 @@ class Particles(Thing):
 
 class Splash(Particles):
 	imgname = "splash"
+	vz0 = 16
 
 class Wake(Thing):
+	casts = False
 	layers = [["wake", 0]]
 	def __init__(self, pos):
 		Thing.__init__(self, pos)
@@ -57,6 +62,7 @@ class Heal(Particles):
 		self.vy = settings.vyc
 
 class Splode(Thing):
+	casts = False
 	tlive = 0.3
 	layers = [["mine", 0]]
 	def think(self, dt):
@@ -64,13 +70,34 @@ class Splode(Thing):
 		self.ascale = 1 + 20 * self.t
 
 class Decoration(Thing):
-	pass
+	casts = False
 
 class Island(Decoration):
 	layers = [["island", 0]]
 
+class Flock(Decoration):
+	casts = False
+	def __init__(self, pos, vel):
+		Decoration.__init__(self, pos)
+		self.vx, self.vy, self.vz = vel
+		self.birds = [
+			(uniform(-3, 3), uniform(-3, 3), uniform(-0.3, 0.3), uniform(0, 1000))
+			for _ in range(40)
+		]
+		self.omega = 10
+	def getlayers(self):
+		for dx, dy, dz, phi0 in self.birds:
+			phi = (phi0 + self.t * self.omega) % tau
+			x, y, z0 = self.x + dx, self.y + dy, self.z + dz - 0.2 * tau/4
+			if phi < tau/2:
+				yield "bird-up", x, y, z0 + 0.2 * phi, 0, 1, self
+			else:
+				yield "bird-down", x, y, z0 + 0.2 * (tau - phi), 0, 1, self
+		
 
 class Instructions(Thing):
+	casts = False
+	r = 2
 	def __init__(self, text, y):
 		Thing.__init__(self, (0, y, 5))
 		self.layers = [
@@ -96,6 +123,7 @@ class Corpse(Thing):
 		self.theta0 = obj.theta
 		self.thetas = [uniform(-2, 2) for _ in self.layers]
 		self.ds = [(uniform(-3, 3), uniform(-1, 1)) for _ in self.layers]
+		self.r = obj.r
 		
 	def think(self, dt):
 		Thing.think(self, dt)

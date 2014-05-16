@@ -188,6 +188,7 @@ class PlayerShip(Ship):
 				self.z = self.vz = 0
 				self.njump = 0
 				state.addsplash(self)
+				state.addsplash(self)
 		self.vy += (settings.vyc - self.vy) * 3 * dt
 
 	def control(self, dx, jumping, shooting):

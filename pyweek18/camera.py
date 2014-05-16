@@ -8,6 +8,28 @@ pscale = 30
 def drawbackdrop():
 	display.get_surface().blit(img.getimg("backdrop"), (0, 0))
 
+def drawshadow(x, y, r):
+	i = img.getimg("shadow")
+	yd = y - state.yc  # distance from camera to object
+	if not settings.yrange[0] < yd < settings.yrange[1]:
+		return
+	k = settings.k0 * settings.dynormal / yd  # scale in screen pixels of 1 game unit at distance of object
+	Y0 = int(settings.Yh + k * state.zc)  # Y-coordinate at z = 0
+	iw0, ih0 = i.get_size()
+	iw = 3.0 * r * k
+	ih = state.zc / 5.0 * r * k
+	if abs(k * x) > iw/2 + settings.sX/2:
+		return
+	if abs(Y0 - settings.sY / 2) > settings.sY/2 + ih/2:
+		return
+	srz = transform.smoothscale(i, (int(iw), int(ih)))
+
+	X0 = settings.sX / 2 + k * x
+	X = int(X0 - iw / 2)
+	Y = int(Y0 - ih / 2)
+
+	display.get_surface().blit(srz, (X, Y))
+
 def drawlayer(layer):
 	try:
 		imgname, x, y, z, theta, ascale, obj = layer

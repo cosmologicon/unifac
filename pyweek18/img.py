@@ -44,6 +44,9 @@ def getimg(imgname):
 	elif imgname == "brown":
 		img = Surface((30, 30)).convert_alpha()
 		img.fill((255, 128, 0))
+	elif imgname.startswith("bird"):
+		img = Surface((8, 4)).convert_alpha()
+		img.fill((255, 255, 255))
 	elif imgname == "cannonball":
 		img = Surface((14, 14)).convert_alpha()
 		img.fill((0, 0, 0, 0))
@@ -122,6 +125,14 @@ def getimg(imgname):
 	elif imgname.startswith("shroud"):
 		img = Surface(settings.size).convert_alpha()
 		img.fill(shroudcolor)
+	elif imgname == "shadow":
+		img = Surface((20, 20)).convert_alpha()
+		img.fill((0, 0, 0, 0))
+		draw.circle(img, (0, 0, 0, 160), (10, 10), 10)
+	elif imgname.startswith("shadow"):
+		r = [int(x) for x in imgname[6:].split("x")]
+		img = Surface((w, h)).convert_alpha()
+		img.fill((0, 0, 0, 0))
 	elif imgname == "grayfill":
 		img = Surface(settings.size).convert_alpha()
 		img.fill((0, 0, 0, 200))
