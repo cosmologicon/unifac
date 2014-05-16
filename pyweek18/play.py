@@ -31,7 +31,10 @@ class Scene(object):
 	def draw(self):
 		camera.drawbackdrop()
 		camera.drawwave(40)
-		for l in state.getlayers():
+		ls, ss = state.getlayers()
+		for s in ss:
+			camera.drawshadow(*s)
+		for l in ls:
 			camera.drawlayer(l)
 		
 		screen = display.get_surface()

@@ -13,6 +13,7 @@ class Thing(object):
 	tlive = 0
 	ascale = None
 	h = 1
+	casts = True
 	
 	dhp = 1
 
@@ -69,7 +70,12 @@ class Thing(object):
 	def causedamage(self):
 		pass
 
+	def getshadows(self):
+		if self.casts and self.z > self.h / 2:
+			yield self.x, self.y, self.r
+
 class Rock(Thing):
+	casts = False
 	def __init__(self, pos, size):
 		Thing.__init__(self, pos)
 		self.size = self.w, self.h = size
@@ -160,18 +166,19 @@ class Projectile(Thing):
 class Silver(Thing):
 	layers = [["rgb200,200,200", 0]]
 	dhp = -1
-	r = 0.2
-	h = 0.4
+	r = 0.3
+	h = 1
 	def __init__(self, pos):
 		Thing.__init__(self, pos)
 		self.vx = 0
 		self.vy = 10
-		self.vz = 20
+		self.vz = 30
 		self.az = -60
 	def think(self, dt):
 		Thing.think(self, dt)
-		if self.z < 0:
-			self.vy = self.z = self.vz = self.az = 0
+		if self.vz < 0 and self.z < 2:
+			self.vy = self.vz = self.az = 0
+			self.z = 2
 	def causedamage(self):
 		self.alive = False
 	def hitany(self, objs):

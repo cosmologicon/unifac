@@ -78,6 +78,12 @@ def addquest(dt):
 	if random() * 2 < dt:
 		pos = uniform(-settings.lwidth, settings.lwidth), yc + 60, 0
 		hazards.append(thing.Shipwreck(pos))
+	if random() * 4 < dt:
+		t = 20
+		x, vx = choice([(0, 1.5), (0, -1.5)])
+		y = player.y + t * player.vy
+		vy = uniform(2, 3)
+		effects.append(effect.Flock((x - t * vx, y - t * vy, zc + 0.5), (vx, vy, 0)))
 	return
 	if random() * 1 < dt:
 		t = 8
@@ -168,20 +174,14 @@ def beatboss():
 	addtext("Progress Saved")
 
 def getlayers():
-	layers = [
-		l for s in ships for l in s.getlayers()
-	] + [
-		l for h in hazards for l in h.getlayers()
-	] + [
-		l for e in effects for l in e.getlayers()
-	] + [
-		l for p in projectiles for l in p.getlayers()
-	]
-	
+	objs = ships + hazards + effects + projectiles
+	shadows = [s for obj in objs for s in obj.getshadows()]
+	layers = [l for obj in objs for l in obj.getlayers()]
 	layers += [
 		("shroud", 0, yc + dy, 0, 0, None, None) for dy in (4, 6, 8, 12, 16, 24, 32, 40)
 	]
 	
 	layers.sort(key = lambda l: -l[2])
-	return layers
+	shadows.sort(key = lambda l: -l[2])
+	return layers, shadows
 
