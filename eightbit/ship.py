@@ -5,6 +5,36 @@ from thing import *
 from effect import *
 import settings, state, sound
 
+def piratelayers(level):
+	if level == 1 or level == 2:
+		return [
+			["pirate-back.png", -0.2],
+			["pirate-body-2.png", -0.1],
+			["pirate-body-3.png", 0],
+			["pirate-body-3.png", 0.1],
+			["pirate-body-2.png", 0.2],
+			["pirate-body-1.png", 0.3],
+			["pirate-sail-%s.png" % choice([1, 2, 3]), 0],
+			["pirate-sail-%s.png" % choice([1, 2, 3]), 0.2],
+			["pirate-nest.png", 0.1],
+		]	
+	if level == 3:
+		return [
+			["pirate-back.png", -0.3],
+			["pirate-body-2.png", -0.2],
+			["pirate-body-3.png", -0.1],
+			["pirate-body-3.png", 0],
+			["pirate-body-3.png", 0.1],
+			["pirate-body-2.png", 0.2],
+			["pirate-body-2.png", 0.3],
+			["pirate-body-1.png", 0.4],
+			["pirate-sail-%s.png" % choice([1, 2, 3]), -0.2],
+			["pirate-sail-%s.png" % choice([1, 2, 3]), 0],
+			["pirate-sail-%s.png" % choice([1, 2, 3]), 0.2],
+			["pirate-nest.png", 0.1],
+			["pirate-nest.png", -0.1],
+		]	
+
 class Ship(Thing):
 	shottype = Projectile
 	tcooldown = 2
@@ -27,23 +57,31 @@ class Ship(Thing):
 
 	def think(self, dt):
 		Thing.think(self, dt)
-		tiltx = 0.75 * self.vx
+		tiltx = 0.75 * min(max(self.vx, -3), 3)
 		tilty = 0.75 * self.vz
 		self.tilt[0] += (tiltx - self.tilt[0]) * 5 * dt
 		self.tilt[1] += (tilty - self.tilt[1]) * 5 * dt
-		theta = 0.03 * self.ax
+		theta = min(max(0.03 * self.ax, -0.2), 0.2)
 		self.theta += (theta - self.theta) * 5 * dt
 		if self.z <= 0 and self.twake:
 			self.waket += dt
 			while self.waket > self.twake:
 				state.effects.append(Wake((self.x, self.y, self.z)))
 				self.waket -= self.twake
+		if self.z < 0 and self.vz < 0:
+			self.z = self.vz = self.az = 0
+			self.njump = 0
+			sound.playsound("splash")
+			state.addsplash(self)
+			if not settings.lowres:
+				state.addsplash(self)
 
 	def jump(self, f=1):
 		if self.njump >= self.jumps:
 			return
 		self.njump += 1
 		self.vz = 12 * f
+		self.az = -30
 		self.z = max(self.z, 0)
 		sound.playsound("jump")
 
@@ -81,29 +119,20 @@ class Ship(Thing):
 class PirateShip(Ship):
 	hp0 = 1
 	tflash = 0.01
+	firerate = 1
 	def __init__(self, pos, v, level):
 		self.hp = self.hp0 = level
 		Ship.__init__(self, pos)
 		self.vx, self.vy = v
 		self.level = level
-		self.layers = [
-			["pirate-back.png", -0.2],
-			["pirate-body-2.png", -0.1],
-			["pirate-body-3.png", 0],
-			["pirate-body-3.png", 0.1],
-			["pirate-body-2.png", 0.2],
-			["pirate-body-1.png", 0.3],
-
-			["pirate-sail-%s.png" % choice([1, 2, 3]), 0],
-			["pirate-sail-%s.png" % choice([1, 2, 3]), 0.2],
-			["pirate-nest.png", 0.1],
-		]
+		self.firerate = 1 / level
+		self.layers = piratelayers(level)
 	def think(self, dt):
 		Ship.think(self, dt)
 
 class MineShip(PirateShip):
 	def fire(self, dt):
-		if random() * 2 < dt:
+		if random() * self.firerate < dt:
 			pos = self.x, self.y + 0.1, 0.2
 			vel = uniform(-5, 5), self.vy + 4, 10
 			state.hazards.append(Mine(pos, vel))
@@ -112,8 +141,15 @@ class MineShip(PirateShip):
 			self.fire(dt)
 		PirateShip.think(self, dt)
 	def die(self):
+		PirateShip.die(self)
 		if random() < 0.2:
 			state.addsilver(self)
+
+class JumpShip(MineShip):
+	def think(self, dt):
+		MineShip.think(self, dt)
+		if random() * 3 < dt:
+			self.jump(0.6)
 
 
 class Blockade(Ship):
@@ -217,18 +253,9 @@ class PlayerShip(Ship):
 		self.vx = min(max(self.vx, -settings.vxmax), settings.vxmax)
 		self.x += 0.5 * (self.vx + vx0) * dt
 		self.x = min(max(self.x, -settings.lwidth), settings.lwidth)
-		if self.vz or self.z:
-			g = 30
-			self.z += dt * self.vz - 0.5 * dt * dt * g
-			self.vz -= dt * g
-			if self.z < 0 and self.vz < 0:
-				self.z = self.vz = 0
-				self.njump = 0
-				sound.playsound("splash")
-				state.addsplash(self)
-				if not settings.lowres:
-					state.addsplash(self)
 		self.vy += (state.vyc - self.vy) * 3 * dt
+		self.z += self.vz * dt + 0.5 * self.az * dt * dt
+		self.vz += self.az * dt
 
 	def control(self, dx, jumping, shooting):
 		if self.falling:

@@ -43,20 +43,17 @@ class Boss1(Boss):
 	hp0 = 12
 	firetime = 1
 	level = 3
+	firetime = 0.35
 	def __init__(self, pos, dytarget):
 		Boss.__init__(self, pos, dytarget)
-		self.layers = []
-		for jlayer in range(self.level):
-			dy = 0.4 * (jlayer - (self.level - 1) / 2)
-			self.layers.append(["pirate-sail-%s.png" % choice([0,1,2]), dy])
-		for jlayer in range(self.level+1):
-			dy = 0.4 * (jlayer - self.level / 2)
-			self.layers.append(["pirate-body-%s.png" % choice([0,1,2]), dy])
+		self.layers = piratelayers(1)
 		self.ascale = 2
+		self.r *= 2
 
 class Bosslet(Boss1):
 	hp0 = 20
 	level = 2
+	firetime = 0.12
 	def fire(self, dt):
 		nboss = sum(b.alive for b in state.bosses)
 		if random() * self.firetime * nboss < dt:
@@ -68,17 +65,17 @@ class Bosslet(Boss1):
 class Balloon(Boss):
 	alwaysinrange = True
 	ky = 1
-	betax = 4
+	betax = 1.2
 	kx = 1
 	r = 0.7
 	h = 6
 	ascale = 2
 	hp0 = 20
+	firetime = 0.8
 	def __init__(self, pos, dytarget):
 		Boss.__init__(self, pos, dytarget)
 		self.layers = [
 			["baloon-body-0.png", 0.5],
-			["baloon-body-0.png", 0],
 			["baloon-body-1.png", -0.5],
 			["baloon-gondola.png", 0.5],
 			["baloon-gondola.png", 0.375],
@@ -100,12 +97,11 @@ class Balloon(Boss):
 		Boss.think(self, dt)
 		self.z = 6 + 1.4 * sin(self.t * 1)
 	def fire(self, dt):
-		if random() * 0.8 < dt:
+		if random() * self.firetime < dt:
 			pos = self.x, self.y, self.z - 1
 			vel = uniform(-5, 5), self.vy + uniform(-2, 2), 4
 			state.hazards.append(Mine(pos, vel))
-	
-
-
-	
+	def getlayers(self):
+		for layername, x, y, z, theta, ascale, obj in Boss.getlayers(self):
+			yield layername, x, y, z, -2 * theta, ascale, obj
 

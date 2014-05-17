@@ -122,7 +122,7 @@ class Whale(Decoration):
 		if self.z < 0 and self.vz < 0 and not self.landed:
 			state.addsplash(self)
 			self.landed = True
-	
+		self.theta = 0.1 * self.vz
 		
 
 class Instructions(Thing):

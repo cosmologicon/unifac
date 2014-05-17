@@ -1,13 +1,17 @@
 from __future__ import division
 from pygame import *
 import datetime
-import settings, play, scene
+import settings, play, scene, img, state
+
+if settings.reset:
+	state.reset()
 
 clock = time.Clock()
 
 mixer.pre_init(22050, -16, 2, 0)
 flags = FULLSCREEN if settings.fullscreen else 0
 display.set_mode(settings.size, flags)
+img.preload()
 init()
 display.set_caption(settings.gamename)
 
