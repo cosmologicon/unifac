@@ -1,4 +1,5 @@
 from random import *
+from math import *
 from thing import *
 from ship import *
 import state, settings
@@ -10,13 +11,10 @@ class Boss(Ship):
 	ky = 4
 	betax = 1
 	betay = 4
+	firetime = 0.5
 	def __init__(self, pos, dytarget):
 		Ship.__init__(self, pos)
-		self.layers = []
 		self.dytarget = dytarget
-		dys = [0.08 * x for x in range(-3, 4)]
-		for dy in dys:
-			self.layers.append([randomcolor(), dy])
 		self.xtarget = 0
 	def move(self, dt):
 		self.ytarget = state.yc + self.dytarget
@@ -36,16 +34,32 @@ class Boss(Ship):
 		Ship.think(self, dt)
 
 	def fire(self, dt):
-		if random() * 0.5 < dt:
+		if random() * self.firetime < dt:
 			pos = self.x, self.y + 0.1, 0.2
 			vel = uniform(-5, 5), self.vy + 4, 10
 			state.hazards.append(Mine(pos, vel))
 
-class Bosslet(Boss):
+class Boss1(Boss):
+	hp0 = 12
+	firetime = 1
+	level = 3
+	def __init__(self, pos, dytarget):
+		Boss.__init__(self, pos, dytarget)
+		self.layers = []
+		for jlayer in range(self.level):
+			dy = 0.4 * (jlayer - (self.level - 1) / 2)
+			self.layers.append(["pirate-sail-%s.png" % choice([0,1,2]), dy])
+		for jlayer in range(self.level+1):
+			dy = 0.4 * (jlayer - self.level / 2)
+			self.layers.append(["pirate-body-%s.png" % choice([0,1,2]), dy])
+		self.ascale = 2
+
+class Bosslet(Boss1):
 	hp0 = 20
+	level = 2
 	def fire(self, dt):
 		nboss = sum(b.alive for b in state.bosses)
-		if random() * 0.5 * nboss < dt:
+		if random() * self.firetime * nboss < dt:
 			pos = self.x, self.y + 0.1, 0.2
 			vel = uniform(-5, 5), self.vy + 4, 10
 			state.hazards.append(Mine(pos, vel))
@@ -54,19 +68,39 @@ class Bosslet(Boss):
 class Balloon(Boss):
 	alwaysinrange = True
 	ky = 1
-	betax = 0.1
+	betax = 4
 	kx = 1
-	def __init__(self, pos):
-		Ship.__init__(self, pos)
-		self.layers = [["rgb255,0,0", 0]]
+	r = 0.7
+	h = 6
+	ascale = 2
+	hp0 = 20
+	def __init__(self, pos, dytarget):
+		Boss.__init__(self, pos, dytarget)
+		self.layers = [
+			["baloon-body-0.png", 0.5],
+			["baloon-body-0.png", 0],
+			["baloon-body-1.png", -0.5],
+			["baloon-gondola.png", 0.5],
+			["baloon-gondola.png", 0.375],
+			["baloon-gondola.png", 0.25],
+			["baloon-gondola.png", 0.125],
+			["baloon-gondola.png", 0],
+			["baloon-gondola.png", -0.125],
+			["baloon-gondola-sails.png", -0.25],
+			["baloon-gondola.png", -0.375],
+			["baloon-gondola.png", -0.5],
+		]
 		self.xtarget = 0
 		self.z = 6
 	def constrainvelocity(self):
 		self.vy = max(self.vy, 1)
 		if abs(self.ytarget - self.y) > 1:
 			self.ax = self.vx = self.x = 0
+	def think(self, dt):
+		Boss.think(self, dt)
+		self.z = 6 + 1.4 * sin(self.t * 1)
 	def fire(self, dt):
-		if random() * 0.5 < dt:
+		if random() * 0.8 < dt:
 			pos = self.x, self.y, self.z - 1
 			vel = uniform(-5, 5), self.vy + uniform(-2, 2), 4
 			state.hazards.append(Mine(pos, vel))

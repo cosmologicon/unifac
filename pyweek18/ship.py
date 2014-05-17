@@ -3,16 +3,17 @@ from random import *
 from math import *
 from thing import *
 from effect import *
-import settings, state
+import settings, state, sound
 
 class Ship(Thing):
 	shottype = Projectile
 	tcooldown = 2
 	tflash = 1
-	smokes = False
+	smokes = 2
 	twake = 0.1
 	r = 0.4
 	h = 1
+	jumps = 1
 
 	def __init__(self, pos):
 		Thing.__init__(self, pos)
@@ -21,6 +22,8 @@ class Ship(Thing):
 		self.flashtime = 0
 		self.cooltime = 0
 		self.waket = 0
+		if settings.lowres:
+			self.twake = None
 
 	def think(self, dt):
 		Thing.think(self, dt)
@@ -37,11 +40,12 @@ class Ship(Thing):
 				self.waket -= self.twake
 
 	def jump(self, f=1):
-		if self.njump > 0:
+		if self.njump >= self.jumps:
 			return
 		self.njump += 1
 		self.vz = 12 * f
 		self.z = max(self.z, 0)
+		sound.playsound("jump")
 
 	def fire(self):
 		if self.cooltime > 0:
@@ -54,8 +58,10 @@ class Ship(Thing):
 		self.flashtime = self.tflash
 		if self.hp <= 0:
 			self.die()
-		elif self.smokes:
-			state.addsmoke(self)
+		else:
+			sound.playsound("hurt")
+			if self.smokes:
+				state.addsmoke(self, self.smokes)
 
 	def die(self):
 		state.effects.append(Corpse(self))
@@ -76,13 +82,22 @@ class PirateShip(Ship):
 	hp0 = 1
 	tflash = 0.01
 	def __init__(self, pos, v, level):
+		self.hp = self.hp0 = level
 		Ship.__init__(self, pos)
 		self.vx, self.vy = v
 		self.level = level
-		self.layers = []
-		dys = [0.08 * x for x in range(-1, 2)]
-		for dy in dys:
-			self.layers.append([randomcolor(), dy])
+		self.layers = [
+			["pirate-back.png", -0.2],
+			["pirate-body-2.png", -0.1],
+			["pirate-body-3.png", 0],
+			["pirate-body-3.png", 0.1],
+			["pirate-body-2.png", 0.2],
+			["pirate-body-1.png", 0.3],
+
+			["pirate-sail-%s.png" % choice([1, 2, 3]), 0],
+			["pirate-sail-%s.png" % choice([1, 2, 3]), 0.2],
+			["pirate-nest.png", 0.1],
+		]
 	def think(self, dt):
 		Ship.think(self, dt)
 
@@ -96,13 +111,18 @@ class MineShip(PirateShip):
 		if abs(self.x) < settings.lwidth + 3:
 			self.fire(dt)
 		PirateShip.think(self, dt)
+	def die(self):
+		if random() < 0.2:
+			state.addsilver(self)
+
 
 class Blockade(Ship):
 	hp0 = 999999
 	tflash = 0
-	layers = [["rgb0,0,0", 0]]
+	layers = [["rock2,5", 0]]
 	twake = 0
-	r = 0.4
+	r = 1
+	h = 5
 
 	def __init__(self, x0, dx, y0, omega):
 		self.x0 = x0
@@ -130,7 +150,7 @@ def randomcolor():
 
 class PlayerShip(Ship):
 	alwaysinrange = True
-	smokes = True
+	smokes = 6
 	twake = 0.02
 	
 	def __init__(self, pos):
@@ -156,6 +176,20 @@ class PlayerShip(Ship):
 			["you-body-1.png", 0.18],
 			["you-front.png", 0.21],
 		]
+		if settings.lowres:
+			self.layers = [
+				["you-back.png", -0.18],
+				["you-body-2.png", -0.15],
+				["you-sail-1.png", -0.12],
+				["you-body-3.png", -0.09],
+				["you-body-3.png", -0.03],
+				["you-body-2.png", 0.03],
+				["you-body-2.png", 0.09],
+				["you-sail-2.png", 0.09],
+				["you-body-1.png", 0.12],
+				["you-body-1.png", 0.15],
+				["you-front.png", 0.21],
+			]
 		self.falling = False
 		self.cannontick = 0
 		self.tblitz = 0
@@ -190,8 +224,10 @@ class PlayerShip(Ship):
 			if self.z < 0 and self.vz < 0:
 				self.z = self.vz = 0
 				self.njump = 0
+				sound.playsound("splash")
 				state.addsplash(self)
-				state.addsplash(self)
+				if not settings.lowres:
+					state.addsplash(self)
 		self.vy += (state.vyc - self.vy) * 3 * dt
 
 	def control(self, dx, jumping, shooting):
@@ -208,6 +244,7 @@ class PlayerShip(Ship):
 		if self.cooltime > 0:
 			return False
 		state.projectiles.append(self.shottype(self, self.cannons[self.cannontick]))
+		sound.playsound("shoot")
 		self.cannontick += 1
 		self.cannontick %= len(self.cannons)
 		self.cooltime = self.tcooldown

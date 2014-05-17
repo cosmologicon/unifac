@@ -92,6 +92,8 @@ class Rock(Thing):
 			["rock%s,%s" % (w1, h1), -0.4],
 			["rock%s,%s" % (w2, h2), -0.2],
 		]
+		if settings.lowres:
+			self.layers = self.layers[2:3]
 	def hitany(self, objs):
 		for h in objs:
 			if not h.alive:
@@ -104,9 +106,11 @@ class Rock(Thing):
 
 
 class Shipwreck(Thing):
-	r = 0.4
+	r = 0.7
 	h = 0.5
-	layers = [["rgb255,255,0", 0]]
+	layers = [["shipwreck.png", 0]]
+	smokes = 1
+	ascale = 2
 	def hitany(self, objs):
 		for h in objs:
 			if not h.alive:
@@ -116,7 +120,7 @@ class Shipwreck(Thing):
 			dx, dy = h.x - self.x, h.y - self.y
 			if dx ** 2 + dy ** 2 < (self.r + h.r) ** 2:
 				self.alive = False
-				state.addsmoke(self)
+				state.addsmoke(self, self.smokes)
 				state.addsilver(self)
 				h.causedamage()
 
@@ -169,7 +173,7 @@ class Projectile(Thing):
 		self.alive = False
 
 class Silver(Thing):
-	layers = [["rgb200,200,200", 0]]
+	layers = [["silver.png", 0]]
 	dhp = -1
 	r = 0.3
 	h = 1
@@ -191,6 +195,7 @@ class Silver(Thing):
 
 class Slinker(Thing):
 	tlive = 4
+	casts = False
 	def __init__(self, obj):
 		self.obj = obj
 		Thing.__init__(self, (obj.x, obj.y, obj.z))
@@ -198,6 +203,7 @@ class Slinker(Thing):
 		self.vy = obj.vy
 		self.vz = 0
 		self.az = -1
+		self.ascale = obj.ascale
 	def getlayers(self):
 		for imgname, x, y, z, theta, ascale, obj in self.obj.getlayers():
 			yield imgname, self.x, self.y, self.z, theta, ascale, obj

@@ -1,11 +1,11 @@
 # The game state
 
 from random import *
-import ship, thing, effect, settings, boss, img
+import ship, thing, effect, settings, boss, img, sound
 
 # Call at program start
 def init():
-	global ships, player, hazards, effects, projectiles, bosses
+	global ships, player, hazards, effects, projectiles, bosses, stage
 	global yc, vyc, zc
 	vyc = 2
 	yc = 0
@@ -15,6 +15,7 @@ def init():
 	effects = []
 	projectiles = []
 	bosses = []
+	stage = 1
 
 def start():
 	global ships, player, hazards, effects, projectiles, bosses, vyc, yc, zc
@@ -22,23 +23,30 @@ def start():
 	global hpmax
 	setmode("quest")
 	tstage = 0
-	stage = 1
 	substages = legs[stage][:]
 	setstage()
 	player = ship.PlayerShip((0, yc, 0))
 	ships = [player]
 	hpmax = 8
 	player.hp = hpmax
-	player.tcooldown = 0.05
-	player.cannons = [
-		[0, 0, 0, 0],
-		[-0.4, 0, -7, 0],
-		[0.4, 0, 0, 0],
-		[-0.4, 0, 0, 0],
-		[0.4, 0, 7, 0],
-	]
-	player.tcooldown = 0.4
-	player.cannons = [[0,0,0,0]]
+	if stage == 1:
+		player.tcooldown = 0.4
+		player.cannons = [[0,0,0,0]]
+	elif stage == 2:
+		player.tcooldown = 0.2
+		player.cannons = [
+			[0.4, 0, 0, 0],
+			[-0.4, 0, 0, 0],
+		]
+	elif stage == 3:
+		player.tcooldown = 0.1
+		player.cannons = [
+			[0, 0, 0, 0],
+			[-0.4, 0, -4, 0],
+			[0, 0, 0, 0],
+			[0.4, 0, 4, 0],
+		]
+	player.jumps = 2
 	think(0)
 	player.jump(1.4)
 
@@ -97,6 +105,7 @@ def think(dt):
 	if mode == "reset":
 		if not any(t.alive for t in texts):
 			setmode("quest")
+			start()
 			player.x = 0
 			player.falling = False
 			player.jump(1.4)
@@ -104,7 +113,7 @@ def think(dt):
 		if not any(t.alive for t in texts):
 			start()
 	if mode == "boss":
-		img.setshroud((0, 0, 20, 100))
+		img.setshroud((0, 0, 20, 40))
 	elif mode == "quest":
 		img.setshroud((20, 20, 60, 50))
 	elif mode == "reset":
@@ -118,17 +127,36 @@ legs = {
 		["addtext", "by Christopher Night"],
 		["nothing", 5, 6],
 		["addtext", "arrows: move"],
-		["smallrocks", 20, 6],
+		["smallrocks4", 20, 6],
 		["addtext", "up/space: jump"],
-		["moresmallrocks", 40, 6],
-		["boss", None, 6],
+		["smallrocks2", 20, 6],
+		["addtext", "Silver restores health"],
+		["addtext", "Powerup at full health"],
+		["pirates5", 60, 3],
+		["prelude", 4, 5],
+		["boss", None, 5],
+	],
+	2: [
+		["nothing", 5, 4],
+		["smallrocks2", 10, 4],
+		["tallrocks3", 30, 4],
+		["smallrocks1.5", 10, 4],
+		["rps4", 50, 4],
+		["prelude", 4, 5],
+		["boss", None, 5],
 	],
 	3: [
-		["nothing", 8, 4],
-		["tallrocks", 40, 4],
-		["pirates", 40, 2],
-		["prelude", 5, 5],
-		["boss", None, 5]
+		["addtext", "Double Jump unlocked"],
+		["nothing", 8, 6],
+		["smallrocks1.5", 30, 6],
+		["pirates4", 40, 4],
+		["nothing", 5, 4],
+		["nothing", 5, 6],
+		["tallrocks1.5", 40, 6],
+		["nothing", 5, 6],
+		["rps3", 40, 3],
+		["prelude", 4, 4],
+		["boss", None, 4],
 	],
 }
 
@@ -137,6 +165,7 @@ def setstage():
 	hq, sq, eq = [], [], []
 	yc0 = yc
 	vylast = None
+	plevel = [None, 1, 1, 2, 3][stage]
 	ymax = settings.yrange[1]
 	for leg in legs[stage]:
 		if leg[0] == "addtext":
@@ -144,28 +173,24 @@ def setstage():
 			continue
 		legtype, length, legvy = leg
 		eq.append((yc0, setspeed(legvy)))
-		if legtype == "tallrocks":
+		if legtype.startswith("tallrocks"):
+			ddy = float(legtype[9:])
 			dy = 0
 			while dy < length * legvy:
 				x = uniform(-settings.lwidth - 5, settings.lwidth + 5)
 				size = choice([1, 1.5, 2, 2.5]), choice([5, 5.5, 6, 6.5, 7, 7.5, 8])
 				hq.append(thing.Rock((x, yc0 + dy, 0), size))
-				dy += 2
-		if legtype == "smallrocks":
+				dy += ddy
+		if legtype.startswith("smallrocks"):
+			ddy = float(legtype[10:])
 			dy = 0
 			while dy < length * legvy:
 				x = uniform(-settings.lwidth - 5, settings.lwidth + 5)
 				size = choice([1, 1.5, 2, 2.5]), choice([1, 1.2, 1.4, 1.6])
 				hq.append(thing.Rock((x, yc0 + dy, 0), size))
-				dy += 3
-		if legtype == "moresmallrocks":
-			dy = 0
-			while dy < length * legvy:
-				x = uniform(-settings.lwidth - 5, settings.lwidth + 5)
-				size = choice([1, 1.5, 2, 2.5]), choice([1, 1.2, 1.4, 1.6])
-				hq.append(thing.Rock((x, yc0 + dy, 0), size))
-				dy += 1
-		if legtype == "pirates":
+				dy += ddy
+		if legtype.startswith("pirates"):
+			ddy = float(legtype[7:])
 			dy = 0
 			while dy < length * legvy:
 				x, vx = choice([(5, 1.5), (-5, -1.5)])
@@ -174,10 +199,36 @@ def setstage():
 				if t < dy / legvy:
 					t = ymax / (legvy - vy)
 				y = yc0 + dy + 10
-				sq.append(ship.MineShip((x - t * vx, y - t * vy, 0), (vx, vy), 1))
-				dy += 1 * legvy
+				sq.append(ship.MineShip((x - t * vx, y - t * vy, 0), (vx, vy), plevel))
+				dy += ddy
+		if legtype.startswith("rps"):
+			ddy = float(legtype[3:])
+			dy = 0
+			while dy < length * legvy:
+				x = uniform(-settings.lwidth - 5, settings.lwidth + 5)
+				size = choice([1, 1.5, 2, 2.5]), choice([1, 1.2, 1.4, 1.6])
+				hq.append(thing.Rock((x, yc0 + dy, 0), size))
+				dy += ddy
+			ddy *= 3
+			dy = 0
+			while dy < length * legvy:
+				x, vx = choice([(5, 1.5), (-5, -1.5)])
+				vy = uniform(1, 1.5)
+				t = (dy * (vylast - legvy) + ymax * legvy) / (legvy * (vylast - vy))
+				if t < dy / legvy:
+					t = ymax / (legvy - vy)
+				y = yc0 + dy + 10
+				sq.append(ship.MineShip((x - t * vx, y - t * vy, 0), (vx, vy), plevel))
+				dy += ddy
+		if any(legtype.startswith(s) for s in "tallrocks smallrocks pirates rps".split()) and stage > 1:
+			dy = ddy = legvy * 8.1
+			while dy < length * legvy:
+				pos = uniform(-settings.lwidth, settings.lwidth), yc0 + dy, 0
+				hq.append(thing.Shipwreck(pos))
+				dy += ddy
 		if legtype == "prelude":
 			eq.append((yc0 - vylast * 20, addflock))
+			eq.append((yc0, restorehealth))
 		if legtype == "boss":
 			eq.append((yc0, addboss))
 		if length is not None:
@@ -194,6 +245,11 @@ def setspeed(vy, mode=None):
 		if mode is not None:
 			setmode(mode)
 	return s
+
+def restorehealth():
+	if player.hp < hpmax:
+		sound.playsound("heal")
+		player.hp = hpmax
 
 def addquest(dt, stagetype):
 	if stagetype == "tallrocks":
@@ -244,9 +300,14 @@ def addquest(dt, stagetype):
 		effects.append(effect.Island(pos))
 
 def adddecoration(dt):
+	if stage > 1 and random() * 30 < dt:
+		x = uniform(-20, 10)
+		y = yc + 4 * vyc + uniform(10, 20)
+		effects.append(effect.Whale((x, y, 0)))
 	if random() * 5 < dt:
-		pos = choice([-20, -15, -10 -7, 7, 10, 15, 20]), yc + settings.yrange[1], 0
-		effects.append(effect.Island(pos))
+		x = uniform(7, 20) * choice([-1, 1])
+		y = yc + settings.yrange[1]
+		effects.append(effect.Island((x, y, 0)))
 	if random() * 4 < dt:
 		x = uniform(-20, 0)
 		z = uniform(8, 15)
@@ -260,6 +321,7 @@ def addsilver(obj):
 
 def addhp(dhp):
 	player.hp += dhp
+	sound.playsound("heal")
 	if player.hp > hpmax:
 		player.hp = hpmax
 		player.tblitz = 5
@@ -267,6 +329,7 @@ def addhp(dhp):
 		addheal(player)
 
 def gameover():
+	sound.playsound("gameover")
 	setmode("gameover")
 	addtext("Game over")
 	addtext("Continuing...")
@@ -281,8 +344,8 @@ def addsplash(obj):
 	splash = effect.Splash((obj.x, obj.y, 0))
 	effects.append(splash)
 
-def addsmoke(obj):
-	effects.append(effect.Smoke((obj.x, obj.y, obj.z)))
+def addsmoke(obj, level):
+	effects.append(effect.Smoke((obj.x, obj.y, obj.z), level))
 
 def addheal(obj):
 	heal = effect.Heal((obj.x, obj.y, obj.z + 1))
@@ -313,23 +376,33 @@ def addflock():
 def addboss():
 	global mode, bosses
 	setmode("boss")
+	player.hp = hpmax
+	if stage == 1:
+		bosses = [boss.Boss1((20, yc + 20, 0), 8)]
+		ships.extend(bosses)
+		ships.extend([
+			ship.Blockade(0, 4, 7, 0.7),
+		])
 #	bosses = [boss.Boss((20, yc + 20, 0), 8)]
-#	bosses = [boss.Balloon((0, yc, 4.5))]
-	bosses = [
-		boss.Bosslet((20, yc + 20, 0), 8),
-		boss.Bosslet((-20, yc + 20, 0), 9),
-		boss.Bosslet((-30, yc + 20, 0), 10),
-		boss.Bosslet((30, yc + 20, 0), 11),
-	]
-	ships.extend(bosses)
-	ships.extend([
-		ship.Blockade(2, 3, 7, 1),
-		ship.Blockade(-2, 3, 7, 1.2),
-		ship.Blockade(0, 4, 7, 0.7),
-	])
+	elif stage == 2:
+		bosses = [boss.Balloon((0, yc, 4.5), 14)]
+		ships.extend(bosses)
+	elif stage == 3:
+		bosses = [
+			boss.Bosslet((20, yc + 20, 0), 10),
+			boss.Bosslet((-20, yc + 20, 0), 11),
+			boss.Bosslet((-30, yc + 20, 0), 12),
+			boss.Bosslet((30, yc + 20, 0), 13),
+		]
+		ships.extend(bosses)
+		ships.extend([
+			ship.Blockade(2, 3, 9.5, 1),
+			ship.Blockade(-2, 3, 10.5, 1.2),
+			ship.Blockade(0, 4, 12.5, 0.7),
+		])
 
 def beatboss():
-	global mode, bosses, hazards, ships
+	global mode, bosses, hazards, ships, stage
 	for b in bosses:
 		b.hp = -10000
 	bosses = []
@@ -341,6 +414,8 @@ def beatboss():
 	setmode("reset")
 	addtext("Stage Complete")
 	addtext("Progress Saved")
+	stage += 1
+	
 
 def getlayers():
 	objs = ships + hazards + effects + projectiles
