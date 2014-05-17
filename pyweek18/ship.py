@@ -24,11 +24,8 @@ class Ship(Thing):
 
 	def think(self, dt):
 		Thing.think(self, dt)
-		if self.vy:
-			tiltx = 7.5 * self.vx / self.vy
-			tilty = 7.5 * self.vz / self.vy
-		else:
-			tiltx, tilty = 0, 0
+		tiltx = 0.75 * self.vx
+		tilty = 0.75 * self.vz
 		self.tilt[0] += (tiltx - self.tilt[0]) * 5 * dt
 		self.tilt[1] += (tilty - self.tilt[1]) * 5 * dt
 		theta = 0.03 * self.ax
@@ -56,9 +53,12 @@ class Ship(Thing):
 		self.hp -= dhp
 		self.flashtime = self.tflash
 		if self.hp <= 0:
-			state.effects.append(Corpse(self))
+			self.die()
 		elif self.smokes:
 			state.addsmoke(self)
+
+	def die(self):
+		state.effects.append(Corpse(self))
 
 	def hitany(self, objs):
 		if self.flashtime:
@@ -83,6 +83,8 @@ class PirateShip(Ship):
 		dys = [0.08 * x for x in range(-1, 2)]
 		for dy in dys:
 			self.layers.append([randomcolor(), dy])
+	def think(self, dt):
+		Ship.think(self, dt)
 
 class MineShip(PirateShip):
 	def fire(self, dt):
@@ -91,7 +93,8 @@ class MineShip(PirateShip):
 			vel = uniform(-5, 5), self.vy + 4, 10
 			state.hazards.append(Mine(pos, vel))
 	def think(self, dt):
-		self.fire(dt)
+		if abs(self.x) < settings.lwidth + 3:
+			self.fire(dt)
 		PirateShip.think(self, dt)
 
 class Blockade(Ship):
@@ -106,7 +109,7 @@ class Blockade(Ship):
 		self.omega = omega
 		self.dx = dx
 		Ship.__init__(self, (x0, y0 + state.yc, -2))
-		self.vy = settings.vyc
+		self.vy = state.vyc
 		self.vz = 0.5
 		self.t = uniform(0, 1000)
 	
@@ -189,7 +192,7 @@ class PlayerShip(Ship):
 				self.njump = 0
 				state.addsplash(self)
 				state.addsplash(self)
-		self.vy += (settings.vyc - self.vy) * 3 * dt
+		self.vy += (state.vyc - self.vy) * 3 * dt
 
 	def control(self, dx, jumping, shooting):
 		if self.falling:
@@ -215,4 +218,8 @@ class PlayerShip(Ship):
 		if dhp >= 0:
 			return Ship.hurt(self, dhp)
 		state.addhp(-dhp)
+
+	def die(self):
+		Ship.die(self)
+		state.gameover()
 

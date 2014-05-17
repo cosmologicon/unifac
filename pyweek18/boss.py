@@ -23,7 +23,7 @@ class Boss(Ship):
 		self.ay = self.ky * (self.ytarget - self.y)
 		self.ax = self.kx * (self.xtarget - self.x)
 		Ship.move(self, dt)
-		self.vy += (settings.vyc - self.vy) * self.betay * dt
+		self.vy += (state.vyc - self.vy) * self.betay * dt
 		self.vx += (0 - self.vx) * self.betax * dt
 		self.vx = min(max(self.vx, -4), 4)
 	def constrainvelocity(self):

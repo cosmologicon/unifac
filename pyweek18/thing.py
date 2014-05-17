@@ -1,3 +1,5 @@
+from math import *
+from random import *
 import state, settings
 
 class Thing(object):
@@ -129,12 +131,15 @@ class Mine(Thing):
 		self.vx, self.vy, self.vz = vel
 		self.landed = False
 		self.az = -30
+		self.t = uniform(0, 100)
 
 	def think(self, dt):
 		Thing.think(self, dt)
+		if self.landed:
+			self.z = -0.05 + 0.15 * sin(3 * self.t)
 		if not self.landed and self.z <= 0 and self.vz < 0:
 			self.landed = True
-			self.vy = settings.vyc - 3
+			self.vy = 0
 			self.vz = 0
 			self.vx = 0
 			self.z = 0.05
@@ -149,14 +154,14 @@ class Mine(Thing):
 		pass
 
 class Projectile(Thing):
-	vy0 = 20
+	vy0 = 12
 	tlive = 1
 	r = 0.1
 	h = 0.2
 	layers = [["cannonball", 0]]
 	def __init__(self, obj, (dx, dy, dvx, dvy)):
 		Thing.__init__(self, (obj.x + dx, obj.y + dy, obj.z + 0.2))
-		self.vy = self.vy0 + dvy
+		self.vy = state.vyc + self.vy0 + dvy
 		self.vx = (obj.vx / obj.vy * self.vy if obj.vy else 0) + dvx
 		#self.vz = obj.vz / obj.vy * self.vy if obj.vy else 0
 		self.move(0.001)
@@ -171,7 +176,7 @@ class Silver(Thing):
 	def __init__(self, pos):
 		Thing.__init__(self, pos)
 		self.vx = 0
-		self.vy = 10
+		self.vy = state.vyc + 2
 		self.vz = 30
 		self.az = -60
 	def think(self, dt):
@@ -184,5 +189,17 @@ class Silver(Thing):
 	def hitany(self, objs):
 		pass
 
+class Slinker(Thing):
+	tlive = 4
+	def __init__(self, obj):
+		self.obj = obj
+		Thing.__init__(self, (obj.x, obj.y, obj.z))
+		self.vx = obj.vx
+		self.vy = obj.vy
+		self.vz = 0
+		self.az = -1
+	def getlayers(self):
+		for imgname, x, y, z, theta, ascale, obj in self.obj.getlayers():
+			yield imgname, self.x, self.y, self.z, theta, ascale, obj
 
 
