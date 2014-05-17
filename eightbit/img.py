@@ -55,19 +55,28 @@ def getimg(imgname):
 		img = Surface((8, 4)).convert_alpha()
 		img.fill((255, 255, 255))
 	elif imgname == "cannonball":
-		img = Surface((14, 14)).convert_alpha()
-		img.fill((0, 0, 0, 0))
-		draw.circle(img, (0, 0, 0), (7, 7), 7)
-		draw.circle(img, (60, 60, 60), (7, 7), 5)
+		if settings.lowres:
+			img = Surface((12, 12)).convert()
+			img.fill((0, 0, 0))
+			img.fill((60, 60, 60), (1, 1, 10, 10))
+		else:
+			img = Surface((14, 14)).convert_alpha()
+			img.fill((0, 0, 0, 0))
+			draw.circle(img, (0, 0, 0), (7, 7), 7)
+			draw.circle(img, (60, 60, 60), (7, 7), 5)
 	elif imgname == "cloud":
 		img = Surface((40, 20)).convert_alpha()
 		img.fill((255, 255, 255, 100))
 	elif imgname == "mine":
-		img = Surface((32, 32)).convert_alpha()
-		img.fill((0, 0, 0, 0))
-		draw.circle(img, (255, 100, 100, 50), (16, 12), 12)
-		draw.circle(img, (255, 100, 100, 120), (16, 12), 8)
-		draw.circle(img, (255, 100, 100, 255), (16, 12), 4)
+		if settings.lowres:
+			img = Surface((20, 28)).convert()
+			img.fill((255, 100, 100))
+		else:
+			img = Surface((32, 32)).convert_alpha()
+			img.fill((0, 0, 0, 0))
+			draw.circle(img, (255, 100, 100, 50), (16, 12), 12)
+			draw.circle(img, (255, 100, 100, 120), (16, 12), 8)
+			draw.circle(img, (255, 100, 100, 255), (16, 12), 4)
 	elif imgname == "splash":
 		img = Surface((32, 32)).convert_alpha()
 		img.fill((0, 0, 0, 0))

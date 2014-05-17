@@ -175,8 +175,8 @@ class Projectile(Thing):
 class Silver(Thing):
 	layers = [["silver.png", 0]]
 	dhp = -1
-	r = 0.3
-	h = 1
+	r = 0.5
+	h = 2
 	def __init__(self, pos):
 		Thing.__init__(self, pos)
 		self.vx = 0

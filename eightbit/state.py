@@ -2,7 +2,7 @@
 
 from random import *
 import cPickle, os
-import ship, thing, effect, settings, boss, img, sound
+import ship, thing, effect, settings, boss, img, sound, scene
 
 # Call at program start
 def init():
@@ -61,6 +61,18 @@ def start():
 	player.jumps = 2 if stage >= 3 else 1
 	think(0)
 	player.jump(1.4)
+	sound.playmusic(tunes[(stage, atboss)])
+
+tunes = {
+	(1, False): "034action",
+	(1, True):  "037action",
+	(2, False): "022action",
+	(2, True):  "040action",
+	(3, False): "034action",
+	(3, True):  "037action",
+	(4, False): "022action",
+	(4, True):  "040action",
+}
 
 def save():
 	obj = stage, atboss
@@ -87,6 +99,7 @@ def setmode(newmode):
 #	else:
 #		vyc = 2
 
+quitting = False
 def think(dt):
 	global yc, zc, ships, hazards, effects, projectiles, bosses, modetime, tstage, substages
 	modetime += dt
@@ -129,6 +142,9 @@ def think(dt):
 			beatboss()
 	if mode == "reset":
 		if not any(t.alive for t in texts):
+			if quitting:
+				scene.pop()
+				return
 			setmode("quest")
 			start()
 			player.x = 0
@@ -173,13 +189,13 @@ legs = {
 	3: [
 		["addtext", "Double Jump unlocked"],
 		["nothing", 5, 6],
-		["smallrocks1.5", 30, 6],
-		["pirates4", 40, 4],
+		["smallrocks1.5", 20, 6],
+		["pirates4", 30, 4],
 		["nothing", 2, 4],
 		["nothing", 2, 6],
-		["tallrocks1.5", 40, 6],
+		["tallrocks1.5", 25, 6],
 		["nothing", 5, 6],
-		["rps3", 40, 5],
+		["rps3", 30, 5],
 		["prelude", 2, 4],
 		["boss", None, 4],
 	],
@@ -191,9 +207,9 @@ legs = {
 		["rps6", 60, 6],
 		["addballoon", 10],
 		["tps8", 60, 6],
-		["nothing", 5, 6],
-		["prelude", 2, 6],
-		["boss", None, 6],
+		["nothing", 5, 8],
+		["prelude", 2, 8],
+		["boss", None, 8],
 	],
 }
 
@@ -215,7 +231,8 @@ def setstage():
 			def addballoon(y, ytarget):
 				def f():
 					b = boss.Balloon((0, y, 4.5), ytarget)
-					b.firetime = 0.1
+					b.firetime = 0.2
+					b.hp /= 2
 					ships.append(b)
 				return f
 			y = yc0 + leg[1] * legvy
@@ -460,6 +477,8 @@ def addboss():
 	global mode, bosses, atboss
 	setmode("boss")
 	atboss = True
+	sound.playmusic(tunes[(stage, True)])
+	sound.playsound("addboss")
 	save()
 	player.hp = hpmax
 	if stage == 1:
@@ -485,9 +504,14 @@ def addboss():
 			ship.Blockade(-2, 3, 10.5, 1.2),
 			ship.Blockade(0, 4, 12.5, 0.7),
 		])
+	elif stage == 4:
+		bosses = [
+			boss.Ghost((0, yc + 20, 0), 15),
+		]
+		ships.extend(bosses)
 
 def beatboss():
-	global mode, bosses, hazards, ships, stage, atboss
+	global mode, bosses, hazards, ships, stage, atboss, quitting
 	for b in bosses:
 		b.hp = -10000
 	bosses = []
@@ -500,12 +524,17 @@ def beatboss():
 	del hq[:]
 	del sq[:]
 	del eq[:]
-	addtext("Stage Complete")
+	sound.playsound("killboss")
 	if stage < 4:
+		addtext("Stage Complete")
 		stage += 1
 		atboss = False
 		save()
-	
+	else:
+		addtext("The passage is safe...")
+		addtext("...for today.")
+		addtext("Thanks for playing!")
+		quitting = True	
 
 def getlayers():
 	objs = ships + hazards + effects + projectiles
