@@ -9,6 +9,13 @@ def playsound(sname):
 			cache[sname].set_volume(0.1)
 	cache[sname].play()
 
+mplaying = None
 def playmusic(mname):
-	pass
+	global mplaying
+	if mname == mplaying:
+		return
+	mixer.music.stop()
+	mixer.music.load("music/%s.ogg" % mname)
+	mixer.music.play(-1)
+	mplaying = mname
 

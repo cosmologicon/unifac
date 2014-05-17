@@ -6,6 +6,7 @@ DEBUG = "--DEBUG" in sys.argv
 lowres = "--lowres" in sys.argv
 fullscreen = "--fullscreen" in sys.argv
 reset = "--reset" in sys.argv
+easy = "--easy" in sys.argv
 
 size = sX, sY = 540, 720
 fps = 60

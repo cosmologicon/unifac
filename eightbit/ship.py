@@ -69,12 +69,15 @@ class Ship(Thing):
 				state.effects.append(Wake((self.x, self.y, self.z)))
 				self.waket -= self.twake
 		if self.z < 0 and self.vz < 0:
-			self.z = self.vz = self.az = 0
-			self.njump = 0
-			sound.playsound("splash")
+			self.land()
+	
+	def land(self):
+		self.z = self.vz = self.az = 0
+		self.njump = 0
+		sound.playsound("splash")
+		state.addsplash(self)
+		if not settings.lowres:
 			state.addsplash(self)
-			if not settings.lowres:
-				state.addsplash(self)
 
 	def jump(self, f=1):
 		if self.njump >= self.jumps:
@@ -229,6 +232,7 @@ class PlayerShip(Ship):
 		self.falling = False
 		self.cannontick = 0
 		self.tblitz = 0
+		self.grace = 0
 
 	def think(self, dt):
 		Ship.think(self, dt)
@@ -280,6 +284,12 @@ class PlayerShip(Ship):
 
 	def hurt(self, dhp=1):
 		if dhp >= 0:
+			if settings.easy:
+				self.grace += 1
+				if self.grace == 3:
+					self.grace = 0
+				else:
+					dhp = 0
 			return Ship.hurt(self, dhp)
 		state.addhp(-dhp)
 
