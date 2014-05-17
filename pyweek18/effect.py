@@ -37,6 +37,7 @@ class Splash(Particles):
 class Wake(Thing):
 	casts = False
 	layers = [["wake", 0]]
+	tlive = 1
 	def __init__(self, pos):
 		Thing.__init__(self, pos)
 		self.vx = uniform(-5, 5)
@@ -59,7 +60,7 @@ class Heal(Particles):
 	aspread = 1
 	def __init__(self, *args, **kwargs):
 		Particles.__init__(self, *args, **kwargs)
-		self.vy = settings.vyc
+		self.vy = state.vyc
 
 class Splode(Thing):
 	casts = False
@@ -93,6 +94,14 @@ class Flock(Decoration):
 				yield "bird-up", x, y, z0 + 0.2 * phi, 0, 1, self
 			else:
 				yield "bird-down", x, y, z0 + 0.2 * (tau - phi), 0, 1, self
+
+class Cloud(Decoration):
+	casts = False
+	layers = [["cloud", 0]]
+	def __init__(self, pos, vel):
+		Decoration.__init__(self, pos)
+		self.vx, self.vy, self.vz = vel
+		self.ascale = uniform(8, 15)
 		
 
 class Instructions(Thing):
@@ -105,8 +114,8 @@ class Instructions(Thing):
 #			["text0:" + text, 0.05],
 		]
 		self.tilt = 1, -1
-		self.vy = -18
 	def think(self, dt):
+		self.vy = state.vyc - 8
 		Thing.think(self, dt)
 		self.z = state.zc
 

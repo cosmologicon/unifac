@@ -52,6 +52,9 @@ def getimg(imgname):
 		img.fill((0, 0, 0, 0))
 		draw.circle(img, (0, 0, 0), (7, 7), 7)
 		draw.circle(img, (60, 60, 60), (7, 7), 5)
+	elif imgname == "cloud":
+		img = Surface((40, 20)).convert_alpha()
+		img.fill((255, 255, 255, 100))
 	elif imgname == "mine":
 		img = Surface((32, 32)).convert_alpha()
 		img.fill((0, 0, 0, 0))
@@ -120,7 +123,8 @@ def getimg(imgname):
 		r = 6
 		for y in range(r, h-r):
 			x = randrange(r, w-r)
-			color = randrange(100, 160), randrange(50, 80), 0
+			c = randrange(70, 120)
+			color = c + randrange(0, 10), c + randrange(0, 10), c + randrange(0, 10)
 			draw.circle(img, color, (x, y), r)
 	elif imgname.startswith("shroud"):
 		img = Surface(settings.size).convert_alpha()

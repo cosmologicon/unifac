@@ -6,6 +6,7 @@ import scene, camera, state, img, settings
 class Scene(object):
 	def __init__(self):
 		state.init()
+		state.start()
 		self.t = 0
 	def think(self, dt, kpressed, kdowns):
 		self.t += dt

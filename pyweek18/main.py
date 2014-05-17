@@ -23,6 +23,8 @@ while scene.scenes:
 	if settings.DEBUG and K_F12 in kdowns:
 		fname = datetime.datetime.now().strftime("screenshots/screenshot-%Y%m%d%H%M%S.png")
 		image.save(display.get_surface(), fname)
+	if settings.DEBUG and kpressed[K_TAB]:
+		dt *= 5
 	s.think(dt, kpressed, kdowns)
 	s.draw()
 	if settings.DEBUG:
