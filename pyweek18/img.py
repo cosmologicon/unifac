@@ -24,6 +24,8 @@ def drawtext(text, filled=True, size=64):
 	return surf
 
 def speckle(img):
+	if settings.lowres:
+		return
 	for x in range(img.get_width()):
 		for y in range(img.get_height()):
 			r, g, b, a = img.get_at((x, y))
@@ -100,6 +102,8 @@ def getimg(imgname):
 			thetas = [2*pi*x/(3*hpmax) for x in range(3*hp+1)]
 			ps = [(30, 30)] + [(30 + 30*sin(theta), 30-30*cos(theta)) for theta in thetas]
 			draw.polygon(img, (180,180,180), ps, 0)
+			ps = [(30, 30)] + [(30 + 23*sin(theta), 30 - 23*cos(theta)) for theta in thetas]
+			draw.polygon(img, (150,150,150), ps, 0)
 			speckle(img)
 	elif imgname.startswith("bosshp:"):
 		hp, hp0 = [int(x) for x in imgname[7:].split("/")]
@@ -122,10 +126,11 @@ def getimg(imgname):
 		img.fill((0, 0, 0, 0))
 		r = 6
 		for y in range(r, h-r):
-			x = randrange(r, w-r)
-			c = randrange(70, 120)
-			color = c + randrange(0, 10), c + randrange(0, 10), c + randrange(0, 10)
-			draw.circle(img, color, (x, y), r)
+			for _ in range(4):
+				x = randrange(r, w-r)
+				c = randrange(70, 120)
+				color = c + randrange(0, 10), c + randrange(0, 10), c + randrange(0, 10)
+				draw.circle(img, color, (x, y), r)
 	elif imgname.startswith("shroud"):
 		img = Surface(settings.size).convert_alpha()
 		img.fill(shroudcolor)

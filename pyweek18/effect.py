@@ -51,6 +51,9 @@ class Smoke(Particles):
 	imgname = "smoke"
 	vz0 = 12
 	az0 = 0
+	def __init__(self, pos, level):
+		self.nparticles = level
+		Particles.__init__(self, pos)
 
 class Heal(Particles):
 	imgname = "heal"
@@ -74,7 +77,8 @@ class Decoration(Thing):
 	casts = False
 
 class Island(Decoration):
-	layers = [["island", 0]]
+	layers = [["island.png", 0]]
+	ascale = 4
 
 class Flock(Decoration):
 	casts = False
@@ -83,7 +87,7 @@ class Flock(Decoration):
 		self.vx, self.vy, self.vz = vel
 		self.birds = [
 			(uniform(-3, 3), uniform(-3, 3), uniform(-0.3, 0.3), uniform(0, 1000))
-			for _ in range(40)
+			for _ in range(16 if settings.lowres else 40)
 		]
 		self.omega = 10
 	def getlayers(self):
@@ -91,17 +95,34 @@ class Flock(Decoration):
 			phi = (phi0 + self.t * self.omega) % tau
 			x, y, z0 = self.x + dx, self.y + dy, self.z + dz - 0.2 * tau/4
 			if phi < tau/2:
-				yield "bird-up", x, y, z0 + 0.2 * phi, 0, 1, self
+				yield "bird-up.png", x, y, z0 + 0.2 * phi, 0, 1, self
 			else:
-				yield "bird-down", x, y, z0 + 0.2 * (tau - phi), 0, 1, self
+				yield "bird-down.png", x, y, z0 + 0.2 * (tau - phi), 0, 1, self
 
 class Cloud(Decoration):
 	casts = False
-	layers = [["cloud", 0]]
+	layers = [["cloud.png", 0]]
 	def __init__(self, pos, vel):
 		Decoration.__init__(self, pos)
 		self.vx, self.vy, self.vz = vel
 		self.ascale = uniform(8, 15)
+
+class Whale(Decoration):
+	casts = False
+	layers = [["whale.png", 0]]
+	tlive = 5
+	def __init__(self, pos):
+		Decoration.__init__(self, pos)
+		self.vx, self.vy, self.vz = 2, 0, 4
+		self.az = -self.vz / 2
+		self.ascale = 4
+		self.landed = False
+	def think(self, dt):
+		Decoration.think(self, dt)
+		if self.z < 0 and self.vz < 0 and not self.landed:
+			state.addsplash(self)
+			self.landed = True
+	
 		
 
 class Instructions(Thing):
@@ -133,6 +154,7 @@ class Corpse(Thing):
 		self.thetas = [uniform(-2, 2) for _ in self.layers]
 		self.ds = [(uniform(-3, 3), uniform(-1, 1)) for _ in self.layers]
 		self.r = obj.r
+		self.ascale = obj.ascale
 		
 	def think(self, dt):
 		Thing.think(self, dt)
@@ -144,6 +166,6 @@ class Corpse(Thing):
 			x = self.x + self.t * dx + dy * dxdy
 			y = self.y + dy
 			z = self.z + self.t * dz + dy * dzdy
-			yield layername, x, y, z, theta, None, self
+			yield layername, x, y, z, theta, self.ascale, self
 
 

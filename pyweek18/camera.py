@@ -44,6 +44,8 @@ def drawlayer(layer):
 	if not settings.yrange[0] < yd < settings.yrange[1]:
 		return
 
+	if settings.lowres:
+		theta = 0
 
 	k = settings.k0 * settings.dynormal / yd  # scale in screen pixels of 1 game unit at distance of object
 	Y0 = int(settings.Yh + k * state.zc)  # Y-coordinate at z = 0

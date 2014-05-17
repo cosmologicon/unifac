@@ -23,7 +23,7 @@ class Scene(object):
 		if settings.DEBUG and K_F2 in kdowns:
 			state.player.hurt()
 		if settings.DEBUG and K_F3 in kdowns:
-			state.player.hp = state.maxhp = 1000
+			state.player.hp = state.hpmax
 		if settings.DEBUG and K_F4 in kdowns:
 			state.addboss()
 		if settings.DEBUG and K_F5 in kdowns:
