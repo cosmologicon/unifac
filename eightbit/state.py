@@ -154,7 +154,10 @@ def think(dt):
 		if not any(t.alive for t in texts):
 			start()
 	if mode == "boss":
-		img.setshroud((0, 0, 20, 40))
+		if stage == 4:
+			img.setshroud((255, 255, 0, 20))
+		else:
+			img.setshroud((0, 0, 20, 40))
 	elif mode == "quest":
 		img.setshroud((20, 20, 60, 50))
 	elif mode == "reset":
@@ -232,7 +235,7 @@ def setstage():
 				def f():
 					b = boss.Balloon((0, y, 4.5), ytarget)
 					b.firetime = 0.2
-					b.hp /= 2
+					#b.hp /= 2
 					ships.append(b)
 				return f
 			y = yc0 + leg[1] * legvy
@@ -474,12 +477,13 @@ def addflock():
 	effects.append(effect.Flock((x - t * vx, y - t * vy, zc + 0.5), (vx, vy, 0)))
 
 def addboss():
-	global mode, bosses, atboss
+	global mode, bosses, atboss, ships
 	setmode("boss")
 	atboss = True
 	sound.playmusic(tunes[(stage, True)])
 	sound.playsound("addboss")
 	save()
+	ships = [player]
 	player.hp = hpmax
 	if stage == 1:
 		bosses = [boss.Boss1((20, yc + 20, 0), 12)]
