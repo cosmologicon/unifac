@@ -3,10 +3,15 @@ from __future__ import division
 from pygame import *
 from random import *
 from math import *
+import glob
 import settings
 
 cache = {}
 fonts = {}
+
+def preload():
+	for iname in glob.glob("img/*.png"):
+		getimg(iname[4:])
 
 def drawtext(text, filled=True, size=64):
 	if size not in fonts:

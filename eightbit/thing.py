@@ -86,10 +86,10 @@ class Rock(Thing):
 		w2, h2 = w0 - 0.4, h0 - 0.4
 		self.r = self.w / 2
 		self.layers = [
-			["rock%s,%s" % (w2, h2), 0.4],
-			["rock%s,%s" % (w1, h1), 0.2],
+			["rock%s,%s" % (w2, h2), 0.2],
+			["rock%s,%s" % (w1, h1), 0.1],
 			["rock%s,%s" % (w0, h0), 0],
-			["rock%s,%s" % (w1, h1), -0.4],
+			["rock%s,%s" % (w1, h1), -0.1],
 			["rock%s,%s" % (w2, h2), -0.2],
 		]
 		if settings.lowres:
