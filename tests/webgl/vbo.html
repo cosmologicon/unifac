@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<script src="../../UFX/src/random.js"></script>
+<script src="../../UFX/src/ticker.js"></script>
+<script id="2d-vertex-shader" type="x-shader/x-vertex">
+attribute vec2 a_position;
+uniform mat4 xform;
+void main() {
+   gl_Position = xform * vec4(a_position, 0, 1);
+}
+</script>
+<script id="2d-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+uniform vec4 u_color;
+void main() {
+   gl_FragColor = u_color;
+}
+</script>
+<canvas id="canvas" style="border: thin gray solid"></canvas>
+<input type="text" id="fps"></input>
+<script>
+// Determine the most efficient way to use VBOs
+
+var mode = "all" // line, pattern, or all
+
+var npattern = 200  // Number of different sprite patterns to choose from
+var nline = 50      // Lines per pattern
+var nseg = 20       // Segments per line (well, off by one)
+var nsprite = 100   // Number of sprites shown on screen
+
+
+UFX.random.seed = 14045
+var canvas = document.getElementById("canvas");
+canvas.width = 854 ; canvas.height = 480
+var gl = canvas.getContext("experimental-webgl");
+
+// setup a GLSL program
+function createShaderFromScript(gl, scriptId, shaderType) {
+  var shader = gl.createShader(shaderType);
+  var shaderScript = document.getElementById(scriptId);
+  gl.shaderSource(shader, shaderScript.text);
+  gl.compileShader(shader);
+  return shader;
+};
+var vertexShader = createShaderFromScript(gl, "2d-vertex-shader", gl.VERTEX_SHADER);
+var fragmentShader = createShaderFromScript(gl, "2d-fragment-shader", gl.FRAGMENT_SHADER);
+var program = gl.createProgram()
+gl.attachShader(program, vertexShader)
+gl.attachShader(program, fragmentShader)
+gl.linkProgram(program)
+gl.useProgram(program);
+
+var colorLocation = gl.getUniformLocation(program, "u_color");
+var positionLocation = gl.getAttribLocation(program, "a_position");
+var xform = gl.getUniformLocation(program, "xform");
+
+var sprites = []
+while (sprites.length < nsprite) {
+	sprites.push({
+		jpattern: UFX.random.rand(npattern),
+		x: 0,
+		y: 0,
+		vx: UFX.random(-100, 100),
+		vy: UFX.random(-100, 100),
+		s: UFX.random(40, 80),
+		A: 0, //UFX.random(1000),
+		color: [UFX.random(), UFX.random(), UFX.random()],
+	})
+}
+
+
+var patterns = []
+while (patterns.length < npattern) {
+	var lines = []
+	while (lines.length < nline) {
+		var ps = []
+		while (ps.length < 2 * nseg) {
+			var r = UFX.random.rdisk()
+			ps.push(r[0])
+			ps.push(r[1])
+		}
+		lines.push(ps)
+	}
+	patterns.push(lines)
+}
+
+var clearps = new Float32Array([-1, -1, 1, -1, 1, 1, -1, 1])
+function clear0() {
+	gl.uniformMatrix4fv(xform, false, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+	gl.bufferData(gl.ARRAY_BUFFER, clearps, gl.STATIC_DRAW)
+	gl.uniform4f(colorLocation, 0, 0, 0, 1)
+	gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+}
+function clear1() {
+	gl.uniformMatrix4fv(xform, false, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+	bindbuffer(clearbuffer)
+	gl.uniform4f(colorLocation, 0, 0, 0, 1)
+	gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+}
+function setxform(x, y, r, s) {
+	var W = 1/canvas.width, H = 1/canvas.height
+	var cx = 0, cy = 0, cz = 1
+	var S = Math.sin(r), C = Math.cos(r)
+	gl.uniformMatrix4fv(xform, false, [cz*W*C*s, -cz*H*S*s, 0, 0, cz*W*S*s, cz*H*C*s, 0, 0, 0, 0, 1, 0, (x-cx)*cz*W, (y-cy)*cz*H, 0, 1]);
+}
+function loaddata(ps) {
+	gl.bufferData(gl.ARRAY_BUFFER, ps, gl.STATIC_DRAW)
+}
+function setcolor(color) {
+	gl.uniform4f(colorLocation, color[0], color[1], color[2], 1)
+}
+function drawlines(off, len) {
+	gl.drawArrays(gl.LINES, off, len)
+}
+function drawstrip(off, len) {
+	gl.drawArrays(gl.LINE_STRIP, off, len)
+}
+function bindbuffer(buffer) {
+	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+	gl.enableVertexAttribArray(positionLocation);
+	gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+}
+
+if (mode == "line") {
+	for (var j = 0 ; j < npattern ; ++j) {
+		for (var k = 0 ; k < nline ; ++k) {
+			patterns[j][k] = new Float32Array(patterns[j][k])
+		}
+	}
+	var buffer = gl.createBuffer();
+	bindbuffer(buffer)
+} else if (mode == "pattern") {
+	for (var j = 0 ; j < npattern ; ++j) {
+		var ps = []
+		for (var k = 0 ; k < nline ; ++k) {
+			for (var i = 0 ; i < nseg - 1 ; ++i) {
+				ps.push(patterns[j][k][2*i])
+				ps.push(patterns[j][k][2*i+1])
+				ps.push(patterns[j][k][2*i+2])
+				ps.push(patterns[j][k][2*i+3])
+			}
+		}
+		patterns[j] = new Float32Array(ps)
+		
+	}
+	clearbuffer = gl.createBuffer()
+	bindbuffer(clearbuffer)
+	loaddata(clearps)
+	var patternbuffers = []
+	for (var j = 0 ; j < npattern ; ++j) {
+		var pb = gl.createBuffer()
+		bindbuffer(pb)
+		loaddata(patterns[j])
+		patternbuffers.push(pb)
+	}
+} else if (mode == "all") {
+	clearbuffer = gl.createBuffer()
+	bindbuffer(clearbuffer)
+	loaddata(clearps)
+	var ps = [], offsets = []
+	for (var j = 0 ; j < npattern ; ++j) {
+		offsets.push(ps.length / 2)
+		for (var k = 0 ; k < nline ; ++k) {
+			for (var i = 0 ; i < nseg - 1 ; ++i) {
+				ps.push(patterns[j][k][2*i])
+				ps.push(patterns[j][k][2*i+1])
+				ps.push(patterns[j][k][2*i+2])
+				ps.push(patterns[j][k][2*i+3])
+			}
+		}
+	}
+	ps = new Float32Array(ps)
+	var patternbuffer = gl.createBuffer()
+	bindbuffer(patternbuffer)
+	loaddata(ps)
+}
+var clear = mode == "line" ? clear0 : clear1
+
+
+
+function go(dt) {
+	document.getElementById("fps").value = UFX.ticker.getrates()
+	clear()
+	if (mode == "all") bindbuffer(patternbuffer)
+	for (var j = 0 ; j < nsprite ; ++j) {
+		var s = sprites[j], p = patterns[s.jpattern]
+		s.x += s.vx * dt
+		s.y += s.vy * dt
+		if (s.x * s.x + s.y * s.y > 500 * 500 && s.x * s.vx + s.y * s.vy > 0) {
+			s.vx = UFX.random(-100, 100)
+			s.vy = UFX.random(-100, 100)
+		}
+		setcolor(s.color)
+		setxform(s.x, s.y, s.A, s.s)
+		if (mode == "line") {
+			for (var k = 0 ; k < nline ; ++k) {
+				loaddata(p[k])
+				drawstrip(0, nseg)
+			}
+		} else if (mode == "pattern") {
+			bindbuffer(patternbuffers[s.jpattern])
+			drawlines(0, 2*(nseg-1)*nline)
+		} else if (mode == "all") {
+			drawlines(offsets[s.jpattern], 2*(nseg-1)*nline)
+		}
+	}
+
+}
+UFX.ticker.init(go)
+</script>
+

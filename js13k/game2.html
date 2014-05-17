@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<title>Fortuna's Dice - by Christopher Night</title>
+<link href='http://fonts.googleapis.com/css?family=Russo+One|Homenaje|Imprima|Passion+One|Trochut|Changa+One|Joti+One' rel='stylesheet' type='text/css'>
+<canvas id=canvas></canvas>
+<script src="../UFX/src/draw.js"></script>
+<script src="../UFX/src/mouse.js"></script>
+<script src="../UFX/src/maximize.js"></script>
+<script>
+// Good fonts to use:
+// Russo One, Homenaje, Imprima, Passion One, Trochut, Changa One, Joti One
+
+
+// Snippets
+function rmod(x,z){return(x%z+z)%z}
+function clip(x,a,b){return x>b?b:x<a?a:x}
+function extend(obj, attribs) {
+	var ret = Object.create(obj)
+	for (var x in attribs) ret[x] = attribs[x]
+	return ret
+}
+var tau = 2 * Math.PI
+
+// Polyfill
+window.requestAnimationFrame = window.requestAnimationFrame ||
+	window.mozRequestAnimationFrame ||  
+	window.webkitRequestAnimationFrame ||
+	window.msRequestAnimationFrame
+
+// Setup - not bothering with a loading screen since we don't have any assets! >:D
+var canvas = document.getElementById("canvas")
+var context = canvas.getContext("2d")
+UFX.draw.setcontext(context)
+// Update screen dimensions
+UFX.maximize.onadjust = function (canvas, w, h) {
+	sx = w
+	sy = h
+}
+
+UFX.maximize.fill(canvas, "total")
+UFX.mouse.init(canvas)
+
+var t0 = Date.now()
+function think() {
+	var dt = (Date.now() - t0) * 0.001
+	t0 = Date.now()
+	var mstate = UFX.mouse.state()
+	var mpos = mstate.pos, clicked = mstate.left.down
+
+	// Main game loop
+	thinkgame(dt, mpos, clicked)
+
+	requestAnimationFrame(think)
+}
+requestAnimationFrame(think)
+
+
+// Main game loop
+level = 0
+// Constants
+elbowroom = 0.05
+
+function startgame() {
+	gclock = 0  // game clock
+	units = [
+		new Sworder(),
+		new Sworder(),
+		new Sworder(),
+		new Sworder(),
+		new Sworder(),
+		new Sworder(),
+	]
+	monsters = []
+	selected = null
+	buttons = [
+		new Button(0, 0),
+		new Button(1, 0),
+	]
+	mechanics = [
+		new Mechanic(0, 0, "pop", [1,1,1], 0, "0123456789"),
+		new Mechanic(0, 1, "wwind", [1,1], 0, "west~wind"),
+		new Mechanic(1, 0, "scost", [6,6,6], 7, "sword~cost"),
+		new Mechanic(1, 1, "ewind", [6,6], 0, "east~wind"),
+	]
+}
+function thinkgame(dt, mpos, clicked) {
+	UFX.draw("fs #333 f0")
+	gclock += dt
+
+	// Set up screen positions of objects
+	// Sub-windows
+	var b = 8  // border size
+	Ax = b ; Aw = sx - 2 * b ; Ay = b ; Ah = sy / 3 - b
+	Bx = b ; Bw = (sx - 3 * b) / 2 ; By = Ah + 2 * b ; Bh = sy - By - b
+	Cx = Bx + Bw + b ; Cw = sx - Cx - b ; Cy = By ; Ch = Bh
+
+	// Endpoints of the game path (monsters can extend off the right)
+	pathx0 = 100, pathy0 = 100
+	dpathx = sx - 200, dpathy = 100
+	szoom = 1
+	buttonsize = 50
+	buttonx0 = 10, buttony0 = 300
+	
+	mechanicsx = [0.22 * sx, 0.72 * sx]
+	mechanicsy0 = 40 + By
+	mechanicsdy = 50
+	mechanicsfsize = 28
+	diesize = 44
+	
+
+	mechs = {}
+	mechanics.forEach(function (mech) { mechs[mech.name] = mech.value() })
+	mechs.wind = mechs.wwind - mechs.ewind
+
+	function tfunc(obj) { obj.think(dt) }
+	function dfunc(obj) { context.save() ; obj.draw() ; context.restore() }
+
+	// Draw battlefield
+	units.forEach(tfunc)
+
+	UFX.draw("b rr", Ax, Ay, Aw, Ah, "9 ss black lw 4 s")
+	UFX.draw("b rr", Bx, By, Bw, Bh, "9 fs #242 f s")
+	UFX.draw("b rr", Cx, Cy, Cw, Ch, "9 fs #422 f s")
+
+	// Draw HUD and mechanics
+	mechanics.forEach(tfunc)
+
+	var target = (function (pos) {
+		if (!pos) return null
+		for (var j = 0 ; j < buttons.length ; ++j) {
+			if (buttons[j].contains(pos)) return buttons[j]
+		}
+		for (var j = 0 ; j < units.length ; ++j) {
+		
+		}
+		return null
+	})(mpos)
+
+
+	var pointp = mpos && clip((mpos[0] - pathx0) / dpathx, 0, 1)
+	if (clicked) {
+		units[0].target = pointp
+	}
+	
+	// debug - draw path
+	UFX.draw("[ fs white ss red t", pathx0, pathy0, "b m 0 0 l", dpathx, dpathy, "s",
+		"b o 0 0 3 f b o", dpathx, dpathy, "3 f ]")
+	// Blurred path for selecting
+	UFX.draw("[ t", pathx0, pathy0, "b m 0 0 l", dpathx, dpathy,
+		"shadowblur 3 shadowcolor white ss white alpha 0.05 lw 12 s lw 8 s lw 4 s ]")
+
+	// pointer arrow along path
+	if (pointp !== null) {
+		UFX.draw("[ fs yellow ss orange t", pathx0 + pointp * dpathx, pathy0 + pointp * dpathy,
+			"( m 0 0 l 10 -10 l 3 -8 l 5 -25 l -5 -25 l -3 -8 l -10 -10 ) f s ]")
+	}
+	
+	units.forEach(dfunc)
+	buttons.forEach(dfunc)
+	mechanics.forEach(dfunc)
+
+}
+
+
+
+// Units
+var UnitProto = {
+	start: 0,
+	h: 10, // height for purpose of clicking
+	init: function () {
+		this.p = this.start
+		this.hp = this.hp0
+	},
+	screenpos: function () {
+		return [pathx0 + dpathx * this.p, pathy0 + dpathy * this.p]
+	},
+	draw: function () {
+		UFX.draw("[ t", this.screenpos(), "z", szoom, szoom)
+		this.draw0()
+		UFX.draw("]")
+	},
+	vel: function () {
+		return this.v0 * (1 + mechs.wind * (this.right ? 1 : -1) / 30)
+	},
+	move: function (dt) {
+		if (this.target === null) return
+		this.right = this.target > this.p
+		var dp = this.vel() * dt * 0.001
+		if (Math.abs(this.target - this.p) < dp) {
+			this.p = this.target
+			this.target = null
+		} else {
+			this.p += this.target > this.p ? dp : -dp
+		}
+	},
+	spreadout: function () {
+		if (this.target !== null) return
+		if (Math.random() < 0.2) return
+		var minp = 0, maxp = 1, me = this, nless = 0
+		units.forEach(function (u, j) {
+			var p = u.target === null ? u.p : u.target
+			if (p < me.p) ++nless
+			if (u === me) return
+			if (p < me.p) minp = Math.max(minp, p + elbowroom)
+			else maxp = Math.min(maxp, p - elbowroom)
+		})
+		minp = Math.max(minp, nless * elbowroom * 1.1)
+		maxp = Math.min(maxp, 1 - (units.length - nless - 1) * elbowroom * 1.1)
+		if (minp < maxp && minp < this.p && this.p < maxp) return
+		minp += elbowroom * 0.1
+		maxp -= elbowroom * 0.1
+		if (minp >= maxp) this.target = (minp + maxp) / 2
+		else if (minp > this.p) this.target = minp
+		else this.target = maxp
+		this.target = clip(this.target, 0, 1)
+//		if (this.target == this.p) this.target += 0.00001
+	},
+	think: function (dt) {
+		this.move(dt)
+		this.spreadout()
+		
+	},
+}
+
+function Sworder() {
+	this.init()
+}
+Sworder.prototype = extend(UnitProto, {
+	hp0: 5,
+	v0: 40,
+	target: 0.1,
+	draw0: function () {
+		UFX.draw("t 0 -10 b o 0 0 15 fs", (this.target === null ? "blue" : "green"), "ss white f s")
+	},
+})
+
+
+function Button(x, y) {
+	this.x = x
+	this.y = y
+}
+Button.prototype = {
+	screenpos: function () {
+		return [buttonx0 + buttonsize * this.x, buttony0 + buttonsize * this.y]
+	},
+	contains: function (pos) {
+		var p = this.screenpos()
+		var dx = pos[0] - p[0], dy = pos[1] - p[1]
+		return 0 <= dx && dx < buttonsize && 0 <= dy && dy < buttonsize
+	},
+	draw: function () {
+		UFX.draw("t", this.screenpos(), "z", buttonsize, buttonsize, "rr 0.05 0.05 0.9 0.9 0.1",
+			"fs #840 ss #f80 lw 0.02 f s")
+	},
+}
+
+
+function Mechanic(board, j, name, state0, extra, text) {
+	this.board = board
+	this.j = j
+	this.name = name
+	this.state = state0.slice(0)
+	this.n = this.state.length
+	this.extra = extra
+	this.text = text
+	this.rolling = this.state.map(function () { return 0 })
+}
+Mechanic.prototype = {
+	value: function () {
+		var r = this.extra
+		for (var j = 0 ; j < this.n ; ++j) r += this.state[j]
+		return r
+	},
+	draw: function () {
+		UFX.draw("t", mechanicsx[this.board], mechanicsy0 + this.j * mechanicsdy)
+		UFX.draw("[ font " + mechanicsfsize + "px~'Russo~One' fs white sh black 2 2 0")
+		UFX.draw("textbaseline middle textalign left ft0 =~" + this.value())
+		UFX.draw("ft", this.text, 3.3 * mechanicsfsize, 0)
+		if (this.extra) UFX.draw("textalign right ft ~(+" + this.extra + ") -12 0")
+		UFX.draw("]")
+		for (var j = 0 ; j < this.n ; ++j) {
+			UFX.draw("[ t", -2.5 * diesize, 0, "z", diesize, diesize)
+			UFX.draw("t", j - (this.n + 1) / 2, 0)
+			if (this.rolling[j]) {
+				UFX.draw("r", Math.random() * 100, "z", Math.exp(Math.random() * 2 - 1), Math.exp(Math.random() * 2 - 1))
+				drawdie(Math.floor(Math.random() * 6 + 1))
+			} else {
+				drawdie(this.state[j])
+			}
+			UFX.draw("]")
+		}
+	},
+	roll: function (j) {
+		this.rolling[j] = 0.5
+	},
+	think: function (dt) {
+		for (var j = 0 ; j < this.n ; ++j) {
+			if (!this.rolling[j]) continue
+			this.rolling[j] -= dt
+			if (this.rolling[j] > 0) continue
+			this.rolling[j] = 0
+			this.state[j] = Math.floor(Math.random() * 6 + 1)
+		}
+	},
+}
+
+function drawdie(n) {
+	UFX.draw("z .08 .08 b rr -5 -5 10 10 1 fs #fff f b")
+	if (n % 2) UFX.draw("o 0 0 1")
+	if (n > 1 && n - 3) UFX.draw("o 3 3 1 o -3 -3 1")
+	if (n > 2) UFX.draw("o 3 -3 1 o -3 3 1")
+	if (n > 5) UFX.draw("o 3 0 1 o -3 0 1")
+	UFX.draw("fs #000 f")
+}
+
+
+
+startgame()
+
+</script>

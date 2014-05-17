@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<title>Winky by Christopher Night</title>
+<link href='http://fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+<!-- UFX libraries -->
+<script src="UFX.js"></script>
+<!-- game canvas -->
+<canvas id=canvas></canvas>
+<!-- game code -->
+<script src="game.js"></script>
+<!-- template code for BDAYBASH -->
+<script>
+parent = parent || {}
+function gamestart() {
+    parent.letsgo = true;
+}
+function gamewin() {
+    parent.winstate = true;
+}
+function gamefail() {
+    parent.winstate = false;
+}
+</script>
+

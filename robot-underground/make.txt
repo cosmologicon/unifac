@@ -1,0 +1,13 @@
+Not a makefile. Just some commands I'm using
+
+cat `grep UFX game.html | sed 's|.*="||;s|".*||'` > UFX.js
+cat `grep js game.html | grep -v UFX | sed 's|.*="||;s|".*||'` > game.js
+cp game.html index.html
+[update script names in index.html]
+scp -r index.html about.html UFX.js game.js "night@night.xen.prgmr.com:/var/www/robot/v0"
+pushd data ; scp -r *.json fonts music sfx "night@night.xen.prgmr.com:/var/www/robot/v0/data" ; popd
+
+
+in /var/www/robot directory:
+for x in `ls v0` ; do ln -s v0/$x $x ; done
+

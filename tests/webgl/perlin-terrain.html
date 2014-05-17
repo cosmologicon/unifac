@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<title>Perlin noise terrain webGL test</title>
+<script src="../../UFX/src/ticker.js"></script>
+<script src="../../UFX/src/mouse.js"></script>
+<script src="../../UFX/src/resource.js"></script>
+<script src="../../UFX/src/maximize.js"></script>
+<script id="cover-vertex-shader" type="x-shader/x-vertex">
+// (x,y) position
+attribute vec2 pos;
+
+uniform vec2 canvassize;
+uniform vec2 center;
+uniform float zoom;
+
+// to pass the texture coordinate to the fragment shader
+varying vec2 tcoord;
+
+void main(void) {
+    gl_Position = vec4(pos * 2.0 - 1.0, 1.0, 1.0);
+    tcoord = center + (pos - 0.5) * canvassize / zoom;
+}
+</script>
+<script id="terrain-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+// passed in from vertex shader
+varying vec2 tcoord;
+
+uniform float sunangle;
+uniform float shadefactor;
+uniform float zoom;
+uniform float sealevel;
+uniform sampler2D colors;
+uniform float z0;
+uniform float fwave;
+uniform float cloudalpha;
+
+uniform int usecloud;
+
+
+float hash(in float x, in float y, in float z) {
+	return fract(183.7212 * sin(0.8732 + 8.3819 * x + 43.6611 * y - 119.0515 * z)) * 2.0 - 1.0;
+}
+
+vec3 fade(in vec3 t) {
+	return t * t * (3.0 - 2.0 * t);
+}
+
+float lerp(in float t, in float a, in float b) {
+	return a + (b - a) * t;
+}
+
+vec3 lerp(in float t, in vec3 a, in vec3 b) {
+	return a + (b - a) * t;
+}
+
+vec3 dfade(in vec3 t, out vec3 d) {
+	d = 6.0 * t * (t - 1.0);
+//	d = vec3(1.0, 1.0, 1.0);
+	return t * t * (3.0 - 2.0 * t);
+//	return t;
+}
+
+float dlerp(in float t, in float dt, in float a, in float b, out float d) {
+	d = (b - a) * dt;
+	return a + (b - a) * t;
+}
+
+float noise(in vec3 p) {
+	vec3 q = floor(p);
+	vec3 Q = q + 1.0;
+	vec3 d = p - q;
+	vec3 f = fade(d);
+	// Get the noise function at each of the bounding lattice points
+	float N000 = hash(q.x, q.y, q.z);
+	float N100 = hash(Q.x, q.y, q.z);
+	float N010 = hash(q.x, Q.y, q.z);
+	float N110 = hash(Q.x, Q.y, q.z);
+	float N001 = hash(q.x, q.y, Q.z);
+	float N101 = hash(Q.x, q.y, Q.z);
+	float N011 = hash(q.x, Q.y, Q.z);
+	float N111 = hash(Q.x, Q.y, Q.z);
+	
+	// Interpolate along x axis
+	float N00 = lerp(f.x, N000, N100);
+	float N10 = lerp(f.x, N010, N110);
+	float N01 = lerp(f.x, N001, N101);
+	float N11 = lerp(f.x, N011, N111);
+	
+	// Interpolate along y axis
+	float N0 = lerp(f.y, N00, N10);
+	float N1 = lerp(f.y, N01, N11);
+	
+	// Interpolate along z axis
+	float N = lerp(f.z, N0, N1);
+
+	return N;
+}
+
+
+float dnoise(in vec3 p, out vec3 dn) {
+	vec3 q = floor(p);
+	vec3 Q = q + 1.0;
+	vec3 d = p - q;
+	vec3 df;
+	vec3 f = dfade(d, df);
+	// Get the noise function at each of the bounding lattice points
+	float N000 = hash(q.x, q.y, q.z);
+	float N100 = hash(Q.x, q.y, q.z);
+	float N010 = hash(q.x, Q.y, q.z);
+	float N110 = hash(Q.x, Q.y, q.z);
+	float N001 = hash(q.x, q.y, Q.z);
+	float N101 = hash(Q.x, q.y, Q.z);
+	float N011 = hash(q.x, Q.y, Q.z);
+	float N111 = hash(Q.x, Q.y, Q.z);
+	
+	// Interpolate along x axis
+	float N00 = lerp(f.x, N000, N100);
+	float N10 = lerp(f.x, N010, N110);
+	float N01 = lerp(f.x, N001, N101);
+	float N11 = lerp(f.x, N011, N111);
+	
+	// Derivative of Njk with respect to x
+	float N00_x = df.x * (N100 - N000);
+	float N10_x = df.x * (N110 - N010);
+	float N01_x = df.x * (N101 - N001);
+	float N11_x = df.x * (N111 - N011);
+
+	// Interpolate along y axis
+	float N0 = lerp(f.y, N00, N10);
+	float N1 = lerp(f.y, N01, N11);
+
+	// Derivatives of Nk with respect to x and y
+	float N0_x = lerp(f.y, N00_x, N10_x);
+	float N1_x = lerp(f.y, N01_x, N11_x);
+	float N0_y = df.y * (N10 - N00);
+	float N1_y = df.y * (N11 - N01);
+	
+	// Interpolate along z axis
+	float N = lerp(f.z, N0, N1);
+	
+	// Derivatives of N with respect to x, y, and z
+	float N_x = lerp(f.z, N0_x, N1_x);
+	float N_y = lerp(f.z, N0_y, N1_y);
+	float N_z = df.z * (N1 - N0);
+
+	dn = vec3(N_x, N_y, N_z);
+	return N;
+}
+
+float fractalnoise(in vec3 p, out vec3 dn) {
+	float f = 1.0;
+	float fshademax = zoom / 2.0;
+	float r = 0.0;
+	vec3 a = vec3(14.9732, -18.5501, 21.3083);
+	dn = vec3(0.0, 0.0, 0.0);
+	vec3 Dnoise;
+	float shadefactor = 1.0;
+	for (int i = 0; i < 18; ++i) {
+		r += dnoise((p + a) * f, Dnoise) / f;
+		if (f < fshademax)
+			dn += Dnoise * shadefactor;
+		shadefactor *= 0.98;
+		f *= 1.876;
+		a = mod(a * a, f);
+	}
+	return r;
+}
+
+// Only 3 iterations, doesn't compute gradient
+float cloudnoise(in vec3 p) {
+	float f = 1.0;
+	float r = 0.0;
+	vec3 a = vec3(14.9732, -18.5501, 21.3083);
+	for (int i = 0; i < 7; ++i) {
+		r += noise((p + a) * f) / f;
+		f *= 1.876;
+		a = mod(a * a, f);
+	}
+	return r;
+}
+
+// numerical derivative, for testing the gradient
+/*vec3 dfractalnoise(in vec3 p) {
+	float h = 0.0001;
+	return vec3(
+}*/
+
+vec4 getcolor(in float level) {
+	if (level < sealevel) {
+		level = sealevel - level + 0.0001;
+		// nvm the waves don't look that good
+		//float wave = 0.95 + fract(level * 400.0 + fwave) * max(0.0, 0.05 - level);
+		float tx = clamp(level * 0.5, 1.0/512.0, 1.0-1.0/512.0);
+//	    return texture2D(colors, vec2(tx, 0.75)) * vec4(wave, wave, wave, 1.0);
+	    return texture2D(colors, vec2(tx, 0.75));
+	}
+	level = level - sealevel + 0.0001;
+	float ty = clamp(level * 0.5, 1.0/512.0, 1.0-1.0/512.0);
+	return texture2D(colors, vec2(ty, 0.25));
+}
+
+void main(void) {
+	vec3 p = vec3(tcoord, z0);
+	if (usecloud > 0) {
+		if (cloudalpha > 0.0) {
+			float alpha = clamp(cloudnoise(p) * 1.2 - 0.2, 0.0, 1.0);
+			gl_FragColor = vec4(1.0, 1.0, 1.0, alpha) * cloudalpha;
+		} else {
+			gl_FragColor = vec4(0.0);
+		}
+	} else {
+		vec3 grad;
+		float noise = clamp(fractalnoise(p, grad), -1.0, 1.0);
+		float shadow = 1.0 - shadefactor * (1.0 + dot(grad, vec3(cos(sunangle), sin(sunangle), 0.0)));
+		if (noise < sealevel) shadow = 1.0;
+		gl_FragColor = getcolor(noise) * vec4(shadow, shadow, shadow, 1.0);
+	}
+}
+</script>
+
+<script id="HUD-vertex-shader" type="x-shader/x-vertex">
+// Shader that just handles textures for the HUD
+attribute vec2 pos;
+uniform vec2 canvassize;
+uniform vec2 texturesize;
+uniform vec2 p0;
+varying vec2 vtcoord;
+void main(void) {
+    gl_Position = vec4((pos * texturesize + p0) / canvassize * 2.0 - 1.0, 1.0, 1.0);
+    vtcoord = pos;
+}
+</script>
+<script id="HUD-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+uniform float alpha;
+uniform sampler2D sampler;
+varying vec2 vtcoord;
+void main(void) {
+	gl_FragColor = texture2D(sampler, vtcoord) * alpha;
+}
+</script>
+<style>
+input {
+	position: absolute;
+	font: 48px 'Contrail One';
+	width: 20em;
+	background: none;
+	color: black;
+	text-shadow: 0 0 0.2em white;
+	border: none;
+}
+</style>
+<canvas id="canvas" style="border: thin black solid"></canvas>
+<script>
+function clamp(x,a,b){return x>b?b:x<a?a:x}
+
+var canvas = document.getElementById("canvas")
+var fpscounter = document.getElementById("fpscounter")
+canvas.width = 128 ; canvas.height = 128
+//UFX.maximize.fill(canvas, "total")
+var gl = canvas.getContext("experimental-webgl")
+
+function Program(vshaderid, fshaderid) {
+	this.declines = []
+	this.vshader = this.createshader(vshaderid, gl.VERTEX_SHADER)
+	this.fshader = this.createshader(fshaderid, gl.FRAGMENT_SHADER)
+	this.makeprogram()
+	this.getlocations()
+}
+Program.prototype = {
+	createshader: function (scriptId, shaderType) {
+		var shader = gl.createShader(shaderType)
+		var shaderScript = document.getElementById(scriptId)
+		var text = shaderScript.text, prog = this
+		this.declines.push.apply(this.declines, text.split("\n").map(function (line) {
+			return line.replace(/;/g, "").trim().split(/\s+/)
+		}).filter(function (words) {
+			return words.length == 3 && (words[0] == "attribute" || words[0] == "uniform")
+		}))
+		gl.shaderSource(shader, text)
+		gl.compileShader(shader)
+
+		if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+			throw "shader compile error:" + gl.getShaderInfoLog(shader)
+		}
+
+		return shader
+	},
+	makeprogram: function () {
+		this.program = gl.createProgram()
+		gl.attachShader(this.program, this.vshader)
+		gl.attachShader(this.program, this.fshader)
+		gl.linkProgram(this.program)
+	},
+	getlocations: function () {
+		this.use()
+		var prog = this
+		this.attribs = {}
+		this.uniforms = {}
+		this.uniformsetters = {}
+		this.declines.forEach(function (words) {
+			if (words[0] == "attribute") {
+				prog.attribs[words[2]] = gl.getAttribLocation(prog.program, words[2])
+			} else if (words[0] == "uniform") {
+				var uni = prog.uniforms[words[2]] = gl.getUniformLocation(prog.program, words[2])
+				var setfunc = gl["uniform" + prog.utypesetters[words[1]]]
+				prog["set" + words[2]] = prog.uniformsetters[words[2]] = setfunc.bind(gl, uni)
+			}
+		})
+	},
+	use: function () {
+		gl.useProgram(this.program)
+	},
+	set: function(name) {
+		this.uniformsetters[name].apply(gl, [].slice.call(arguments, 1))
+	},
+	utypesetters: {
+		float: "1f",
+		vec2: "2f",
+		int: "1i",
+		sampler2D: "1i",
+	},
+}
+
+var text = {
+	textures: {},  // cached textures
+	textotal: 0,  // total number of pixels of all currently stored textures
+	tick: 0,  // for keeping track of which textures were used most recently
+
+	gettexture: function (text, fontsize, colour, talign) {
+		var key = text + ":" + fontsize + ":" + colour + ":" + talign
+		if (this.textures[key]) return this.textures[key]
+
+		var d = Math.ceil(0.2 * fontsize), lh = Math.ceil(1.25 * fontsize)
+		var can = document.createElement("canvas")
+		var con = can.getContext("2d")
+		con.font = fontsize + "px 'Contrail One'"
+		var texts = text.split("\n")
+		var w0 = Math.max.apply(null, texts.map(function (t) { return con.measureText(t).width }))
+		
+		var h0 = fontsize + lh * (texts.length - 1)  // size of text box itself
+		var w1 = w0 + 2 * d, h1 = h0 + 2 * d  // size of text box with buffer
+		var w = 2, h = 2  // size of texture (must be power of 2)
+		while (w < w1) w <<= 1
+		while (h < h1) h <<= 1
+
+		can.width = w ; can.height = h
+//		con.fillStyle = "blue"
+//		con.fillRect(0, 0, w, h)
+		con.font = fontsize + "px 'Contrail One'"
+		con.fillStyle = colour
+		con.textBaseline = "top"
+		// TODO: there's got to be a better way than converting this back and forth so many times
+		talign = {0: "left", 0.5: "center", 1: "right"}[talign] || talign || "left"
+		con.textAlign = talign
+		con.strokeStyle = "black"
+		con.lineWidth = Math.ceil(0.08 * fontsize)
+		var x0 = Math.round(d + {left: 0, center: 0.5, right: 1}[talign] * w0)
+		texts.forEach(function (text, j) {
+			con.strokeText(text, x0, d + j * lh)
+			con.fillText(text, x0, d + j * lh)
+		})
+
+		var t = gl.createTexture()
+		gl.bindTexture(gl.TEXTURE_2D, t)
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, can)
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+		
+		t.draw = this.bounddraw
+		t.w0 = w0 ; t.h0 = h0
+		t.w1 = w1 ; t.h1 = h1
+		t.w = w ; t.h = h
+		t.d = d
+		t.x0 = d ; t.y0 = d
+		t.s = w * h
+		this.textotal += t.s
+
+		this.textures[key] = t
+		return t
+	},
+	
+	draw: function (text, x, y, fontsize, colour, hanchor, vanchor, talign) {
+		this.gettexture(text, fontsize, colour, talign).draw(x, y, hanchor, vanchor)
+	},
+	
+	bounddraw: function (x, y, hanchor, vanchor) {
+		hanchor = hanchor ? hanchor.trim ? {left: 0, center: 0.5, right: 1}[hanchor] : hanchor : 0
+		vanchor = vanchor ? vanchor.trim ? {bottom: 0, middle: 0.5, top: 1}[vanchor] : vanchor : 0
+		this.tick = text.tick++
+		// coordinates of bottom-left of inner box
+		x -= hanchor * this.w0
+		y -= vanchor * this.h0
+		// coordinates of bottom-left of texture
+		x -= this.d
+		y -= this.h - this.h0 - this.d
+		x = Math.round(x)
+		y = Math.round(y)
+		HUDprogram.settexturesize(this.w, -this.h)
+		HUDprogram.setp0(x, y+this.h)
+		gl.bindTexture(gl.TEXTURE_2D, this)
+		gl.enableVertexAttribArray(HUDprogram.attribs.pos)
+		gl.vertexAttribPointer(HUDprogram.attribs.pos, 2, gl.FLOAT, false, 0, 0);
+		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+	},
+
+	// Call this occasionally for garbage collection at the beginning of a loop, when it's okay
+	//   to remove any unused textures.
+	cleanup: function () {
+		// Naive implementation: remove everything every frame
+		this.clear()
+	},
+
+	clear: function () {
+		for (var t in this.textures) {
+			this.textotal -= this.textures[t].s
+			gl.deleteTexture(this.textures[t])
+			delete this.textures[t]
+		}
+	},
+
+}
+
+
+
+
+var program = new Program("cover-vertex-shader", "terrain-fragment-shader")
+
+gl.activeTexture(gl.TEXTURE0)
+program.setcolors(0)
+var colorcanvas = document.createElement("canvas")
+colorcanvas.width = 512
+colorcanvas.height = 2
+colorcontext = colorcanvas.getContext("2d")
+function clamp(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
+function clerp(t, color0, color1) {
+	return [
+		color0[0] + t * (color1[0] - color0[0]),
+		color0[1] + t * (color1[1] - color0[1]),
+		color0[2] + t * (color1[2] - color0[2])
+	]
+}
+function setpixel(x, y, color) {
+	colorcontext.fillStyle = "rgb(" + ~~color[0] + "," + ~~color[1] + "," + ~~color[2] + ")"
+	colorcontext.fillRect(x, y, 1, 1)
+}
+
+//# water colors light to dark
+//ws = (20,20,200), (10,10,170), (0,0,140), (0,0,110), (0,0,70)
+
+//# lowland colors yellow to brown to green
+//ls = (100,100,0), (90,80,0), (80,40,0), (80,70,0), (50,80,0), (40,90,0)
+
+//# highland colors green to gray to white
+//hs = (40,90,0), (50,100,10), (60,80,30), (70,70,70), (85,85,85), (100,100,100)
+
+var watercolors = [
+	[  40,  40, 250, 0.0],
+	[  20,  20, 200, 0.2],
+	[  10,  10, 160, 0.4],
+	[   0,   0, 130, 0.6],
+	[   0,   0, 100, 0.8],
+]
+var landcolors = [
+	[ 100, 100,   0, 0.0],
+	[  90,  80,   0, 0.1],
+	[  80,  40,   0, 0.2],
+	[  80,  70,   0, 0.3],
+	[  50,  80,   0, 0.4],
+	[  40,  90,   0, 0.5],
+	[  50, 100,  10, 0.6],
+	[  60,  80,  30, 0.7],
+	[  70,  70,  70, 0.8],
+	[  85,  85,  85, 0.9],
+	[ 100, 100, 100, 1.0],
+]
+function interp(h, colors) {
+	for (var i = 0 ; i < colors.length - 1 ; ++i) {
+		var h0 = colors[i][3], h1 = colors[i+1][3]
+		if (h < h0 || h1 < h) continue
+		return clerp((h - h0) / (h1 - h0), colors[i], colors[i+1])
+	}
+	return colors[i]
+}
+for (var j = 0 ; j < 512 ; ++j) {
+	var h = j / 256
+	setpixel(j, 0, interp(h, landcolors))
+	setpixel(j, 1, interp(h, watercolors))
+}
+var texture = gl.createTexture()
+gl.bindTexture(gl.TEXTURE_2D, texture)
+gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, colorcanvas)
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+var HUDprogram = new Program("HUD-vertex-shader", "HUD-fragment-shader")
+
+
+gl.clearColor(0, 0, 0, 1)
+gl.clear(gl.COLOR_BUFFER_BIT)
+var coordbuffer = gl.createBuffer()
+gl.bindBuffer(gl.ARRAY_BUFFER, coordbuffer)
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0,1,0,1,1,0,1]), gl.STATIC_DRAW)
+gl.enable(gl.BLEND)
+gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+
+var x0 = 0.0
+var y0 = 0.0
+var z0 = 1.47
+var fwave = 0.0
+var z = 6.0
+
+
+var cloudt = 0
+
+
+
+function go (dt) {
+	gl.viewport(0, 0, canvas.width, canvas.height)
+	var mstate = UFX.mouse.state()
+	var zoom = Math.exp(z), oldzoom = zoom
+	if (mstate.wheeldy) {
+		z = clamp(z + 0.04 * mstate.wheeldy, 3, 13)
+		zoom = Math.exp(z)
+		x0 += (mstate.pos[0] - canvas.width / 2) * (1/oldzoom - 1/zoom)
+		y0 -= (mstate.pos[1] - canvas.height / 2) * (1/oldzoom - 1/zoom)
+	}
+	if (mstate.right.isdown) {
+		z0 += 100 * dt / zoom
+	}
+	fwave += 100000 * dt / zoom
+	cloudt += dt
+	var zoom = Math.exp(z)
+	if (mstate.left.drag) {
+		x0 -= mstate.left.drag.dx / zoom
+		y0 += mstate.left.drag.dy / zoom
+	}
+	program.use()
+	program.setcanvassize(canvas.width, canvas.height)
+	program.setusecloud(0)
+	program.setcenter(x0, y0)
+	program.setz0(z0)
+	program.setzoom(zoom)
+	program.setfwave(fwave)
+	program.setsunangle(-45)
+	program.setshadefactor(0.12)
+	program.setsealevel(-0.05)
+	gl.bindTexture(gl.TEXTURE_2D, texture)
+	gl.enableVertexAttribArray(program.attribs.pos)
+	gl.vertexAttribPointer(program.attribs.pos, 2, gl.FLOAT, false, 0, 0);
+	gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+
+	program.setusecloud(1)
+	program.setcenter(x0 + 0.24 * cloudt, y0 + 0.26 * cloudt)
+	program.setz0(0.6 * cloudt)
+	if (zoom < 1400) {
+		var invcloudzoom = 1 / Math.exp(z) - 1 / 1400
+		program.setzoom(1 / invcloudzoom)
+		program.setcloudalpha(Math.min(invcloudzoom * 400, 1))
+	} else {
+		program.setcloudalpha(0)
+	}
+	gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+
+
+	HUDprogram.use()
+	HUDprogram.setalpha(1)
+	HUDprogram.setcanvassize(canvas.width, canvas.height)
+	HUDprogram.setsampler(0)
+	var tsize = Math.max(Math.round(canvas.width * 0.03), 12)
+	var bord = Math.round(0.2 * tsize)
+	text.draw(UFX.ticker.wfps.toPrecision(3) + "fps", bord, bord, tsize, "orange", 0, 0)
+	var controls = "drag: pan\nscroll: zoom\nright-click+hold: evolve"
+	text.draw(controls, bord, canvas.height - bord, tsize, "yellow", 0, 1)
+
+//	fpscounter.value = UFX.ticker.wfps.toPrecision(3) + "fps"
+}
+
+UFX.mouse.capture.wheel = true
+UFX.mouse.capture.right = true
+UFX.mouse.init(canvas)
+
+UFX.resource.onload = function () {
+	UFX.ticker.init(go, null, { ups: 120 })
+	if (document.location.href.indexOf("MINI") == -1) {
+		UFX.maximize.fill(canvas, "total")
+	} else {
+//		canvas.style.width = "384px"
+//		canvas.style.height = "384px"
+	}
+}
+UFX.resource.loadwebfonts("Contrail One")
+</script>
+

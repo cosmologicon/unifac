@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<!-- UFX libraries -->
+<script type="text/javascript" src="../UFX/src/ticker.js"></script>
+<script type="text/javascript" src="../UFX/src/maximize.js"></script>
+<script type="text/javascript" src="../UFX/src/mouse.js"></script>
+<script type="text/javascript" src="../UFX/src/touch.js"></script>
+<script type="text/javascript" src="../UFX/src/resource.js"></script>
+<canvas id="canvas"></canvas>
+<!-- Game source code -->
+<script type="text/javascript" src="src/glprog.js"></script>
+<script type="text/javascript" src="src/text.js"></script>
+
+<script type="text/javascript">
+function clamp(x,a,b){return x>b?b:x<a?a:x}
+window.onerror = function (error, url, line) {
+    document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>"
+}
+
+var canvas = document.getElementById("canvas")
+canvas.width = 128 ; canvas.height = 128
+var gl = canvas.getContext("experimental-webgl")
+
+var progs = {}
+UFX.maximize.fill(canvas, "total")
+
+
+gl.clearColor(0, 0, 0, 1)
+var unitsquarebuffer = gl.createBuffer()
+gl.bindBuffer(gl.ARRAY_BUFFER, unitsquarebuffer)
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0,1,0,1,1,0,1]), gl.STATIC_DRAW)
+gl.disable(gl.BLEND)
+function drawunitsquare(attrib) {
+	gl.enableVertexAttribArray(attrib)
+	gl.vertexAttribPointer(attrib, 2, gl.FLOAT, false, 0, 0)
+	gl.bindBuffer(gl.ARRAY_BUFFER, unitsquarebuffer)
+	gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
+}
+
+
+var t = 0, pdown = null, mpos = null
+var x0 = 0, y0 = 0, z = 3
+var flames = [{x: 0, y: 0, t: 0}]
+
+function think(dt) {
+	t += dt
+
+	var zoom = Math.exp(z), oldzoom = zoom
+	if (UFX.mouse.active) {
+		var mstate = UFX.mouse.state()
+		if (mstate.pos) {
+			mpos = [
+				x0 + (mstate.pos[0] - canvas.width / 2) / zoom,
+				y0 + (-mstate.pos[1] + canvas.height / 2) / zoom,
+			]
+		} else {
+			mpos = null
+		}
+		if (mstate.wheeldy) {
+			z = clamp(z + 0.02 * mstate.wheeldy, 2, 6)
+			zoom = Math.exp(z)
+			x0 += (mstate.pos[0] - canvas.width / 2) * (1/oldzoom - 1/zoom)
+			y0 -= (mstate.pos[1] - canvas.height / 2) * (1/oldzoom - 1/zoom)
+		}
+		zoom = Math.exp(z)
+		if (mstate.left.down) {
+			pdown = mstate.left.down
+		}
+		if (pdown && mstate.left.up) {
+			if (Math.abs(pdown[0] - mstate.left.up[0]) + Math.abs(pdown[1] - mstate.left.up[1]) < 6) {
+				flames.push({x: mpos[0], y: mpos[1], t: 0})
+			}
+		}
+		if (mstate.left.isdown) {
+			x0 -= mstate.dpos[0] / zoom
+			y0 += mstate.dpos[1] / zoom
+		} else {
+			pdown = null
+		}
+	} else if (UFX.touch.active) {
+		var tstate = UFX.touch.state()
+		if (tstate.ids.length == 1) {
+			var pos = tstate.ps[tstate.ids[0]]
+			mpos = [
+				x0 + (pos[0] - canvas.width / 2) / zoom,
+				y0 + (-pos[1] + canvas.height / 2) / zoom,
+			]
+			var dpos = tstate.deltas[tstate.ids[0]]
+			x0 -= dpos[0] / zoom
+			y0 += dpos[1] / zoom
+		}
+		if (tstate.ids.length == 2) {
+			var t2state = UFX.touch.twotouchstate(tstate)
+			if (t2state) {
+				var dz = Math.log(t2state.rratio) / 1.0
+				z = clamp(z + dz, 2, 6)
+				x0 += (t2state.center[0] - canvas.width / 2) * (1/oldzoom - 1/zoom)
+				y0 -= (t2state.center[1] - canvas.height / 2) * (1/oldzoom - 1/zoom)
+			}
+		}
+
+
+		tstate.tap.forEach(function (event) {
+			flames.push({x: mpos[0], y: mpos[1], t: 0})
+		})
+	}
+	
+
+	flames.forEach(function (f) {
+		f.t += dt
+		var x = Math.min(5 * f.t, 1 - 0.1 * f.t)
+		f.r = 0.2 + 0.8 * x
+		f.R = 4 * x
+		f.alpha = x
+	})
+	flames = flames.filter(function (f) { return f.R > 0.1 })
+
+
+	gl.clear(gl.COLOR_BUFFER_BIT)
+	gl.bindBuffer(gl.ARRAY_BUFFER, unitsquarebuffer)
+	gl.viewport(0, 0, canvas.width, canvas.height)
+	gl.disable(gl.BLEND)
+
+	// Draw checkerboard
+	progs.checker.use()
+	progs.checker.setcanvassize(canvas.width, canvas.height)
+	progs.checker.setcenter(x0, y0)
+	progs.checker.setzoom(zoom)
+	drawunitsquare(progs.checker.attribs.pos)
+
+	// Draw flames!
+	gl.enable(gl.BLEND)
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+	progs.rflame.use()
+	progs.rflame.setcanvassize(canvas.width, canvas.height)
+	progs.rflame.setcenter(x0, y0)
+	progs.rflame.setzoom(zoom)
+	flames.forEach(function (f) {
+		progs.rflame.setpcenter(f.x, f.y)
+		progs.rflame.setsize(2*f.r, 2*f.r)
+		progs.rflame.settime(f.t)
+		progs.rflame.setalpha(f.alpha)
+		drawunitsquare(progs.rflame.attribs.pos)
+	})
+
+	// Zero out the alpha channel
+	gl.blendFunc(gl.ZERO, gl.SRC_COLOR)
+	progs.uniformcolor.use()
+	progs.uniformcolor.setcolor(1, 1, 1, 0)
+	drawunitsquare(progs.uniformcolor.attribs.pos)
+
+	// Increase alpha in visible regions
+	gl.blendFunc(gl.ONE, gl.ONE)
+	progs.visible.use()
+	progs.visible.setcanvassize(canvas.width, canvas.height)
+	progs.visible.setcenter(x0, y0)
+	progs.visible.setzoom(zoom)
+	flames.forEach(function (f) {
+		progs.visible.setpcenter(f.x, f.y)
+		progs.visible.setsize(2 * f.R, 2 * f.R)
+		progs.visible.setradius(f.R)
+		drawunitsquare(progs.visible.attribs.pos)
+	})
+	
+/*
+	if (mpos && mstate && mstate.left.isdown) {
+		progs.visible.setpcenter(mpos[0], mpos[1])
+		progs.visible.setsize(4, 4)
+		progs.visible.setradius(2)
+		drawunitsquare(progs.visible.attribs.pos)
+	}
+*/
+
+	// Draw fog in places where alpha < 1
+	gl.blendFunc(gl.ONE_MINUS_DST_ALPHA, gl.DST_ALPHA)
+	progs.fog.use()
+	progs.fog.setcanvassize(canvas.width, canvas.height)
+	progs.fog.setcenter(x0, y0)
+	progs.fog.setzoom(zoom)
+	progs.fog.settime(t)
+	drawunitsquare(progs.fog.attribs.pos)
+
+	text.setup()
+	var h = Math.max(0.07 * canvas.height, 12)
+	var fpsstr = UFX.ticker.getrates().split(" ")[0]
+	var info = "click/tap: light\ndrag: scroll\nwheel/pinch: zoom"
+	text.draw(fpsstr, 0.2*h, 0.3*h, { fontsize: h })
+	text.draw(info, 0.2*h, canvas.height - 0.3*h, { fontsize: h, vanchor: 1 })
+
+	// One out the alpha channel
+	gl.blendFunc(gl.ONE, gl.ONE)
+	progs.uniformcolor.use()
+	progs.uniformcolor.setcolor(0, 0, 0, 1)
+	drawunitsquare(progs.uniformcolor.attribs.pos)
+}
+
+UFX.resource.load({
+	// shaders
+	"coververt": "shaders/cover.vert",
+	"fullvert": "shaders/full.vert",
+	"boxvert": "shaders/box.vert",
+	"uniformfrag": "shaders/uniform.frag",
+	"checkerfrag": "shaders/checker.frag",
+	"fogfrag": "shaders/fog.frag",
+	"visiblefrag": "shaders/visible.frag",
+	"rflamefrag": "shaders/rflame.frag",
+})
+UFX.resource.loadwebfonts("Contrail One")
+
+UFX.resource.onload = function () {
+	progs.checker = glprog(UFX.resource.data.fullvert, UFX.resource.data.checkerfrag)
+	progs.visible = glprog(UFX.resource.data.boxvert, UFX.resource.data.visiblefrag)
+	progs.rflame = glprog(UFX.resource.data.boxvert, UFX.resource.data.rflamefrag)
+	progs.fog = glprog(UFX.resource.data.fullvert, UFX.resource.data.fogfrag)
+	progs.uniformcolor = glprog(UFX.resource.data.coververt, UFX.resource.data.uniformfrag)
+	UFX.ticker.init(think)
+	text.init()
+	text.defaultopts.fontname = "Contrail One"
+	text.defaultopts.color = "orange"
+	text.defaultopts.scolor = "#630"
+	UFX.mouse.capture.wheel = true
+	UFX.mouse.init(canvas)
+
+	UFX.touch.active = false
+	canvas.ontouchstart = function () {
+		UFX.touch.active = true
+		UFX.touch.init(canvas)
+		UFX.mouse.active = false
+	}
+
+}
+
+
+</script>
+
+

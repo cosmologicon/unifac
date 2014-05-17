@@ -1,0 +1,210 @@
+- my cursor's too small
+- trail too bright
+- HP doesn't appear on enemy data
+- Enemy drawing too small
+- Dialogue boxes should extend all the way to the right
+- Floaties too big
+- Metal output about a line too low
+- Weapons listed as unappraised
+- Repair kit doesn't do a damn thing
+- Intimidating Scorpion faces the wrong way
+- Why does it take so long for the repair kit to work?
+- Pause on dialogue start
+- Music loop
+- death script
+- word wrap on target info
+
+-np Monsters don't face you when they claw you
+Double GET! sometimes
+- Space in COBALT(4)
+
+Issue that might be my version of Chrome only?
+- Sound effects when you shoot a lot
+- Music loop ends eventually
+- Music should restart from beginning
+- Issue with ctrl leaving focus - probably should be solved with UFX.key
+
+
+- Continue moving toward cursor until you let up
+- Metal spacing when you have more than just Cobalt
+- Hammersmith's first word after you check your inventory
+- Pimlico's right-click hint
+- Seems like a lot of scorpions in the scorpion den
+- Weapon mods seem really weak
+- missing sound: level up
+- Can't target in autofire mode - is that correct behavior?
+- Name appears as "Latimer &"
+- Lightning doesn't seem to reach far enough
+Lightning remains if target is dead
+- Draw bullets
+- Questions need to wrap when they're too long
+- Pancras angry/happy?
+- Armour with a ton of mods needs word wrap
+- Railgun tanks firing without line of sight
+- Railgun slugs don't explode
+- Great Portland in Act 1?
+- Scorpion packs respawn?
+- "Omega-Rapid-Fire +1Light Laser" - needs space
+- Bazooka fires without line of sight
+Railgun trails seem skewed
+Weapon description "energy" should be "energy usage"
+- front menu gets wonky if you fullscreen on loading
+- can eject during chalfont/latimer battle
+check all the branches on scene act5.intro
+- need about with license info
+- need helpful error message if javascript or webgl is disabled
+set mission bosses explicitly
+
+
+Story notes
+
+Plot issues as I see them:
+* What is Angel's motivation for betrayal? Why is she later imprisoned?
+* What is Goldhawk's motivation for betrayal?
+* Plot dump at Act 5 should be introduced throughout the story.
+* What exactly is St. Pancras?
+* Why does Hornchurch need the Charing Cross to open the tomb of St. Pancras?
+* What exactly do the Charing Cross and the King's Cross actually do?
+* Why is Portland so reluctant to use the King's Cross in a moment of crisis?
+* If he gets the cross at the end of Act 1, why does wait until the beginning of act 5 to do it?
+* What did they Chalfront and Latimer gain from the coup?
+* What is the nature of the power Camden uses to defeat St. Pancras?
+* Ending battles feel cramped. (More of a gameplay issue, but could require plot changes.)
+* There's a ton of effectively empty dialogue. This could be replaced with stuff to advance plot.
+* For a game called Robot Underground, there's not much of an underground movement
+* Rescuing Baby Goodge sideplot seems pretty tacked on.
+* And unjustified. Who is Hyde and why would it kidnap a baby?
+
+Tropes I think the story could use:
+* Heel->face turn (Gospel is a good candidate - Victoria could also start out loyal to the Church.)
+* More powerful female characters (right now the only female robot that ever sees combat is Pimlico)
+* More foreshadowing and Chekov's Guns, to make it seem less made up as you go along.
+
+Things that would help fit the Hero's Journey
+* Heroic sacrifice (eg Goldhawk could turn good at the last minute and sacrifice himself to take out Hornchurch)
+* Some differentiation between the known and the unknown worlds
+   * What if the known world is normal society, eg a post in the military, and the unknown world is as a member of the robot underground?
+* A protective talisman that the hero gets early on.
+* Shapeshifter - someone you don't trust but need, treated as a guarded ally
+* Temptation to abandon quest
+* The rescue mission should be a night sea voyage
+* Atonement?
+* Magic Flight - escape after achieving the ultimate boon - evil coming to the known world?
+* Road back to the known world
+
+
+
+What have you heard about St. Pancras, Camden?
+Um... that he gave his life such that we might join him in Perivale when our last backup expires?
+Ha, yes, that's what you were told as a child. And maybe it's true, we'll find out in the next life.
+But Pancras did not travel to this land as a saviour. He came seeking treasure.
+Treasure? Like bismuth and technitium?
+Something greater. Holy relics of immense power. The Charing Cross is but one.
+The details were lost to history, until recently... thanks to Angel and her crew.
+If their evidence holds true, the scope of Pancras's campaign was matched only by its cruelty.
+The Church has long downplayed this chapter in Pancras's life, but this new evidence is hard to ignore.
+And now, finding the Charing Cross right where Pancras claims to have left it....
+You can see why Hornchurch would be concerned.
+
+
+So that's why Chalfont and Latimer stole the Cross? To protect the legacy of St. Pancras?
+You have to remember that the Church is already having a public image crisis.
+If people lost their faith in St. Pancras, support for the Church could crumble overnight.
+Still, seems a bit extreme, doesn't it? They're risking everything by framing Putney.
+If they were found out, the scandal would be equally disastrous.
+No, there must be something else.
+
+
+Have you ever heard of the Mornington Crescent?
+The fairy tale? Sure, it lets you live forever.
+Immortality, yes, but at what cost?
+In some stories, its bearer becomes an agent of evil.
+In some, he is driven mad.
+
+
+There is a legend, condemned by the Church of course, of how Pancras died.
+It's said that he went mad, sending his crew on more and more dangerous missions.
+When they protested he would declare himself master of life and death.
+They finally mutinied, but the combined force of 100 robots could not destroy him.
+It was all they could do to throw him into a deep pit and fill it over. He was buried alive.
+His burial site became cursed, and from it great monsters emerged.
+That place is said to lie in the deepest reaches of the Outer Zones.
+
+
+What if... the Mornington Crescent is real?
+And furthermore, Pancras found it?
+The greatest treasure in the world, he would have guarded it jealously, even in his last moments....
+What if it's buried along with his body, deep in the Outer Zones?
+To what lengths would Hornchurch go to retrieve it?
+
+
+
+Goldhawk's reveal and temptation
+Dammit, Camden. Do you even know why you're here?
+To stop you!
+No, I mean why you were assigned to Dollis Hill in the first place.
+I requested you specifically, you know, after reading your file.
+You were just the type I was looking for. Lacking in initiative, deferential, weak.
+Because you wanted to change me? To make me a leader?
+No, Camden. Robots don't change.
+I wanted it so that when I abandoned my post, the incompetent robot I left behind wouldn't follow me.
+You were supposed to just let me disappear. Just follow orders, like you always do.
+And you know what? You still can.
+You can run back to Dollis Hill, tell Hammersmith I'm dead, and hide behind a rock until this whole thing is over.
+Now doesn't that sound comfortable?
+
+
+Goldhawk's second reveal
+What did the Robo-Pope buy you with?
+My life.
+I'm dying, Camden. I have Gallions Reach. There's no cure.
+My CPU is overheating. I have a week, maybe two.
+Hornchurch says there's some sort of device that could save me... the Mornington Crescent.
+If I help him retrieve it, I get to live. It's my only hope.
+I don't expect you to understand, but you would do the same. You can never deny that!
+
+
+
+Mechanics I think would be cool to add
+* items
+* weapon and armour crafting
+  * Chard: likely equip costs will disappear and the main metal sink will become upgrading weapons with *additional* mods.
+* multiple playable characters (more below)
+* HP/energy pickups and restore points within the dungeons
+* Dialogue choices having more of an influence on the plot, or unlocking things
+  * eg: Chalfont+Latimer - if you say the right things to them, they turn themselves in, and give you an item
+* I think the currency system is too complicated for no reason, but it doesn't seem like people agree.
+* zoom controls
+
+
+Items/upgrades that would be cool
+* treasure magnets
+* emergency repair or backup battery
+* single-use bomb
+* invisibility
+* map capability
+
+
+Idea for multiple playable characters
+* At the beginning, you choose Camden, Angel, Victoria, or Putney
+* They each have different specialties.
+  * Camden (the soldier): extra weapon and armour slots
+  * Angel (the researcher): can appraise own weapons free of charge
+  * Victoria (the princess): extra money?
+  * Putney (the messenger):
+* For the most part, they all complete a subset of the same missions, but nobody does them all.
+* Maybe they each have 1-2 missions that are only for them, so you have to play them all.
+* Each playthrough tells different pieces of the story.
+  * Camden: a little bit of everything
+  * Angel: more info on St Pancras and ancient history
+  * Victoria: more info about the current political climate with the Church
+  * Putney: more info about the robot underground
+* Also each one has different character development
+  * Camden: the classic hero's journey, finding his courage
+  * Victoria: coming of age, stepping up as ruler
+* Putney needs more of a personality than Camden Lite. Really sarcastic, maybe?
+* Your sweetheart can be any of the other three protagonists
+
+
+
+
