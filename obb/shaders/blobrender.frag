@@ -1,27 +1,35 @@
 precision mediump float;
 
-uniform sampler2D psampler;
-uniform sampler2D nsampler;
-uniform sampler2D asampler;
+uniform sampler2D sampler;
 uniform vec4 dlight;  // directional light
 uniform vec4 plight0;  // point light 0
 uniform float rotC;
 uniform float rotS;
 
-varying vec2 tcoord;
-varying vec2 tpos;
+varying vec2 tcoordG;
+varying vec2 tposG;
+uniform vec2 cposD0;
+uniform vec2 nposD0;
+uniform float DcscaleG;
+uniform float DnscaleG;
+uniform float scapesize;
+
 varying float tshadefactor;  // 0.0 = gray, 1.0 = full color
 
 void main(void) {
-	vec4 color = texture2D(psampler, tcoord);
+	// Coordinates within the texture
+	vec2 cposD = (DcscaleG * tcoordG + cposD0) / scapesize;
+	vec2 nposD = (DnscaleG * tcoordG + nposD0) / scapesize;
 
-	vec3 p = vec3(tpos, 0.0); // TODO: this somehow needs to use depth for the z coordinate
-	vec3 normal = texture2D(nsampler, tcoord).xyz * 2.0 - 1.0;
+	vec4 color = texture2D(sampler, cposD);
+	vec3 normal = texture2D(sampler, nposD).xyz * 2.0 - 1.0;
 	mat2 rotation = mat2(rotC, rotS, -rotS, rotC);
 	normal.xy = rotation * normal.xy;
 
 	float lfactor = max(dlight.w * dot(normal, dlight.xyz), 0.0);
 
+	vec3 p = vec3(tposG, 0.0); // TODO: this somehow needs to use depth for the z coordinate.
+	                           // Could I use the alpha channel in the normal tile?
 	vec3 rlight = plight0.xyz - p;
 	lfactor += max(plight0.w * dot(normal, rlight) / dot(rlight, rlight), 0.0);
 

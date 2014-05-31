@@ -17,40 +17,24 @@ var blobscape = {
 		this.rawdata = {}
 		this.blobspecs = {}
 
-		// The blobscape itself is square, and consists of ntile x ntile square tiles, which are
-		// filled in as requested. Tiles are numbered starting at 0 in the lower left and counting
-		// up left to right and bottom to top.
-		this.ntile = 8
+		this.nblock = 8
 
-		// Map from a tile specification (generally the name of the shape) to the tile number.
-		this.made = {}
-		// Number of tiles assembled so far.
-		this.nmade = 0
+		this.jblock = 0  // The next available block to be claimed
+		this.blocks = {}  // Map from subscales to block positions
 
-		// A certain number of tiles are "quick" tiles. These can be overdrawn as needed, and are
-		// used for tile specifications that are only needed briefly (typically 1 frame). The main
-		// use case is growth transition frames. The top nquick tile spots are reserved for quick
-		// tiles.
-		this.nquick = 8
-		// The next quick tile to assemble. This value rotates through the available quick tiles so
-		// that once they're assembled they stick around in case they need to be reused.
-		this.jquick = 0
-		// Tile number of first quick tile.
-		this.quick0 = this.ntile * this.ntile - this.nquick
-		// Maps from tile spec to quick tile number and back (these are deleted when a quick tile
-		// is overwritten).
-		this.qmade = {}
-		this.qspec = {}
+		// Map from a tile specification to the tile identifier.
+		this.tiles = {}
 
+		// scale0 is the number of pixels per game unit in non-subdivided blocks
 		var s = Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE), 4096)
-		this.scale = 16
-		while (this.scale * this.ntile * 4 <= s) this.scale *= 2
-		if (this.scale < 32) throw "blobscape texture is too small"
+		this.scale0 = 16
+		while (this.scale0 * this.nblock * 4 <= s) this.scale0 *= 2
+		if (this.scale0 < 32) throw "blobscape texture is too small"
 
-		this.tilesize = this.scale * 2
-		this.scapesize = this.ntile * this.tilesize
+		this.blocksize = this.scale0 * 2
+		this.scapesize = this.nblock * this.blocksize
 
-		debugHUD.alert("blobscape scale " + this.scale)
+		debugHUD.alert("blobscape scale0 " + this.scale0)
 		debugHUD.alert("blobscape size " + this.scapesize + "x" + this.scapesize)
 
 		this.posbuffer = gl.createBuffer()
@@ -69,41 +53,66 @@ var blobscape = {
 
 		// https://www.khronos.org/registry/webgl/sdk/tests/conformance/textures/mipmap-fbo.html
 
-		// The primary color channel framebuffer
 		gl.activeTexture(gl.TEXTURE0 + 5)
-		this.ptexture = gl.createTexture()
-		gl.bindTexture(gl.TEXTURE_2D, this.ptexture)
+		this.texture = gl.createTexture()
+		gl.bindTexture(gl.TEXTURE_2D, this.texture)
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.scapesize, this.scapesize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
 		gl.bindTexture(gl.TEXTURE_2D, null)
 
-		this.pfbo = gl.createFramebuffer()
-		gl.bindFramebuffer(gl.FRAMEBUFFER, this.pfbo)
-		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.ptexture, 0)
+		this.fbo = gl.createFramebuffer()
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo)
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0)
 		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) throw "Incomple primary framebuffer"
-		gl.clearColor(0, 0, 0, 0)
-		gl.clear(gl.COLOR_BUFFER_BIT)
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
-
-		// The normal channel framebuffer
-		gl.activeTexture(gl.TEXTURE0 + 6)
-		this.ntexture = gl.createTexture()
-		gl.bindTexture(gl.TEXTURE_2D, this.ntexture)
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.scapesize, this.scapesize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
-		gl.bindTexture(gl.TEXTURE_2D, null)
-
-		this.nfbo = gl.createFramebuffer()
-		gl.bindFramebuffer(gl.FRAMEBUFFER, this.nfbo)
-		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.ntexture, 0)
-		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) throw "Incomple normal framebuffer"
-		gl.clearColor(0.5, 0.5, 0.5, 1)
-		gl.clear(gl.COLOR_BUFFER_BIT)
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 
 		gl.activeTexture(gl.TEXTURE0)
+	},
+
+	// Get the tile spot (position) information (and claim the tile spot if it doesn't exist).
+	claimedspots: {},
+	getspot: function (tilespecid, subscale) {
+		if (this.claimedspots[tilespecid]) return this.claimedspots[tilespecid]
+		if (!this.blocks[subscale]) {
+			this.blocks[subscale] = {
+				jblock: this.jblock++,
+				jtile: 0,
+			}
+		}
+		var jblock = this.blocks[subscale].jblock
+		var jtile = this.blocks[subscale].jtile++
+		if (this.blocks[subscale].jtile == subscale * subscale) {
+			delete this.blocks[subscale]
+		}
+		var xblock = jblock % this.nblock, yblock = Math.floor(jblock / this.nblock)
+		var xtile = jtile % subscale, ytile = Math.floor(jtile / subscale)
+		var tilesize = this.blocksize / subscale
+		var scale = this.scale0 / subscale
+		var x0 = xblock * this.blocksize + xtile * tilesize
+		var y0 = yblock * this.blocksize + ytile * tilesize
+		this.claimedspots[tilespecid] = {
+			x0: x0,
+			y0: y0,
+			cx: x0 + scale,
+			cy: y0 + scale,
+			tilesize: tilesize,
+			scale: scale,
+		}
+		return this.claimedspots[tilespecid]
+	},
+
+	assembledtiles: {},
+	gettile: function (tilespec) {
+		tilespec.f = "f" in tilespec ? Math.round(tilespec.f * constants.growframes) / constants.growframes : 1
+		var tilespecid = ([tilespec.shape, tilespec.type, tilespec.f]).join("")
+		var subscale = tilespec.f == 1 ? 1 : 4
+		var spot = this.getspot(tilespecid, subscale)
+		if (!this.assembledtiles[tilespecid]) {
+			this.assemble(tilespec, spot)
+			this.assembledtiles[tilespecid] = true
+		}
+		return spot
 	},
 
 	build: function (shape) {
@@ -132,73 +141,67 @@ var blobscape = {
 	},
 	
 	// Render the given shape to the blobscape
-	assemble: function (N, shape, f, clear) {
-		if (!this.blobspecs[shape]) this.build(shape)
-		if (f === undefined) f = 1
-		var x = N % this.ntile * this.tilesize
-		var y = Math.floor(N/this.ntile) * this.tilesize
+	assemble: function (tilespec, spot) {
+		if (!this.blobspecs[tilespec.shape]) this.build(tilespec.shape)
 
-		gl.bindFramebuffer(gl.FRAMEBUFFER, this.pfbo)
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo)
 		gl.enable(gl.BLEND)
-		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-		gl.viewport(x, y, this.tilesize, this.tilesize)
-		if (clear) {
-			gl.enable(gl.SCISSOR_TEST)
-			gl.scissor(x, y, this.tilesize, this.tilesize)
+
+		gl.enable(gl.SCISSOR_TEST)
+		gl.scissor(spot.x0, spot.y0, spot.tilesize, spot.tilesize)
+		if (tilespec.type == "color") {
 			gl.clearColor(0, 0, 0, 0)
-			gl.clear(gl.COLOR_BUFFER_BIT)
-			gl.disable(gl.SCISSOR_TEST)
+		} else if (tilespec.type == "normal") {
+			gl.clearColor(0.5, 0.5, 0.5, 0)
 		}
-		if (constants.outlinewidth) {
-			graphics.progs.bloboutline.use()
-			graphics.progs.bloboutline.setcanvassize(this.tilesize, this.tilesize)
-			graphics.progs.bloboutline.setscale(this.scale)
-			graphics.progs.bloboutline.setprogress(f)
-			graphics.progs.bloboutline.setwidth(constants.outlinewidth)
-			gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[shape].buffer)
-			gl.vertexAttribPointer(graphics.progs.bloboutline.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)
-			gl.vertexAttribPointer(graphics.progs.bloboutline.attribs.rad, 1, gl.FLOAT, false, 14*4, 3*4)
-			gl.vertexAttribPointer(graphics.progs.bloboutline.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
-			gl.drawArrays(gl.POINTS, 0, this.blobspecs[shape].n)
+		gl.clear(gl.COLOR_BUFFER_BIT)
+		gl.disable(gl.SCISSOR_TEST)
+
+		gl.viewport(spot.x0, spot.y0, spot.tilesize, spot.tilesize)
+		if (tilespec.type == "color") {
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+			if (constants.outlinewidth) {
+				graphics.progs.bloboutline.use()
+				graphics.progs.bloboutline.setcanvassize(spot.tilesize, spot.tilesize)
+				graphics.progs.bloboutline.setscale(spot.scale)
+				graphics.progs.bloboutline.setprogress(tilespec.f)
+				graphics.progs.bloboutline.setwidth(constants.outlinewidth)
+				gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[tilespec.shape].buffer)
+				gl.vertexAttribPointer(graphics.progs.bloboutline.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)
+				gl.vertexAttribPointer(graphics.progs.bloboutline.attribs.rad, 1, gl.FLOAT, false, 14*4, 3*4)
+				gl.vertexAttribPointer(graphics.progs.bloboutline.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
+				gl.drawArrays(gl.POINTS, 0, this.blobspecs[tilespec.shape].n)
+			}
+
+			graphics.progs.blob.use()
+			graphics.progs.blob.setcanvassize(spot.tilesize, spot.tilesize)
+			graphics.progs.blob.setscale(spot.scale)
+			graphics.progs.blob.setprogress(tilespec.f)
+			var cs = constants.colors
+			var colormap = cs.system0.concat(cs.system1, cs.system2)
+			graphics.progs.blob.setcolormap(false, colormap)
+			gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[tilespec.shape].buffer)
+
+			gl.vertexAttribPointer(graphics.progs.blob.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)
+			gl.vertexAttribPointer(graphics.progs.blob.attribs.rad, 1, gl.FLOAT, false, 14*4, 3*4)
+			gl.vertexAttribPointer(graphics.progs.blob.attribs.pcolor, 3, gl.FLOAT, false, 14*4, 7*4)
+			gl.vertexAttribPointer(graphics.progs.blob.attribs.acolor, 3, gl.FLOAT, false, 14*4, 10*4)
+			gl.vertexAttribPointer(graphics.progs.blob.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
+			gl.drawArrays(gl.POINTS, 0, this.blobspecs[tilespec.shape].n)
+		} else if (tilespec.type == "normal") {
+			graphics.progs.blobnormal.use()
+			gl.blendFunc(gl.ONE, gl.ZERO)
+			graphics.progs.blobnormal.setcanvassize(spot.tilesize, spot.tilesize)
+			graphics.progs.blobnormal.setscale(spot.scale)
+			graphics.progs.blobnormal.setprogress(tilespec.f)
+			gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[tilespec.shape].buffer)
+
+			gl.vertexAttribPointer(graphics.progs.blobnormal.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)
+			gl.vertexAttribPointer(graphics.progs.blobnormal.attribs.rad, 1, gl.FLOAT, false, 14*4, 3*4)
+			gl.vertexAttribPointer(graphics.progs.blobnormal.attribs.normal, 3, gl.FLOAT, false, 14*4, 4*4)
+			gl.vertexAttribPointer(graphics.progs.blobnormal.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
+			gl.drawArrays(gl.POINTS, 0, this.blobspecs[tilespec.shape].n)
 		}
-
-		graphics.progs.blob.use()
-		graphics.progs.blob.setcanvassize(this.tilesize, this.tilesize)
-		graphics.progs.blob.setscale(this.scale)
-		graphics.progs.blob.setprogress(f)
-		var cs = constants.colors
-		var colormap = cs.system0.concat(cs.system1, cs.system2)
-		graphics.progs.blob.setcolormap(false, colormap)
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[shape].buffer)
-
-		gl.vertexAttribPointer(graphics.progs.blob.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)
-		gl.vertexAttribPointer(graphics.progs.blob.attribs.rad, 1, gl.FLOAT, false, 14*4, 3*4)
-		gl.vertexAttribPointer(graphics.progs.blob.attribs.pcolor, 3, gl.FLOAT, false, 14*4, 7*4)
-		gl.vertexAttribPointer(graphics.progs.blob.attribs.acolor, 3, gl.FLOAT, false, 14*4, 10*4)
-		gl.vertexAttribPointer(graphics.progs.blob.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
-		gl.drawArrays(gl.POINTS, 0, this.blobspecs[shape].n)
-
-		graphics.progs.blobnormal.use()
-		gl.bindFramebuffer(gl.FRAMEBUFFER, this.nfbo)
-		if (clear) {
-			gl.enable(gl.SCISSOR_TEST)
-			gl.scissor(x, y, this.tilesize, this.tilesize)
-			gl.clearColor(0.5, 0.5, 0.5, 1)
-			gl.clear(gl.COLOR_BUFFER_BIT)
-			gl.disable(gl.SCISSOR_TEST)
-		}
-		gl.blendFunc(gl.ONE, gl.ZERO)
-		gl.viewport(x, y, this.tilesize, this.tilesize)
-		graphics.progs.blobnormal.setcanvassize(this.tilesize, this.tilesize)
-		graphics.progs.blobnormal.setscale(this.scale)
-		graphics.progs.blobnormal.setprogress(f)
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[shape].buffer)
-
-		gl.vertexAttribPointer(graphics.progs.blobnormal.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)
-		gl.vertexAttribPointer(graphics.progs.blobnormal.attribs.rad, 1, gl.FLOAT, false, 14*4, 3*4)
-		gl.vertexAttribPointer(graphics.progs.blobnormal.attribs.normal, 3, gl.FLOAT, false, 14*4, 4*4)
-		gl.vertexAttribPointer(graphics.progs.blobnormal.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
-		gl.drawArrays(gl.POINTS, 0, this.blobspecs[shape].n)
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 //		gl.viewport(0, 0, canvas.width, canvas.height)
@@ -206,35 +209,8 @@ var blobscape = {
 
 		// http://stackoverflow.com/questions/5291980/is-regeneration-of-mipmaps-when-using-render-to-target-via-fbos-required
 		gl.activeTexture(gl.TEXTURE0 + 5)
-		gl.bindTexture(gl.TEXTURE_2D, this.ptexture)
+		gl.bindTexture(gl.TEXTURE_2D, this.texture)
 		gl.generateMipmap(gl.TEXTURE_2D)
-		gl.activeTexture(gl.TEXTURE0 + 6)
-		gl.bindTexture(gl.TEXTURE_2D, this.ntexture)
-		gl.generateMipmap(gl.TEXTURE_2D)
-	},
-	
-	gettile: function (shape, f) {
-		if (f === undefined || f == 1) {
-			if (shape in this.made) return this.made[shape]
-			var N = this.made[shape] = this.nmade++
-			this.assemble(N, shape)
-			this.setup()
-			return N
-		} else {
-			f = Math.round(f * constants.growframes) / constants.growframes
-			var spec = shape + "|" + f
-			if (spec in this.qmade) return this.qmade[spec]
-			var N = this.qmade[spec] = this.quick0 + this.jquick
-			this.jquick = (this.jquick + 1) % this.nquick
-			if (this.qspec[N]) {
-				delete this.qmade[this.qspec[N]]
-				delete this.qspec[N]
-			}
-			this.qspec[N] = spec
-			this.assemble(N, shape, f, true)
-			this.setup()
-			return N
-		}
 	},
 	
 	jsquirmindices: {},
@@ -280,14 +256,12 @@ var blobscape = {
 		gl.enable(gl.BLEND)
 		// This blend function is appropriate since the texture has premultiplied alphas.
 		gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
-		graphics.progs.blobrender.setpsampler(5)
-		graphics.progs.blobrender.setnsampler(6)
-		graphics.progs.blobrender.setasampler(7)
-		graphics.progs.blobrender.setntile(this.ntile)
+		graphics.progs.blobrender.setsampler(5)
 		var vs = state.viewstate
 		graphics.progs.blobrender.setcanvassizeD(playpanel.wD, playpanel.hD)
 		graphics.progs.blobrender.setvcenterG(vs.x0G, vs.y0G)
-		graphics.progs.blobrender.setDscaleG(vs.VzoomG)
+		graphics.progs.blobrender.setVscaleG(vs.VzoomG)
+		graphics.progs.blobrender.setscapesize(this.scapesize)
 
 		var tsquirm = Date.now() * 0.001 / constants.Tsquirm % 1
 		graphics.progs.blobrender.settsquirm(tsquirm)
@@ -313,14 +287,26 @@ var blobscape = {
 	},
 	
 	draw: function (part) {
-		var N = this.gettile(part.shape, part.f)
-		var x = N % this.ntile
-		var y = Math.floor(N/this.ntile)
+		var colorspot = this.gettile({
+			shape: part.shape,
+			f: part.f,
+			type: "color",
+		})
+		var normalspot = this.gettile({
+			shape: part.shape,
+			f: part.f,
+			type: "normal",
+		})
 		var C = [1,0.5,-0.5,-1,-0.5,0.5][part.r], S = [0,s3,s3,0,-s3,-s3][part.r]
-		graphics.progs.blobrender.settilelocation(x, y)
+		graphics.progs.blobrender.use()
 		graphics.progs.blobrender.setscenterG(part.pG[0], part.pG[1])
 		graphics.progs.blobrender.setrotC(C)
 		graphics.progs.blobrender.setrotS(S)
+		
+		graphics.progs.blobrender.setDcscaleG(colorspot.scale)
+		graphics.progs.blobrender.setDnscaleG(normalspot.scale)
+		graphics.progs.blobrender.setcposD0(colorspot.cx, colorspot.cy)
+		graphics.progs.blobrender.setnposD0(normalspot.cx, normalspot.cy)
 
 		gl.enableVertexAttribArray(graphics.progs.blobrender.attribs.jsquirm)
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.jsquirmbuffer)
