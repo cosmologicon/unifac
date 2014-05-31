@@ -63,6 +63,8 @@ var playpanel = Panel({
 //		graphics.drawunitsquare(graphics.progs.checker.attribs.pos)
 
 		debugHUD.starttimer("blobsetup")
+
+/*
 		state.parts.forEach(function (part) {
 			if (playpanel.GfromvisibleG(part.pG) < 1.1) {
 				blobscape.gettile(part.shape, part.f)
@@ -73,6 +75,7 @@ var playpanel = Panel({
 				blobscape.gettile(stump.shape, stump.parent.f)
 			}
 		})
+*/
 		graphics.setviewportD(this.xD, this.yD, this.wD, this.hD)
 		blobscape.setup()
 		debugHUD.stoptimer("blobsetup")
@@ -138,7 +141,7 @@ var stalkpanel = Panel({
 			blobscape.setup()
 			graphics.progs.blobrender.setcanvassizeD(this.wD, this.hD)
 			graphics.progs.blobrender.setvcenterG(0, 0)
-			graphics.progs.blobrender.setDscaleG(Math.min(this.wD, this.hD) / 2)
+			graphics.progs.blobrender.setVscaleG(Math.min(this.wD, this.hD) / 2)
 			graphics.progs.blobrender.setfsquirm(0)
 			graphics.progs.blobrender.setplight0(0, 0, 100, 0)
 
@@ -160,6 +163,19 @@ var stalkpanel = Panel({
 			var branches = UFX.random.choice(["1", "2", "3", "4", "5", "13", "14", "23", "24", "25", "34", "35"])
 			controlstate.selectedshape = "stalk" + jsystem + branches
 			state.sethighlight(controlstate.selectedshape)
+
+			for (var f = 0 ; f < 1 ; f += 0.01) {
+				blobscape.gettile({
+					shape: controlstate.selectedshape,
+					f: f,
+					type: "color",
+				})
+				blobscape.gettile({
+					shape: controlstate.selectedshape,
+					f: f,
+					type: "normal",
+				})
+			}
 		}
 	},
 	handletap: function (cevent) {
