@@ -53,7 +53,7 @@ var blobscape = {
 
 		// Block subscale ranges. Each available subscale is allocated a certain number (bsrangen)
 		// of blocks, starting from a certain block (bsrange0).
-		this.bsrangen = { 2: 10, 4: 10 }
+		this.bsrangen = { 2: 40, 4: 10 }
 		this.bsrange0 = {}
 		var t = 0
 		for (var subscale in this.bsrangen) {
@@ -62,6 +62,11 @@ var blobscape = {
 		}
 		this.bsrange0[1] = t
 		this.bsrangen[1] = this.tblocks - t
+		// total number of spots of each subscale
+		this.bsranges = {}
+		for (var subscale in this.bsrangen) {
+			this.bsranges[subscale] = this.bsrangen[subscale] * +subscale * +subscale
+		}
 		
 		// Map from spotspec to spot info
 		this.spotinfo = {}
@@ -97,6 +102,21 @@ var blobscape = {
 		// Reverse lookup (map from spotspec to tilespec)
 		this.tiles = {}
 
+		// An incremental counter to keep track of the relative last time that a given tile was
+		// requested.
+		this.tick = 1
+		this.lastrequest = {}
+		
+		// For each subscale, a list of the currently claimed tiles. This list is sorted by last
+		// request to determine which claim to give up.
+		// At any given time, the sum of these lists should match the keys of this.spots.
+		this.claimedtiles = {}
+		for (var subscale in this.bsrangen) this.claimedtiles[subscale] = []
+
+		this.assembledtiles = {}
+		this.assemblyprogress = {}
+		this.assemblyqueue = []
+
 		this.posbuffer = gl.createBuffer()
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.posbuffer)
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0,-1,0,-0.5,-s3,0.5,-s3,1,0,0.5,s3,-0.5,s3,-1,0]), gl.STATIC_DRAW)
@@ -112,6 +132,9 @@ var blobscape = {
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.shadefactordata), gl.STATIC_DRAW)
 
 		// https://www.khronos.org/registry/webgl/sdk/tests/conformance/textures/mipmap-fbo.html
+
+		// I've tried just about every possible combination of mipmap filtering. It still looks
+		// terrible on my phone. Is there something I'm missing....?
 
 		// The primary color channel framebuffer
 		gl.activeTexture(gl.TEXTURE0 + 5)
@@ -136,7 +159,7 @@ var blobscape = {
 		gl.bindTexture(gl.TEXTURE_2D, this.ntexture)
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.scapesize, this.scapesize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, this.scapesize, this.scapesize, 0, gl.RGB, gl.UNSIGNED_BYTE, null)
 		gl.bindTexture(gl.TEXTURE_2D, null)
 
 		this.nfbo = gl.createFramebuffer()
@@ -150,25 +173,77 @@ var blobscape = {
 		gl.activeTexture(gl.TEXTURE0)
 	},
 
-	// Get the tile spot (position) information (and claim the tile spot if it doesn't exist).
-	getspot: function (tilespecid, subscale) {
-		if (this.spots[tilespecid]) return this.spots[tilespecid]
-		for (var jspot = 0 ; this.tiles[subscale + "" + jspot] ; ++jspot);
-		var spotspec = subscale + "" + jspot
-		this.spots[tilespecid] = [subscale, jspot]
-		this.tiles[spotspec] = tilespecid
-		return this.spots[tilespecid]
+	// Notify this module of upcoming tiles. Tiles will be added to the queue for assembly.
+	addtiles: function (tilespecs) {
+		for (var j = 0 ; j < tilespecs.length ; ++j) {
+			var tilespec = tilespecs[j]
+			this.normalizetilespec(tilespec)
+			this.getspotspec(tilespec)
+			this.lastrequest[tilespec.id] = this.tick++
+		}
+	},
+	
+	// Add all tiles corresponding to the given shape (ie, for all values of f).
+	addshape: function (shape) {
+		var tilespecs = []
+		for (var j = 0 ; j <= constants.growframes ; ++j) {
+			tilespecs.push({
+				shape: shape,
+				f: j / constants.growframes,
+			})
+		}
+		this.addtiles(tilespecs)
 	},
 
-	assembledtiles: {},
-	getspotinfo: function (tilespec) {
+	// Claim a spot for the given tilespec
+	claimspot: function (tilespec) {
+		var subscale = tilespec.subscale
+		var claimedtiles = this.claimedtiles[subscale], jspot
+		if (claimedtiles.length == this.bsranges[subscale]) {
+			var reqs = this.lastrequest
+			claimedtiles.sort(function (a, b) { return reqs[a] - reqs[b] })
+			var oldtilespecid = claimedtiles.shift()
+			var oldspotspec = this.spots[oldtilespecid]
+			delete this.spots[oldtilespecid]
+			delete this.assembledtiles[oldtilespecid]
+			delete this.assemblyprogress[oldtilespecid]
+			jspot = oldspotspec.jspot
+		} else {
+			jspot = claimedtiles.length
+		}
+		var spotspec = {
+			subscale: subscale,
+			jspot: jspot,
+			id: subscale + "-" + jspot,
+		}
+		claimedtiles.push(tilespec.id)
+		this.spots[tilespec.id] = spotspec
+		this.tiles[spotspec.id] = tilespec
+		this.assemblyprogress[tilespec.id] = 1
+		this.assemblyqueue.push(tilespec)
+		return this.spots[tilespec.id]
+	},
+
+	// Get the tile spot (position) spec (and claim the tile spot if it doesn't exist).
+	getspotspec: function (tilespec) {
+		if (this.spots[tilespec.id]) return this.spots[tilespec.id]
+		return this.claimspot(tilespec)
+	},
+	
+	normalizetilespec: function (tilespec) {
 		tilespec.f = "f" in tilespec ? Math.round(tilespec.f * constants.growframes) / constants.growframes : 1
-		var tilespecid = ([tilespec.shape, tilespec.f]).join("")
-		var subscale = tilespec.f == 1 ? 1 : 4
-		var spotinfo = this.spotinfo[this.getspot(tilespecid, subscale).join("-")]
-		if (!this.assembledtiles[tilespecid]) {
-			this.assemble(tilespec, spotinfo)
-			this.assembledtiles[tilespecid] = true
+		tilespec.id = tilespec.shape + "-" + tilespec.f
+		tilespec.subscale = tilespec.f == 1 ? 1 : 2
+	},
+
+	getspotinfo: function (tilespec) {
+		this.normalizetilespec(tilespec)
+		this.lastrequest[tilespec.id] = this.tick++
+		var spotspecid = this.getspotspec(tilespec).id
+		var spotinfo = this.spotinfo[spotspecid]
+		if (!spotinfo) throw "Failure to get spot info for " + spotspecid
+		if (!this.assembledtiles[tilespec.id]) {
+			this.completeassembly(tilespec, spotinfo)
 		}
 		return spotinfo
 	},
@@ -198,36 +273,132 @@ var blobscape = {
 		gl.drawArrays(gl.POINTS, 0, this.blobspecs[shape].n)
 	},
 	
-	// Render the given shape to the blobscape
-	assemble: function (tilespec, spot) {
+	// Complete the assembly of the given tilespec
+	completeassembly: function (tilespec, spotinfo) {
 		if (!this.blobspecs[tilespec.shape]) this.build(tilespec.shape)
 
-		gl.bindFramebuffer(gl.FRAMEBUFFER, this.cfbo)
-		gl.enable(gl.BLEND)
+		// Fallthrough intentionally used here.
+		switch (this.assemblyprogress[tilespec.id]) {
+			case 0: case undefined:
+				throw "assemble called on unclaimed tile " + tilespec
+			case 1: case 2:
+				this.clearctexture(tilespec, spotinfo)
+			case 3:
+				this.drawoutline(tilespec, spotinfo)
+			case 4:
+				this.drawblobcolor(tilespec, spotinfo)
+			case 5:
+				this.clearntexture(tilespec, spotinfo)
+			case 6:
+				this.drawblobnormal(tilespec, spotinfo)
+			case 7:
+				this.updatemipmap()
+		}
+	},
 
+	workonassembly: function (tilespec, spotinfo) {
+		if (!this.blobspecs[tilespec.shape]) {
+			this.build(tilespec.shape)
+			return
+		}
+
+		// Fallthrough intentionally used here.
+		switch (this.assemblyprogress[tilespec.id]) {
+			case 0: case undefined:
+				throw "assemble called on unclaimed tile " + tilespec
+			case 1: case 2:
+				this.clearctexture(tilespec, spotinfo)
+				return
+			case 3:
+				this.drawoutline(tilespec, spotinfo)
+				return
+			case 4:
+				this.drawblobcolor(tilespec, spotinfo)
+				return
+			case 5:
+				this.clearntexture(tilespec, spotinfo)
+				return
+			case 6:
+				this.drawblobnormal(tilespec, spotinfo)
+				return
+			case 7:
+				this.updatemipmap()
+				return
+		}
+	},
+	
+	killtime: function () {
+		var tilespec = this.assemblyqueue[0]
+		if (!tilespec) return
+		if (this.assemblyprogress[tilespec.id] >= 8) {
+			this.assemblyqueue.shift()
+			return
+		}
+		// TODO: handle the case where this tilespec is pre-empted by another claim before being worked on.
+		var spotspecid = this.getspotspec(tilespec).id
+		var spotinfo = this.spotinfo[spotspecid]
+		this.workonassembly(tilespec, spotinfo)
+	},
+	
+	updatemipmap: function () {
+		// http://stackoverflow.com/questions/5291980/is-regeneration-of-mipmaps-when-using-render-to-target-via-fbos-required
+		gl.activeTexture(gl.TEXTURE0 + 5)
+		gl.bindTexture(gl.TEXTURE_2D, this.ctexture)
+		gl.generateMipmap(gl.TEXTURE_2D)
+		gl.activeTexture(gl.TEXTURE0 + 6)
+		gl.bindTexture(gl.TEXTURE_2D, this.ntexture)
+		gl.generateMipmap(gl.TEXTURE_2D)
+		gl.activeTexture(gl.TEXTURE0)
+		for (var tilespecid in this.assemblyprogress) {
+			if (this.assemblyprogress[tilespecid] == 7) {
+				this.assemblyprogress[tilespecid] = 8
+				this.assembledtiles[tilespecid] = true
+			}
+		}
+	},
+
+	// Assembly step 1: clear color texture
+	clearctexture: function (tilespec, spotinfo) {
+		this.assemblyprogress[tilespec.id] = 3
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.cfbo)
 		gl.enable(gl.SCISSOR_TEST)
-		gl.scissor(spot.x0, spot.y0, spot.spotsize, spot.spotsize)
+		gl.scissor(spotinfo.x0, spotinfo.y0, spotinfo.spotsize, spotinfo.spotsize)
 		gl.clearColor(0, 0, 0, 0)
 		gl.clear(gl.COLOR_BUFFER_BIT)
 		gl.disable(gl.SCISSOR_TEST)
-
-		gl.viewport(spot.x0, spot.y0, spot.spotsize, spot.spotsize)
-		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-		if (constants.outlinewidth) {
-			graphics.progs.bloboutline.use()
-			graphics.progs.bloboutline.setcanvassize(spot.spotsize, spot.spotsize)
-			graphics.progs.bloboutline.setscale(spot.scale)
-			graphics.progs.bloboutline.setprogress(tilespec.f)
-			graphics.progs.bloboutline.setwidth(constants.outlinewidth)
-			gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[tilespec.shape].buffer)
-			gl.vertexAttribPointer(graphics.progs.bloboutline.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)
-			gl.vertexAttribPointer(graphics.progs.bloboutline.attribs.rad, 1, gl.FLOAT, false, 14*4, 3*4)
-			gl.vertexAttribPointer(graphics.progs.bloboutline.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
-			gl.drawArrays(gl.POINTS, 0, this.blobspecs[tilespec.shape].n)
-		}
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+	},
+	// Assembly step 2: draw outline
+	drawoutline: function (tilespec, spotinfo) {
+		this.assemblyprogress[tilespec.id] = 4
+		if (!constants.outlinewidth) return
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.cfbo)
+		gl.viewport(spotinfo.x0, spotinfo.y0, spotinfo.spotsize, spotinfo.spotsize)
+		gl.disable(gl.DEPTH_TEST)
+		gl.disable(gl.BLEND)
+		graphics.progs.bloboutline.use()
+		graphics.progs.bloboutline.setcanvassize(spotinfo.spotsize, spotinfo.spotsize)
+		graphics.progs.bloboutline.setscale(spotinfo.scale)
+		graphics.progs.bloboutline.setprogress(tilespec.f)
+		graphics.progs.bloboutline.setwidth(constants.outlinewidth)
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[tilespec.shape].buffer)
+		gl.vertexAttribPointer(graphics.progs.bloboutline.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)
+		gl.vertexAttribPointer(graphics.progs.bloboutline.attribs.rad, 1, gl.FLOAT, false, 14*4, 3*4)
+		gl.vertexAttribPointer(graphics.progs.bloboutline.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
+		gl.drawArrays(gl.POINTS, 0, this.blobspecs[tilespec.shape].n)
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+		gl.viewport(0, 0, canvas.width, canvas.height)
+	},
+	// Assembly step 3: draw color channel
+	drawblobcolor: function (tilespec, spotinfo) {
+		this.assemblyprogress[tilespec.id] = 5
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.cfbo)
+		gl.viewport(spotinfo.x0, spotinfo.y0, spotinfo.spotsize, spotinfo.spotsize)
+		gl.disable(gl.DEPTH_TEST)
+		gl.disable(gl.BLEND)
 		graphics.progs.blob.use()
-		graphics.progs.blob.setcanvassize(spot.spotsize, spot.spotsize)
-		graphics.progs.blob.setscale(spot.scale)
+		graphics.progs.blob.setcanvassize(spotinfo.spotsize, spotinfo.spotsize)
+		graphics.progs.blob.setscale(spotinfo.scale)
 		graphics.progs.blob.setprogress(tilespec.f)
 		var cs = constants.colors
 		var colormap = cs.system0.concat(cs.system1, cs.system2)
@@ -240,19 +411,30 @@ var blobscape = {
 		gl.vertexAttribPointer(graphics.progs.blob.attribs.acolor, 3, gl.FLOAT, false, 14*4, 10*4)
 		gl.vertexAttribPointer(graphics.progs.blob.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
 		gl.drawArrays(gl.POINTS, 0, this.blobspecs[tilespec.shape].n)
-
-
-
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+		gl.viewport(0, 0, canvas.width, canvas.height)
+	},
+	// Assembly step 4: clear normal texture
+	clearntexture: function (tilespec, spotinfo) {
+		this.assemblyprogress[tilespec.id] = 6
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.nfbo)
-		graphics.progs.blobnormal.use()
 		gl.enable(gl.SCISSOR_TEST)
-		gl.scissor(spot.x0, spot.y0, spot.spotsize, spot.spotsize)
+		gl.scissor(spotinfo.x0, spotinfo.y0, spotinfo.spotsize, spotinfo.spotsize)
 		gl.clearColor(0.5, 0.5, 0.5, 1)
 		gl.clear(gl.COLOR_BUFFER_BIT)
 		gl.disable(gl.SCISSOR_TEST)
-		gl.blendFunc(gl.ONE, gl.ZERO)
-		graphics.progs.blobnormal.setcanvassize(spot.spotsize, spot.spotsize)
-		graphics.progs.blobnormal.setscale(spot.scale)
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+	},
+	// Assembly step 5: draw blob normal channel
+	drawblobnormal: function (tilespec, spotinfo) {
+		this.assemblyprogress[tilespec.id] = 7
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.nfbo)
+		gl.viewport(spotinfo.x0, spotinfo.y0, spotinfo.spotsize, spotinfo.spotsize)
+		gl.disable(gl.DEPTH_TEST)
+		gl.disable(gl.BLEND)
+		graphics.progs.blobnormal.use()
+		graphics.progs.blobnormal.setcanvassize(spotinfo.spotsize, spotinfo.spotsize)
+		graphics.progs.blobnormal.setscale(spotinfo.scale)
 		graphics.progs.blobnormal.setprogress(tilespec.f)
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[tilespec.shape].buffer)
 
@@ -261,20 +443,8 @@ var blobscape = {
 		gl.vertexAttribPointer(graphics.progs.blobnormal.attribs.normal, 3, gl.FLOAT, false, 14*4, 4*4)
 		gl.vertexAttribPointer(graphics.progs.blobnormal.attribs.f, 1, gl.FLOAT, false, 14*4, 13*4)
 		gl.drawArrays(gl.POINTS, 0, this.blobspecs[tilespec.shape].n)
-
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 		gl.viewport(0, 0, canvas.width, canvas.height)
-		gl.disable(gl.DEPTH_TEST)
-
-		// http://stackoverflow.com/questions/5291980/is-regeneration-of-mipmaps-when-using-render-to-target-via-fbos-required
-		gl.activeTexture(gl.TEXTURE0 + 5)
-		gl.bindTexture(gl.TEXTURE_2D, this.ctexture)
-		gl.generateMipmap(gl.TEXTURE_2D)
-		gl.activeTexture(gl.TEXTURE0 + 6)
-		gl.bindTexture(gl.TEXTURE_2D, this.ntexture)
-		gl.generateMipmap(gl.TEXTURE_2D)
-		gl.activeTexture(gl.TEXTURE0)
-
 	},
 	
 	jsquirmindices: {},
@@ -350,7 +520,7 @@ var blobscape = {
 		gl.vertexAttribPointer(graphics.progs.blobrender.attribs.shadefactor, 1, gl.FLOAT, false, 0, shadeindex)
 
 	},
-	
+
 	draw: function (part) {
 		var spotinfo = this.getspotinfo({
 			shape: part.shape,
@@ -378,6 +548,22 @@ var blobscape = {
 
 		gl.drawArrays(gl.TRIANGLE_FAN, 0, 8)
 	},
+
+	predrawparts: function (parts) {
+		for (var j = 0 ; j < parts.length ; ++j) {
+			this.getspotinfo({
+				shape: parts[j].shape,
+				f: parts[j].f,
+			})
+		}
+	},
+	drawparts: function (parts) {
+		this.setup()
+		for (var j = 0 ; j < parts.length ; ++j) {
+			this.draw(parts[j])
+		}
+	},
+
 }
 
 

@@ -35,6 +35,7 @@ var background = {
 		this.ngrid = edgedata.length / 2
 	},
 	drawstarscape: function () {
+		gl.disable(gl.BLEND)
 		graphics.progs.starscape.use()
 		graphics.progs.starscape.setcanvassizeD(playpanel.wD, playpanel.hD)
 		graphics.progs.starscape.setvcenterG(state.viewstate.x0G, state.viewstate.y0G)
