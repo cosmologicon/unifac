@@ -62,22 +62,21 @@ var playpanel = Panel({
 //		graphics.progs.checker.setzoom(vs.VzoomG)
 //		graphics.drawunitsquare(graphics.progs.checker.attribs.pos)
 
-		debugHUD.starttimer("blobsetup")
-
-		graphics.setviewportD(this.xD, this.yD, this.wD, this.hD)
-		blobscape.setup()
-		debugHUD.stoptimer("blobsetup")
 		debugHUD.starttimer("blobdraw")
+		var parts = []
 		state.parts.forEach(function (part) {
 			if (playpanel.GfromvisibleG(part.pG) < 1.1) {
-				blobscape.draw(part)
+				parts.push(part)
 			}
 		})
 		state.stumps.forEach(function (stump) {
 			if (playpanel.GfromvisibleG(stump.pG) < 1.1) {
-				blobscape.draw(stump)
+				parts.push(stump)
 			}
 		})
+		blobscape.predrawparts(parts)
+		graphics.setviewportD(this.xD, this.yD, this.wD, this.hD)
+		blobscape.drawparts(parts)
 		debugHUD.stoptimer("blobdraw")
 	},
 	handlelclick: function (cevent) {
@@ -126,6 +125,11 @@ var stalkpanel = Panel({
 		graphics.drawunitsquare(graphics.progs.uniform.attribs.pos)
 
 		if (controlstate.selectedshape) {
+			blobscape.getspotinfo({
+				shape: controlstate.selectedshape,
+				f: 1,
+			})
+			graphics.setviewportD(this.xD, this.yD, this.wD, this.hD)
 			blobscape.setup()
 			graphics.progs.blobrender.setcanvassizeD(this.wD, this.hD)
 			graphics.progs.blobrender.setvcenterG(0, 0)
@@ -151,13 +155,7 @@ var stalkpanel = Panel({
 			var branches = UFX.random.choice(["1", "2", "3", "4", "5", "13", "14", "23", "24", "25", "34", "35"])
 			controlstate.selectedshape = "stalk" + jsystem + branches
 			state.sethighlight(controlstate.selectedshape)
-
-			for (var f = 0 ; f < 1 ; f += 0.01) {
-				blobscape.getspotinfo({
-					shape: controlstate.selectedshape,
-					f: f,
-				})
-			}
+			blobscape.addshape(controlstate.selectedshape)
 		}
 	},
 	handletap: function (cevent) {

@@ -101,6 +101,8 @@ UFX.scenes.play = {
 		this.fsquirm = clamp(this.fsquirm + 0.5 * dt * (this.squirming ? 1 : -1), 0, 1)
 	},
 	draw: function () {
+		blobscape.killtime()
+		blobscape.killtime()
 		graphics.clear()
 		
 		debugHUD.starttimer("paneldraw")
