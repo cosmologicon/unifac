@@ -64,7 +64,7 @@ var playpanel = Panel({
 
 		debugHUD.starttimer("blobdraw")
 		var parts = []
-		state.parts.forEach(function (part) {
+		state.stalks.forEach(function (part) {
 			if (playpanel.GfromvisibleG(part.pG) < 1.1) {
 				parts.push(part)
 			}
@@ -72,6 +72,11 @@ var playpanel = Panel({
 		state.stumps.forEach(function (stump) {
 			if (playpanel.GfromvisibleG(stump.pG) < 1.1) {
 				parts.push(stump)
+			}
+		})
+		state.organs.forEach(function (part) {
+			if (playpanel.GfromvisibleG(part.pG) < 1.1) {
+				parts.push(part)
 			}
 		})
 		blobscape.predrawparts(parts)
@@ -151,9 +156,14 @@ var stalkpanel = Panel({
 		if (controlstate.selectedshape) {
 			delete controlstate.selectedshape
 		} else {
-			var jsystem = UFX.random.choice(["0", "1", "2"])
-			var branches = UFX.random.choice(["1", "2", "3", "4", "5", "13", "14", "23", "24", "25", "34", "35"])
-			controlstate.selectedshape = "stalk" + jsystem + branches
+			if (UFX.random() < 0.3) {
+				var jsystem = UFX.random.choice(["0", "1", "2"])
+				controlstate.selectedshape = "organ" + jsystem
+			} else {
+				var jsystem = UFX.random.choice(["0", "1", "2"])
+				var branches = UFX.random.choice(["1", "2", "3", "4", "5", "13", "14", "23", "24", "25", "34", "35"])
+				controlstate.selectedshape = "stalk" + jsystem + branches
+			}
 			state.sethighlight(controlstate.selectedshape)
 			blobscape.addshape(controlstate.selectedshape)
 		}

@@ -34,6 +34,13 @@ var constants = {
 	blobsize: {
 		sphere: { min: 0.02, max: 0.08, density: 4000 },
 		stalk: { min: 0.03, max: 0.08, density: 16000 },
+		ball: function (R) {
+			return {
+				min: 0.02,
+				max: 0.08,
+				density: 14000,
+			}
+		},
 	},
 	normaljitter: 0.2,
 	stalkwidth: 0.13,
