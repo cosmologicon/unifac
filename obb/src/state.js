@@ -18,8 +18,12 @@ function State() {
 		children: {},
 	}
 	this.parts = [core]
+	this.stalks = []
+	this.organs = [core]
 	this.stumps = []
 	this.partsbyedgeN = {}  // map pN -> part
+	this.organsbyhexN = {}  // map pN -> organ
+	this.organsbyhexN[NconvertH(core.pH)] = core
 	var that = this
 	;[0, 1, 2, 0, 1, 2].forEach(function (jsystem, jedge) {
 		that.addstump(core, jedge, jsystem)
@@ -55,6 +59,10 @@ State.prototype = {
 			var jsystem = +partshape[5], stumpjsystem = +stumpshape[5]
 			return jsystem == stumpjsystem
 		}
+		if (partshape.substr(0, 5) == "organ") {
+			var jsystem = +partshape[5], stumpjsystem = +stumpshape[5]
+			return jsystem == stumpjsystem
+		}
 		return false
 	},
 
@@ -71,6 +79,8 @@ State.prototype = {
 				var oedgeN = NconvertH(HedgeofhexH(pH, oedge))
 				if (this.partsbyedgeN[oedgeN]) return false
 			}
+		} else {
+			if (this.organsbyhexN[NconvertH(stump.pH)]) return false
 		}
 		return true
 	},
@@ -99,6 +109,10 @@ State.prototype = {
 				var jedge = +shape[j]
 				this.addstump(part, jedge, jsystem)
 			}
+			this.stalks.push(part)
+		} else {
+			this.organsbyhexN[NconvertH(pH)] = part
+			this.organs.push(part)
 		}
 		return part
 	},

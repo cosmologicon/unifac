@@ -53,7 +53,7 @@ var blobscape = {
 
 		// Block subscale ranges. Each available subscale is allocated a certain number (bsrangen)
 		// of blocks, starting from a certain block (bsrange0).
-		this.bsrangen = { 2: 40, 4: 10 }
+		this.bsrangen = { 2: 40 }
 		this.bsrange0 = {}
 		var t = 0
 		for (var subscale in this.bsrangen) {
@@ -233,7 +233,7 @@ var blobscape = {
 	normalizetilespec: function (tilespec) {
 		tilespec.f = "f" in tilespec ? Math.round(tilespec.f * constants.growframes) / constants.growframes : 1
 		tilespec.id = tilespec.shape + "-" + tilespec.f
-		tilespec.subscale = tilespec.f == 1 ? 1 : 2
+		tilespec.subscale = tilespec.f == 1 ? 1 : 1
 	},
 
 	getspotinfo: function (tilespec) {

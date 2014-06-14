@@ -54,6 +54,16 @@ var geometry = {
 		} else if (shape.indexOf("stump") == 0) {
 			var jsystem = +shape[5]
 			data = this.stalkjoiner(0, false, true, jsystem).concat(this.buildstump(jsystem))
+		} else if (shape.indexOf("organ") == 0) {  // generic ball-shaped organ
+			var jsystem = +shape[5]
+			var T0 = 0.5
+			data = data.concat(
+				this.stalkjoiner(0, false, false, jsystem),
+				this.buildstalk(0, T0, 3, T0, jsystem, 0.5),
+				this.buildball(0, 0, 0.32, jsystem, null, 0.5, 0.95),
+				this.buildball(0, -0.24, 0.16, jsystem, null, 0.3, 0.6)
+			)
+			//data.push([0, 0, 1, 0.28, 0, 0, 0, 0, 0, 0, 0.8, 0.8, 0.8, 0.99])
 		}
 
 		if (!data.length) throw "unrecognized blob shape " + shape
@@ -125,7 +135,7 @@ var geometry = {
 	// well. Finally, there's a correction term depending on the segment's curvature, so that more
 	// blobs get placed on the outside curve to keep the density of blobs more uniform.
 	// See notebook pages dated 08-11 Feb 2014 for more information.
-	buildstalk: function (edge0, T0, edge1, T1, jsystem) {
+	buildstalk: function (edge0, T0, edge1, T1, jsystem, hmax) {
 		var color = [0, 0, 0]
 		color[jsystem] = 0.6
 		// Bezier control points and differences between them.
@@ -150,6 +160,7 @@ var geometry = {
 		for (var j = 0 ; j < hs.length ; ++j) {
 			// Generate the position and tangent for each segment boundary.
 			var h = hs[j], g = 1 - h
+			if (hmax !== undefined && h > hmax) break
 			// p_j is the position at the beginning of the jth segment.
 			var p = [
 				g*g*g*x0 + 3*g*h*(g*x1+h*x2) + h*h*h*x3,
@@ -421,6 +432,36 @@ var geometry = {
 			var C = -g * s
 			var f = clamp(1 + constants.stumplength * constants.growdf0 * (C/constants.stumplength + d*d/(w*w) - 1), 0.01, 0.99)
 			data.push([x, y, z, r, nx, ny, nz, c0, c1, c2, ar, ag, ab, f])
+		}
+		return data
+	},
+	buildball: function (x0, y0, R, jsystem, acolor, f0, f1) {
+		var data = []
+		var color = [0, 0, 0]
+		if (jsystem === 0 || jsystem == 1 || jsystem == 2) color[jsystem] = 0.6
+		acolor = acolor || [0, 0, 0]
+		// TODO: the ball density and constants should actually depend on R
+		var blobsize = constants.blobsize.ball(R)
+		var nblob = blobsize.density * 4.189 * R * R * R
+		var nj = constants.normaljitter
+		while (data.length < nblob) {
+			var x = UFX.random(-R, R)
+			var y = UFX.random(-R, R)
+			var z = UFX.random(-R, R)
+			var r = UFX.random(blobsize.min, blobsize.max)
+			var d = Math.sqrt(x * x + y * y + z * z)
+			if (d > R || d < 0.0001) continue
+			var nx = x/d + UFX.random(-nj, nj)
+			var ny = y/d + UFX.random(-nj, nj)
+			var nz = z/d + UFX.random(-nj, nj)
+			var c1 = color[0]
+			var c2 = color[1]
+			var c3 = color[2]
+			var ar = acolor[0] * 0.6
+			var ag = acolor[1] * 0.6
+			var ab = acolor[2] * 0.6
+			var f = d/R * (f1 - f0) + f0
+			data.push([x0+x, y0+y, z, r, nx, ny, nz, c1, c2, c3, ar, ag, ab, f])
 		}
 		return data
 	},
