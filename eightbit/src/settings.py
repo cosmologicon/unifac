@@ -7,6 +7,8 @@ lowres = "--lowres" in sys.argv
 fullscreen = "--fullscreen" in sys.argv
 reset = "--reset" in sys.argv
 easy = "--easy" in sys.argv
+nosfx = "--nosfx" in sys.argv or "--noaudio" in sys.argv
+nomusic = "--nomusic" in sys.argv or "--noaudio" in sys.argv
 
 size = sX, sY = 540, 720
 fps = 60

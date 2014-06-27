@@ -11,6 +11,8 @@ clock = time.Clock()
 mixer.pre_init(22050, -16, 2, 0)
 flags = FULLSCREEN if settings.fullscreen else 0
 display.set_mode(settings.size, flags)
+display.set_caption(settings.gamename + " | Loading...")
+mouse.set_visible(not settings.fullscreen)
 img.preload()
 init()
 display.set_caption(settings.gamename)

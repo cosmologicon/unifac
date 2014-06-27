@@ -132,6 +132,10 @@ class PirateShip(Ship):
 		self.layers = piratelayers(level)
 	def think(self, dt):
 		Ship.think(self, dt)
+	def die(self):
+		Ship.die(self)
+		sound.playsound("kill")
+
 
 class MineShip(PirateShip):
 	def fire(self, dt):
