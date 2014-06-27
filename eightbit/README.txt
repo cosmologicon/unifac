@@ -7,16 +7,29 @@ Team: Universe Factory 18
 Members: Cosmologicon (Christopher Night)
 
 
+Dependencies
+------------
+
+This game was developed with Python 2.7.3 and Pygame 1.9.1. These can be downloaded at:
+
+  https://www.python.org/download/releases/2.7.6/
+  http://www.pygame.org/download.shtml
+
+On Ubuntu:
+
+  sudo apt-get install python python-pygame
+
+
 Running the Game
 ----------------
 
 On Windows or Mac OS X, locate the "run_game.pyw" file and double-click it.
 
-Othewise open a terminal / console and "cd" to the game directory and run:
+Otherwise open a terminal / console and "cd" to the game directory and run:
 
   python run_game.py [flags]
 
-See below for available flags
+See below for available flags.
 
 
 Story
@@ -40,33 +53,33 @@ How to Play the Game
 --------------------
 
 Left/right or A/D: move
-Up or down or space: jump
-Esc: quit
+Up or down or W or S or space: jump
+Esc or P: pause/quit
 F12: screenshot
 
 
 Command line flags
 ------------------
 
---fullscreen
+  --fullscreen
 
---lowres: disable some special effects for a higher framerate
+  --lowres: disable some special effects for a higher framerate
 
---easy: easy mode [triple health]
+  --easy: easy mode [triple health]
 
---nosfx: disable sound effects
+  --nosfx: disable sound effects
 
---nomusic: disable music
+  --nomusic: disable music
 
---noaudio: disable sound effects and music
+  --noaudio: disable sound effects and music
 
---reset: delete saved game and start from beginning
+  --reset: delete saved game and start from beginning
 
 
 License
 -------
 
-Code is by Christopher Night and is licensed CC0/WTFPL/whatever.
+Source code and images are by Christopher Night. They are licensed CC0/WTFPL/whatever.
 
 Font is the Google Web Font "Trade Winds", distributed under Open Font License.
 See font/Trade_Winds/OFL.txt.
