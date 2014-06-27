@@ -62,31 +62,26 @@ var playpanel = Panel({
 //		graphics.progs.checker.setzoom(vs.VzoomG)
 //		graphics.drawunitsquare(graphics.progs.checker.attribs.pos)
 
-		debugHUD.starttimer("blobsetup")
-		state.parts.forEach(function (part) {
-			if (playpanel.GfromvisibleG(part.pG) < 1.1) {
-				blobscape.gettile(part.shape, part.f)
-			}
-		})
-		state.stumps.forEach(function (stump) {
-			if (playpanel.GfromvisibleG(stump.pG) < 1.1) {
-				blobscape.gettile(stump.shape, stump.parent.f)
-			}
-		})
-		graphics.setviewportD(this.xD, this.yD, this.wD, this.hD)
-		blobscape.setup()
-		debugHUD.stoptimer("blobsetup")
 		debugHUD.starttimer("blobdraw")
-		state.parts.forEach(function (part) {
+		var parts = []
+		state.stalks.forEach(function (part) {
 			if (playpanel.GfromvisibleG(part.pG) < 1.1) {
-				blobscape.draw(part)
+				parts.push(part)
 			}
 		})
 		state.stumps.forEach(function (stump) {
 			if (playpanel.GfromvisibleG(stump.pG) < 1.1) {
-				blobscape.draw(stump)
+				parts.push(stump)
 			}
 		})
+		state.organs.forEach(function (part) {
+			if (playpanel.GfromvisibleG(part.pG) < 1.1) {
+				parts.push(part)
+			}
+		})
+		blobscape.predrawparts(parts)
+		graphics.setviewportD(this.xD, this.yD, this.wD, this.hD)
+		blobscape.drawparts(parts)
 		debugHUD.stoptimer("blobdraw")
 	},
 	handlelclick: function (cevent) {
@@ -135,10 +130,15 @@ var stalkpanel = Panel({
 		graphics.drawunitsquare(graphics.progs.uniform.attribs.pos)
 
 		if (controlstate.selectedshape) {
+			blobscape.getspotinfo({
+				shape: controlstate.selectedshape,
+				f: 1,
+			})
+			graphics.setviewportD(this.xD, this.yD, this.wD, this.hD)
 			blobscape.setup()
 			graphics.progs.blobrender.setcanvassizeD(this.wD, this.hD)
 			graphics.progs.blobrender.setvcenterG(0, 0)
-			graphics.progs.blobrender.setDscaleG(Math.min(this.wD, this.hD) / 2)
+			graphics.progs.blobrender.setVscaleG(Math.min(this.wD, this.hD) / 2)
 			graphics.progs.blobrender.setfsquirm(0)
 			graphics.progs.blobrender.setplight0(0, 0, 100, 0)
 
@@ -156,10 +156,16 @@ var stalkpanel = Panel({
 		if (controlstate.selectedshape) {
 			delete controlstate.selectedshape
 		} else {
-			var jsystem = UFX.random.choice(["0", "1", "2"])
-			var branches = UFX.random.choice(["1", "2", "3", "4", "5", "13", "14", "23", "24", "25", "34", "35"])
-			controlstate.selectedshape = "stalk" + jsystem + branches
+			if (UFX.random() < 0.3) {
+				var jsystem = UFX.random.choice(["0", "1", "2"])
+				controlstate.selectedshape = "organ" + jsystem
+			} else {
+				var jsystem = UFX.random.choice(["0", "1", "2"])
+				var branches = UFX.random.choice(["1", "2", "3", "4", "5", "13", "14", "23", "24", "25", "34", "35"])
+				controlstate.selectedshape = "stalk" + jsystem + branches
+			}
 			state.sethighlight(controlstate.selectedshape)
+			blobscape.addshape(controlstate.selectedshape)
 		}
 	},
 	handletap: function (cevent) {
