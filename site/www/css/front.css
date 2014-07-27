@@ -17,16 +17,16 @@ section:hover {
 	background-image: -webkit-linear-gradient(top,rgba(255,200,200,0.21),rgba(255,200,200,0.08));
 	background-image:         linear-gradient(top,rgba(255,200,200,0.21),rgba(255,200,200,0.08));
 }
-section header {
+section h2 {
 	font-size: 140%;
 	text-align: center;
 	font-family: 'Racing Sans One', serif;
 	margin: 0;
 }
-section header * {
+section h2 * {
 	margin: 0;
 }
-section header a, section header a:hover {
+section h2 a, section h2 a:hover {
 	text-decoration: none;
 	color: inherit;
 }
