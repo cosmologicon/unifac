@@ -83,6 +83,10 @@ var playpanel = Panel({
 		graphics.setviewportD(this.xD, this.yD, this.wD, this.hD)
 		blobscape.drawparts(parts)
 		debugHUD.stoptimer("blobdraw")
+		debugHUD.starttimer("attackerdraw")
+		spritescape.setup()
+		spritescape.drawsprites(state.attackers)
+		debugHUD.stoptimer("attackerdraw")
 	},
 	handlelclick: function (cevent) {
 		if (!controlstate.selectedshape) return

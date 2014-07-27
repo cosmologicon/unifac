@@ -8,6 +8,10 @@ if (window.location.href.indexOf("DEBUG") > -1) {
 	settings.DEBUG = true
 }
 
+if (settings.DEBUG) {
+	settings.canscreenshot = true
+}
+
 // Gameplay mechanics
 var mechanics = {
 

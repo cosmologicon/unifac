@@ -84,6 +84,10 @@ UFX.scenes.play = {
 		debugHUD.starttimer("control")
 		var cevents = controlstate.think(dt, input)
 		cevents.forEach(function (cevent) {
+			if (cevent.type == "key" && cevent.key == "screenshot") {
+				graphics.openscreenshot()
+				return
+			}
 			var fname = "handle" + cevent.type
 			if (cevent.panel && cevent.panel[fname]) {
 				cevent.panel[fname](cevent)

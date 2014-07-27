@@ -28,6 +28,16 @@ function State() {
 	;[0, 1, 2, 0, 1, 2].forEach(function (jsystem, jedge) {
 		that.addstump(core, jedge, jsystem)
 	})
+
+
+	this.attackers = []
+	this.attackers.push(Attacker({
+		pG: [0, 0],
+		vG: [2, 4],
+		r: 0,
+		shape: "square",
+	}))
+	
 }
 State.prototype = {
 	// Temporary API while developing - haven't figured it all out yet.
@@ -149,6 +159,9 @@ State.prototype = {
 		})
 		this.stumps.forEach(function (stump) {
 			stump.f = stump.parent.f
+		})
+		this.attackers.forEach(function (attacker) {
+			attacker.think(dt)
 		})
 	},
 	getspec: function () {

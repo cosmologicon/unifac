@@ -25,6 +25,7 @@ var graphics = {
 		this.progs.bloboutline = glprog(UFX.resource.data.bloboutlinevert, UFX.resource.data.bloboutlinefrag)
 		this.progs.blobrender = glprog(UFX.resource.data.blobrendervert, UFX.resource.data.blobrenderfrag)
 		this.progs.starscape = glprog(UFX.resource.data.starscapevert, UFX.resource.data.starscapefrag)
+		this.progs.spriterender = glprog(UFX.resource.data.spriterendervert, UFX.resource.data.spriterenderfrag)
 		
 		debugHUD.alert("max texture: " + gl.getParameter(gl.MAX_TEXTURE_SIZE) + " " + gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS))
 	},
@@ -63,8 +64,10 @@ var graphics = {
 	},
 
 	openscreenshot: function () {
+		if (!settings.canscreenshot) return false
 		// TODO: this doesn't work because I don't preserve the drawing buffer.
 		window.open(canvas.toDataURL())
+		return true
 	},
 
 }	
