@@ -70,6 +70,16 @@ glprog.prototype = {
 			} else if (words[0] == "uniform") {
 				var uni = prog.uniforms[words[2]] = prog.gl.getUniformLocation(prog.program, words[2])
 				var setfunc = prog.gl["uniform" + prog.utypesetters[words[1]]]
+				if (settings.DEBUG) {
+					var argc = prog.utypeargc[words[1]], setfunc0 = setfunc
+					setfunc = function () {
+						if (arguments.length - 1 != argc) {
+							throw ("Wrong number of arguments setting " + words[2] + " of type " + 
+								words[1] + " (got " + (arguments.length - 1) + ", want " + argc + ")")
+						}
+						setfunc0.apply(this, arguments)
+					}
+				}
 				prog["set" + words[2]] = prog.uniformsetters[words[2]] = setfunc.bind(prog.gl, uni)
 			}
 		})
@@ -104,6 +114,16 @@ glprog.prototype = {
 		mat3: "Matrix3fv",
 		int: "1i",
 		sampler2D: "1i",
+	},
+	utypeargc: {
+		float: 1,
+		vec2: 2,
+		vec3: 3,
+		vec4: 4,
+		mat2: 2,
+		mat3: 2,
+		int: 1,
+		sampler2D: 1,
 	},
 }
 
