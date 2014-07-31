@@ -30,10 +30,13 @@ function State() {
 	})
 
 
+	var lane = Spacelane([[12,0], [6,0], [6,6], [12,0], [18,-6], [18,0], [12,0], [6,0]])
+
 	this.attackers = []
 	this.attackers.push(Attacker({
 		pG: [0, 0],
-		vG: [2, 4],
+		vG: 1.4,
+		lane: lane,
 		r: 0,
 		shape: "square",
 	}))
@@ -182,9 +185,5 @@ State.prototype = {
 		}
 	},
 }
-// This global object is the state that's currently active in the game. Normally I would make this
-// a singleton, but I'm thinking it might be useful to have a secondary State object initialized
-// and ready to go for quick swapping out.
-var state = new State()
 
 
