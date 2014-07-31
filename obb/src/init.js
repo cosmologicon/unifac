@@ -48,6 +48,11 @@ canvas.ontouchstart = function () {
 }
 
 UFX.resource.onload = function () {
+	// This global object is the state that's currently active in the game. Normally I would make this
+	// a singleton, but I'm thinking it might be useful to have a secondary State object initialized
+	// and ready to go for quick swapping out.
+	state = new State()
+
 	graphics.init()
 	blobscape.init()
 	spritescape.init()

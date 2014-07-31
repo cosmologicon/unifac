@@ -78,5 +78,13 @@ pHs.forEach(function (pH) {
 	console.assert(eqpos(pH, HconvertN(pN)))
 })
 
+// edgebetween is inverse of nexthex
+var pH0 = [24, -60]
+;[0,1,2,3,4,5].forEach(function (e) {
+	var pH1 = HnexthexH(pH0, e)
+	console.assert(e == edgebetweenH(pH0, pH1))
+})
+
+
 console.log("tests complete")
 </script>

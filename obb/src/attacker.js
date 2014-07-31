@@ -23,6 +23,17 @@ var MovesLinear = {
 	},
 }
 
+var FollowsSpacelane = {
+	start: function (opts) {
+		this.lane = opts.lane
+		this.vG = opts.vG || 1
+		this.lane.place(this)
+	},
+	think: function (dt) {
+		this.lane.advance(this, this.vG * dt)
+	},
+}
+
 var FacesDirectionOfMotion = {
 	init: function () {
 		this.rotC = 1
@@ -56,9 +67,7 @@ function Attacker(opts) {
 }
 Attacker.prototype = UFX.Thing()
 	.addcomp(WorldBound)
-	.addcomp(MovesLinear)
-	.addcomp(FacesDirectionOfMotion)
-	.addcomp(Drops)
+	.addcomp(FollowsSpacelane)
 	.addcomp(HasSpriteShape)
 
 
