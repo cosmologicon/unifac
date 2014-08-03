@@ -116,7 +116,7 @@ var lanescape = {
 		graphics.progs.lanerender.setVscaleG(vs.VzoomG)
 		graphics.progs.lanerender.setscapesizeD(this.scapesize)
 		graphics.progs.lanerender.setbordercolor(0, 0.3, 0.8)
-		graphics.progs.lanerender.setalpha(0.4 + 0.06 * Math.sin(0.002 * Date.now()))
+		graphics.progs.lanerender.setalpha(0.2 + 0.05 * Math.sin(0.002 * Date.now()))
 		var mu = Date.now() * 0.005 % tau
 		graphics.progs.lanerender.setcosmu(Math.cos(mu))
 		graphics.progs.lanerender.setsinmu(Math.sin(mu))
