@@ -95,7 +95,7 @@ var lanescape = {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo)
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0)
 		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) throw "Incomple color framebuffer"
-		gl.clearColor(0, 0, 0, 0)
+		gl.clearColor(0, 0.5, 0.5, 0)
 		gl.clear(gl.COLOR_BUFFER_BIT)
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 
@@ -117,6 +117,10 @@ var lanescape = {
 		graphics.progs.lanerender.setscapesizeD(this.scapesize)
 		graphics.progs.lanerender.setbordercolor(0, 0.3, 0.8)
 		graphics.progs.lanerender.setalpha(0.4 + 0.06 * Math.sin(0.002 * Date.now()))
+		var mu = Date.now() * 0.005 % tau
+		graphics.progs.lanerender.setcosmu(Math.cos(mu))
+		graphics.progs.lanerender.setsinmu(Math.sin(mu))
+		graphics.progs.lanerender.setClimit(0.4)
 		gl.enableVertexAttribArray(graphics.progs.lanerender.attribs.posG)
 		gl.bindBuffer(gl.ARRAY_BUFFER, graphics.unithexbuffer)
 		gl.vertexAttribPointer(graphics.progs.lanerender.attribs.posG, 2, gl.FLOAT, false, 0, 0)
@@ -134,7 +138,10 @@ var lanescape = {
 		graphics.progs.lane.setpos0(0, -s3)
 		var k = [0, 2, 2/3, 0, -2/3, -2][+shape[4]]
 		graphics.progs.lane.setlnorm(1, 0, k)
+		var iL = [0, tau/12, tau/12, 2/3*s3, tau/12, tau/12][+shape[4]]
+		graphics.progs.lane.setinddist(iL)
 		graphics.progs.lane.setlanewidth(0.4)
+		graphics.progs.lane.setborderwidth(0.14)
 		graphics.drawunitsquare(graphics.progs.lane.attribs.pos)
 		gl.disable(gl.SCISSOR_TEST)
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
