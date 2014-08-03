@@ -30,6 +30,7 @@ Spacelane.prototype = {
 				iedge: iedge,
 				oedge: oedge,
 				jedge: jedge,
+				shape: "tile" + jedge,
 				rotC: rotCs[iedge],
 				rotS: rotSs[iedge],
 				L: LGs[jedge],
@@ -70,5 +71,108 @@ Spacelane.prototype = {
 		obj.rotS = dx * tile.rotC - dy * tile.rotS
 	},
 }
+
+var lanescape = {
+	init: function () {
+		this.scapesize = 512
+		
+		this.spotinfo = {}
+		this.scale = 64
+		this.blocksize = 2 * this.scale
+		this.nblock = this.scapesize / this.blocksize
+		this.jblock = 0
+
+		gl.activeTexture(gl.TEXTURE0 + 2)
+		this.texture = gl.createTexture()
+		gl.bindTexture(gl.TEXTURE_2D, this.texture)
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.scapesize, this.scapesize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
+		gl.generateMipmap(gl.TEXTURE_2D)
+		gl.bindTexture(gl.TEXTURE_2D, null)
+
+		this.fbo = gl.createFramebuffer()
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo)
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0)
+		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) throw "Incomple color framebuffer"
+		gl.clearColor(0, 0, 0, 0)
+		gl.clear(gl.COLOR_BUFFER_BIT)
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+
+		gl.activeTexture(gl.TEXTURE0)
+
+	},
+
+	setup: function () {
+		graphics.progs.lanerender.use()
+		gl.activeTexture(gl.TEXTURE0 + 2)
+		gl.bindTexture(gl.TEXTURE_2D, this.texture)
+		gl.enable(gl.BLEND)
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+		graphics.progs.lanerender.setsampler(2)
+		var vs = state.viewstate
+		graphics.progs.lanerender.setcanvassizeD(playpanel.wD, playpanel.hD)
+		graphics.progs.lanerender.setvcenterG(vs.x0G, vs.y0G)
+		graphics.progs.lanerender.setVscaleG(vs.VzoomG)
+		graphics.progs.lanerender.setscapesizeD(this.scapesize)
+		graphics.progs.lanerender.setbordercolor(0, 0.3, 0.8)
+		graphics.progs.lanerender.setalpha(0.4 + 0.06 * Math.sin(0.002 * Date.now()))
+		gl.enableVertexAttribArray(graphics.progs.lanerender.attribs.posG)
+		gl.bindBuffer(gl.ARRAY_BUFFER, graphics.unithexbuffer)
+		gl.vertexAttribPointer(graphics.progs.lanerender.attribs.posG, 2, gl.FLOAT, false, 0, 0)
+	},
+
+	completeassembly: function (shape, spotinfo) {
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo)
+		gl.enable(gl.SCISSOR_TEST)
+		gl.viewport(spotinfo.x0, spotinfo.y0, this.blocksize, this.blocksize)
+		gl.scissor(spotinfo.x0, spotinfo.y0, this.blocksize, this.blocksize)
+		graphics.progs.lane.use()
+		graphics.progs.lane.setcanvassize(2, 2)
+		graphics.progs.lane.setcenter(0, 0)
+		graphics.progs.lane.setzoom(1)
+		graphics.progs.lane.setpos0(0, -s3)
+		var k = [0, 2, 2/3, 0, -2/3, -2][+shape[4]]
+		graphics.progs.lane.setlnorm(1, 0, k)
+		graphics.progs.lane.setlanewidth(0.4)
+		graphics.drawunitsquare(graphics.progs.lane.attribs.pos)
+		gl.disable(gl.SCISSOR_TEST)
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+		gl.activeTexture(gl.TEXTURE0 + 2)
+		gl.bindTexture(gl.TEXTURE_2D, this.texture)
+		gl.generateMipmap(gl.TEXTURE_2D)
+	},
+	
+	getspotinfo: function (shape) {
+		if (shape in this.spotinfo) return this.spotinfo[shape]
+		var jblock = this.jblock++, xblock = jblock % this.nblock, yblock = Math.floor(jblock / this.nblock)
+		var spotinfo = this.spotinfo[shape] = {
+			shape: shape,
+			x0: xblock * this.blocksize,
+			y0: yblock * this.blocksize,
+			cx: (xblock + 0.5) * this.blocksize,
+			cy: (yblock + 0.5) * this.blocksize,
+			scale: this.scale,
+		}
+		this.completeassembly(shape, spotinfo)
+		this.setup()
+		return spotinfo
+	},
+	
+	drawtiles: function (tiles) {
+		for (var j = 0 ; j < tiles.length ; ++j) {
+			var tile = tiles[j], spotinfo = this.getspotinfo(tile.shape)
+			graphics.progs.lanerender.setposD0(spotinfo.cx, spotinfo.cy)
+			graphics.progs.lanerender.setDscaleG(spotinfo.scale)
+			graphics.progs.lanerender.setscenterG(tile.pG[0], tile.pG[1])
+			graphics.progs.lanerender.setrotC(tile.rotC)
+			graphics.progs.lanerender.setrotS(tile.rotS)
+			gl.drawArrays(gl.TRIANGLE_FAN, 0, 8)
+		}
+	},
+
+}
+
+
 
 

@@ -30,13 +30,15 @@ function State() {
 	})
 
 
-	var lane = Spacelane([[12,0], [6,0], [6,6], [12,0], [18,-6], [18,0], [12,0], [6,0]])
+	this.lanes = [
+		Spacelane([[12,0], [6,0], [6,6], [12,0], [18,-6], [18,0], [12,0], [6,0]]),
+	]
 
 	this.attackers = []
 	this.attackers.push(Attacker({
 		pG: [0, 0],
 		vG: 1.4,
-		lane: lane,
+		lane: this.lanes[0],
 		r: 0,
 		shape: "square",
 	}))

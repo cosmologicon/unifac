@@ -97,8 +97,6 @@ var text = {
 		while (h < h1) h <<= 1
 
 		can.width = w ; can.height = h
-//		con.fillStyle = "blue"
-//		con.fillRect(0, 0, w, h)
 		con.font = fontsize + "px '" + fontname + "'"
 		if (color) {
 			con.fillStyle = color
