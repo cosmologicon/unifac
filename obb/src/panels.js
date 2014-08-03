@@ -62,6 +62,17 @@ var playpanel = Panel({
 //		graphics.progs.checker.setzoom(vs.VzoomG)
 //		graphics.drawunitsquare(graphics.progs.checker.attribs.pos)
 
+		lanescape.setup()
+		state.lanes.forEach(function (lane) {
+			lanescape.drawtiles(lane.tiles)
+		})
+		lanescape.drawtiles([{
+			shape: "tile3",
+			pG: GconvertH([0, 6]),
+			rotC: 1,
+			rotS: 0,
+		}])
+
 		debugHUD.starttimer("blobdraw")
 		var parts = []
 		state.stalks.forEach(function (part) {

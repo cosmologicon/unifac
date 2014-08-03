@@ -39,6 +39,9 @@ UFX.resource.load({
 	"starscapevert": "shaders/starscape.vert",
 	"spriterenderfrag": "shaders/spriterender.frag",
 	"spriterendervert": "shaders/spriterender.vert",
+	"lanefrag": "shaders/lane.frag",
+	"lanerenderfrag": "shaders/lanerender.frag",
+	"lanerendervert": "shaders/lanerender.vert",
 })
 
 UFX.touch.active = false
@@ -56,6 +59,7 @@ UFX.resource.onload = function () {
 	graphics.init()
 	blobscape.init()
 	spritescape.init()
+	lanescape.init()
 	background.init()
 	text.init()
 	UFX.scene.init({ minups: 10, maxups: 120 })

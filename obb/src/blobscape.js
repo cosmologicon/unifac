@@ -117,10 +117,6 @@ var blobscape = {
 		this.assemblyprogress = {}
 		this.assemblyqueue = []
 
-		this.posbuffer = gl.createBuffer()
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.posbuffer)
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0,-1,0,-0.5,-s3,0.5,-s3,1,0,0.5,s3,-0.5,s3,-1,0]), gl.STATIC_DRAW)
-
 		this.jsquirmbuffer = gl.createBuffer()
 		this.jsquirmdata = []
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.jsquirmbuffer)
@@ -511,7 +507,7 @@ var blobscape = {
 			graphics.progs.blobrender.setplight0(0, 0, 100, 0)
 		}
 		gl.enableVertexAttribArray(graphics.progs.blobrender.attribs.posG)
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.posbuffer)
+		gl.bindBuffer(gl.ARRAY_BUFFER, graphics.unithexbuffer)
 		gl.vertexAttribPointer(graphics.progs.blobrender.attribs.posG, 2, gl.FLOAT, false, 0, 0)
 
 		var shadeindex = this.getshadefactorindex()
