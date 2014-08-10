@@ -66,6 +66,12 @@ var playpanel = Panel({
 		state.lanes.forEach(function (lane) {
 			lanescape.drawtiles(lane.tiles)
 		})
+		lanescape.drawtiles([{
+			shape: "tile035313",
+			pG: GconvertH([0, -6]),
+			rotC: 1,
+			rotS: 0,
+		}])
 
 		debugHUD.starttimer("blobdraw")
 		var parts = []
