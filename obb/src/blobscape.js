@@ -398,7 +398,7 @@ var blobscape = {
 		graphics.progs.blob.setprogress(tilespec.f)
 		var cs = constants.colors
 		var colormap = cs.system0.concat(cs.system1, cs.system2)
-		graphics.progs.blob.setcolormap(false, colormap)
+		graphics.progs.blob.vsetcolormap(colormap)
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[tilespec.shape].buffer)
 
 		gl.vertexAttribPointer(graphics.progs.blob.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)

@@ -30,7 +30,7 @@ Spacelane.prototype = {
 				iedge: iedge,
 				oedge: oedge,
 				jedge: jedge,
-				shape: "tile" + jedge,
+				shape: "tile0" + jedge,
 				rotC: rotCs[iedge],
 				rotS: rotSs[iedge],
 				L: LGs[jedge],
@@ -91,16 +91,21 @@ var lanescape = {
 		gl.generateMipmap(gl.TEXTURE_2D)
 		gl.bindTexture(gl.TEXTURE_2D, null)
 
+		this.dbuffer = gl.createRenderbuffer()
+		gl.bindRenderbuffer(gl.RENDERBUFFER, this.dbuffer)
+		gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.scapesize, this.scapesize)
+
 		this.fbo = gl.createFramebuffer()
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo)
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0)
+		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.dbuffer)
 		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) throw "Incomple color framebuffer"
 		gl.clearColor(0, 0.5, 0.5, 0)
 		gl.clear(gl.COLOR_BUFFER_BIT)
+		gl.clear(gl.DEPTH_BUFFER_BIT)
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 
 		gl.activeTexture(gl.TEXTURE0)
-
 	},
 
 	setup: function () {
@@ -128,20 +133,29 @@ var lanescape = {
 
 	completeassembly: function (shape, spotinfo) {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo)
-		gl.enable(gl.SCISSOR_TEST)
 		gl.viewport(spotinfo.x0, spotinfo.y0, this.blocksize, this.blocksize)
+		gl.enable(gl.SCISSOR_TEST)
+		gl.disable(gl.DEPTH_TEST)
 		gl.scissor(spotinfo.x0, spotinfo.y0, this.blocksize, this.blocksize)
 		graphics.progs.lane.use()
 		graphics.progs.lane.setcanvassize(2, 2)
 		graphics.progs.lane.setcenter(0, 0)
 		graphics.progs.lane.setzoom(1)
-		graphics.progs.lane.setpos0(0, -s3)
-		var k = [0, 2, 2/3, 0, -2/3, -2][+shape[4]]
-		graphics.progs.lane.setlnorm(1, 0, k)
-		var iL = [0, tau/12, tau/12, 2/3*s3, tau/12, tau/12][+shape[4]]
-		graphics.progs.lane.setinddist(iL)
 		graphics.progs.lane.setlanewidth(0.4)
 		graphics.progs.lane.setborderwidth(0.14)
+		var ps = [0, 0, 0, 0], ks = [0, 0], Ls = [0, 0], ns = [0, 0]
+		for (var j = 4, i = 0 ; j < shape.length ; j += 2, ++i) {
+			var iedge = +shape[j], oedge = +shape[j+1], jedge = (oedge - iedge + 6) % 6
+			ps[2*i] = [0, 0.75, 0.75, 0, -0.75, -0.75][iedge]
+			ps[2*i+1] = [-s3, -0.5*s3, 0.5*s3, s3, 0.5*s3, -0.5*s3][iedge]
+			ks[i] = [0, 2, 2/3, 0, -2/3, -2][jedge]
+			Ls[i] = [0, tau/6, tau/4, s3*2, tau/4, tau/6][jedge]
+			ns[i] = [0, 2, 3, 3, 3, 2][jedge]
+		}
+		graphics.progs.lane.vsetps(ps)
+		graphics.progs.lane.vsetks(ks)
+		graphics.progs.lane.vsetLs(Ls)
+		graphics.progs.lane.vsetns(ns)
 		graphics.drawunitsquare(graphics.progs.lane.attribs.pos)
 		gl.disable(gl.SCISSOR_TEST)
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null)
