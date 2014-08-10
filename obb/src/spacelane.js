@@ -121,7 +121,7 @@ var lanescape = {
 		graphics.progs.lanerender.setVscaleG(vs.VzoomG)
 		graphics.progs.lanerender.setscapesizeD(this.scapesize)
 		graphics.progs.lanerender.setbordercolor(0, 0.3, 0.8)
-		graphics.progs.lanerender.setalpha(0.2 + 0.05 * Math.sin(0.002 * Date.now()))
+		graphics.progs.lanerender.setalpha(0.4 + 0.05 * Math.sin(0.002 * Date.now()))
 		var mu = Date.now() * 0.005 % tau
 		graphics.progs.lanerender.setcosmu(Math.cos(mu))
 		graphics.progs.lanerender.setsinmu(Math.sin(mu))
@@ -136,6 +136,7 @@ var lanescape = {
 		gl.viewport(spotinfo.x0, spotinfo.y0, this.blocksize, this.blocksize)
 		gl.enable(gl.SCISSOR_TEST)
 		gl.disable(gl.DEPTH_TEST)
+		gl.disable(gl.BLEND)
 		gl.scissor(spotinfo.x0, spotinfo.y0, this.blocksize, this.blocksize)
 		graphics.progs.lane.use()
 		graphics.progs.lane.setcanvassize(2, 2)
@@ -143,9 +144,15 @@ var lanescape = {
 		graphics.progs.lane.setzoom(1)
 		graphics.progs.lane.setlanewidth(0.4)
 		graphics.progs.lane.setborderwidth(0.14)
+		graphics.progs.lane.setalpha0(shape == "enter" ? -1 : 1)
+		graphics.progs.lane.setalpha1(shape == "exit" ? -1 : 1)
+		var anchors = shape.indexOf("tile") == 0 ? shape.substr(4) : "03"
+		// Path variables: origin p, curvature k, path length L, indicator cycle count n
+		// See lane.frag for more explanation of the variables.
+		// For notes on the values here, see notebook dated 26 Jul 2014.
 		var ps = [0, 0, 0, 0], ks = [0, 0], Ls = [0, 0], ns = [0, 0]
-		for (var j = 4, i = 0 ; j < shape.length ; j += 2, ++i) {
-			var iedge = +shape[j], oedge = +shape[j+1], jedge = (oedge - iedge + 6) % 6
+		for (var j = 0, i = 0 ; j < anchors.length ; j += 2, ++i) {
+			var iedge = +anchors[j], oedge = +anchors[j+1], jedge = (oedge - iedge + 6) % 6
 			ps[2*i] = [0, 0.75, 0.75, 0, -0.75, -0.75][iedge]
 			ps[2*i+1] = [-s3, -0.5*s3, 0.5*s3, s3, 0.5*s3, -0.5*s3][iedge]
 			ks[i] = [0, 2, 2/3, 0, -2/3, -2][jedge]
