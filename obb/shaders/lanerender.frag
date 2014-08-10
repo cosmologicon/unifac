@@ -14,6 +14,6 @@ void main(void) {
 	float cvalue = color.r;
 	float C = cosmu * (2.0 * color.g - 1.0) + sinmu * (2.0 * color.b - 1.0);
 	cvalue = max(cvalue, C > Climit ? 1.0 : 0.0);
-	gl_FragColor = vec4(bordercolor, cvalue * alpha);
+	gl_FragColor = vec4(bordercolor, cvalue * alpha * color.a);
 }
 

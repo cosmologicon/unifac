@@ -67,10 +67,25 @@ var playpanel = Panel({
 			lanescape.drawtiles(lane.tiles)
 		})
 		lanescape.drawtiles([{
-			shape: "tile035313",
-			pG: GconvertH([0, -6]),
+			shape: "tile0353",
+			pG: GconvertH([-6, -6]),
 			rotC: 1,
 			rotS: 0,
+		}, {
+			shape: "tile04",
+			pG: GconvertH([-6, 0]),
+			rotC: 1,
+			rotS: 0,
+		}, {
+			shape: "enter",
+			pG: GconvertH([-6, -12]),
+			rotC: 1,
+			rotS: 0,
+		}, {
+			shape: "exit",
+			pG: GconvertH([-12, 6]),
+			rotC: Math.cos(tau/6),
+			rotS: Math.sin(tau/6),
 		}])
 
 		debugHUD.starttimer("blobdraw")
