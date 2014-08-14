@@ -1,0 +1,66 @@
+<!doctype html>
+<script type="text/javascript" src="../../UFX/src/ticker.js"></script>
+<script type="text/javascript" src="../../UFX/src/draw.js"></script>
+<script type="text/javascript" src="../../UFX/src/maximize.js"></script>
+<script type="text/javascript" src="../../UFX/src/key.js"></script>
+<script type="text/javascript" src="../../UFX/src/mouse.js"></script>
+<script type="text/javascript" src="../src/grid.js"></script>
+<canvas id=canvas></canvas>
+<script type="text/javascript">
+var canvas = document.getElementById("canvas")
+var context = canvas.getContext("2d")
+var x0G = 0, y0G = 0, VscaleG = 14
+var lanepHs = []
+UFX.draw.setcontext(context)
+
+UFX.maximize.fill(canvas, "total")
+
+function drawhex(pH) {
+	UFX.draw("(")
+	HverticesofhexH(pH).forEach(function (vpH, j) {
+		UFX.draw((j ? "l" : "m"), GconvertH(vpH))
+	})
+	UFX.draw(") s")
+}
+function think(dt) {
+	var mstate = UFX.mouse.state(), kstate = UFX.key.state()
+	if (mstate.left.down) {
+		var mx = mstate.pos[0], my = mstate.pos[1]
+		var pG = [
+			x0G + (mx - 0.5 * canvas.width) / VscaleG,
+			y0G - (my - 0.5 * canvas.height) / VscaleG,
+		]
+		lanepHs.push(HnearesthexH(HconvertG(pG)))
+	}
+	if (kstate.down.space) {
+		console.log(JSON.stringify(lanepHs))
+	}
+	UFX.draw("fs gray f0")
+	UFX.draw("[ t", 0.5 * canvas.width, 0.5 * canvas.height, "z", VscaleG, -VscaleG, "t", x0G, y0G)
+	UFX.draw("ss black lw 0.05")
+	for (var x = -20 ; x <= 20 ; ++x) {
+		for (var y = -20 ; y <= 20 ; ++y) {
+			if (Math.abs(x + y) > 20) continue
+			drawhex([6 * x, 6 * y])
+		}
+	}
+	UFX.draw("fs black b o 0 0 0.3 f")
+	UFX.draw("ss red fs red")
+	lanepHs.forEach(function (lanepH) {
+		UFX.draw("b o", GconvertH(lanepH), 0.15, "f")
+	})
+	UFX.draw("b")
+	lanepHs.forEach(function (lanepH, j) {
+		UFX.draw((j ? "l" : "m"), GconvertH(lanepH))
+	})
+	UFX.draw("s")
+	UFX.draw("]")
+}
+UFX.mouse.init(canvas)
+UFX.key.init()
+UFX.ticker.init(think)
+
+</script>
+
+
+

@@ -117,10 +117,6 @@ var blobscape = {
 		this.assemblyprogress = {}
 		this.assemblyqueue = []
 
-		this.posbuffer = gl.createBuffer()
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.posbuffer)
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0,-1,0,-0.5,-s3,0.5,-s3,1,0,0.5,s3,-0.5,s3,-1,0]), gl.STATIC_DRAW)
-
 		this.jsquirmbuffer = gl.createBuffer()
 		this.jsquirmdata = []
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.jsquirmbuffer)
@@ -402,7 +398,7 @@ var blobscape = {
 		graphics.progs.blob.setprogress(tilespec.f)
 		var cs = constants.colors
 		var colormap = cs.system0.concat(cs.system1, cs.system2)
-		graphics.progs.blob.setcolormap(false, colormap)
+		graphics.progs.blob.vsetcolormap(colormap)
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.blobspecs[tilespec.shape].buffer)
 
 		gl.vertexAttribPointer(graphics.progs.blob.attribs.pos, 3, gl.FLOAT, false, 14*4, 0)
@@ -511,7 +507,7 @@ var blobscape = {
 			graphics.progs.blobrender.setplight0(0, 0, 100, 0)
 		}
 		gl.enableVertexAttribArray(graphics.progs.blobrender.attribs.posG)
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.posbuffer)
+		gl.bindBuffer(gl.ARRAY_BUFFER, graphics.unithexbuffer)
 		gl.vertexAttribPointer(graphics.progs.blobrender.attribs.posG, 2, gl.FLOAT, false, 0, 0)
 
 		var shadeindex = this.getshadefactorindex()

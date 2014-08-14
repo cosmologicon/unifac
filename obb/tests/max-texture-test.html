@@ -1,0 +1,60 @@
+<doctype html>
+
+<p>Max texture size: <input id=mts type=text></input>
+<p><select id=tsize></select>
+<p><button id=maketexture onclick=domaketexture()>Make texture</button>
+<p><button id=makefbo onclick=domakefbo()>Make FBO</button>
+<p><canvas id=canvas></canvas>
+
+<script>
+// Figure out how big of textures we can make
+var canvas = document.getElementById("canvas")
+var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl")
+
+var smax = document.getElementById("mts").value = gl.getParameter(gl.MAX_TEXTURE_SIZE)
+
+for (var s = 256 ; s <= smax ; s <<= 1) {
+	var opt = document.createElement('option')
+	opt.value = opt.innerHTML = s
+	document.getElementById('tsize').appendChild(opt)
+}
+
+function gettexture(s) {
+	console.log("making texture " + s + "...")
+	gl.activeTexture(gl.TEXTURE0 + 5)
+	var texture = gl.createTexture()
+	gl.bindTexture(gl.TEXTURE_2D, texture)
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, s, s, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
+	gl.bindTexture(gl.TEXTURE_2D, null)
+	return texture
+}
+
+function fboattach(texture) {
+	console.log("attaching fbo to texture...")
+	fbo = gl.createFramebuffer()
+	gl.bindFramebuffer(gl.FRAMEBUFFER, fbo)
+	gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0)
+	if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) throw "Incomple color framebuffer"
+	gl.clearColor(0, 0, 0, 0)
+	gl.clear(gl.COLOR_BUFFER_BIT)
+	gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+	return fbo
+}
+
+var data = []
+function domaketexture() {
+	var s = +document.getElementById("tsize").value
+	data.push(gettexture(s))
+}
+function domakefbo() {
+	var s = +document.getElementById("tsize").value
+	var t = gettexture(s)
+	data.push(fboattach(t))
+}
+
+
+
+</script>
+
