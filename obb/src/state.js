@@ -28,6 +28,21 @@ function State() {
 	;[0, 1, 2, 0, 1, 2].forEach(function (jsystem, jedge) {
 		that.addstump(core, jedge, jsystem)
 	})
+
+
+	this.lanes = [
+		Spacelane([[-36,54],[-30,48],[-24,48],[-18,42],[-12,36],[-12,30],[-12,24],[-6,18],[-6,12],[-12,12],[-18,12],[-24,18],[-30,24],[-36,24],[-42,24],[-42,18],[-36,12],[-30,12],[-24,6],[-24,0],[-30,0],[-36,0],[-36,-6],[-30,-12],[-24,-18],[-18,-18],[-12,-18],[-6,-18],[-6,-12],[0,-12],[6,-12],[12,-12],[18,-18],[24,-24],[30,-30],[36,-36],[36,-42],[30,-42],[30,-48],[24,-48],[18,-42],[12,-36],[12,-30],[12,-24],[18,-24],[24,-24],[30,-24],[30,-18],[30,-12],[30,-6],[36,-6],[42,-6],[42,0],[42,6],[36,12],[30,18],[24,18],[24,12],[24,6],[30,0],[30,-6],[24,-6],[18,0],[12,6],[6,6],[0,6],[0,0]]),
+	]
+
+	this.attackers = []
+	this.attackers.push(Attacker({
+		pG: [0, 0],
+		vG: 1.4,
+		lane: this.lanes[0],
+		r: 0,
+		shape: "square",
+	}))
+	
 }
 State.prototype = {
 	// Temporary API while developing - haven't figured it all out yet.
@@ -150,6 +165,9 @@ State.prototype = {
 		this.stumps.forEach(function (stump) {
 			stump.f = stump.parent.f
 		})
+		this.attackers.forEach(function (attacker) {
+			attacker.think(dt)
+		})
 	},
 	getspec: function () {
 		var thingspecs = {}
@@ -169,9 +187,5 @@ State.prototype = {
 		}
 	},
 }
-// This global object is the state that's currently active in the game. Normally I would make this
-// a singleton, but I'm thinking it might be useful to have a secondary State object initialized
-// and ready to go for quick swapping out.
-var state = new State()
 
 

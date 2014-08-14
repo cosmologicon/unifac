@@ -55,7 +55,7 @@ var controlstate = {
 		var kstate = input.key, mstate = input.mouse, tstate = input.touch
 		var kdown = kstate ? kstate.down : {}
 
-		// Set the size of the canvas and the panels		
+		// Set the size of the canvas and the panels
 		this.wD = canvas.width
 		this.hD = canvas.height
 
@@ -80,6 +80,16 @@ var controlstate = {
 		panels = [playpanel, stalkpanel]
 
 		var cevents = []
+
+		// Handle key presses
+		if (kstate) {
+			if (kdown.F12) {
+				cevents.push({
+					type: "key",
+					key: "screenshot",
+				})
+			}
+		}
 
 		// Handle left mouse clicks
 		if (mstate) {

@@ -94,7 +94,7 @@ function NedgeofhexH(pH, e) {
 // The six hexes adjacent to the given hex
 function HadjacenthexestohexH(pH) {
 	var x = pH[0], y = pH[1]
-	return [[x+6, y], [x, y+6], [x-6, y+6], [x-6, y], [x, y-6], [x+6, y-6]]
+	return [[x, y-6], [x+6, y-6], [x+6, y], [x, y+6], [x-6, y+6], [x-6, y]]
 }
 // The two hexes the given edge is an edge of
 function HhexesofedgeH(pH) {
@@ -118,6 +118,11 @@ function EconvertH(pH, e) {
 function HconvertE(pE) {
 	var pH = HconvertN(+pE), e = pH[0] % 6
 	return [[pH[0]-e, pH[1]], e]
+}
+// The edge number with respect to hex 0 that corresponds to hex 1.
+function edgebetweenH(pH0, pH1) {
+	var dx = pH1[0] - pH0[0], dy = pH1[1] - pH0[1]
+	return dx == -6 ? dy == 6 ? 4 : 5 : dx == 0 ? dy == 6 ? 3 : 0 : dy == 0 ? 2 : 1
 }
 
 

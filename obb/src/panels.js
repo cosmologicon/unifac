@@ -62,6 +62,32 @@ var playpanel = Panel({
 //		graphics.progs.checker.setzoom(vs.VzoomG)
 //		graphics.drawunitsquare(graphics.progs.checker.attribs.pos)
 
+		lanescape.setup()
+		state.lanes.forEach(function (lane) {
+			lanescape.drawtiles(lane.tiles)
+		})
+		lanescape.drawtiles([{
+			shape: "tile0353",
+			pG: GconvertH([-6, -6]),
+			rotC: 1,
+			rotS: 0,
+		}, {
+			shape: "tile04",
+			pG: GconvertH([-6, 0]),
+			rotC: 1,
+			rotS: 0,
+		}, {
+			shape: "enter",
+			pG: GconvertH([-6, -12]),
+			rotC: 1,
+			rotS: 0,
+		}, {
+			shape: "exit",
+			pG: GconvertH([-12, 6]),
+			rotC: Math.cos(tau/6),
+			rotS: Math.sin(tau/6),
+		}])
+
 		debugHUD.starttimer("blobdraw")
 		var parts = []
 		state.stalks.forEach(function (part) {
@@ -83,6 +109,10 @@ var playpanel = Panel({
 		graphics.setviewportD(this.xD, this.yD, this.wD, this.hD)
 		blobscape.drawparts(parts)
 		debugHUD.stoptimer("blobdraw")
+		debugHUD.starttimer("attackerdraw")
+		spritescape.setup()
+		spritescape.drawsprites(state.attackers)
+		debugHUD.stoptimer("attackerdraw")
 	},
 	handlelclick: function (cevent) {
 		if (!controlstate.selectedshape) return
