@@ -8,6 +8,9 @@
 <script src="../UFX/src/maximize.js"></script>
 <script src="../UFX/src/ticker.js"></script>
 <script src="../UFX/src/scene.js"></script>
+<script src="../UFX/src/noise.js"></script>
+<script src="../UFX/src/random.js"></script>
+<script src="../UFX/src/texture.js"></script>
 
 <script src="state.js"></script>
 <script src="things.js"></script>
@@ -16,4 +19,10 @@
 <script src="view.js"></script>
 <script src="init.js"></script>
 
+<!-- make:
+cat index-dev.html | grep ^.script.*UFX | sed 's|.*=.||;s|.>.*||' | xargs cat > UFX.js
+rsync -r index.html *.js "night@night.xen.prgmr.com:/var/www/ld30/v0"
+
+for d in `ls v0` ; do ln -s v0/$d $d ; done
+-->
 
