@@ -5,8 +5,10 @@ UFX.draw.setcontext(context)
 UFX.maximize.fill(canvas, "total")
 UFX.draw("fs blue f0")
 
-UFX.scene.init()
+UFX.scene.init({ minups: 5, maxups: 120 })
 UFX.mouse.init(canvas)
+
+background.init()
 
 UFX.scene.push({
 	thinkargs: function (dt) {
@@ -15,6 +17,7 @@ UFX.scene.push({
 	think: function (dt, mpos) {
 		this.bpos = control.nearest([2, 1], view.togame(mpos[0], mpos[1]))
 		view.think(dt)
+		background.think(dt)
 	},
 	draw: function () {
 		background.draw()
