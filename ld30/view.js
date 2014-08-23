@@ -7,6 +7,9 @@ var view = {
 	think: function (dt) {
 		this.z = Math.exp(this.Z)
 	},
+	transform: function () {
+		UFX.draw("t", canvas.width/2, canvas.height/2, "z", this.z, this.z, "t", -this.x0, -this.y0)
+	},
 	
 	toscreen: function (gamex, gamey) {
 		return [
