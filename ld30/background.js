@@ -33,7 +33,7 @@ var background = {
 				}
 			}
 		}
-		UFX.draw("ss rgba(255,255,255,0.1) lw 1 b")
+		UFX.draw("ss rgba(255,255,255,0.05) lw 1 b")
 		var pmin = view.togame(0, 0), pmax = view.togame(sx, sy)
 		for (var x = Math.ceil(pmin[0] + 0.5) - 0.5 ; x <= pmax[0] ; ++x) {
 			var screenx = view.toscreen(x, 0)[0]
