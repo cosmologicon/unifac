@@ -15,6 +15,8 @@ var background = {
 		    }),
 		]
 		this.t = 0
+		this.x0 = 0
+		this.y0 = 0
 	},
 	think: function (dt) {
 		this.t += dt
@@ -24,8 +26,8 @@ var background = {
 		var sx = canvas.width, sy = canvas.height
 		UFX.draw("fs black f0")
 		for (var j = 0 ; j < 4 ; ++j) {
-			var x = j ? 18 * Math.sin(1 + 2 * j) * this.t : 0
-			var y = j ? 18 * Math.cos(1 + 2 * j) * this.t : 0
+			var x = this.x0 + (j ? 18 * Math.sin(1 + 2 * j) * this.t : 0)
+			var y = this.y0 + (j ? 18 * Math.cos(1 + 2 * j) * this.t : 0)
 			var px0 = Math.floor(x), py0 = Math.floor(y)
 			for (var px = px0 - 512 * Math.ceil(px0 / 512) ; px < sx ; px += 512) {
 				for (var py = py0 - 512 * Math.ceil(py0 / 512) ; py < sy ; py += 512) {
