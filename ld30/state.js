@@ -1,7 +1,7 @@
 
 var state = {
 	init: function () {
-		this.level = 2
+		this.level = 0
 	},
 	load: function () {
 		var leveldata = levels[this.level]

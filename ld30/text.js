@@ -5,7 +5,7 @@ var ShowsText = {
 		this.alive = true
 	},
 	draw: function () {
-		UFX.draw("z 0.025 0.025 fs rgba(100,100,255,0.33) font " + this.fontsize + "px~'sans-serif'")
+		UFX.draw("z 0.025 0.025 fs rgba(100,100,255,0.33) font " + this.fontsize + "px~'Nova~Flat'")
 		var n = Math.min(this.text.length, 18 * this.t)
 		var text = this.text.substr(0, n) + (this.t < 5 && this.t % 0.5 > 0.25 ? "|" : "")
 		var linesize = this.fontsize * 1.1
