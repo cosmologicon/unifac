@@ -47,7 +47,7 @@ function TextEffect(words, x, y) {
 		text: words,
 		x: x,
 		y: y,
-		lifetime: 9999,
+		lifetime: 999999,
 	})
 }
 TextEffect.prototype = UFX.Thing()

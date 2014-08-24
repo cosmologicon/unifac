@@ -89,6 +89,11 @@ UFX.scene.push({
 			var b = control.buttonat(istate.click)
 			if (b) {
 				control.selectbutton(b)
+			} else {
+				b = state.bloidat(view.togame(istate.click[0], istate.click[1]))
+				if (b !== null) {
+					state.removebloid(b)
+				}
 			}
 		}
 		if (istate.end) {
@@ -121,6 +126,7 @@ UFX.scene.push({
 		control.drawcursor()
 		state.bridges.forEach(draw)
 		state.toids.forEach(draw)
+		state.bloids.forEach(draw)
 		
 		UFX.draw("]")
 		control.draw()

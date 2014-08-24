@@ -85,6 +85,17 @@ var MiniCirc = {
 	},
 }
 
+var DrawBlock = {
+	draw: function () {
+		for (var j = 0 ; j < 3 ; ++j) {
+			var t = this.t + 1000 * j
+			var s = 1 + 0.2 * Math.sin(0.456 * t)
+			UFX.draw("[ r", 30 * Math.sin(0.06 * t), "z", 0.3 * s, 0.3 / s)
+			UFX.draw("b o 0 0 1 fs black f ]")
+		}
+	},
+}
+
 var SpansLength = {
 	start: function (args) {
 		this.toid0 = args.toid0
@@ -93,9 +104,10 @@ var SpansLength = {
 		this.y = args.toid0.y
 		this.dx = args.toid1.x - this.x
 		this.dy = args.toid1.y - this.y
+		this.color = args.color || "rgba(0,128,255,0.2)"
 	},
 	draw: function () {
-		UFX.draw("b m 0 0 l", this.dx, this.dy, "lw 0.1 ss rgba(0,128,255,0.2) s")
+		UFX.draw("b m 0 0 l", this.dx, this.dy, "lw 0.1 ss", this.color, "s")
 		var t = this.t * 1.6, j = Math.floor(t) % settings.rescolors.length, f = t % 1
 		if (this.toid1.res[j] && this.toid0.res[j] != this.toid1.res[j]) {
 			if (this.toid0.res[j] > this.toid1.res[j]) f = 1 - f
@@ -136,6 +148,20 @@ Stroid.prototype = UFX.Thing()
 	.addcomp(HoldsRes)
 	.addcomp(MiniCirc)
 
+function Bloid(x, y) {
+	if (!(this instanceof Bloid)) return new Bloid(x, y)
+	this.start({
+		x: x,
+		y: y,
+	})
+	this.t += UFX.random(1000)
+}
+Bloid.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Ticks)
+	.addcomp(DrawBlock)
+
+
 function Bridge(toid0, toid1) {
 	if (!(this instanceof Bridge)) return new Bridge(toid0, toid1)
 	this.start({
@@ -150,6 +176,7 @@ Bridge.prototype = UFX.Thing()
 
 function BridgeCursor(toid0, x, y) {
 	if (!(this instanceof BridgeCursor)) return new BridgeCursor(toid0, x, y)
+	var color = state.canbuild(toid0, x, y) ? "rgba(0,128,255,0.2)" : "rgba(255,0,0,0.2)"
 	this.start({
 		toid0: toid0,
 		toid1: {
@@ -157,6 +184,7 @@ function BridgeCursor(toid0, x, y) {
 			y: y,
 			res: [],
 		},
+		color: color,
 	})
 }
 BridgeCursor.prototype = UFX.Thing()

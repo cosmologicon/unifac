@@ -30,6 +30,8 @@ var audio = {
 			wind.bandpass.frequency.value = 60
 		}
 		this.nextwindupdate = 1
+		
+		this.on = true
 	},
 	think: function (dt) {
 		this.t = this.context.currentTime
@@ -92,6 +94,10 @@ var audio = {
 		s.tgain.gain.setValueAtTime(0, this.t)
 		s.tgain.gain.linearRampToValueAtTime(0.1, this.t + duration*2/3)
 		s.tgain.gain.linearRampToValueAtTime(0, this.t + duration)
+	},
+	toggle: function () {
+		this.on = !this.on
+		this.master.gain.value = this.on ? 1 : 0
 	},
 }
 

@@ -13,7 +13,7 @@ var view = {
 	zoom: function (amt, spos) {
 		var xoff = spos[0] - canvas.width / 2
 		var yoff = spos[1] - canvas.height / 2
-		this.Z = clamp(this.Z + amt, 2.5, 5.5)
+		this.Z = clamp(this.Z + amt, 3.5, 5)
 		var newz = Math.exp(this.Z)
 		this.x0 -= xoff * (1/newz - 1/this.z)
 		this.y0 -= yoff * (1/newz - 1/this.z)

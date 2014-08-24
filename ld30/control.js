@@ -2,7 +2,7 @@
 var control = {
 	init: function () {
 		this.buttons = {
-			bridge: {
+/*			bridge: {
 				main: true,
 				offset: 0,
 				path: "b o 0.3 0.5 0.1 o 0.6 0.5 0.1 f",
@@ -11,11 +11,11 @@ var control = {
 				main: true,
 				offset: 1,
 				path: "b o 0.5 0.5 0.25 lw 0.1 s",
-			},
-			settings: {
+			}, */
+			audio: {
 				main: false,
 				offset: 0,
-				path: "b m 0.2 0.2 l 0.8 0.2 lw 0.1 s",
+				path: "b o 0.5 0.5 0.18 f b o 0.5 0.5 0.25 lw 0.06 s b o 0.5 0.5 0.35 lw 0.04 s",
 			},
 		}
 		this.selectedbutton = null
@@ -53,6 +53,10 @@ var control = {
 	},
 	
 	selectbutton: function (bname) {
+		if (bname == "audio") {
+			audio.toggle()
+			return
+		}
 		this.selectedbutton = this.selectedbutton == bname ? null : bname
 	},
 	
@@ -63,9 +67,12 @@ var control = {
 	},
 	
 	end: function (pos) {
+		if (!this.buildstart) return
 		var b = state.thingat(view.togame(pos[0], pos[1]))
 		if (b && b !== this.buildstart) {
-			state.joinworlds(this.buildstart, b)
+			if (state.canbuild(this.buildstart, pos[0], pos[1])) {
+				state.joinworlds(this.buildstart, b)
+			}
 		}
 		this.clear()
 	},
@@ -99,6 +106,8 @@ var control = {
 				"fs rgba(0,255,255," + (bname == this.selectedbutton ? 0.4 : 0.1) + ")",
 				"ss rgba(0,255,255," + (bname == this.selectedbutton ? 0.8 : 0.4) + ")",
 				"lw 0.04 f s",
+				"fs rgba(0,255,255,0.4)",
+				"ss rgba(0,255,255,0.4)",
 				button.path,
 				"]"
 			)
