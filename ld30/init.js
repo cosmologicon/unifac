@@ -9,8 +9,6 @@ var context = canvas.getContext("2d")
 UFX.draw.setcontext(context)
 
 UFX.maximize.fill(canvas, "total")
-UFX.draw("fs blue f0")
-
 UFX.scene.init({ minups: 5, maxups: 120 })
 UFX.mouse.init(canvas)
 UFX.mouse.capture.wheel = true
@@ -22,10 +20,13 @@ canvas.ontouchstart = function (event) {
 	UFX.mouse.active = false
 	canvas.ontouchstart = function () {}
 }
+UFX.resource.loadwebfonts("Nova Flat")
+
 
 background.init()
 control.init()
 state.init()
+audio.init()
 
 UFX.scene.push({
 	start: function () {
@@ -105,6 +106,7 @@ UFX.scene.push({
 		if (state.complete) {
 			this.wincurtain += dt * 0.8
 		}
+		audio.think(dt)
 	},
 	draw: function () {
 		background.draw()
