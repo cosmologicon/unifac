@@ -30,7 +30,7 @@ state.init()
 UFX.scene.push({
 	start: function () {
 		this.effects = [
-			TextEffect("Some game\nby Christopher Night", -3, -3),
+			TextEffect(settings.gamename + "\nby Christopher Night", -3, -3),
 		]
 	},
 	thinkargs: function (dt) {
@@ -64,6 +64,9 @@ UFX.scene.push({
 				tstate.start.forEach(function (event) {
 					istate.start = event.pos
 				})
+				tstate.release.forEach(function (event) {
+					istate.end = event.pos
+				})
 			}
 		}
 		return [dt, istate]
@@ -83,7 +86,7 @@ UFX.scene.push({
 			}
 		}
 		if (istate.end) {
-			control.clear()
+			control.end(istate.end)
 		}
 		if (istate.zoomamt) {
 			view.zoom(istate.zoomamt, istate.zoomcenter)
@@ -106,6 +109,7 @@ UFX.scene.push({
 		}
 		this.effects.forEach(draw)
 		control.drawcursor()
+		state.bridges.forEach(draw)
 		state.toids.forEach(draw)
 		
 		UFX.draw("]")

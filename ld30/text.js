@@ -1,12 +1,8 @@
 var ShowsText = {
-	init: function (text) {
-		this.text = text || ""
-		this.t = 0
-		this.fontsize = 20
+	start: function (args) {
+		this.text = args.text || ""
+		this.fontsize = args.fontsize || 20
 		this.alive = true
-	},
-	think: function (dt) {
-		this.t += dt
 	},
 	draw: function () {
 		UFX.draw("z 0.025 0.025 fs rgba(100,100,255,0.33) font " + this.fontsize + "px~'sans-serif'")
@@ -20,8 +16,8 @@ var ShowsText = {
 }
 
 var Lifetime = {
-	init: function (lifetime) {
-		this.lifetime = lifetime || 10
+	start: function (args) {
+		this.lifetime = args.lifetime || 10
 	},
 	think: function (dt) {
 		this.alive = this.t < this.lifetime
@@ -29,9 +25,9 @@ var Lifetime = {
 }
 
 var Fades = {
-	init: function (lifetime) {
+	start: function (args) {
 		this.alpha = 1
-		this.lifetime = lifetime || 10
+		this.lifetime = args.lifetime || 10
 	},
 	think: function (dt) {
 		if (this.t > this.lifetime) {
@@ -47,12 +43,16 @@ var Fades = {
 
 function TextEffect(words, x, y) {
 	if (!(this instanceof TextEffect)) return new TextEffect(words, x, y)
-	this.text = words
-	this.x = x
-	this.y = y
+	this.start({
+		text: words,
+		x: x,
+		y: y,
+		lifetime: 6,
+	})
 }
 TextEffect.prototype = UFX.Thing()
 	.addcomp(WorldBound)
-	.addcomp(Fades, 6)
+	.addcomp(Ticks)
+	.addcomp(Fades)
 	.addcomp(ShowsText)
 
