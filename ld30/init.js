@@ -14,58 +14,99 @@ UFX.draw("fs blue f0")
 UFX.scene.init({ minups: 5, maxups: 120 })
 UFX.mouse.init(canvas)
 UFX.mouse.capture.wheel = true
+UFX.mouse.qclick = true
 UFX.touch.active = false
 canvas.ontouchstart = function (event) {
 	UFX.touch.active = true
 	UFX.touch.init(canvas)
 	UFX.mouse.active = false
+	canvas.ontouchstart = function () {}
 }
 
 background.init()
 control.init()
+state.init()
 
 UFX.scene.push({
-	thinkargs: function (dt) {
-		return [
-			dt, 
-			UFX.mouse.active && UFX.mouse.state(),
-			UFX.touch.active && UFX.touch.state(),
+	start: function () {
+		this.effects = [
+			TextEffect("Some game\nby Christopher Night", -3, -3),
 		]
 	},
-	think: function (dt, mstate, tstate) {
-		if (mstate && mstate.left.isdown) {
-			view.drag(mstate.dpos)
-		}
-		if (mstate && mstate.left.down) {
-			var b = control.buttonat(mstate.left.down)
-			if (b) control.selectbutton(b)
-		}
-		if (mstate && mstate.wheeldy) {
-			view.zoom(mstate.wheeldy / 32, mstate.pos)
+	thinkargs: function (dt) {
+		var istate = { pos: [0, 0] }
+		var mstate = UFX.mouse.active && UFX.mouse.state()
+		var tstate = UFX.touch.active && UFX.touch.state()
+		if (mstate) {
+			istate.isdown = mstate.left.isdown
+			istate.dpos = mstate.dpos
+			if (mstate.wheeldy) {
+				istate.zoomamt = mstate.wheeldy / 32
+				istate.zoomcenter = mstate.pos
+			}
+			istate.click = mstate.left.click
+			istate.start = mstate.left.down
+			istate.end = mstate.left.up
+			if (mstate.pos) istate.pos = mstate.pos
 		}
 		if (tstate) {
-			if (tstate.ids.length == 1) {
-				view.drag(tstate.deltas[tstate.ids[0]])
-			}
-			tstate.tap.forEach(function (event) {
-				var b = control.buttonat(event.pos)
-				if (b) control.selectbutton(b)
-			})
+			istate.isdown = tstate.ids.length == 1
+			istate.dpos = istate.isdown && tstate.deltas[tstate.ids[0]]
+			if (istate.isdown) istate.pos = tstate.ps[tstate.ids[0]]
 			var tstate2 = UFX.touch.twotouchstate(tstate)
 			if (tstate2) {
-				view.zoom(Math.log(tstate2.rratio), tstate2.center)
+				istate.zoomamt = Math.log(tstate2.rratio)
+				istate.zoomcenter = tstate2.center
+			} else {
+				tstate.tap.forEach(function (event) {
+					istate.click = event.pos
+				})
+				tstate.start.forEach(function (event) {
+					istate.start = event.pos
+				})
 			}
+		}
+		return [dt, istate]
+	},
+	think: function (dt, istate) {
+		control.setpos(istate.pos)
+		if (istate.isdown && !control.buildstart) {
+			view.drag(istate.dpos)
+		}
+		if (istate.start) {
+			control.start(istate.start)
+		}
+		if (istate.click) {
+			var b = control.buttonat(istate.click)
+			if (b) {
+				control.selectbutton(b)
+			}
+		}
+		if (istate.end) {
+			control.clear()
+		}
+		if (istate.zoomamt) {
+			view.zoom(istate.zoomamt, istate.zoomcenter)
+			control.clear()
 		}
 		view.think(dt)
 		background.think(dt)
 		control.think(dt)
+		state.think(dt)
+		this.effects.forEach(function (e) { e.think(dt) })
 	},
 	draw: function () {
 		background.draw()
 		UFX.draw("[")
 		view.transform()
-		UFX.draw("b o 0 0 0.2 fs blue f")
-		UFX.draw("b o 2 1 0.2 fs green f")
+		function draw(obj) {
+			context.save()
+			obj.draw()
+			context.restore()
+		}
+		this.effects.forEach(draw)
+		control.drawcursor()
+		state.toids.forEach(draw)
 		
 		UFX.draw("]")
 		control.draw()
