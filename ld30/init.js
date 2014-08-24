@@ -29,9 +29,14 @@ state.init()
 
 UFX.scene.push({
 	start: function () {
-		this.effects = [
-			TextEffect(settings.gamename + "\nby Christopher Night", -3, -3),
-		]
+		var leveldata = levels[state.level]
+		state.load()
+		this.effects = []
+		for (var j = 0 ; j < leveldata.texts.length ; ++j) {
+			var t = leveldata.texts[j]
+			this.effects.push(TextEffect(t[0], t[1], t[2]))
+		}
+		this.wincurtain = 0
 	},
 	thinkargs: function (dt) {
 		var istate = { pos: [0, 0] }
@@ -97,6 +102,9 @@ UFX.scene.push({
 		control.think(dt)
 		state.think(dt)
 		this.effects.forEach(function (e) { e.think(dt) })
+		if (state.complete) {
+			this.wincurtain += dt * 0.8
+		}
 	},
 	draw: function () {
 		background.draw()
@@ -114,6 +122,10 @@ UFX.scene.push({
 		
 		UFX.draw("]")
 		control.draw()
+		
+		if (this.wincurtain) {
+			UFX.draw("[ alpha", this.wincurtain, "fs white f0 ]")
+		}
 	},
 })
 

@@ -1,14 +1,22 @@
 
 var state = {
 	init: function () {
-		this.toids = [
-			Stroid(0, 0, 0),
-			Stroid(0, 2, 1),
-			Toid(-3, 0, [0,1]),
-		]
-		this.bridges = [
-		]
+		this.level = 2
+	},
+	load: function () {
+		var leveldata = levels[this.level]
+		this.toids = []
+		this.bridges = []
 		this.connections = {}
+		for (var j = 0 ; j < leveldata.toids.length ; ++j) {
+			var t = leveldata.toids[j]
+			this.toids.push(Toid(t[0], t[1], t[2]))
+		}
+		for (var j = 0 ; j < leveldata.stroids.length ; ++j) {
+			var t = leveldata.stroids[j]
+			this.toids.push(Stroid(t[0], t[1], t[2]))
+		}
+		this.complete = false
 	},
 	thingat: function (pos) {
 		var x = Math.round(pos[0]), y = Math.round(pos[1])
@@ -39,6 +47,9 @@ var state = {
 		this.addconnection(w2, w1)
 		this.reconcile(w1)
 		this.reconcile(w2)
+		if (!this.complete) {
+			this.complete = this.toids.every(function (t) { return !t.needs || t.met })
+		}
 	},
 
 	think: function (dt) {
