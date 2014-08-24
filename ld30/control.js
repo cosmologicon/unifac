@@ -62,6 +62,14 @@ var control = {
 		if (b) this.buildstart = b
 	},
 	
+	end: function (pos) {
+		var b = state.thingat(view.togame(pos[0], pos[1]))
+		if (b && b !== this.buildstart) {
+			state.joinworlds(this.buildstart, b)
+		}
+		this.clear()
+	},
+	
 	clear: function () {
 		this.buildstart = null
 	},
@@ -76,7 +84,7 @@ var control = {
 		var pnear = this.nearest([this.buildstart.x, this.buildstart.y], p)
 		var xnear = Math.round(pnear[0]), ynear = Math.round(pnear[1])
 		if (xnear == this.buildstart.x && ynear == this.buildstart.y) return
-		var bridge = Bridge(this.buildstart, { x: xnear, y: ynear })
+		var bridge = BridgeCursor(this.buildstart, xnear, ynear)
 		context.save()
 		bridge.draw()
 		context.restore()
