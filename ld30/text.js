@@ -7,7 +7,7 @@ var ShowsText = {
 	draw: function () {
 		UFX.draw("z 0.025 0.025 fs rgba(100,100,255,0.33) font " + this.fontsize + "px~'sans-serif'")
 		var n = Math.min(this.text.length, 18 * this.t)
-		var text = this.text.substr(0, n) + (this.t % 0.5 > 0.25 ? "|" : "")
+		var text = this.text.substr(0, n) + (this.t < 5 && this.t % 0.5 > 0.25 ? "|" : "")
 		var linesize = this.fontsize * 1.1
 		text.split("\n").forEach(function (t, j) {
 			context.fillText(t, 0, linesize * j)
@@ -47,7 +47,7 @@ function TextEffect(words, x, y) {
 		text: words,
 		x: x,
 		y: y,
-		lifetime: 6,
+		lifetime: 9999,
 	})
 }
 TextEffect.prototype = UFX.Thing()
