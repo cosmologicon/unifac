@@ -11,9 +11,11 @@
 <script src="../UFX/src/noise.js"></script>
 <script src="../UFX/src/random.js"></script>
 <script src="../UFX/src/texture.js"></script>
+<script src="../UFX/src/Thing.js"></script>
 
 <script src="state.js"></script>
 <script src="things.js"></script>
+<script src="text.js"></script>
 <script src="control.js"></script>
 <script src="background.js"></script>
 <script src="view.js"></script>
@@ -23,6 +25,7 @@
 cat index-dev.html | grep ^.script.*UFX | sed 's|.*=.||;s|.>.*||' | xargs cat > UFX.js
 rsync -r index.html *.js "night@night.xen.prgmr.com:/var/www/ld30/v0"
 
+cd /var/www/ld30
 for d in `ls v0` ; do ln -s v0/$d $d ; done
 -->
 

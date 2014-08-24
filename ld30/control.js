@@ -19,15 +19,11 @@ var control = {
 			},
 		}
 		this.selectedbutton = null
-		this.dragstart = null
+		this.buildstart = null
 	},
 	// closest point to p that's directly horizontal or vertical to p0
 	nearest: function (p0, p) {
 		return Math.abs(p0[0] - p[0]) > Math.abs(p0[1] - p[1]) ? [p[0], p0[1]] : [p0[0], p[1]]
-	},
-	// Start of a potential mouse drag event or swipe event
-	registerstart: function (pos) {
-		this.dragstart = pos
 	},
 	
 	think: function (dt) {
@@ -60,6 +56,32 @@ var control = {
 		this.selectedbutton = this.selectedbutton == bname ? null : bname
 	},
 	
+	start: function (pos) {
+		this.buildstart = null
+		var b = state.thingat(view.togame(pos[0], pos[1]))
+		if (b) this.buildstart = b
+	},
+	
+	clear: function () {
+		this.buildstart = null
+	},
+	
+	setpos: function (pos) {
+		this.pos = pos
+	},
+
+	drawcursor: function () {
+		if (!this.buildstart) return
+		var p = view.togame(this.pos[0], this.pos[1])
+		var pnear = this.nearest([this.buildstart.x, this.buildstart.y], p)
+		var xnear = Math.round(pnear[0]), ynear = Math.round(pnear[1])
+		if (xnear == this.buildstart.x && ynear == this.buildstart.y) return
+		var bridge = Bridge(this.buildstart, { x: xnear, y: ynear })
+		context.save()
+		bridge.draw()
+		context.restore()
+	},
+	
 	draw: function () {
 		for (var bname in this.buttons) {
 			var button = this.buttons[bname]
@@ -73,7 +95,6 @@ var control = {
 				"]"
 			)
 		}
-	
 	},
 }
 
