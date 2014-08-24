@@ -1,20 +1,28 @@
 
 var state = {
 	init: function () {
-		this.level = 0
+		this.level = 4
 	},
 	load: function () {
 		var leveldata = levels[this.level]
 		this.toids = []
+		this.bloids = []
 		this.bridges = []
 		this.connections = {}
-		for (var j = 0 ; j < leveldata.toids.length ; ++j) {
-			var t = leveldata.toids[j]
+		var toids = leveldata.toids || []
+		var stroids = leveldata.stroids || []
+		var bloids = leveldata.bloids || []
+		for (var j = 0 ; j < toids.length ; ++j) {
+			var t = toids[j]
 			this.toids.push(Toid(t[0], t[1], t[2]))
 		}
-		for (var j = 0 ; j < leveldata.stroids.length ; ++j) {
-			var t = leveldata.stroids[j]
+		for (var j = 0 ; j < stroids.length ; ++j) {
+			var t = stroids[j]
 			this.toids.push(Stroid(t[0], t[1], t[2]))
+		}
+		for (var j = 0 ; j < bloids.length ; ++j) {
+			var t = bloids[j]
+			this.bloids.push(Bloid(t[0], t[1]))
 		}
 		this.complete = false
 	},
@@ -26,6 +34,27 @@ var state = {
 			}
 		}
 		return null
+	},
+	bloidat: function (pos) {
+		var x = Math.round(pos[0]), y = Math.round(pos[1])
+		for (var j = 0 ; j < this.bloids.length ; ++j) {
+			if (this.bloids[j].x == x && this.bloids[j].y == y) {
+				return j
+			}
+		}
+		return null
+	},
+	removebloid: function (j) {
+		this.bloids.splice(j, 1)
+	},
+	canbuild: function (obj0, x, y) {
+		var x0 = Math.min(obj0.x, x), x1 = Math.max(obj0.x, x)
+		var y0 = Math.min(obj0.y, y), y1 = Math.max(obj0.y, y)
+		for (var j = 0 ; j < this.bloids.length ; ++j) {
+			var b = this.bloids[j]
+			if (x0 <= b.x && b.x <= x1 && y0 <= b.y && b.y <= y1) return false
+		}
+		return true
 	},
 	addconnection: function (w1, w2) {
 		var p = w1.x + "," + w1.y
@@ -54,6 +83,7 @@ var state = {
 
 	think: function (dt) {
 		this.toids.forEach(function (toid) { toid.think(dt) })
+		this.bloids.forEach(function (bloid) { bloid.think(dt) })
 		this.bridges.forEach(function (bridge) { bridge.think(dt) })
 		
 	},
