@@ -23,13 +23,13 @@ canvas.ontouchstart = function (event) {
 UFX.resource.loadwebfonts("Nova Flat")
 
 
-background.init()
 control.init()
 state.init()
 audio.init()
 
-UFX.scene.push({
+var gamescene = {
 	start: function () {
+		background.init()
 		var leveldata = levels[state.level]
 		state.load()
 		this.effects = []
@@ -37,6 +37,7 @@ UFX.scene.push({
 			var t = leveldata.texts[j]
 			this.effects.push(TextEffect(t[0], t[1], t[2]))
 		}
+		this.t = 0
 		this.wincurtain = 0
 	},
 	thinkargs: function (dt) {
@@ -78,6 +79,7 @@ UFX.scene.push({
 		return [dt, istate]
 	},
 	think: function (dt, istate) {
+		this.t += dt
 		control.setpos(istate.pos)
 		if (istate.isdown && !control.buildstart) {
 			view.drag(istate.dpos)
@@ -89,10 +91,21 @@ UFX.scene.push({
 			var b = control.buttonat(istate.click)
 			if (b) {
 				control.selectbutton(b)
+			} else if (control.selectedbutton) {
+				var p = view.togame(istate.click[0], istate.click[1]).map(Math.round)
+				if (control.selectedbutton == "toid") {
+					state.toids.push(Toid(p[0], p[1], [0]))
+				} else if (control.selectedbutton == "stroid") {
+					state.toids.push(Stroid(p[0], p[1]))
+				} else if (control.selectedbutton == "bloid") {
+					state.bloids.push(Bloid(p[0], p[1]))
+				}
 			} else {
 				b = state.bloidat(view.togame(istate.click[0], istate.click[1]))
 				if (b !== null) {
+					this.effects.push(Corpse(state.bloids[b]))
 					state.removebloid(b)
+					audio.buzz()
 				}
 			}
 		}
@@ -108,8 +121,13 @@ UFX.scene.push({
 		control.think(dt)
 		state.think(dt)
 		this.effects.forEach(function (e) { e.think(dt) })
+		this.effects = this.effects.filter(function (e) { return e.alive })
 		if (state.complete) {
 			this.wincurtain += dt * 0.8
+			if (this.wincurtain >= 1) {
+				state.advance()
+				UFX.scene.swap(this)
+			}
 		}
 		audio.think(dt)
 	},
@@ -133,8 +151,13 @@ UFX.scene.push({
 		
 		if (this.wincurtain) {
 			UFX.draw("[ alpha", this.wincurtain, "fs white f0 ]")
+		} else if (this.t < 0.5) {
+			UFX.draw("[ alpha", 1 - this.t * 2, "fs white f0 ]")
 		}
 	},
-})
+}
+
+UFX.scene.push(gamescene)
+
 
 

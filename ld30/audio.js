@@ -10,7 +10,7 @@ var audio = {
 		var buffersize = 2 * this.context.sampleRate
 		var nbuffer = this.context.createBuffer(1, buffersize, this.context.sampleRate)
 		var output = nbuffer.getChannelData(0)
-		for (var j = 0 ; j < buffersize ; ++j) output[j] = UFX.random(-1, 1)
+		for (var j = 0 ; j < buffersize ; ++j) output[j] = UFX.random(-0.4, 0.4)
 
 		this.wind = [0, 0, 0, 0]
 		for (var j = 0 ; j < this.wind.length ; ++j) {
@@ -26,8 +26,8 @@ var audio = {
 			wind.source.connect(wind.bandpass)
 			wind.bandpass.connect(wind.gain)
 			wind.gain.connect(this.master)
-			wind.gain.gain.value = 0.75
-			wind.bandpass.frequency.value = 60
+			wind.gain.gain.value = 0.25
+			wind.bandpass.frequency.value = 200
 		}
 		this.nextwindupdate = 1
 		
@@ -39,8 +39,8 @@ var audio = {
 			this.nextwindupdate += 1
 			if (this.t > this.nextwindupdate) continue
 			var j = this.nextwindupdate % this.wind.length
-			this.wind[j].gain.gain.linearRampToValueAtTime(UFX.random(0.5, 1), this.t + this.wind.length)
-			this.wind[j].bandpass.frequency.linearRampToValueAtTime(UFX.random(40, 80), this.t + this.wind.length)
+			this.wind[j].gain.gain.linearRampToValueAtTime(UFX.random(0.2, 0.5), this.t + this.wind.length)
+			this.wind[j].bandpass.frequency.linearRampToValueAtTime(UFX.random(150, 250), this.t + this.wind.length)
 		}
 	},
 	getsine: function (freq) {
@@ -82,7 +82,7 @@ var audio = {
 		freq = freq || 220
 		duration = duration || 1
 		var s = this.getsine(freq)
-		s.gain.gain.setValueAtTime(1, this.t)
+		s.gain.gain.setValueAtTime(0.5, this.t)
 		s.gain.gain.linearRampToValueAtTime(0, this.t + duration)
 	},
 	playspike: function (freq, duration) {
@@ -98,6 +98,20 @@ var audio = {
 	toggle: function () {
 		this.on = !this.on
 		this.master.gain.value = this.on ? 1 : 0
+	},
+	buzz: function () {
+		this.playspike(100, 0.4)
+	},
+	build: function () {
+		var f = 200 + 20 * UFX.random.rand(10)
+		this.playsine(f, 1)
+	},
+	change: function () {
+		this.playsine(240, 3)
+	},
+	tap: function () {
+		var f = 200 + 20 * UFX.random.rand(10)
+		this.playsine(f, 0.1)
 	},
 }
 

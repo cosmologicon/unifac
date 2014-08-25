@@ -4,11 +4,18 @@ var ShowsText = {
 		this.fontsize = args.fontsize || 20
 		this.alive = true
 	},
+	think: function (dt) {
+		var t = this.t - 3
+		if (t > 0 && t * 18 < this.text.length && UFX.random(0.25) < dt) {
+			audio.tap()
+		}
+	},
 	draw: function () {
 		UFX.draw("z 0.025 0.025 fs rgba(100,100,255,0.33) font " + this.fontsize + "px~'Nova~Flat'")
-		var n = Math.min(this.text.length, 18 * this.t)
-		var text = this.text.substr(0, n) + (this.t < 5 && this.t % 0.5 > 0.25 ? "|" : "")
-		var linesize = this.fontsize * 1.1
+		var t = this.t - 3
+		var n = clamp(t * 18, 0, this.text.length)
+		var text = this.text.substr(0, n) + (t < 5 && t % 0.5 > 0.25 ? "|" : "")
+		var linesize = this.fontsize * 1.2
 		text.split("\n").forEach(function (t, j) {
 			context.fillText(t, 0, linesize * j)
 		})
@@ -23,23 +30,6 @@ var Lifetime = {
 		this.alive = this.t < this.lifetime
 	},
 }
-
-var Fades = {
-	start: function (args) {
-		this.alpha = 1
-		this.lifetime = args.lifetime || 10
-	},
-	think: function (dt) {
-		if (this.t > this.lifetime) {
-			this.alpha -= dt
-		}
-		this.alive = this.alpha > 0
-	},
-	draw: function () {
-		UFX.draw("alpha", Math.max(this.alpha, 0))
-	},
-}
-
 
 function TextEffect(words, x, y) {
 	if (!(this instanceof TextEffect)) return new TextEffect(words, x, y)
