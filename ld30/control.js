@@ -2,20 +2,41 @@
 var control = {
 	init: function () {
 		this.buttons = {
-/*			bridge: {
+			stroid: {
 				main: true,
 				offset: 0,
-				path: "b o 0.3 0.5 0.1 o 0.6 0.5 0.1 f",
+				text: "S",
 			},
-			relay: {
+			toid: {
 				main: true,
 				offset: 1,
-				path: "b o 0.5 0.5 0.25 lw 0.1 s",
-			}, */
+				text: "T",
+			},
+			bloid: {
+				main: true,
+				offset: 2,
+				text: "B",
+			},
 			audio: {
 				main: false,
 				offset: 0,
 				path: "b o 0.5 0.5 0.18 f b o 0.5 0.5 0.25 lw 0.06 s b o 0.5 0.5 0.35 lw 0.04 s",
+				text: "sfx",
+			},
+			undo: {
+				main: false,
+				offset: 1,
+				text: "redo",
+			},
+			prev: {
+				main: false,
+				offset: 2,
+				text: "prev",
+			},
+			next: {
+				main: false,
+				offset: 3,
+				text: "next",
 			},
 		}
 		this.selectedbutton = null
@@ -34,16 +55,28 @@ var control = {
 			button.w = button.h = bsize
 			if (sx < sy) {
 				button.x = button.offset * bsize
-				button.y = button.main ? 0 : sy - bsize
+				button.y = button.main ? sy - bsize : 0
 			} else {
 				button.x = button.main ? 0 : sx - bsize
 				button.y = button.offset * bsize
 			}
 		}
 	},
+	
+	isvisible: function (bname) {
+		if (bname == "prev") {
+			return state.level > 0
+		} else if (bname == "next") {
+			return state.level < window.localStorage[settings.savename]
+		} else if (bname == "toid" || bname == "stroid" || bname == "bloid") {
+			return settings.EDITOR
+		}
+		return true
+	},
 
 	buttonat: function (pos) {
 		for (var bname in this.buttons) {
+			if (!this.isvisible(bname)) continue
 			var b = this.buttons[bname]
 			if (b.x < pos[0] && pos[0] < b.x + b.w && b.y < pos[1] && pos[1] < b.y + b.h) {
 				return bname
@@ -55,9 +88,23 @@ var control = {
 	selectbutton: function (bname) {
 		if (bname == "audio") {
 			audio.toggle()
-			return
+		} else if (bname == "undo") {
+			gamescene.wincurtain = 1
+			UFX.scene.swap(gamescene)
+			audio.buzz()
+		} else if (bname == "prev") {
+			if (state.level) state.level -= 1
+			gamescene.wincurtain = 1
+			UFX.scene.swap(gamescene)
+			audio.change()
+		} else if (bname == "next") {
+			state.level += 1
+			gamescene.wincurtain = 1
+			UFX.scene.swap(gamescene)
+			audio.change()
+		} else {
+			this.selectedbutton = this.selectedbutton == bname ? null : bname
 		}
-		this.selectedbutton = this.selectedbutton == bname ? null : bname
 	},
 	
 	start: function (pos) {
@@ -70,8 +117,12 @@ var control = {
 		if (!this.buildstart) return
 		var b = state.thingat(view.togame(pos[0], pos[1]))
 		if (b && b !== this.buildstart) {
-			if (state.canbuild(this.buildstart, pos[0], pos[1])) {
+			var p = view.togame(pos[0], pos[1])
+			if (state.canbuild(this.buildstart, Math.round(p[0]), Math.round(p[1]))) {
 				state.joinworlds(this.buildstart, b)
+				audio.build()
+			} else {
+				audio.buzz()
 			}
 		}
 		this.clear()
@@ -98,7 +149,11 @@ var control = {
 	},
 	
 	draw: function () {
+		this.buttons.audio.path = audio.on ?
+			"b o 0.5 0.5 0.18 f b o 0.5 0.5 0.25 lw 0.06 s b o 0.5 0.5 0.35 lw 0.04 s" :
+			"b o 0.5 0.5 0.18 f"
 		for (var bname in this.buttons) {
+			if (!this.isvisible(bname)) continue
 			var button = this.buttons[bname]
 			UFX.draw(
 				"[ t", button.x, button.y, "z", button.w, button.h,
@@ -106,12 +161,14 @@ var control = {
 				"fs rgba(0,255,255," + (bname == this.selectedbutton ? 0.4 : 0.1) + ")",
 				"ss rgba(0,255,255," + (bname == this.selectedbutton ? 0.8 : 0.4) + ")",
 				"lw 0.04 f s",
-				"fs rgba(0,255,255,0.4)",
-				"ss rgba(0,255,255,0.4)",
-				button.path,
+				"fs rgba(255,255,255,0.3)",
+				"t 0.5 0.5 z 0.03 0.03 font 12px~'Nova~Flat' textalign center textbaseline middle ft0", button.text,
 				"]"
 			)
 		}
+		var h = Math.ceil(0.09 * Math.min(canvas.width, canvas.height))
+		UFX.draw("[ textalign right textbaseline bottom t", canvas.width - 0.2 * h, canvas.height - 0.2 * h,
+			"font", h + "px~'Nova~Flat'", "fs rgba(255,255,255,0.5) ft money:~$" + state.money, "0 0 ]")
 	},
 }
 

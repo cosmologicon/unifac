@@ -96,6 +96,36 @@ var DrawBlock = {
 	},
 }
 
+var Fades = {
+	start: function (args) {
+		this.alpha = 1
+		this.lifetime = args.lifetime || 10
+	},
+	think: function (dt) {
+		if (this.t > this.lifetime) {
+			this.alpha -= dt
+		}
+		this.alive = this.alpha > 0
+	},
+	draw: function () {
+		UFX.draw("alpha", Math.max(this.alpha, 0))
+	},
+}
+
+
+var DrawsGhost = {
+	start: function (args) {
+		this.ghost = args.ghost
+	},
+	think: function (dt) {
+		this.ghost.think(dt * 10)
+	},
+	draw: function () {
+		UFX.draw("z", 1 + 3 * this.t, 1 + 3 * this.t)
+		this.ghost.draw()
+	},
+}
+
 var SpansLength = {
 	start: function (args) {
 		this.toid0 = args.toid0
@@ -173,6 +203,24 @@ Bridge.prototype = UFX.Thing()
 	.addcomp(WorldBound)
 	.addcomp(Ticks)
 	.addcomp(SpansLength)
+
+function Corpse(bloid) {
+	if (!(this instanceof Corpse)) return new Corpse(bloid)
+	var x = bloid.x, y = bloid.y
+	bloid.x = bloid.y = 0
+	this.start({
+		x: x,
+		y: y,
+		ghost: bloid,
+		lifetime: 0.0001,
+	})
+}
+Corpse.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Ticks)
+	.addcomp(Fades)
+	.addcomp(DrawsGhost)
+
 
 function BridgeCursor(toid0, x, y) {
 	if (!(this instanceof BridgeCursor)) return new BridgeCursor(toid0, x, y)

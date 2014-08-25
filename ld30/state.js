@@ -1,7 +1,14 @@
 
 var state = {
 	init: function () {
-		this.level = 4
+		this.level = +window.localStorage[settings.savename] || 0
+		if (settings.EDITOR) this.level = "editor"
+	},
+	advance: function () {
+		this.level += 1
+		if (this.level > window.localStorage[settings.savename]) {
+			window.localStorage[settings.savename] = this.level
+		}
 	},
 	load: function () {
 		var leveldata = levels[this.level]
@@ -24,7 +31,27 @@ var state = {
 			var t = bloids[j]
 			this.bloids.push(Bloid(t[0], t[1]))
 		}
+		this.money = leveldata.money
 		this.complete = false
+	},
+	dump: function () {
+		var leveldata = {
+			toids: [],
+			bloids: [],
+			stroids: [],
+			money: this.money
+		}
+		this.toids.forEach(function (toid) {
+			if (toid instanceof Toid) {
+				leveldata.toids.push([toid.x, toid.y, toid.needs])
+			} else {
+				leveldata.stroids.push([toid.x, toid.y, toid.res0])
+			}
+		})
+		this.bloids.forEach(function (bloid) {
+			leveldata.bloids.push([bloid.x, bloid.y])
+		})
+		console.log(JSON.stringify(leveldata))
 	},
 	thingat: function (pos) {
 		var x = Math.round(pos[0]), y = Math.round(pos[1])
@@ -45,6 +72,11 @@ var state = {
 		return null
 	},
 	removebloid: function (j) {
+		if (this.money < settings.bloidcost) {
+			audio.buzz()
+			return
+		}
+		this.money -= settings.bloidcost
 		this.bloids.splice(j, 1)
 	},
 	canbuild: function (obj0, x, y) {
@@ -54,7 +86,7 @@ var state = {
 			var b = this.bloids[j]
 			if (x0 <= b.x && b.x <= x1 && y0 <= b.y && b.y <= y1) return false
 		}
-		return true
+		return (x1 - x0) + (y1 - y0) <= this.money
 	},
 	addconnection: function (w1, w2) {
 		var p = w1.x + "," + w1.y
@@ -71,6 +103,7 @@ var state = {
 		}
 	},
 	joinworlds: function (w1, w2) {
+		this.money -= Math.abs(w1.x - w2.x) + Math.abs(w1.y - w2.y)
 		this.bridges.push(Bridge(w1, w2))
 		this.addconnection(w1, w2)
 		this.addconnection(w2, w1)
@@ -89,5 +122,8 @@ var state = {
 	},
 }
 
+if (!(settings.savename in window.localStorage)) {
+	window.localStorage[settings.savename] = 0
+}
 
 

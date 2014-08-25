@@ -1,17 +1,25 @@
 var background = {
 	init: function () {
+		var colors = [
+			[0,100,255],
+			[255,0,0],
+			[180,0,180],
+			[200,100,0],
+			[0,220,0],
+		]
+		var color = colors[state.level % colors.length], r = color[0], g = color[1], b = color[2]
 		this.plasma = [
 			UFX.texture.nightsky({
-		        size: 512, r0: 0, dr: 0, g0: 80, dg: 0, b0: 255, db: 0, a0: 10, da: 10, fraclevel: 3, scale: 4, rstar1: 0.4,
+		        size: 512, r0: r, dr: 0, g0: g, dg: 0, b0: b, db: 0, a0: 10, da: 10, fraclevel: 3, scale: 4, rstar1: 0.4,
 		    }),
 			UFX.texture.overcast({
-		        size: 512, r0: 0, dr: 0, g0: 80, dg: 0, b0: 255, db: 0, a0: 10, da: 10, fraclevel: 3, scale: 4,
+		        size: 512, r0: r, dr: 0, g0: g, dg: 0, b0: b, db: 0, a0: 10, da: 10, fraclevel: 3, scale: 4,
 		    }),
 			UFX.texture.overcast({
-		        size: 512, r0: 0, dr: 0, g0: 80, dg: 0, b0: 255, db: 0, a0: 10, da: 10, fraclevel: 3, scale: 4,
+		        size: 512, r0: r, dr: 0, g0: g, dg: 0, b0: b, db: 0, a0: 10, da: 10, fraclevel: 3, scale: 4,
 		    }),
 			UFX.texture.overcast({
-		        size: 512, r0: 0, dr: 0, g0: 80, dg: 0, b0: 255, db: 0, a0: 10, da: 10, fraclevel: 3, scale: 4,
+		        size: 512, r0: r, dr: 0, g0: g, dg: 0, b0: b, db: 0, a0: 10, da: 10, fraclevel: 3, scale: 4,
 		    }),
 		]
 		this.t = 0
