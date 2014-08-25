@@ -103,7 +103,7 @@ var audio = {
 		this.playspike(100, 0.4)
 	},
 	build: function () {
-		var f = 200 + 20 * UFX.random.rand(10)
+		var f = 180 + 10 * UFX.random.rand(6)
 		this.playsine(f, 1)
 	},
 	change: function () {

@@ -1,5 +1,5 @@
 var settings = {
-	gamename: "Stroids vs Toids",
+	gamename: "Spanner",
 	savename: "LD30save",
 	DEBUG: window.location.href.indexOf("-dev") > -1,
 	EDITOR: window.location.href.indexOf("EDITOR") > -1,

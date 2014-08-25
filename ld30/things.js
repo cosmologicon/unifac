@@ -47,9 +47,10 @@ var Circular = {
 	start: function (args) {
 		this.color = args.color || "blue"
 		this.r = args.r || 0.2
+		this.rgrad = UFX.draw.radgrad(-this.r, -this.r, 0, -this.r, -this.r, 2*this.r, 0, "rgba(0,0,0,0)", 1, "rgba(0,0,0,0.5)")
 	},
 	draw: function () {
-		UFX.draw("b o 0 0", this.r, "fs", this.color, "f")
+		UFX.draw("b o 0 0", this.r, "fs", this.color, "f fs", this.rgrad, "f")
 	},
 }
 
@@ -58,6 +59,8 @@ var HasNeeds = {
 		this.needs = args.needs
 		this.r = args.r
 		this.met = false
+		this.rgrad = UFX.draw.radgrad(-this.r, -this.r, 0, -this.r, -this.r, 2*this.r, 0, "rgba(0,0,0,0)", 1, "rgba(0,0,0,0.8)")
+		this.dgrad = UFX.draw.radgrad(-this.r, -this.r, 0, -this.r, -this.r, 2*this.r, 0, "rgba(0,0,0,0.65)", 1, "rgba(0,0,0,1)")
 	},
 	getres: function () {
 		if (this.met) return
@@ -68,20 +71,17 @@ var HasNeeds = {
 	},
 	draw: function () {
 		var r = this.r
-		for (var j = 0 ; j < this.needs.length ; ++j) {
-			UFX.draw("b o 0 0", r, "fs", settings.rescolors[this.needs[j]], "f")
-			r -= 0.08
-		}
-		UFX.draw("b o 0 0", r, "fs", (this.met ? "#AAA" : "#333"), "f")
+		UFX.draw("b o 0 0", r, "fs", settings.rescolors[this.needs[0]], "f fs", (this.met ? this.rgrad : this.dgrad), "f")
 	},
 }
 
 var MiniCirc = {
 	start: function (args) {
 		this.r = args.r || 0.2
+		this.rgrad = UFX.draw.radgrad(-this.r, -this.r, 0, -this.r, -this.r, 2*this.r, 0, "rgba(0,0,0,0)", 1, "rgba(0,0,0,0.8)")
 	},
 	draw: function () {
-		UFX.draw("b o 0 0", this.r, "fs", (this.res0 == null ? "#333" : settings.rescolors[this.res0]), "f")
+		UFX.draw("b o 0 0", this.r, "fs", (this.res0 == null ? "#333" : settings.rescolors[this.res0]), "f fs", this.rgrad, "f")
 	},
 }
 
