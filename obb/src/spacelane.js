@@ -140,6 +140,17 @@ Spacelane.prototype = {
 			})
 		}
 	},
+	claimspace: function (objsbyedgeN, objsbyhexN) {
+		var lane = this
+		this.spec.branches.forEach(function (branch) {
+			branch.forEach(function (pH, j) {
+				objsbyhexN[NconvertH(pH)] = lane
+				if (!j) return
+				var edgepH = [(pH[0]+branch[j-1][0])/2, (pH[1]+branch[j-1][1])/2]
+				objsbyedgeN[NconvertH(edgepH)] = lane
+			})
+		})
+	},
 	place: function (obj, d) {
 		obj.dsegment = 0
 		obj.jsegment = UFX.random.choice(this.startsegments)
