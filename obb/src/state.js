@@ -23,7 +23,10 @@ function State() {
 	this.stumps = []
 	this.partsbyedgeN = {}  // map pN -> part
 	this.organsbyhexN = {}  // map pN -> organ
+	this.objsbyedgeN = {}  // for determining whether the space is claimed
+	this.objsbyhexN = {}
 	this.organsbyhexN[NconvertH(core.pH)] = core
+	this.objsbyhexN[NconvertH(core.pH)] = core
 	var that = this
 	;[0, 1, 2, 0, 1, 2].forEach(function (jsystem, jedge) {
 		that.addstump(core, jedge, jsystem)
@@ -34,6 +37,9 @@ function State() {
 	this.lanes = [
 		Spacelane(spec),
 	]
+	for (var j = 0 ; j < this.lanes.length ; ++j) {
+		this.lanes[j].claimspace(this.objsbyedgeN, this.objsbyhexN)
+	}
 
 	this.attackers = []
 	this.attackers.push(Attacker({
@@ -67,6 +73,7 @@ State.prototype = {
 		parent.children[jedge] = stump
 		this.stumps.push(stump)
 		this.partsbyedgeN[edgeN] = stump
+		this.objsbyedgeN[edgeN] = stump
 		return stump
 	},
 	
@@ -93,10 +100,10 @@ State.prototype = {
 				var jedge = +shape[j]
 				var oedge = (r + jedge) % 6
 				var oedgeN = NconvertH(HedgeofhexH(pH, oedge))
-				if (this.partsbyedgeN[oedgeN]) return false
+				if (this.objsbyedgeN[oedgeN]) return false
 			}
 		} else {
-			if (this.organsbyhexN[NconvertH(stump.pH)]) return false
+			if (this.objsbyhexN[NconvertH(stump.pH)]) return false
 		}
 		return true
 	},
@@ -117,6 +124,7 @@ State.prototype = {
 		}
 		part.parent.children[part.jedge] = part
 		this.partsbyedgeN[edgeN] = part
+		this.objsbyedgeN[edgeN] = part
 		this.parts.push(part)
 		this.stumps = this.stumps.filter(function (s) { return s !== stump })
 		if (shape.substr(0, 5) == "stalk") {
@@ -128,6 +136,7 @@ State.prototype = {
 			this.stalks.push(part)
 		} else {
 			this.organsbyhexN[NconvertH(pH)] = part
+			this.objsbyhexN[NconvertH(pH)] = part
 			this.organs.push(part)
 		}
 		return part
