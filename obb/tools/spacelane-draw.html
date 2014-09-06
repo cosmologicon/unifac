@@ -11,29 +11,58 @@ var canvas = document.getElementById("canvas")
 var context = canvas.getContext("2d")
 var x0G = 0, y0G = 0, VscaleG = 14
 var lanepHs = []
+var spec = {
+	branches: [],
+	connections: [],
+}
+var markedpNs = {}
 UFX.draw.setcontext(context)
 
 UFX.maximize.fill(canvas, "total")
 
-function drawhex(pH) {
+function drawhexH(pH) {
 	UFX.draw("(")
 	HverticesofhexH(pH).forEach(function (vpH, j) {
 		UFX.draw((j ? "l" : "m"), GconvertH(vpH))
 	})
 	UFX.draw(") s")
 }
+function markhexH(pH, color, r) {
+	UFX.draw("b o", GconvertH(pH), r, "fs", color, "f")
+}
+function tracejoinerH(pH0, pH1) {
+	var pG0 = GconvertH(pH0), pG1 = GconvertH(pH1)
+	var xG0 = pG0[0], yG0 = pG0[1], dxG = pG1[0] - xG0, dyG = pG1[1] - yG0
+	UFX.draw("[ x", dyG, -dxG, dxG, dyG, xG0, yG0, "m 0 0 l 0 0.75 m -0.2 0.3 l 0 0.7 l 0.2 0.3 ]")
+}
 function think(dt) {
 	var mstate = UFX.mouse.state(), kstate = UFX.key.state()
-	if (mstate.left.down) {
+	if (mstate.pos) {
 		var mx = mstate.pos[0], my = mstate.pos[1]
-		var pG = [
+		var mposG = [
 			x0G + (mx - 0.5 * canvas.width) / VscaleG,
 			y0G - (my - 0.5 * canvas.height) / VscaleG,
 		]
-		lanepHs.push(HnearesthexH(HconvertG(pG)))
+	} else {
+		mposG = [0, 0]
+	}
+	if (mstate.left.down) {
+		lanepHs.push(HnearesthexH(HconvertG(mposG)))
 	}
 	if (kstate.down.space) {
-		console.log(JSON.stringify(lanepHs))
+		spec.branches.push(lanepHs)
+		console.log(JSON.stringify(spec))
+		lanepHs = []
+	}
+	if (kstate.down.esc) {
+		lanepHs = []
+	}
+	if (kstate.down.backspace && lanepHs.length) {
+		lanepHs.pop()
+	}
+	if (kstate.down.tab) {
+		var pN = NconvertH(HnearesthexH(HconvertG(mposG)))
+		markedpNs[pN] = !markedpNs[pN]
 	}
 	UFX.draw("fs gray f0")
 	UFX.draw("[ t", 0.5 * canvas.width, 0.5 * canvas.height, "z", VscaleG, -VscaleG, "t", x0G, y0G)
@@ -41,17 +70,33 @@ function think(dt) {
 	for (var x = -20 ; x <= 20 ; ++x) {
 		for (var y = -20 ; y <= 20 ; ++y) {
 			if (Math.abs(x + y) > 20) continue
-			drawhex([6 * x, 6 * y])
+			drawhexH([6 * x, 6 * y])
 		}
 	}
-	UFX.draw("fs black b o 0 0 0.3 f")
-	UFX.draw("ss red fs red")
-	lanepHs.forEach(function (lanepH) {
-		UFX.draw("b o", GconvertH(lanepH), 0.15, "f")
+	markhexH([0, 0], "black", 0.7)
+	for (var pN in markedpNs) {
+		if (markedpNs[pN]) {
+			markhexH(HconvertN(pN), "rgba(0,0,255,0.2)", 0.5)
+		}
+	}
+	spec.branches.forEach(function (branch) {
+		branch.forEach(function (lanepH) {
+			markhexH(lanepH, "rgba(255,0,0,0.4", 0.15)
+		})
+		UFX.draw("ss rgba(255,0,0,0.4) b")
+		branch.forEach(function (lanepH, j) {
+			if (!j) return
+			tracejoinerH(branch[j-1], lanepH)
+		})
+		UFX.draw("s")
 	})
-	UFX.draw("b")
+	lanepHs.forEach(function (lanepH) {
+		markhexH(lanepH, "red", 0.15)
+	})
+	UFX.draw("ss red b lw 0.1")
 	lanepHs.forEach(function (lanepH, j) {
-		UFX.draw((j ? "l" : "m"), GconvertH(lanepH))
+		if (!j) return
+		tracejoinerH(lanepHs[j-1], lanepH)
 	})
 	UFX.draw("s")
 	UFX.draw("]")
