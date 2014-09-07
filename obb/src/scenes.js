@@ -109,8 +109,9 @@ UFX.scenes.play = {
 		blobscape.killtime()
 		graphics.clear()
 		
-		debugHUD.starttimer("paneldraw")
 		playpanel.draw()
+
+		debugHUD.starttimer("paneldraw")
 		stalkpanel.draw()
 		debugHUD.stoptimer("paneldraw")
 		

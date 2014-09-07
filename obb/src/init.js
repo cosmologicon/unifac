@@ -24,6 +24,7 @@ UFX.resource.load({
 	"gameposvert": "shaders/gamepos.vert",
 	"uniformfrag": "shaders/uniform.frag",
 	"checkerfrag": "shaders/checker.frag",
+	"paneltilefrag": "shaders/paneltile.frag",
 	"fogfrag": "shaders/fog.frag",
 	"visiblefrag": "shaders/visible.frag",
 	"rflamefrag": "shaders/rflame.frag",
