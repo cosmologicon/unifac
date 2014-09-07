@@ -44,6 +44,19 @@ var controlstate = {
 		
 		this.fsquirm = 1
 		this.gridalpha = 0
+
+		this.stalkoptions = new Array(9)
+		for (var j = 0 ; j < 9 ; ++j) this.pickrandomstalk(j)
+	},
+	pickrandomstalk: function (jstalkoption) {
+		if (jstalkoption >= 6) {
+			this.stalkoptions[jstalkoption] = "organ" + (jstalkoption - 6)
+		} else {
+			var jsystem = UFX.random.choice(["0", "1", "2"])
+			jsystem = Math.floor(jstalkoption / 2)
+			var branches = UFX.random.choice(["1", "2", "3", "4", "5", "13", "14", "23", "24", "25", "34", "35"])
+			this.stalkoptions[jstalkoption] = "stalk" + jsystem + branches
+		}
 	},
 	// Call this once per frame, passing in dt and input.
 	// Will return an object with all relevant state.
@@ -59,6 +72,7 @@ var controlstate = {
 		this.wD = canvas.width
 		this.hD = canvas.height
 
+/*
 		if (this.wD > 1.5 * this.hD) {  // three-panel horizontal
 			var swD = Math.floor(0.25 * this.hD), pwD = this.wD - 2 * swD
 			stalkpanel.placeD(0, 0, swD, this.hD)
@@ -75,6 +89,16 @@ var controlstate = {
 			var shD = Math.floor(0.25 * this.wD), phD = this.hD - 2 * shD
 			stalkpanel.placeD(0, shD+phD, this.wD, shD)
 			playpanel.placeD(0, shD, this.wD, phD)
+		}
+*/
+		if (this.wD > this.hD) { // two-panel horizontal
+			var swD = Math.floor(Math.min(this.wD / 4.5, this.hD / 2)), pwD = this.wD - swD
+			stalkpanel.placeD(0, 0, swD, this.hD)
+			playpanel.placeD(swD, 0, pwD, this.hD)
+		} else {  // two-panel vertical
+			var shD = Math.floor(Math.min(this.hD / 3.5, this.wD / 2)), phD = this.hD - shD
+			stalkpanel.placeD(0, phD, this.wD, shD)
+			playpanel.placeD(0, 0, this.wD, phD)
 		}
 		
 		panels = [playpanel, stalkpanel]

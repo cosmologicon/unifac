@@ -99,7 +99,11 @@ var playpanel = Panel({
 		var edgeH = HnearestedgeG(pG)
 		if (state.canaddpartatedgeH(controlstate.selectedshape, edgeH)) {
 			var part = state.addpartatedgeH(controlstate.selectedshape, edgeH)
+			if (controlstate.jselectedstalk !== undefined) {
+				controlstate.pickrandomstalk(controlstate.jselectedstalk)
+			}
 			delete controlstate.selectedshape
+			delete controlstate.jselectedstalk
 			background.updategrid()
 		}
 	},
@@ -126,53 +130,132 @@ var playpanel = Panel({
 })
 
 var stalkpanel = Panel({
-	draw: function () {
-		graphics.setviewportD(this.xD, this.yD, this.wD, this.hD)
-		if (controlstate.selectedshape) {
-			var c = controlstate.selectedshape[5]
-			var color = constants.colors["system" + c]
+	placeD: function (xD, yD, wD, hD) {
+		panelproto.placeD.call(this, xD, yD, wD, hD)
+		this.stalkpositions = []
+		if (hD > wD) {
+			var f = this.stalkscale = Math.min(wD / 3.5, hD / (10 * s3)) * 0.9
+			for (var j = 0 ; j < 9 ; ++j) {
+				this.stalkpositions.push([
+					(j % 2 ? 1 : -1) * 0.75 * 1.1,
+					(4 - j) * s3 * 1.1,
+				])
+			}
 		} else {
-			var color = [0.4, 0.4, 0.4]
+			var f = this.stalkscale = Math.min(wD / 9.5, hD / (4 * s3)) * 0.9
+			for (var j = 0 ; j < 6 ; ++j) {
+				this.stalkpositions.push([
+					(j - 2.5) * 1.5 * 1.1,
+					(j % 2 ? 0 : 1) * s3 * 1.1,
+				])
+			}
+			for (var j = 0 ; j < 3 ; ++j) {
+				this.stalkpositions.push([
+					(j*2 - 2.5) * 1.5 * 1.1,
+					-1 * s3 * 1.1,
+				])
+			}
 		}
+	},
+	draw: function () {
+		var d = Math.ceil(Math.min(this.wD, this.hD) / 40)
 		graphics.progs.uniform.use()
-		graphics.progs.uniform.setcolor(color[0]/3, color[1]/3, color[2]/3, 1)
+		graphics.setviewportD(this.xD, this.yD, this.wD, this.hD)
+		graphics.progs.uniform.setcolor(0, 0.2*1.2, 0.3*1.2, 1)
+		graphics.drawunitsquare(graphics.progs.uniform.attribs.pos)
+		graphics.setviewportD(this.xD + d, this.yD, this.wD - d, this.hD - d)
+		graphics.progs.uniform.setcolor(0, 0.2/1.2, 0.3/1.2, 1)
+		graphics.drawunitsquare(graphics.progs.uniform.attribs.pos)
+		graphics.setviewportD(this.xD + d, this.yD + d, this.wD - 2 * d, this.hD - 2 * d)
+		graphics.progs.uniform.setcolor(0, 0.2, 0.3, 1)
 		graphics.drawunitsquare(graphics.progs.uniform.attribs.pos)
 
-		if (controlstate.selectedshape) {
+		var s = Math.floor(this.stalkscale)
+		graphics.progs.paneltile.use()
+		graphics.progs.paneltile.setcanvassize(2*s, 2*s)
+		graphics.progs.paneltile.setzoom(0.95 * s)
+		for (var j = 0 ; j < 9 ; ++j) {
+			var x0 = Math.floor(0.5 * this.wD + s * this.stalkpositions[j][0])
+			var y0 = Math.floor(0.5 * this.hD + s * this.stalkpositions[j][1])
+			graphics.setviewportD(this.xD + x0 - s, this.yD + y0 - s, 2 * s, 2 * s)
+			graphics.progs.paneltile.vsetcolor(constants.colors["system" + [0,0,1,1,2,2,0,1,2][j]])
+			graphics.drawunitsquare(graphics.progs.paneltile.attribs.pos)
+		}
+
+		for (var j = 0 ; j < 9 ; ++j) {
+			if (!controlstate.stalkoptions[j]) continue
 			blobscape.getspotinfo({
-				shape: controlstate.selectedshape,
+				shape: controlstate.stalkoptions[j],
 				f: 1,
 			})
 			graphics.setviewportD(this.xD, this.yD, this.wD, this.hD)
 			blobscape.setup()
 			graphics.progs.blobrender.setcanvassizeD(this.wD, this.hD)
 			graphics.progs.blobrender.setvcenterG(0, 0)
-			graphics.progs.blobrender.setVscaleG(Math.min(this.wD, this.hD) / 2)
+			graphics.progs.blobrender.setVscaleG(this.stalkscale)
 			graphics.progs.blobrender.setfsquirm(0)
 			graphics.progs.blobrender.setplight0(0, 0, 100, 0)
 
 			blobscape.draw({
-				shape: controlstate.selectedshape,
+				shape: controlstate.stalkoptions[j],
 				f: 1,
 				r: 0,
-				pG: [0, 0],
+				pG: this.stalkpositions[j],
 				pH: [0, 0],
 				fixes: [true, true, true, true, true, true, true],
 			})
 		}
-	},
-	handlelclick: function () {
 		if (controlstate.selectedshape) {
-			delete controlstate.selectedshape
-		} else {
-			if (UFX.random() < 0.3) {
-				var jsystem = UFX.random.choice(["0", "1", "2"])
-				controlstate.selectedshape = "organ" + jsystem
-			} else {
-				var jsystem = UFX.random.choice(["0", "1", "2"])
-				var branches = UFX.random.choice(["1", "2", "3", "4", "5", "13", "14", "23", "24", "25", "34", "35"])
-				controlstate.selectedshape = "stalk" + jsystem + branches
+			graphics.progs.uniform.use()
+			graphics.progs.uniform.setcolor(0, 0, 0, 0.33)
+			graphics.drawunitsquare(graphics.progs.uniform.attribs.pos)
+			
+			if (controlstate.jselectedstalk !== undefined) {
+				var s = Math.floor(this.stalkscale), j = controlstate.jselectedstalk
+				graphics.progs.paneltile.use()
+				var x0 = Math.floor(0.5 * this.wD + s * this.stalkpositions[j][0])
+				var y0 = Math.floor(0.5 * this.hD + s * this.stalkpositions[j][1])
+				graphics.setviewportD(this.xD + x0 - s, this.yD + y0 - s, 2 * s, 2 * s)
+				graphics.progs.paneltile.vsetcolor(constants.colors["system" + [0,0,1,1,2,2,0,1,2][j]])
+				graphics.drawunitsquare(graphics.progs.paneltile.attribs.pos)
+
+				graphics.setviewportD(this.xD, this.yD, this.wD, this.hD)
+				blobscape.setup()
+				graphics.progs.blobrender.setcanvassizeD(this.wD, this.hD)
+				graphics.progs.blobrender.setvcenterG(0, 0)
+				graphics.progs.blobrender.setVscaleG(this.stalkscale)
+				graphics.progs.blobrender.setfsquirm(0)
+				graphics.progs.blobrender.setplight0(0, 0, 100, 0)
+
+				blobscape.draw({
+					shape: controlstate.stalkoptions[controlstate.jselectedstalk],
+					f: 1,
+					r: 0,
+					pG: this.stalkpositions[controlstate.jselectedstalk],
+					pH: [0, 0],
+					fixes: [true, true, true, true, true, true, true],
+				})
 			}
+		}
+	},
+	handlelclick: function (cevent) {
+		var pV = this.VfromcenterD(cevent.posD)
+		var xG = pV[0] / this.stalkscale, yG = pV[1] / this.stalkscale
+		var jclick = null
+		for (var j = 0 ; j < 9 ; ++j) {
+			var dxG = xG - this.stalkpositions[j][0], dyG = yG - this.stalkpositions[j][1]
+			if (dxG * dxG + dyG * dyG < 1) jclick = j
+		}
+		if (jclick === null) {
+			delete controlstate.selectedshape
+			delete controlstate.jselectedstalk
+		} else if (jclick === controlstate.jselectedstalk) {
+			controlstate.pickrandomstalk(controlstate.jselectedstalk)
+			delete controlstate.selectedshape
+			delete controlstate.jselectedstalk
+		} else {
+			controlstate.jselectedstalk = jclick
+			controlstate.selectedshape = controlstate.stalkoptions[jclick]
 			state.sethighlight(controlstate.selectedshape)
 			blobscape.addshape(controlstate.selectedshape)
 		}
