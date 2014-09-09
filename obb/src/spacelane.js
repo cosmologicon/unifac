@@ -120,24 +120,33 @@ Spacelane.prototype = {
 		for (var pN in tilespec) {
 			var edges = tilespec[pN]
 			var pH = HconvertN(pN), pG = GconvertH(pH)
-			var iedge = edges[0][0], shape
+			var iedges = [edges[0][0]], shapes
 			if (bstartNs[pN] && !bendNs[pN]) {
-				shape = "enter"
+				shapes = ["enter"]
 			} else if (!bstartNs[pN] && bendNs[pN]) {
-				shape = "exit"
-			} else {
-				var shape = "tile"
+				shapes = ["exit"]
+			} else if (bstartNs[pN] && bendNs[pN]) {
+				shapes = ["tile"]
 				for (var j = 0 ; j < edges.length ; ++j) {
-					shape += (edges[j][0] - iedge + 6) % 6
-					shape += (edges[j][0] + edges[j][1] - iedge + 6) % 6
+					shapes[0] += (edges[j][0] - iedges[0] + 6) % 6
+					shapes[0] += (edges[j][0] + edges[j][1] - iedges[0] + 6) % 6
+				}
+			} else {
+				iedges = []
+				shapes = []
+				for (var j = 0 ; j < edges.length ; ++j) {
+					iedges.push(edges[j][0])
+					shapes.push("tile0" + edges[j][1])
 				}
 			}
-			this.tiles.push({
-				pG: pG,
-				rotC: rotCs[iedge],
-				rotS: rotSs[iedge],
-				shape: shape,
-			})
+			for (var j = 0 ; j < shapes.length ; ++j) {
+				this.tiles.push({
+					pG: pG,
+					rotC: rotCs[iedges[j]],
+					rotS: rotSs[iedges[j]],
+					shape: shapes[j],
+				})
+			}
 		}
 	},
 	claimspace: function (objsbyedgeN, objsbyhexN) {
