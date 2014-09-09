@@ -1,19 +1,20 @@
 <!DOCTYPE html>
 <!-- UFX libraries -->
-<script type="text/javascript" src="../UFX/src/ticker.js"></script>
-<script type="text/javascript" src="../UFX/src/maximize.js"></script>
-<script type="text/javascript" src="../UFX/src/mouse.js"></script>
-<script type="text/javascript" src="../UFX/src/touch.js"></script>
-<script type="text/javascript" src="../UFX/src/resource.js"></script>
-<script type="text/javascript" src="../UFX/src/random.js"></script>
+<script type="text/javascript" src="../../UFX/src/ticker.js"></script>
+<script type="text/javascript" src="../../UFX/src/maximize.js"></script>
+<script type="text/javascript" src="../../UFX/src/mouse.js"></script>
+<script type="text/javascript" src="../../UFX/src/touch.js"></script>
+<script type="text/javascript" src="../../UFX/src/resource.js"></script>
+<script type="text/javascript" src="../../UFX/src/random.js"></script>
 <canvas id="canvas"></canvas>
-<script type="text/javascript" src="src/glprog.js"></script>
+<script type="text/javascript" src="../src/glprog.js"></script>
 
 <script type="text/javascript">
 function clamp(x,a,b){return x>b?b:x<a?a:x}
 window.onerror = function (error, url, line) {
     document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>"
 }
+var settings = { DEBUG: true }
 
 var canvas = document.getElementById("canvas")
 canvas.width = 128 ; canvas.height = 128
@@ -75,16 +76,16 @@ function think(dt) {
 
 UFX.resource.load({
 	// shaders
-	"coververt": "shaders/cover.vert",
-	"fullvert": "shaders/full.vert",
-	"boxvert": "shaders/box.vert",
-	"sboxvert": "shaders/sbox.vert",
-	"uniformfrag": "shaders/uniform.frag",
-	"checkerfrag": "shaders/checker.frag",
-	"fogfrag": "shaders/fog.frag",
-	"visiblefrag": "shaders/visible.frag",
-	"rflamefrag": "shaders/rflame.frag",
-	"texturefrag": "shaders/texture.frag",
+	"coververt": "../shaders/cover.vert",
+	"fullvert": "../shaders/full.vert",
+	"boxvert": "../shaders/box.vert",
+	"sboxvert": "../shaders/sbox.vert",
+	"uniformfrag": "../shaders/uniform.frag",
+	"checkerfrag": "../shaders/checker.frag",
+	"fogfrag": "../shaders/fog.frag",
+	"visiblefrag": "../shaders/visible.frag",
+	"rflamefrag": "../shaders/rflame.frag",
+	"texturefrag": "../shaders/texture.frag",
 })
 
 UFX.resource.onload = function () {
