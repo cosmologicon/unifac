@@ -92,6 +92,34 @@ var playpanel = Panel({
 		spritescape.setup()
 		spritescape.drawsprites(state.attackers)
 		debugHUD.stoptimer("attackerdraw")
+
+		// Fog overlay
+		graphics.zeroalpha()
+		// Set alpha positive in areas that are visible
+		gl.blendFunc(gl.ONE, gl.ONE)
+		graphics.progs.fogvisible.use()
+		graphics.progs.fogvisible.setcanvassize(this.wD, this.hD)
+		graphics.progs.fogvisible.setcenter(vs.x0G, vs.y0G)
+		graphics.progs.fogvisible.setzoom(vs.VzoomG)
+		graphics.progs.fogvisible.setpcenter(0, 0)
+		graphics.progs.fogvisible.setsize(14, 14)
+		graphics.drawunitsquare(graphics.progs.fogvisible.attribs.pos)
+		for (var pN in state.organsbyhexN) {
+			var organ = state.organsbyhexN[pN]
+			if (organ.shape.slice(0,5) == "organ") {
+				var dx = 0.4 * Math.sin(Date.now() * 0.001 * (0.4 + +pN % 0.234567))
+				var dy = 0.4 * Math.sin(Date.now() * 0.001 * (0.4 + (+pN * 1.2345678) % 0.234567))
+				graphics.progs.fogvisible.setsize(11, 11)
+				graphics.progs.fogvisible.setpcenter(organ.pG[0] + dx, organ.pG[1] + dy)
+				graphics.drawunitsquare(graphics.progs.fogvisible.attribs.pos)
+			}
+		}
+		// Draw fog in places where alpha < 1
+		gl.blendFunc(gl.ONE_MINUS_DST_ALPHA, gl.DST_ALPHA)
+		graphics.progs.uniform.use()
+		graphics.progs.uniform.setcolor(0.02, 0.03, 0.04, 1.0)
+		graphics.drawunitsquare(graphics.progs.uniform.attribs.pos)
+		gl.disable(gl.BLEND)
 	},
 	handlelclick: function (cevent) {
 		if (!controlstate.selectedshape) return

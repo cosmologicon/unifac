@@ -29,6 +29,7 @@ var graphics = {
 		this.progs.spriterender = glprog(UFX.resource.data.spriterendervert, UFX.resource.data.spriterenderfrag)
 		this.progs.lane = glprog(UFX.resource.data.fullvert, UFX.resource.data.lanefrag)
 		this.progs.lanerender = glprog(UFX.resource.data.lanerendervert, UFX.resource.data.lanerenderfrag)
+		this.progs.fogvisible = glprog(UFX.resource.data.boxvert, UFX.resource.data.visiblefrag)
 		
 		debugHUD.alert("max texture: " + gl.getParameter(gl.MAX_TEXTURE_SIZE) + " " + gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS))
 	},
@@ -61,6 +62,16 @@ var graphics = {
 		gl.vertexAttribPointer(attrib, 2, gl.FLOAT, false, 0, 0)
 		gl.drawArrays(gl.TRIANGLE_FAN, 0, 4)
 	},
+
+	// Set the alpha channel to 0 everywhere (used for the fog shader).
+	zeroalpha: function () {
+		gl.enable(gl.BLEND)
+		gl.blendFunc(gl.ZERO, gl.SRC_COLOR)
+		this.progs.uniform.use()
+		this.progs.uniform.setcolor(1, 1, 1, 0)
+		this.drawunitsquare(this.progs.uniform.attribs.pos)
+	},
+
 	// Set the alpha channel to 1 everywhere. This should be called at the end of the drawing loop
 	// because webGL allows the canvas to bleed through to the background color
 	onealpha: function () {
