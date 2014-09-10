@@ -42,13 +42,13 @@ function State() {
 	}
 
 	this.attackers = []
-	this.attackers.push(Attacker({
+/*	this.attackers.push(Attacker({
 		pG: [0, 0],
 		vG: 1.4,
 		lane: this.lanes[0],
 		r: 0,
 		shape: "square",
-	}))
+	}))*/
 	
 }
 State.prototype = {
