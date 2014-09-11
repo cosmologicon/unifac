@@ -15,7 +15,7 @@ UFX.maximize.onadjust = function (c, x, y) {
 }
 UFX.maximize.fill(canvas)
 
-UFX.resource.loadwebfonts("Viga", "Contrail One")
+UFX.resource.loadwebfonts("Schoolbell", "Bubblegum Sans", "Fontdiner Swanky")
 UFX.resource.load({
 	// shaders
 	"coververt": "shaders/cover.vert",
