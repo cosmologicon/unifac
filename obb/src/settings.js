@@ -8,7 +8,7 @@ if (window.location.href.indexOf("DEBUG") > -1) {
 	settings.DEBUG = true
 }
 if (window.location.href.indexOf("demo") > -1) {
-	settings.DEBUG = true
+	settings.demo = true
 }
 
 if (settings.DEBUG) {
