@@ -267,7 +267,6 @@ var lanescape = {
 		graphics.progs.lane.setcenter(0, 0)
 		graphics.progs.lane.setzoom(1)
 		graphics.progs.lane.setlanewidth(0.4)
-		graphics.progs.lane.setborderwidth(0.14)
 		graphics.progs.lane.setalpha0(shape == "enter" ? -1 : 1)
 		graphics.progs.lane.setalpha1(shape == "exit" ? -1 : 1)
 		var anchors = shape.indexOf("tile") == 0 ? shape.substr(4) : "03"
