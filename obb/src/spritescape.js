@@ -53,7 +53,7 @@ var spritescape = {
 
 
 
-		// For testing, make a sprite that's a solid blue square.
+		// Programmer-art spaceship, for testing.
 		this.spotinfo.square = {
 			x0: 0, y0: 0,
 			cx: 50, cy: 50,
@@ -64,14 +64,20 @@ var spritescape = {
 		gl.disable(gl.DEPTH_TEST)
 		gl.disable(gl.BLEND)
 		gl.enable(gl.SCISSOR_TEST)
-		gl.scissor(30, 0, 40, 100)
-		gl.clearColor(0.2, 0.2, 0.8, 1)
+		gl.scissor(42, 30, 16, 60)
+		gl.clearColor(0.8, 0.8, 0.8, 1)
 		gl.clear(gl.COLOR_BUFFER_BIT)
-		gl.scissor(20, 0, 60, 70)
-		gl.clearColor(0.8, 0.8, 0.2, 1)
+		gl.scissor(36, 30, 28, 40)
+		gl.clearColor(0.6, 0.8, 0.8, 1)
 		gl.clear(gl.COLOR_BUFFER_BIT)
-		gl.scissor(10, 0, 80, 40)
-		gl.clearColor(0.2, 0.8, 0.8, 1)
+		gl.scissor(30, 20, 40, 30)
+		gl.clearColor(0.4, 0.8, 0.8, 1)
+		gl.clear(gl.COLOR_BUFFER_BIT)
+		gl.scissor(15, 10, 20, 30)
+		gl.clearColor(0.8, 0.8, 0.8, 1)
+		gl.clear(gl.COLOR_BUFFER_BIT)
+		gl.scissor(65, 10, 20, 30)
+		gl.clearColor(0.8, 0.8, 0.8, 1)
 		gl.clear(gl.COLOR_BUFFER_BIT)
 		gl.disable(gl.SCISSOR_TEST)
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null)

@@ -1,9 +1,8 @@
-// Visible areas through the fog
+// Visible areas, used for the fog shader
 
 precision mediump float;
 // passed in from vertex shader
 varying vec2 tcoord;
-uniform float radius;
 
 void main(void) {
 	float d = smoothstep(-1.0, -0.5, -length(tcoord.xy));
