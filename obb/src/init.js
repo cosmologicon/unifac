@@ -15,7 +15,7 @@ UFX.maximize.onadjust = function (c, x, y) {
 }
 UFX.maximize.fill(canvas)
 
-UFX.resource.loadwebfonts("Viga", "Contrail One")
+UFX.resource.loadwebfonts("Schoolbell", "Bubblegum Sans", "Fontdiner Swanky")
 UFX.resource.load({
 	// shaders
 	"coververt": "shaders/cover.vert",
@@ -24,6 +24,7 @@ UFX.resource.load({
 	"gameposvert": "shaders/gamepos.vert",
 	"uniformfrag": "shaders/uniform.frag",
 	"checkerfrag": "shaders/checker.frag",
+	"paneltilefrag": "shaders/paneltile.frag",
 	"fogfrag": "shaders/fog.frag",
 	"visiblefrag": "shaders/visible.frag",
 	"rflamefrag": "shaders/rflame.frag",

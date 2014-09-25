@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <!-- UFX libraries -->
-<script type="text/javascript" src="../UFX/src/ticker.js"></script>
-<script type="text/javascript" src="../UFX/src/maximize.js"></script>
-<script type="text/javascript" src="../UFX/src/mouse.js"></script>
-<script type="text/javascript" src="../UFX/src/touch.js"></script>
-<script type="text/javascript" src="../UFX/src/resource.js"></script>
+<script type="text/javascript" src="../../UFX/src/ticker.js"></script>
+<script type="text/javascript" src="../../UFX/src/maximize.js"></script>
+<script type="text/javascript" src="../../UFX/src/mouse.js"></script>
+<script type="text/javascript" src="../../UFX/src/touch.js"></script>
+<script type="text/javascript" src="../../UFX/src/resource.js"></script>
 <canvas id="canvas"></canvas>
 <!-- Game source code -->
-<script type="text/javascript" src="src/glprog.js"></script>
-<script type="text/javascript" src="src/text.js"></script>
+<script type="text/javascript" src="../src/glprog.js"></script>
+<script type="text/javascript" src="../src/text.js"></script>
 
 <script type="text/javascript">
+// Get the fog shader working
+
 function clamp(x,a,b){return x>b?b:x<a?a:x}
 window.onerror = function (error, url, line) {
     document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>"
 }
+var settings = { DEBUG: true }
 
 var canvas = document.getElementById("canvas")
 canvas.width = 128 ; canvas.height = 128
@@ -196,14 +199,14 @@ function think(dt) {
 
 UFX.resource.load({
 	// shaders
-	"coververt": "shaders/cover.vert",
-	"fullvert": "shaders/full.vert",
-	"boxvert": "shaders/box.vert",
-	"uniformfrag": "shaders/uniform.frag",
-	"checkerfrag": "shaders/checker.frag",
-	"fogfrag": "shaders/fog.frag",
-	"visiblefrag": "shaders/visible.frag",
-	"rflamefrag": "shaders/rflame.frag",
+	"coververt": "../shaders/cover.vert",
+	"fullvert": "../shaders/full.vert",
+	"boxvert": "../shaders/box.vert",
+	"uniformfrag": "../shaders/uniform.frag",
+	"checkerfrag": "../shaders/checker.frag",
+	"fogfrag": "../shaders/fog.frag",
+	"visiblefrag": "../shaders/visible.frag",
+	"rflamefrag": "../shaders/rflame.frag",
 })
 UFX.resource.loadwebfonts("Contrail One")
 

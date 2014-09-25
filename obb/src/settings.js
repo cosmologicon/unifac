@@ -7,6 +7,9 @@ var settings = {
 if (window.location.href.indexOf("DEBUG") > -1) {
 	settings.DEBUG = true
 }
+if (window.location.href.indexOf("demo") > -1) {
+	settings.demo = true
+}
 
 if (settings.DEBUG) {
 	settings.canscreenshot = true

@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <title>Obb blob shader test</title>
 <!-- UFX libraries -->
-<script type="text/javascript" src="../UFX/src/ticker.js"></script>
-<script type="text/javascript" src="../UFX/src/maximize.js"></script>
-<script type="text/javascript" src="../UFX/src/resource.js"></script>
-<script type="text/javascript" src="../UFX/src/random.js"></script>
+<script type="text/javascript" src="../../UFX/src/ticker.js"></script>
+<script type="text/javascript" src="../../UFX/src/maximize.js"></script>
+<script type="text/javascript" src="../../UFX/src/resource.js"></script>
+<script type="text/javascript" src="../../UFX/src/random.js"></script>
 <canvas id="canvas"></canvas>
-<script type="text/javascript" src="src/glprog.js"></script>
+<script type="text/javascript" src="../src/glprog.js"></script>
 <script type="text/javascript">
 function clamp(x,a,b){return x>b?b:x<a?a:x}
 var tau = 2 * Math.PI
 window.onerror = function (error, url, line) {
     document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>"
 }
+var settings = { DEBUG: true }
 
 var canvas = document.getElementById("canvas")
 UFX.maximize.fill(canvas, "total")
@@ -35,24 +36,22 @@ function init() {
 	// Draw the blobs
 	progs.blob = glprog(UFX.resource.data.blobvert, UFX.resource.data.blobfrag)
 
-	var blobdata = [], blobcolor = []
-	while (blobdata.length < nball) {
+	var blobdata = [], spheredata = []
+	while (spheredata.length < nball) {
 		var x = UFX.random(-1, 1), y = UFX.random(-1, 1), z = UFX.random(-1, 1)
 		var r = UFX.random(0.1, 0.2)
 		if (Math.sqrt(x*x + y*y + z*z) + r > 1) continue
-		blobdata.push([x, y, z, r])
+		spheredata.push([x, y, z, r, 0, 0, 0, 1])
 	}
-	blobdata.sort(function (a, b) { return a[2] - b[2] })
+	spheredata.sort(function (a, b) { return a[2] - b[2] })
 	for (var j = 0 ; j < nball ; ++j) {
-		var blob = blobdata[j]
+		var blob = spheredata[j]
 		var d = UFX.random(1.0, 1.07) + 0.2 * (blob[0] + blob[1] + blob[2])
-		blobcolor.push(
-			d * UFX.random(0, 0),
-			d * UFX.random(0.5, 0.5),
-			d * UFX.random(0.1, 0.1)
-		)
+		var r = d * UFX.random(0, 0)
+		var g = d * UFX.random(0.5, 0.5)
+		var b = d * UFX.random(0.1, 0.1)
+		blobdata.push(blob[0], blob[1], blob[2], blob[3], 0, 0, 0, r, g, b, 0)
 	}
-	blobdata = [].concat.apply([], blobdata)
 	
 	var stalkdata = []
 	while (stalkdata.length < nstalk) {
@@ -68,23 +67,16 @@ function init() {
 	stalkdata.sort(function (a, b) { return a[2] - b[2] })
 	for (var j = 0 ; j < nstalk ; ++j) {
 		var blob = stalkdata[j]
-		blobdata.push(blob[0], blob[1], blob[2], blob[3])
 		var d = UFX.random(1.0, 1.07) + 1.2 * (blob[4] + blob[5] + blob[6])
-		blobcolor.push(
-			d * UFX.random(0.4, 0.42),
-			d * UFX.random(0.1, 0.1),
-			d * UFX.random(0.5, 0.52)
-		)
+		var r = d * UFX.random(0.4, 0.42)
+		var g = d * UFX.random(0.1, 0.1)
+		var b = d * UFX.random(0.5, 0.52)
+		blobdata.push(blob[0], blob[1], blob[2], blob[3], 0, 0, 0, r, g, b, 0)
 	}
 	
-	
-
 	blobspecbuffer = gl.createBuffer()
 	gl.bindBuffer(gl.ARRAY_BUFFER, blobspecbuffer)
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(blobdata), gl.STATIC_DRAW)
-	blobcolorbuffer = gl.createBuffer()
-	gl.bindBuffer(gl.ARRAY_BUFFER, blobcolorbuffer)
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(blobcolor), gl.STATIC_DRAW)
 
 	gl.disable(gl.DEPTH_TEST)
 }
@@ -97,16 +89,21 @@ function think(dt) {
 	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	progs.blob.use()
 	progs.blob.setcanvassize(canvas.width, canvas.height)
-	progs.blob.setcenter(0, 0)
 	progs.blob.setscale(80)
+	progs.blob.setprogress(1)
 
-	gl.enableVertexAttribArray(progs.blob.attribs.spec)
-	gl.enableVertexAttribArray(progs.blob.attribs.color)
+	gl.enableVertexAttribArray(progs.blob.attribs.pos)
+	gl.enableVertexAttribArray(progs.blob.attribs.rad)
+	gl.enableVertexAttribArray(progs.blob.attribs.pcolor)
+	gl.enableVertexAttribArray(progs.blob.attribs.acolor)
+	gl.enableVertexAttribArray(progs.blob.attribs.f)
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, blobspecbuffer)
-	gl.vertexAttribPointer(progs.blob.attribs.spec, 4, gl.FLOAT, false, 0, 0)
-	gl.bindBuffer(gl.ARRAY_BUFFER, blobcolorbuffer)
-	gl.vertexAttribPointer(progs.blob.attribs.color, 3, gl.FLOAT, false, 0, 0)
+	gl.vertexAttribPointer(progs.blob.attribs.pos, 3, gl.FLOAT, false, 11*4, 0)
+	gl.vertexAttribPointer(progs.blob.attribs.rad, 1, gl.FLOAT, false, 11*4, 3*4)
+	gl.vertexAttribPointer(progs.blob.attribs.pcolor, 3, gl.FLOAT, false, 11*4, 4*4)
+	gl.vertexAttribPointer(progs.blob.attribs.acolor, 3, gl.FLOAT, false, 11*4, 7*4)
+	gl.vertexAttribPointer(progs.blob.attribs.f, 1, gl.FLOAT, false, 11*4, 10*4)
 	gl.drawArrays(gl.POINTS, 0, nblob)
 	
 	// One out the alpha channel
@@ -122,10 +119,10 @@ function think(dt) {
 
 
 UFX.resource.load({
-	"blobvert": "shaders/blob.vert",
-	"blobfrag": "shaders/blob.frag",
-	"coververt": "shaders/cover.vert",
-	"uniformfrag": "shaders/uniform.frag",
+	"blobvert": "../shaders/blob.vert",
+	"blobfrag": "../shaders/blob.frag",
+	"coververt": "../shaders/cover.vert",
+	"uniformfrag": "../shaders/uniform.frag",
 })
 
 UFX.resource.onload = function () {

@@ -63,6 +63,34 @@ var debugHUD = {
 	},
 }
 
+// Some info to appear on the screen in the demo version
+var demoHUD = {
+	draw: function () {
+		if (!settings.demo) return
+		text.setup()
+		var h = Math.max(0.04 * playpanel.hD, 12)
+		var texts = [
+			"tap parts and place them to grow",
+			"tip: prefer splitting parts",
+			"balls extend range",
+			"drag: pan",
+			"scroll/pinch: zoom",
+			"double tap part: trash",
+		]
+		texts.push(UFX.ticker.getrates().split(" ")[0])
+		texts.forEach(function (t, j) {
+			var x = playpanel.xD + playpanel.wD - 0.2 * h
+			var y = playpanel.yD + playpanel.hD - (1.2 + 1.4 * j) * h
+			text.draw(t, x, y, {
+				fontsize: h,
+				hanchor: "right",
+				fontname: "Schoolbell",
+				alpha: 0.5,
+			})
+		})
+	},
+}
+
 // The play scene, where the main gameplay happens
 UFX.scenes.play = {
 	startargs: function () {
@@ -109,14 +137,17 @@ UFX.scenes.play = {
 		blobscape.killtime()
 		graphics.clear()
 		
-		debugHUD.starttimer("paneldraw")
 		playpanel.draw()
+
+		debugHUD.starttimer("paneldraw")
 		stalkpanel.draw()
 		debugHUD.stoptimer("paneldraw")
 		
 		debugHUD.starttimer("huddraw")
 		debugHUD.draw()
 		debugHUD.stoptimer("huddraw")
+
+		demoHUD.draw()
 		
 		graphics.onealpha()
 
