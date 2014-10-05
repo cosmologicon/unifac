@@ -8,7 +8,7 @@ buttons = []
 def makebuttons():
 	del buttons[:]
 	for j, bname in enumerate(state.state.modules):
-		buttons.append(button.Button(bname, (600, 400 - 25 * j, 80, 20)))
+		buttons.append(button.ModuleButton(bname, (600, 400 - 25 * j, 80, 20)))
 
 def handleclick(pos):
 	for b in buttons:
@@ -26,6 +26,8 @@ def think(dt, events):
 
 	state.state.think(dt)
 	vista.think(dt)
+	for b in buttons:
+		b.think(dt)
 
 def draw():
 	state.state.drawviewport()

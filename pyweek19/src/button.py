@@ -1,5 +1,5 @@
 import pygame
-import vista
+import vista, state
 
 class Button(object):
 	font = None
@@ -22,6 +22,20 @@ class Button(object):
 	def draw(self):
 		vista.screen.blit(self.img, self.rect)
 
+class ModuleButton(Button):
+	def __init__(self, *args, **kwargs):
+		Button.__init__(self, *args, **kwargs)
+		self.img1 = self.img
+		self.img0 = self.img1.copy()
+		mask = self.img1.copy()
+		mask.fill((0,0,0,200))
+		self.img0.blit(mask, (0, 0))
+
+	def think(self, dt):
+		self.img = self.img1 if state.state.active[self.text] else self.img0
+
 def click(buttonname):
-	print buttonname
+	if state.state.handlebutton(buttonname):
+		return
+	print("unhandled button: %s" % buttonname)
 

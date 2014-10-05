@@ -3,7 +3,7 @@ import pygame
 
 DEBUG = True
 gamename = "One room"
-maxfps = 60
+minfps, maxfps = 10, 60
 
 ssize = sx, sy = 800, 500
 # main gameplay area

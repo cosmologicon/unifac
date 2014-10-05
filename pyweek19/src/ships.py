@@ -1,15 +1,21 @@
-import math
-import vista, img, settings
+import math, random
+import vista, img, settings, weapon, state, effects
 
 class Ship(object):
 	vmax = 1
 	a = 1
+	laserable = False
+	hp = 1
 
 	def __init__(self, pos = (0, 0)):
 		self.x, self.y = pos
 		self.vx, self.vy = 0, 0
 		self.angle = 0
 		self.target = None
+		self.weapons = self.makeweapons()
+
+	def makeweapons(self):
+		return []
 
 	def think(self, dt):
 		self.pursuetarget(dt)
@@ -17,6 +23,17 @@ class Ship(object):
 		self.orient()
 		self.x += self.vx * dt
 		self.y += self.vy * dt
+		for w in self.weapons:
+			w.think(dt)
+		if self.hp <= 0:
+			self.die()
+
+	def takedamage(self, damage):
+		self.hp -= damage
+
+	def pickrandomtarget(self):
+		if self.target is None:
+			self.target = self.x + random.uniform(-4, 4), self.y + random.uniform(-4, 4)
 
 	def pursuetarget(self, dt):
 		if self.target:
@@ -31,6 +48,10 @@ class Ship(object):
 				self.vx += self.a * dt * dx / d
 				self.vy += self.a * dt * dy / d
 
+	def allstop(self):
+		self.target = None
+		self.vx = self.vy = 0
+
 	def applyvmax(self):			
 		if self.vx or self.vy:
 			v = math.sqrt(self.vx ** 2 + self.vy ** 2)
@@ -44,12 +65,21 @@ class Ship(object):
 		
 	def draw(self):
 		img.worlddraw(self.imgname, (self.x, self.y), angle = self.angle)
+
+	def die(self):
+		state.state.ships.remove(self)
+		state.state.effects.append(effects.Explosion(self))
 		
 
 class You(Ship):
 	imgname = "you"
 	vmax = 3
 	a = 3
+	hp = 3
+
+	def makeweapons(self):
+		self.laser = weapon.YouLaser(self)
+		return [self.laser]
 
 	def draw(self):
 		Ship.draw(self)
@@ -59,5 +89,15 @@ class You(Ship):
 class Mothership(Ship):
 	imgname = "mother"
 
+class Bogey(Ship):
+	imgname = "bogey"
+	vmax = 0.5
+	a = 1
+	laserable = True
 
+	def think(self, dt):
+		self.pickrandomtarget()
+		Ship.think(self, dt)
+
+	
 
