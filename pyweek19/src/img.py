@@ -29,9 +29,8 @@ def draw(imgname, screenpos, angle = None, scale = 1.0):
 	r = img.get_rect(center = screenpos)
 	vista.screen.blit(img, r)
 
-def worlddraw(imgname, worldpos, angle = None, scale = None):
-	if scale is None:
-		scale = vista.scale / settings.imgscale
+def worlddraw(imgname, worldpos, angle = None, scale = 1.0):
+	scale *= vista.scale / settings.imgscale
 	draw(imgname, vista.worldtoscreen(worldpos), angle = angle, scale = scale)
 
 
