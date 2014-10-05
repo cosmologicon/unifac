@@ -1,7 +1,7 @@
-import settings
 import pygame
+import settings
 
-scale = 1.0
+scale = 50.0
 x0, y0 = 0, 0  # center of viewport in world coordinates
 X0, Y0 = settings.sx // 2, settings.sy // 2  # center of viewport in screen coordinates
 
@@ -22,5 +22,11 @@ def worldtoscreen((x, y)):
 	return (
 		int(round(X0 + (x - x0) * scale)),
 		int(round(Y0 + (y - y0) * scale)),
+	)
+
+def screentoworld((X, Y)):
+	return (
+		(X - X0) / scale + x0,
+		(Y - Y0) / scale + y0,
 	)
 

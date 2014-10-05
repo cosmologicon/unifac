@@ -18,6 +18,7 @@ while True:
 	if any(event.type == pygame.QUIT for event in events):
 		break
 	scene0.think(dt, events)
+	vista.clear()
 	scene0.draw()
 	vista.flip()
 
