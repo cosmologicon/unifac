@@ -2,7 +2,8 @@ import ships
 
 class State(object):
 	def __init__(self):
-		self.ships = [ships.You()]
+		self.you = ships.You()
+		self.ships = [self.you]
 
 	def think(self, dt):
 		for ship in self.ships:
