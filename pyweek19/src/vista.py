@@ -1,9 +1,9 @@
-import pygame
-import settings
+import pygame, datetime
+import settings, state
 
 scale = 50.0
 x0, y0 = 0, 0  # center of viewport in world coordinates
-X0, Y0 = settings.sx // 2, settings.sy // 2  # center of viewport in screen coordinates
+X0, Y0 = settings.grect.center  # center of gameplay viewport in screen coordinates
 
 def init():
 	global screen
@@ -16,7 +16,9 @@ def flip():
 	pygame.display.flip()
 
 def think(dt):
-	pass
+	global x0, y0
+	x0 = state.state.you.x
+	y0 = state.state.you.y
 
 def worldtoscreen((x, y)):
 	return (
@@ -29,4 +31,8 @@ def screentoworld((X, Y)):
 		(X - X0) / scale + x0,
 		(Y - Y0) / scale + y0,
 	)
+
+def screenshot():
+	sname = "screenshot-%s.png" % datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+	pygame.image.save(screen, sname)
 
