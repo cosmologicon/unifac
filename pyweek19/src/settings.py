@@ -13,4 +13,7 @@ imgscale = 100  # image pixels per game unit for assets
 
 shipsize = shipw, shiph = 4, 5
 
+# Distance from the player before a fadeable object fades.
+fadedistance = 20
+
 

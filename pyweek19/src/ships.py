@@ -5,6 +5,8 @@ class Ship(object):
 	vmax = 1
 	a = 1
 	laserable = False
+	fadeable = True
+	shootsyou = False
 	hp = 1
 
 	def __init__(self, pos = (0, 0)):
@@ -30,6 +32,12 @@ class Ship(object):
 
 	def takedamage(self, damage):
 		self.hp -= damage
+
+	def faded(self):
+		if not self.fadeable:
+			return False
+		dx, dy = self.x - vista.x0, self.y - vista.y0
+		return dx ** 2 + dy ** 2 > settings.fadedistance ** 2
 
 	def pickrandomtarget(self):
 		if self.target is None:
@@ -76,6 +84,7 @@ class You(Ship):
 	vmax = 3
 	a = 3
 	hp = 3
+	fadeable = False
 
 	def makeweapons(self):
 		self.laser = weapon.YouLaser(self)
@@ -88,6 +97,73 @@ class You(Ship):
 
 class Mothership(Ship):
 	imgname = "mother"
+	fadeable = False
+
+
+class Rock(Ship):
+	imgname = "rock"
+	hp = 5
+	laserable = True
+
+	def __init__(self, pos):
+		Ship.__init__(self, pos)
+		self.v = random.uniform(1, 2)
+		theta = random.uniform(0, math.tau)
+		self.vx = self.v * math.sin(theta)
+		self.vy = self.v * math.cos(theta)
+		self.orient()
+
+	def think(self, dt):
+		self.x += self.vx * dt
+		self.y += self.vy * dt
+		if self.hp <= 0:
+			self.die()
+
+class Drone(Rock):
+	imgname = "drone"
+	hp = 3
+	laserable = True
+	shootsyou = True
+
+	def makeweapons(self):
+		return [weapon.Laser(self)]
+
+
+class Guard(Ship):
+	imgname = "guard"
+	hp = 3
+	laserable = True
+	shootsyou = True
+	v0 = 2.4
+
+	def __init__(self, planet):
+		Ship.__init__(self)
+		self.planet = planet
+		self.alpha = random.uniform(0, math.tau)
+		self.beta = random.uniform(0.05, 0.2)
+		self.R0 = self.planet.radius * random.uniform(1.1, 1.3)  # semimajor axis
+		self.R1 = self.planet.radius * random.uniform(-0.8, 0.8)  # semiminor axis
+		self.omega = self.v0 / self.R0
+		self.theta = random.uniform(0, math.tau)
+		self.think(0)
+		self.think(0.01)
+
+	def think(self, dt):
+		self.theta += dt * self.omega
+		self.alpha += dt * self.beta
+		X = self.R1 * math.sin(self.theta)
+		Y = self.R0 * math.cos(self.theta)
+		S, C = math.sin(self.alpha), math.cos(self.alpha)
+		x = self.planet.x + C * X + S * Y
+		y = self.planet.y - S * X + C * Y
+		self.vx, self.vy = x - self.x, y - self.y
+		self.orient()
+		self.x, self.y = x, y
+		if self.hp <= 0:
+			self.die()
+
+	def makeweapons(self):
+		return [weapon.Laser(self)]
 
 class Bogey(Ship):
 	imgname = "bogey"
