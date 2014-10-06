@@ -1,4 +1,4 @@
-import settings, ships, things
+import settings, ships, things, quest
 
 class State(object):
 	def __init__(self):
@@ -19,12 +19,17 @@ class State(object):
 		self.modules = [
 			"engine",
 			"laser",
+			"gun",
 		]
 		self.active = {
 			"engine": True,
 			"laser": True,
+			"gun": True,
 		}
 		self.effects = []
+		self.quests = [
+			quest.StartQuest(),
+		]
 
 	def handlebutton(self, buttonname):
 		if buttonname in self.modules:
@@ -52,6 +57,10 @@ class State(object):
 			for s in self.ships:
 				if s.laserable and self.you.laser.canreach(s):
 					self.you.laser.fire(s)
+		if self.active["gun"] and self.you.gun.canfire():
+			for s in self.ships:
+				if s.laserable and self.you.gun.canreach(s):
+					self.you.gun.fire(s)
 		for s in self.ships:
 			if s.shootsyou:
 				for w in s.weapons:
@@ -63,6 +72,8 @@ class State(object):
 			s.think(dt)
 		for e in self.effects:
 			e.think(dt)
+		for q in self.quests:
+			q.think(dt)
 		self.ships = [s for s in self.ships if not s.faded()]
 
 	def drawviewport(self):
