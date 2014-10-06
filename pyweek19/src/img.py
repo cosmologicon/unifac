@@ -5,20 +5,34 @@ import vista, settings
 cache = {}
 font = None
 
-def getimg(imgname, angle = 0, scale = 1.0):
+def getrawimg(imgname):
 	global font
+#	cache[key] = pygame.image.load("img/%s.png" % imgname).convert_alpha()
+	if imgname.startswith("sun-"):
+		r = int(float(imgname[4:]) * settings.imgscale)
+		img = pygame.Surface((2*r, 2*r)).convert_alpha()
+		img.fill((0,0,0,0))
+		for s in range(8):
+			R = int(round(r * (1 - 0.04 * s)))
+			color = 255, 255, 255, 255 - 30 * (7 - s)
+			pygame.draw.circle(img, color, (r, r), R)
+	else:
+		img = pygame.Surface((40, 40)).convert_alpha()
+		r, g, b = [random.randint(100, 200) for _ in range(3)]
+		img.fill((r, g, b, 50))
+		if font is None:
+			font = pygame.font.Font(None, 24)
+		t = font.render(imgname, True, (255, 255, 255))
+		img.blit(t, t.get_rect(center = img.get_rect().center))
+	return img
+
+
+def getimg(imgname, angle = 0, scale = 1.0):
 	angle = round(angle / 6) % 60 * 6 if angle else 0
 	key = imgname, angle, scale
 	if key not in cache:
 		if angle == 0 and scale == 1.0:
-#			cache[key] = pygame.image.load("img/%s.png" % imgname).convert_alpha()
-			cache[key] = img = pygame.Surface((40, 40)).convert_alpha()
-			r, g, b = [random.randint(100, 200) for _ in range(3)]
-			img.fill((r, g, b, 50))
-			if font is None:
-				font = pygame.font.Font(None, 24)
-			t = font.render(imgname, True, (255, 255, 255))
-			img.blit(t, t.get_rect(center = img.get_rect().center))
+			cache[key] = img = getrawimg(imgname)
 		else:
 			img0 = getimg(imgname)
 			cache[key] = pygame.transform.rotozoom(img0, angle, scale)

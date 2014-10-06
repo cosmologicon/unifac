@@ -1,3 +1,4 @@
+import state, effects
 
 class Weapon(object):
 	cooldown = 1
@@ -21,11 +22,18 @@ class Weapon(object):
 	def fire(self, target):
 		self.tcool = self.cooldown
 
-class YouLaser(Weapon):
-	reach = 3
-	
+class Laser(Weapon):
+	reach = 2
+	color = 255, 0, 0
+
 	def fire(self, target):
 		Weapon.fire(self, target)
 		target.takedamage(self.damage)
+		state.state.effects.append(effects.Laser(self.parent, target, self.color))
+
+class YouLaser(Laser):
+	reach = 4
+	color = 0, 255, 0
+	
 
 

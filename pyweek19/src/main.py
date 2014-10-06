@@ -18,7 +18,6 @@ while True:
 	if settings.DEBUG:
 		pygame.display.set_caption("%s | %.1ffps" % (settings.gamename, clock.get_fps()))
 	if any(event.type == pygame.QUIT for event in events):
-		print "quitting"
 		break
 
 	scene0.think(dt, events)
@@ -29,7 +28,7 @@ while True:
 		vista.screenshot()
 
 print "quitting"
-pygame.quit()
-print "quitting"
+#pygame.quit()
+#print "quitting"
 
 
