@@ -48,6 +48,10 @@ class Ship(object):
 			tx, ty = self.target
 			dx, dy = tx - self.x, ty - self.y
 			d = math.sqrt(dx ** 2 + dy ** 2)
+			#TODO: can cut it a little shorter
+			if dx * self.vx + dy * self.vy < 0:
+				self.vx = self.vy = 0
+				return
 			if d < self.vmax * dt:
 				self.x, self.y = self.target
 				self.vx, self.vy = 0, 0
@@ -88,7 +92,8 @@ class You(Ship):
 
 	def makeweapons(self):
 		self.laser = weapon.YouLaser(self)
-		return [self.laser]
+		self.gun = weapon.Gun(self)
+		return [self.laser, self.gun]
 
 	def draw(self):
 		Ship.draw(self)
@@ -98,7 +103,10 @@ class You(Ship):
 class Mothership(Ship):
 	imgname = "mother"
 	fadeable = False
+	radius = 1
 
+	def within(self, (x, y)):
+		return (x - self.x) ** 2 + (y - self.y) ** 2 <= self.radius ** 2
 
 class Rock(Ship):
 	imgname = "rock"

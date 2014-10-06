@@ -1,8 +1,13 @@
 import pygame
-import vista, state, button
+import vista, state, button, scene, buildscene
+
+apart = {
+	"mother": False,
+}
 
 def init():
 	makebuttons()
+	apart["mother"] = False
 
 buttons = []
 def makebuttons():
@@ -28,6 +33,17 @@ def think(dt, events):
 	vista.think(dt)
 	for b in buttons:
 		b.think(dt)
+
+	if state.state.mother.within((state.state.you.x, state.state.you.y)):
+		if apart["mother"]:
+			apart["mother"] = False
+			scene.push(buildscene)
+			state.state.you.x = state.state.mother.x
+			state.state.you.y = state.state.mother.y
+			state.state.you.allstop()
+	else:
+		apart["mother"] = True
+
 
 def draw():
 	state.state.drawviewport()
