@@ -65,5 +65,4 @@ class Bullet(object):
 		screenpos = vista.worldtoscreen((self.x, self.y))
 		r = int(self.r * vista.scale)
 		pygame.draw.circle(vista.screen, self.color, screenpos, r)
-		
 

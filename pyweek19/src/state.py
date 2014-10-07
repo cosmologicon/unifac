@@ -7,8 +7,6 @@ class State(object):
 		self.ships = [
 			self.you,
 			self.mother,
-			ships.Bogey((3, -3)),
-			ships.Bogey((-3, 3)),
 		]
 		self.things = [
 			things.Planet((10, 0)),

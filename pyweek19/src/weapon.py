@@ -54,4 +54,17 @@ class YouLaser(Laser):
 	color = 0, 255, 0
 	
 
+# The weapon for things that explode when they hit something.
+class Trigger(Weapon):
+	reach = 0.1
+	damage = 1
+	cooldown = 0
+
+	def fire(self, target):
+		print "trigger"
+		Weapon.fire(self, target)
+		target.takedamage(self.damage)
+		self.parent.die()
+
+
 
