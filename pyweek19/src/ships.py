@@ -7,6 +7,7 @@ class Ship(object):
 	laserable = False
 	fadeable = True
 	shootsyou = False
+	leavessmoke = True
 	hp = 1
 
 	def __init__(self, pos = (0, 0)):
@@ -48,15 +49,16 @@ class Ship(object):
 			tx, ty = self.target
 			dx, dy = tx - self.x, ty - self.y
 			d = math.sqrt(dx ** 2 + dy ** 2)
-			#TODO: can cut it a little shorter
-			if dx * self.vx + dy * self.vy < 0:
-				self.vx = self.vy = 0
-				return
 			if d < self.vmax * dt:
 				self.x, self.y = self.target
 				self.vx, self.vy = 0, 0
 				self.target = None
 			else:
+				v = math.sqrt(self.vx ** 2 + self.vy ** 2)
+				if v:
+					w = math.exp(((dx * self.vx + dy * self.vy) / (d * v) - 1) * 40 * dt / d)
+					self.vx *= w
+					self.vy *= w
 				self.vx += self.a * dt * dx / d
 				self.vy += self.a * dt * dy / d
 
@@ -80,7 +82,8 @@ class Ship(object):
 
 	def die(self):
 		state.state.ships.remove(self)
-		state.state.effects.append(effects.Explosion(self))
+		if self.leavessmoke:
+			state.state.effects.append(effects.Explosion(self))
 		
 
 class You(Ship):
@@ -133,9 +136,22 @@ class Drone(Rock):
 	laserable = True
 	shootsyou = True
 
+	def __init__(self, pos):
+		Rock.__init__(self, pos)
+		self.t = 0
+		self.zeta = random.uniform(0, math.tau)
+
 	def makeweapons(self):
 		return [weapon.Laser(self)]
 
+	def think(self, dt):
+		Rock.think(self, dt)
+		self.t += dt
+		if self.t > 0.2:
+			self.t -= 0.2
+			self.zeta += math.tau / 1.618033988749895
+			slug = Slug(self, (2 * math.sin(self.zeta), 2 * math.cos(self.zeta)))
+			state.state.ships.append(slug)
 
 class Guard(Ship):
 	imgname = "guard"
@@ -173,15 +189,34 @@ class Guard(Ship):
 	def makeweapons(self):
 		return [weapon.Laser(self)]
 
-class Bogey(Ship):
-	imgname = "bogey"
-	vmax = 0.5
-	a = 1
-	laserable = True
+
+class Slug(Ship):
+	leavessmoke = False
+	laserable = False
+	shootsyou = True
+	lifetime = 6
+	hp = 1
+	imgname = "slug"
+
+	def __init__(self, parent, v):
+		Ship.__init__(self, (parent.x, parent.y))
+		self.vx, self.vy = v
+		self.angle = 0
+		self.t = 0
 
 	def think(self, dt):
-		self.pickrandomtarget()
-		Ship.think(self, dt)
-
+		self.t += dt
+		if self.t > self.lifetime:
+			self.die()
+			return
+		self.x += self.vx * dt
+		self.y += self.vy * dt
+		for w in self.weapons:
+			w.think(dt)
+		if self.hp <= 0:
+			self.die()
+		
+	def makeweapons(self):
+		return [weapon.Trigger(self)]
 	
 
