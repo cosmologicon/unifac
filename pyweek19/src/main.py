@@ -6,7 +6,7 @@ pygame.init()
 vista.init()
 pygame.display.set_caption(settings.gamename)
 scene.push(gamescene)
-#scene.push(buildscene)
+scene.push(buildscene)
 
 clock = pygame.time.Clock()
 while True:
@@ -20,7 +20,7 @@ while True:
 	if any(event.type == pygame.QUIT for event in events):
 		break
 
-	scene0.think(dt, events)
+	scene0.think(dt, events, pygame.mouse.get_pos())
 	vista.clear()
 	scene0.draw()
 	vista.flip()
