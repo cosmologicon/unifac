@@ -1,9 +1,38 @@
 from __future__ import division
-import pygame, random
+import pygame, random, math
 import vista, settings
 
 cache = {}
-font = None
+
+
+def getfont(fontsize, fontname):
+	key = fontsize, fontname
+	if key not in cache:
+		cache[key] = pygame.font.Font(fontname, fontsize)
+	return cache[key]
+
+def gettext(text, fontsize, color, bcolor, fontname, anchor = 0.5, linespace = 0.8):
+	key = text, fontsize, color, bcolor, fontname, anchor
+	if key in cache:
+		return cache[key]
+	font = getfont(fontsize, fontname)
+	texts = text.split("\n")
+	img0s = [font.render(text, True, color) for text in texts]
+	img1s = [font.render(text, True, bcolor) for text in texts]
+	w = max(img0.get_width() for img0 in img0s)
+	hline = int(math.ceil(fontsize * linespace))
+	h = fontsize + (len(texts) - 1) * hline
+	d = int(math.ceil(0.05 * fontsize))
+	cache[key] = surf = pygame.Surface((w + 2 * d, h + 2 * d)).convert_alpha()
+	ps = [(int((w - img0.get_width()) / 2), hline * j) for j, img0 in enumerate(img0s)]
+	surf.fill((0,0,0,0))
+	for (x0, y0), img1 in zip(ps, img1s):
+		for dx in (0, d, 2*d):
+			for dy in (0, d, 2*d):
+				surf.blit(img1, (x0 + dx, y0 + dy))
+	for (x0, y0), img0 in zip(ps, img0s):
+		surf.blit(img0, (x0 + d, y0 + d))
+	return surf
 
 def getrawimg(imgname):
 	global font
@@ -20,9 +49,7 @@ def getrawimg(imgname):
 		img = pygame.Surface((40, 40)).convert_alpha()
 		r, g, b = [random.randint(100, 200) for _ in range(3)]
 		img.fill((r, g, b, 50))
-		if font is None:
-			font = pygame.font.Font(None, 24)
-		t = font.render(imgname, True, (255, 255, 255))
+		t = gettext(imgname, 24, (255, 255, 255), (0, 0, 0), None)
 		img.blit(t, t.get_rect(center = img.get_rect().center))
 	return img
 
@@ -53,4 +80,8 @@ def worlddraw(imgname, worldpos, angle = None, scale = 1.0, alpha = 1.0):
 	scale *= vista.scale / settings.imgscale
 	draw(imgname, vista.worldtoscreen(worldpos), angle = angle, scale = scale, alpha = alpha)
 
+def drawtext(text, fontsize, color = (255, 255, 255), bcolor = (0, 0, 0), fontname = None, **kwargs):
+	anchor = 0.5  # if "center" in kwargs
+	surf = gettext(text, fontsize, color, bcolor, fontname, anchor)
+	vista.screen.blit(surf, surf.get_rect(**kwargs))
 
