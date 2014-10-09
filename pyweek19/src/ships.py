@@ -5,10 +5,13 @@ class Ship(object):
 	vmax = 1
 	a = 1
 	laserable = False
+	drillable = False
 	fadeable = True
 	shootsyou = False
 	leavessmoke = True
 	hp = 1
+	iname = None
+	radius = 1  # for drawing purposes
 
 	def __init__(self, pos = (0, 0)):
 		self.x, self.y = pos
@@ -78,6 +81,8 @@ class Ship(object):
 			self.angle = math.degrees(math.atan2(-self.vx, -self.vy))
 		
 	def draw(self):
+		if not vista.isvisible((self.x, self.y), self.radius):
+			return
 		img.worlddraw(self.imgname, (self.x, self.y), angle = self.angle)
 
 	def die(self):
@@ -88,8 +93,8 @@ class Ship(object):
 
 class You(Ship):
 	imgname = "you"
-	vmax = 3
-	a = 3
+	vmax = 1
+	a = 1
 	hp = 3
 	fadeable = False
 
@@ -107,18 +112,22 @@ class Mothership(Ship):
 	imgname = "mother"
 	fadeable = False
 	radius = 1
+	iname = "mother"
 
 	def within(self, (x, y)):
 		return (x - self.x) ** 2 + (y - self.y) ** 2 <= self.radius ** 2
 
 class Rock(Ship):
 	imgname = "rock"
-	hp = 5
-	laserable = True
+	hp = 1
+	drillable = True
+	laserable = False
+	vmin = 0.2
+	vmax = 0.5
 
 	def __init__(self, pos):
 		Ship.__init__(self, pos)
-		self.v = random.uniform(1, 2)
+		self.v = random.uniform(self.vmin, self.vmax)
 		theta = random.uniform(0, math.tau)
 		self.vx = self.v * math.sin(theta)
 		self.vy = self.v * math.cos(theta)
@@ -133,8 +142,10 @@ class Rock(Ship):
 class Drone(Rock):
 	imgname = "drone"
 	hp = 3
+	drillable = False
 	laserable = True
 	shootsyou = True
+	shoottime = 0.7
 
 	def __init__(self, pos):
 		Rock.__init__(self, pos)
@@ -147,10 +158,11 @@ class Drone(Rock):
 	def think(self, dt):
 		Rock.think(self, dt)
 		self.t += dt
-		if self.t > 0.2:
-			self.t -= 0.2
+		if self.t > self.shoottime:
+			self.t -= self.shoottime
 			self.zeta += math.tau / 1.618033988749895
-			slug = Slug(self, (2 * math.sin(self.zeta), 2 * math.cos(self.zeta)))
+			vslug = 0.5
+			slug = Slug(self, (vslug * math.sin(self.zeta), vslug * math.cos(self.zeta)))
 			state.state.ships.append(slug)
 
 class Guard(Ship):
@@ -158,7 +170,7 @@ class Guard(Ship):
 	hp = 3
 	laserable = True
 	shootsyou = True
-	v0 = 2.4
+	v0 = 0.8
 
 	def __init__(self, planet):
 		Ship.__init__(self)
