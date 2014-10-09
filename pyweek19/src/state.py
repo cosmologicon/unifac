@@ -97,6 +97,7 @@ class State(object):
 
 	def drawviewport(self):
 		import vista, img
+		vista.drawstars()
 		for t in self.things:
 			t.draw()
 		for s in self.ships:

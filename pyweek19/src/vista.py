@@ -1,13 +1,18 @@
-import pygame, datetime, math
+import pygame, datetime, math, random
 import settings, state
 
 scale = settings.grect.width / 2 / settings.vsize
 x0, y0 = 0, 0  # center of viewport in world coordinates
 X0, Y0 = settings.grect.center  # center of gameplay viewport in screen coordinates
+nstars = int(0.002 * settings.grect.width * settings.grect.height)
 
 def init():
-	global screen
+	global screen, stars
 	screen = pygame.display.set_mode(settings.ssize)
+	stars = sorted([
+		(random.uniform(0.05, 1), random.uniform(0, 10000), random.uniform(0, 10000))
+		for _ in range(nstars)
+	])
 
 def clear():
 	screen.fill((0, 0, 0))
@@ -34,6 +39,14 @@ def screentoworld((X, Y)):
 		(X - X0) / scale + x0,
 		(Y - Y0) / scale + y0,
 	)
+
+def drawstars():
+	for z, x, y in stars:
+		px = int((x - x0) * z * scale) % settings.grect.width
+		py = int((y - y0) * z * scale) % settings.grect.height
+		c = int(255 * z)
+		screen.set_at((px, py), (c, c, c))
+		
 
 def isvisible((x, y), r = 0):
 	return xmin - r < x < xmax + r and ymin - r < y < ymax + r

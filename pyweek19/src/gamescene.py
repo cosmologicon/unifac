@@ -61,5 +61,6 @@ def draw():
 	for j, (text, color) in enumerate(zip(texts, colors)):
 		pos = settings.statpos[0], int(settings.statpos[1] + j * 1.2 * settings.statfontsize)
 		img.drawtext(text, fontsize = settings.statfontsize, topleft = pos)
+	dialog.draw()
 
 
