@@ -81,6 +81,6 @@ def draw():
 		icon = cursor.nearest(p)
 		bad = not state.state.canaddpart(icon)
 		icon.draw((bx0, by0), bscale, bad = bad)
-
+	dialog.draw()
 
 

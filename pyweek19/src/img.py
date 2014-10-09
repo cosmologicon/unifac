@@ -11,12 +11,50 @@ def getfont(fontsize, fontname):
 		cache[key] = pygame.font.Font(fontname, fontsize)
 	return cache[key]
 
-def gettext(text, fontsize, color, bcolor, fontname, anchor = 0.5, linespace = 0.8):
-	key = text, fontsize, color, bcolor, fontname, anchor
+# http://www.pygame.org/wiki/TextWrapping?parent=CookBook
+def truncline(text, font, maxwidth):
+        real=len(text)       
+        stext=text           
+        l=font.size(text)[0]
+        cut=0
+        a=0                  
+        done=1
+        old = None
+        while l > maxwidth:
+            a=a+1
+            n=text.rsplit(None, a)[0]
+            if stext == n:
+                cut += 1
+                stext= n[:-cut]
+            else:
+                stext = n
+            l=font.size(stext)[0]
+            real=len(stext)               
+            done=0                        
+        return real, done, stext             
+        
+def wrapline(text, font, maxwidth): 
+    done=0                      
+    wrapped=[]                  
+                               
+    while not done:             
+        nl, done, stext=truncline(text, font, maxwidth) 
+        wrapped.append(stext.strip())                  
+        text=text[nl:]                                 
+    return wrapped
+ 
+ 
+def wrap_multi_line(text, font, maxwidth):
+    return [w for line in text.splitlines() for w in wrapline(line, font, maxwidth)]
+
+def gettext(text, fontsize, color, bcolor, fontname, anchor = 0.5, linespace = None, maxwidth = None):
+	key = text, fontsize, color, bcolor, fontname, anchor, maxwidth
 	if key in cache:
 		return cache[key]
+	if linespace is None:
+		linespace = 0.8
 	font = getfont(fontsize, fontname)
-	texts = text.split("\n")
+	texts = text.splitlines() if maxwidth is None else wrap_multi_line(text, font, maxwidth)
 	img0s = [font.render(text, True, color) for text in texts]
 	img1s = [font.render(text, True, bcolor) for text in texts]
 	w = max(img0.get_width() for img0 in img0s)
@@ -24,7 +62,7 @@ def gettext(text, fontsize, color, bcolor, fontname, anchor = 0.5, linespace = 0
 	h = fontsize + (len(texts) - 1) * hline
 	d = int(math.ceil(0.05 * fontsize))
 	cache[key] = surf = pygame.Surface((w + 2 * d, h + 2 * d)).convert_alpha()
-	ps = [(int((w - img0.get_width()) / 2), hline * j) for j, img0 in enumerate(img0s)]
+	ps = [(int((w - img0.get_width()) * anchor), hline * j) for j, img0 in enumerate(img0s)]
 	surf.fill((0,0,0,0))
 	for (x0, y0), img1 in zip(ps, img1s):
 		for dx in (0, d, 2*d):
@@ -85,12 +123,12 @@ def worlddraw(imgname, worldpos, angle = None, scale = 1.0, alpha = 1.0):
 	scale *= vista.scale / settings.imgscale
 	draw(imgname, vista.worldtoscreen(worldpos), angle = angle, scale = scale, alpha = alpha)
 
-def drawtext(text, fontsize, color = (255, 255, 255), bcolor = (0, 0, 0), fontname = None, **kwargs):
+def drawtext(text, fontsize, color = (255, 255, 255), bcolor = (0, 0, 0), fontname = None, linespace = None, maxwidth = None, **kwargs):
 	anchor = 0.5
 	if any("left" in kwarg for kwarg in kwargs):
 		anchor = 0
 	if any("right" in kwarg for kwarg in kwargs):
 		anchor = 0
-	surf = gettext(text, fontsize, color, bcolor, fontname, anchor)
+	surf = gettext(text, fontsize, color, bcolor, fontname, anchor, linespace, maxwidth)
 	vista.screen.blit(surf, surf.get_rect(**kwargs))
 
