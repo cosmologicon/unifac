@@ -1,7 +1,7 @@
 import pygame, datetime, math
 import settings, state
 
-scale = 50.0
+scale = settings.grect.width / 2 / settings.vsize
 x0, y0 = 0, 0  # center of viewport in world coordinates
 X0, Y0 = settings.grect.center  # center of gameplay viewport in screen coordinates
 

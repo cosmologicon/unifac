@@ -1,6 +1,6 @@
 from __future__ import division
 import pygame, random
-import vista, state, scene, settings, img, parts
+import vista, state, scene, settings, img, parts, dialog
 
 controls = []
 cps = []
@@ -62,6 +62,7 @@ def think(dt, events, mousepos):
 		if event.type == pygame.MOUSEBUTTONDOWN and event.button == 2:
 			handleclick(event.pos, True)
 	mpos = mousepos
+	dialog.think(dt)
 
 def draw():
 	vista.screen.fill((50, 50, 50))

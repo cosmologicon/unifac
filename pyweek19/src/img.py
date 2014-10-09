@@ -1,5 +1,5 @@
 from __future__ import division
-import pygame, random, math
+import pygame, random, math, os.path
 import vista, settings
 
 cache = {}
@@ -36,8 +36,9 @@ def gettext(text, fontsize, color, bcolor, fontname, anchor = 0.5, linespace = 0
 
 def getrawimg(imgname):
 	global font
-#	cache[key] = pygame.image.load("img/%s.png" % imgname).convert_alpha()
-	if imgname.startswith("sun-"):
+	filename = "data/%s.png" % imgname
+	if os.path.exists(filename):
+		return pygame.image.load(filename).convert_alpha()
 		r = int(float(imgname[4:]) * settings.imgscale)
 		img = pygame.Surface((2*r, 2*r)).convert_alpha()
 		img.fill((0,0,0,0))
