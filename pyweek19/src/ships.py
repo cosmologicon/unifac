@@ -93,8 +93,8 @@ class Ship(object):
 
 class You(Ship):
 	imgname = "you"
-	vmax = 4
-	a = 2
+	vmax = 24
+	a = 12
 	hp = 10
 	maxhp = 10
 	fadeable = False

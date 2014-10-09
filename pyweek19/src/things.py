@@ -5,6 +5,7 @@ import vista, img, settings, weapon, state, effects
 class Planet(object):
 	radius = 2
 	imgname = "planet"
+	burns = False
 
 	def __init__(self, pos):
 		self.x, self.y = pos
@@ -21,6 +22,7 @@ class Planet(object):
 
 class Sun(object):
 	radius = 8
+	burns = True
 
 	def __init__(self, pos):
 		self.x, self.y = pos

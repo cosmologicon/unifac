@@ -79,6 +79,7 @@ cPickle.dump(obj, open("data/starmap.pkl", "wb"))
 
 pygame.display.set_caption("done")
 pygame.display.flip()
+pygame.image.save(screen, "data/starmap.png")
 while not any(event.type in (pygame.KEYDOWN, pygame.QUIT) for event in pygame.event.get()):
 	pass
 
