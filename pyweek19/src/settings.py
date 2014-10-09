@@ -9,12 +9,17 @@ ssize = sx, sy = 800, 500
 # main gameplay area
 grect = pygame.Rect((10, 10, sy - 20, sy - 20))
 
-imgscale = 100  # image pixels per game unit for assets
+# status indicators
+statpos = 600, 300
+statfontsize = 20
+
+imgscale = 30  # image pixels per game unit for assets
 
 shipsize = shipw, shiph = 4, 5
 
 # Distance from the player before a fadeable object fades.
-fadedistance = 20
+fadedistance = 16
+vsize = 8
 
 modulecosts = {
 	"engine": 0,

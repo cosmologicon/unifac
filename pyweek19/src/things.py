@@ -16,8 +16,7 @@ class Planet(object):
 	def draw(self):
 		if not vista.isvisible((self.x, self.y), self.radius):
 			return
-		scale = 2 * self.radius * settings.imgscale / 40
-		img.worlddraw(self.imgname, (self.x, self.y), angle = self.angle, scale = scale)
+		img.worlddraw(self.imgname, (self.x, self.y), angle = self.angle, scale = 1)
 
 
 class Sun(object):

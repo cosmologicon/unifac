@@ -1,12 +1,12 @@
 from __future__ import division
 import pygame
-import settings, scene, vista, gamescene, buildscene
+import settings, scene, vista, gamescene, buildscene, starmap
 
 pygame.init()
 vista.init()
 pygame.display.set_caption(settings.gamename)
 scene.push(gamescene)
-scene.push(buildscene)
+#scene.push(buildscene)
 
 clock = pygame.time.Clock()
 while True:

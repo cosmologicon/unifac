@@ -1,9 +1,12 @@
-import settings, ships, things, quest, parts
+import settings, ships, things, quest, parts, starmap
+
+starmap.init()
 
 class State(object):
 	def __init__(self):
-		self.you = ships.You()
-		self.mother = ships.Mothership((3, 3))
+		self.bank = 0
+		self.you = ships.You(starmap.ps["start"])
+		self.mother = ships.Mothership(starmap.ps["mother"])
 		# points of interest
 		self.interests = set()
 		self.ships = [
@@ -11,14 +14,19 @@ class State(object):
 			self.mother,
 		]
 		self.things = [
-			things.Planet((10, 0)),
-			things.Sun((0, 15)),
+#			things.Planet((10, 0)),
+#			things.Sun((0, 15)),
+			things.Sun(starmap.ps["angel0"]),
+			things.Sun(starmap.ps["angel1"]),
+			things.Sun(starmap.ps["angel2"]),
+			things.Sun(starmap.ps["angel3"]),
+			things.Sun(starmap.ps["angel4"]),
 		]
-		for _ in range(4):
-			self.ships.append(ships.Guard(self.things[0]))
+#		for _ in range(4):
+#			self.ships.append(ships.Guard(self.things[0]))
 		self.effects = []
 		self.quests = [
-			quest.StartQuest(),
+			quest.IntroQuest(),
 		]
 
 		# SHIP LAYOUT
@@ -48,12 +56,12 @@ class State(object):
 
 	def think(self, dt):
 		import random, math, vista
-		if random.random() < dt:
+		if random.random() * 0.2 < dt:
 			theta = random.uniform(0, math.tau)
 			x = vista.x0 + settings.fadedistance * math.sin(theta)
 			y = vista.y0 + settings.fadedistance * math.cos(theta)
 			self.ships.append(ships.Rock((x, y)))
-		if random.random() * 10 < dt:
+		if random.random() * 0.2 < dt:
 			theta = random.uniform(0, math.tau)
 			x = vista.x0 + settings.fadedistance * math.sin(theta)
 			y = vista.y0 + settings.fadedistance * math.cos(theta)

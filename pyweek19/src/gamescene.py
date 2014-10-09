@@ -1,5 +1,5 @@
 import pygame
-import vista, state, button, scene, buildscene
+import vista, state, button, scene, buildscene, dialog, img, settings
 
 apart = {
 	"mother": False,
@@ -31,6 +31,7 @@ def think(dt, events, mpos):
 
 	state.state.think(dt)
 	vista.think(dt)
+	dialog.think(dt)
 	for b in buttons:
 		b.think(dt)
 
@@ -49,5 +50,16 @@ def draw():
 	state.state.drawviewport()
 	for b in buttons:
 		b.draw()
+	texts = [
+		"Hull: %s/%s" % (state.state.you.hp, state.state.you.maxhp),
+		"SpaceBucks: %s" % state.state.bank,
+	]
+	colors = [
+		(200, 200, 200),
+		(100, 200, 100),
+	]
+	for j, (text, color) in enumerate(zip(texts, colors)):
+		pos = settings.statpos[0], int(settings.statpos[1] + j * 1.2 * settings.statfontsize)
+		img.drawtext(text, fontsize = settings.statfontsize, topleft = pos)
 
 

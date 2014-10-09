@@ -93,9 +93,10 @@ class Ship(object):
 
 class You(Ship):
 	imgname = "you"
-	vmax = 1
-	a = 1
-	hp = 3
+	vmax = 4
+	a = 2
+	hp = 10
+	maxhp = 10
 	fadeable = False
 
 	def makeweapons(self):
@@ -157,6 +158,7 @@ class Drone(Rock):
 
 	def think(self, dt):
 		Rock.think(self, dt)
+		return
 		self.t += dt
 		if self.t > self.shoottime:
 			self.t -= self.shoottime

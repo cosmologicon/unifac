@@ -13,7 +13,7 @@ class Quest(object):
 		state.state.interests.remove(iname)
 
 # Get to the mothership
-class StartQuest(Quest):
+class IntroQuest(Quest):
 	def think(self, dt):
 		dialog.playfirst("cometomother")
 		self.addinterest("mother")
