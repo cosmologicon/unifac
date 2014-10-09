@@ -45,6 +45,10 @@ class State(object):
 		# self.hookup maps hooked up module name to the supply numbers that feed it.
 		self.sethookup()
 		print self.hookup
+		self.burnfactor = 0
+		self.oortfactor = 0
+		self.tburn = 0
+		self.toort = 0
 
 	def handlebutton(self, buttonname):
 		if buttonname in self.modules:
@@ -94,9 +98,53 @@ class State(object):
 		for q in self.quests:
 			q.think(dt)
 		self.ships = [s for s in self.ships if not s.faded()]
+		
+		self.alerts = []
+		dburn = min(
+			math.sqrt((self.you.x - thing.x) ** 2 + (self.you.y - thing.y) ** 2) - thing.radius
+			for thing in self.things if thing.burns
+		)
+		if dburn < -1:
+			if self.active["heatshield"]:
+				self.alerts.append("Heat shield holding.")
+			else:
+				self.alerts.append("Danger. Hull overheating. Breach imminent.")
+				self.tburn += dt
+				if self.tburn > settings.burndamagetime:
+					self.you.takedamage(1)
+					self.tburn = 0
+		elif dburn < 0:
+			self.tburn = 0
+			if self.active["heatshield"]:
+				self.alerts.append("Heat shield holding.")
+			else:
+				self.alerts.append("Heat at dangerous levels. Move to a safe distance.")
+		else:			
+			self.tburn = 0
+		a = starmap.getoort((self.you.x, self.you.y))
+		if a < 0.2:
+			pass
+		elif a < 0.9:
+			if self.active["deflector"]:
+				self.alerts.append("Deflector holding.")
+			else:
+				self.alerts.append("Approaching the Oort. Danger of hull damage ahead.")
+		else:
+			if self.active["deflector"]:
+				self.alerts.append("Deflector holding.")
+			else:
+				self.alerts.append("Danger. Hull taking damage. Breach imminent.")
+				self.toort += dt
+				if self.toort > settings.oortdamagetime:
+					self.you.takedamage(1)
+					self.toort = 0
+			
+			
 
 	def drawviewport(self):
 		import vista, img
+		a = starmap.getoort((self.you.x, self.you.y))
+		vista.screen.fill((0, int(80 * a), int(60 * a)))
 		vista.drawstars()
 		for t in self.things:
 			t.draw()

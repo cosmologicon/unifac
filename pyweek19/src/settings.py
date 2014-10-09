@@ -12,6 +12,7 @@ grect = pygame.Rect((10, 10, sy - 20, sy - 20))
 # status indicators
 statpos = 600, 300
 statfontsize = 20
+alertfontsize = 40
 
 imgscale = 30  # image pixels per game unit for assets
 
@@ -21,11 +22,16 @@ shipsize = shipw, shiph = 4, 5
 fadedistance = 16
 vsize = 8
 
+burndamagetime = 0.3
+oortdamagetime = 0.3
+
 modulecosts = {
 	"engine": 0,
 	"drill": 0,
 	"laser": 5,
 	"gun": 20,
+	"heatshield": 50,
+	"deflector": 100,
 }
 
 moduleblocks = {

@@ -48,6 +48,8 @@ def think(dt, events, mpos):
 
 def draw():
 	state.state.drawviewport()
+	if state.state.alerts:
+		img.drawtext("\n".join(state.state.alerts), color = (255, 0, 0), fontsize = settings.alertfontsize, topleft = (0, 0))
 	for b in buttons:
 		b.draw()
 	texts = [
