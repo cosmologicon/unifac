@@ -1,9 +1,11 @@
-import settings, ships, things, quest
+import settings, ships, things, quest, parts
 
 class State(object):
 	def __init__(self):
 		self.you = ships.You()
 		self.mother = ships.Mothership((3, 3))
+		# points of interest
+		self.interests = set()
 		self.ships = [
 			self.you,
 			self.mother,
@@ -14,20 +16,27 @@ class State(object):
 		]
 		for _ in range(4):
 			self.ships.append(ships.Guard(self.things[0]))
-		self.modules = [
-			"engine",
-			"laser",
-			"gun",
-		]
-		self.active = {
-			"engine": True,
-			"laser": True,
-			"gun": True,
-		}
 		self.effects = []
 		self.quests = [
 			quest.StartQuest(),
 		]
+
+		# SHIP LAYOUT
+		self.parts = [
+		]
+		# iedges for active power supplies
+		self.supplies = {
+			1: (-1, 2, 0, 2),
+		}
+		self.parts = [
+			parts.Conduit((2,)).rotate(1).shift((0, 2)),
+			parts.Module("engine").shift((1, 2)),
+		]
+		# self.modules is a list of placed module names
+		# self.powered maps module names to powered-up state
+		# self.hookup maps hooked up module name to the supply numbers that feed it.
+		self.sethookup()
+		print self.hookup
 
 	def handlebutton(self, buttonname):
 		if buttonname in self.modules:
@@ -44,13 +53,17 @@ class State(object):
 			x = vista.x0 + settings.fadedistance * math.sin(theta)
 			y = vista.y0 + settings.fadedistance * math.cos(theta)
 			self.ships.append(ships.Rock((x, y)))
-		if random.random() < dt:
+		if random.random() * 10 < dt:
 			theta = random.uniform(0, math.tau)
 			x = vista.x0 + settings.fadedistance * math.sin(theta)
 			y = vista.y0 + settings.fadedistance * math.cos(theta)
 			self.ships.append(ships.Drone((x, y)))
 		if not self.active["engine"]:
 			self.you.allstop()
+		if self.active["drill"] and self.you.drill.canfire():
+			for s in self.ships:
+				if s.drillable and self.you.drillable.canreach(s):
+					self.you.drill.fire(s)
 		if self.active["laser"] and self.you.laser.canfire():
 			for s in self.ships:
 				if s.laserable and self.you.laser.canreach(s):
@@ -75,12 +88,56 @@ class State(object):
 		self.ships = [s for s in self.ships if not s.faded()]
 
 	def drawviewport(self):
+		import vista, img
 		for t in self.things:
 			t.draw()
 		for s in self.ships:
 			s.draw()
 		for e in self.effects:
 			e.draw()
+		for iname in self.interests:
+			obj = getattr(self, iname)
+			if not vista.isvisible((obj.x, obj.y), obj.radius - 1):
+				pos, angle = vista.indpos((obj.x, obj.y))
+				img.worlddraw("arrow", pos, angle = angle)
+
+
+	def canaddpart(self, part):
+		takenblocks = set(b for p in self.parts for b in p.blocks)
+		return set(part.blocks).isdisjoint(takenblocks)
+
+	def addpart(self, part):
+		self.parts.append(part)
+		self.sethookup()
+
+	def sethookup(self):
+		powered = {
+			edge: [supply] for supply, edge in self.supplies.items()
+		}
+		self.hookup = {}
+		self.modules = [part.name for part in self.parts if part.ismodule]
+		self.active = { mname: False for mname in settings.modulecosts }
+		while True:
+			n = len(powered)
+			for part in self.parts:
+				if all(edge in powered for edge in part.inputs):
+					supplies = sorted(set.union(*(set(powered[edge]) for edge in part.inputs)))
+					for oedge in part.outputs:
+						powered[oedge] = supplies
+					if part.ismodule:
+						self.hookup[part.name] = supplies
+			if len(powered) == n:
+				break
+
+	def partat(self, block):
+		for part in self.parts:
+			if block in part.blocks:
+				return part
+		return None
+
+	def removepart(self, part):
+		self.parts.remove(part)
+		self.sethookup()
 
 state = State()
 

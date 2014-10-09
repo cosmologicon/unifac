@@ -51,8 +51,11 @@ class Gun(Weapon):
 
 class YouLaser(Laser):
 	reach = 2
-	color = 0, 255, 0
-	
+	color = 255, 255, 0
+
+class YouDrill(Laser):
+	reach = 0.5
+	color = 255, 255, 255
 
 # The weapon for things that explode when they hit something.
 class Trigger(Weapon):

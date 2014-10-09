@@ -54,25 +54,29 @@ def getrawimg(imgname):
 	return img
 
 
-def getimg(imgname, angle = 0, scale = 1.0, alpha = 1.0):
+def getimg(imgname, angle = 0, scale = 1.0, alpha = 1.0, bad = False):
 	angle = round(angle / 6) % 60 * 6 if angle else 0
 	alpha = round(alpha, 1)
 	scale = round(scale, 1)
-	key = imgname, angle, scale, alpha
+	key = imgname, angle, scale, alpha, bad
 	if key not in cache:
-		if angle == 0 and scale == 1.0 and alpha == 1.0:
+		if angle == 0 and scale == 1.0 and alpha == 1.0 and not bad:
 			cache[key] = img = getrawimg(imgname)
-		elif alpha == 1.0:
+		elif alpha == 1.0 and not bad:
 			img0 = getimg(imgname)
 			cache[key] = pygame.transform.rotozoom(img0, angle, scale)
-		else:
+		elif not bad:
 			cache[key] = img0 = getimg(imgname, angle, scale).copy()
 			alphas = pygame.surfarray.pixels_alpha(img0)
 			alphas *= alpha
+		else:
+			cache[key] = img0 = getimg(imgname, angle, scale, alpha).copy()
+			pixels = pygame.surfarray.pixels_(img0)
+			pixels[:,:,1:2] *= 0.1
 	return cache[key]
 
-def draw(imgname, screenpos, angle = None, scale = 1.0, alpha = 1.0):
-	img = getimg(imgname, angle, scale, alpha)
+def draw(imgname, screenpos, angle = None, scale = 1.0, alpha = 1.0, bad = False):
+	img = getimg(imgname, angle, scale, alpha, bad)
 	r = img.get_rect(center = screenpos)
 	vista.screen.blit(img, r)
 
@@ -81,7 +85,11 @@ def worlddraw(imgname, worldpos, angle = None, scale = 1.0, alpha = 1.0):
 	draw(imgname, vista.worldtoscreen(worldpos), angle = angle, scale = scale, alpha = alpha)
 
 def drawtext(text, fontsize, color = (255, 255, 255), bcolor = (0, 0, 0), fontname = None, **kwargs):
-	anchor = 0.5  # if "center" in kwargs
+	anchor = 0.5
+	if any("left" in kwarg for kwarg in kwargs):
+		anchor = 0
+	if any("right" in kwarg for kwarg in kwargs):
+		anchor = 0
 	surf = gettext(text, fontsize, color, bcolor, fontname, anchor)
 	vista.screen.blit(surf, surf.get_rect(**kwargs))
 

@@ -1,4 +1,4 @@
-import pygame, datetime
+import pygame, datetime, math
 import settings, state
 
 scale = 50.0
@@ -16,9 +16,12 @@ def flip():
 	pygame.display.flip()
 
 def think(dt):
-	global x0, y0
+	global x0, y0, xmin, xmax, ymin, ymax
 	x0 = state.state.you.x
 	y0 = state.state.you.y
+	gw, gh = settings.grect.size
+	xmin, xmax = x0 - gw / 2 / scale, x0 + gw / 2 / scale
+	ymin, ymax = y0 - gw / 2 / scale, y0 + gw / 2 / scale
 
 def worldtoscreen((x, y)):
 	return (
@@ -31,6 +34,18 @@ def screentoworld((X, Y)):
 		(X - X0) / scale + x0,
 		(Y - Y0) / scale + y0,
 	)
+
+def isvisible((x, y), r = 0):
+	return xmin - r < x < xmax + r and ymin - r < y < ymax + r
+
+# Where to put an indicator
+def indpos((x, y)):
+	gw, gh = settings.grect.size
+	rx, ry = 0.45 * gw / scale, 0.45 * gh / scale
+	dx, dy = x - x0, y - y0
+	f = rx / abs(dx) if rx * abs(dy) < ry * abs(dx) else ry / abs(dy)
+	d = math.sqrt(dx ** 2 + dy ** 2)
+	return (x0 + f * dx, y0 + f * dy), math.degrees(math.atan2(-dx, -dy))
 
 def screenshot():
 	sname = "screenshot-%s.png" % datetime.datetime.now().strftime("%Y%m%d%H%M%S")
