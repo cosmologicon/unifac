@@ -46,7 +46,17 @@ def drawstars():
 		py = int((y - y0) * z * scale) % settings.grect.height
 		c = int(255 * z)
 		screen.set_at((px, py), (c, c, c))
-		
+
+def drawbolt((x0, y0), (x1, y1), color):
+	dx, dy = x1 - x0, y1 - y0
+	if dx ** 2 + dy ** 2 < 1:
+		pygame.draw.aaline(screen, color, worldtoscreen((x0, y0)), worldtoscreen((x1, y1)))
+		return
+	r = random.uniform(-0.3, 0.3)
+	xc = (x1 + x0) / 2 + r * dy
+	yc = (y1 + y0) / 2 - r * dx
+	drawbolt((x0, y0), (xc, yc), color)
+	drawbolt((xc, yc), (x1, y1), color)
 
 def isvisible((x, y), r = 0):
 	return xmin - r < x < xmax + r and ymin - r < y < ymax + r

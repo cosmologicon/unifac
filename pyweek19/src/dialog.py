@@ -45,6 +45,9 @@ def draw():
 def playfirst(dname):
 	if dname in played:
 		return
+	play(dname)
+
+def play(dname):
 	played.add(dname)
 	if dname in lines:
 		playing.extend(lines[dname])

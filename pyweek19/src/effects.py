@@ -1,4 +1,4 @@
-import pygame, math
+import pygame, math, random
 import state, img, vista
 
 class Explosion(object):
@@ -7,6 +7,8 @@ class Explosion(object):
 	def __init__(self, parent):
 		self.x, self.y = parent.x, parent.y
 		self.t = 0
+		self.imgname = "smoke%s" % random.choice(range(4))
+		self.angle = random.uniform(0, math.tau)
 	
 	def think(self, dt):
 		self.t += dt
@@ -16,7 +18,7 @@ class Explosion(object):
 	def draw(self):
 		scale = 1 + 2 * self.t / self.lifetime
 		alpha = 1 - self.t / self.lifetime
-		img.worlddraw(self.imgname, (self.x, self.y), angle = 0, scale = scale, alpha = alpha)
+		img.worlddraw(self.imgname, (self.x, self.y), self.angle, scale = scale, alpha = alpha)
 
 class Laser(object):
 	lifetime = 0.1

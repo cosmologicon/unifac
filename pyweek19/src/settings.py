@@ -5,6 +5,8 @@ DEBUG = True
 gamename = "One room"
 minfps, maxfps = 10, 60
 
+quickstart = True
+
 ssize = sx, sy = 800, 500
 # main gameplay area
 grect = pygame.Rect((10, 10, sy - 20, sy - 20))
@@ -36,10 +38,12 @@ modulecosts = {
 
 moduleblocks = {
 	"engine": [(0,0), (1,0), (0,1), (1,1)],
+	"laser": [(0,0)],
 }
 
 moduleinputs = {
 	"engine": [(-1,0,0,0)],
+	"laser": [(0,1,0,0)],
 }
 
 
