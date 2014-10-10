@@ -1,3 +1,4 @@
+import cPickle
 import settings, ships, things, quest, parts, starmap
 
 starmap.init()
@@ -6,7 +7,15 @@ class State(object):
 	def __init__(self):
 		self.bank = 0
 		self.you = ships.You(starmap.ps["start"])
+		if settings.quickstart:
+			self.you.vmax *= 6
+			self.you.a *= 6
+			self.bank += 1000
 		self.mother = ships.Mothership(starmap.ps["mother"])
+		self.baron = ships.Baron((0, 0))
+		self.supply = ships.Supply((0, 0))
+		self.boss = None
+		self.bossmode = False
 		# points of interest
 		self.interests = set()
 		self.ships = [
@@ -26,7 +35,6 @@ class State(object):
 #			self.ships.append(ships.Guard(self.things[0]))
 		self.effects = []
 		self.quests = [
-			quest.IntroQuest(),
 		]
 
 		# SHIP LAYOUT
@@ -37,8 +45,9 @@ class State(object):
 			1: (-1, 2, 0, 2),
 		}
 		self.parts = [
-			parts.Conduit((2,)).rotate(1).shift((0, 2)),
+			parts.Conduit((1,2)).rotate(1).shift((0, 2)),
 			parts.Module("engine").shift((1, 2)),
+			parts.Module("laser").shift((0, 1)),
 		]
 		# self.modules is a list of placed module names
 		# self.powered maps module names to powered-up state
@@ -60,16 +69,18 @@ class State(object):
 
 	def think(self, dt):
 		import random, math, vista
-		if random.random() * 0.2 < dt:
-			theta = random.uniform(0, math.tau)
-			x = vista.x0 + settings.fadedistance * math.sin(theta)
-			y = vista.y0 + settings.fadedistance * math.cos(theta)
-			self.ships.append(ships.Rock((x, y)))
-		if random.random() * 0.2 < dt:
-			theta = random.uniform(0, math.tau)
-			x = vista.x0 + settings.fadedistance * math.sin(theta)
-			y = vista.y0 + settings.fadedistance * math.cos(theta)
-			self.ships.append(ships.Drone((x, y)))
+		self.bossmode = self.boss is not None and self.boss.distfromyou() < settings.fadedistance
+		if not self.bossmode:
+			if random.random() * 0.2 < dt:
+				theta = random.uniform(0, math.tau)
+				x = vista.x0 + settings.fadedistance * math.sin(theta)
+				y = vista.y0 + settings.fadedistance * math.cos(theta)
+				self.ships.append(ships.Rock((x, y)))
+			if random.random() * 0.2 < dt:
+				theta = random.uniform(0, math.tau)
+				x = vista.x0 + settings.fadedistance * math.sin(theta)
+				y = vista.y0 + settings.fadedistance * math.cos(theta)
+				self.ships.append(ships.Drone((x, y)))
 		if not self.active["engine"]:
 			self.you.allstop()
 		if self.active["drill"] and self.you.drill.canfire():
@@ -197,4 +208,16 @@ class State(object):
 		self.sethookup()
 
 state = State()
+state.quests.append(quest.IntroQuest())
+
+def save():
+	cPickle.dump(state, open("savegame.pkl", "wb"))
+
+def load():
+	global state
+	state = cPickle.load(open("savegame.pkl", "rb"))
+
+def canload():
+	import os.path
+	return os.path.exists("savegame.pkl")
 

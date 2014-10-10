@@ -49,6 +49,7 @@ ps = { "angel%s" % j: p for j, p in enumerate(starps) }
 ps["start"] = 40, -70
 ps["mother"] = -40, 40
 ps["baron1"] = 40, 32
+ps["supply"] = -20, -43
 ps["seekers"] = -180, 120
 
 f = pygame.font.Font(None, 11)

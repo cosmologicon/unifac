@@ -14,7 +14,7 @@ class Ship(object):
 	radius = 1  # for drawing purposes
 
 	def __init__(self, pos = (0, 0)):
-		self.x, self.y = pos
+		self.x, self.y = self.pos0 = pos
 		self.vx, self.vy = 0, 0
 		self.angle = 0
 		self.target = None
@@ -43,9 +43,10 @@ class Ship(object):
 		dx, dy = self.x - vista.x0, self.y - vista.y0
 		return dx ** 2 + dy ** 2 > settings.fadedistance ** 2
 
-	def pickrandomtarget(self):
+	def pickrandomtarget(self, pos = None, r = 4):
 		if self.target is None:
-			self.target = self.x + random.uniform(-4, 4), self.y + random.uniform(-4, 4)
+			x, y = pos or (self.x, self.y)
+			self.target = x + random.uniform(-r, r), y + random.uniform(-r, r)
 
 	def pursuetarget(self, dt):
 		if self.target:
@@ -85,6 +86,16 @@ class Ship(object):
 			return
 		img.worlddraw(self.imgname, (self.x, self.y), angle = self.angle)
 
+	def distfromyou(self):
+		dx, dy = self.x - state.state.you.x, self.y - state.state.you.y
+		return math.sqrt(dx ** 2 + dy ** 2)
+
+	def launchslug(self, v, theta):
+		theta += self.angle
+		vel = v * math.sin(theta), v * math.cos(theta)
+		slug = Slug(self, vel)
+		state.state.ships.append(slug)
+
 	def die(self):
 		state.state.ships.remove(self)
 		if self.leavessmoke:
@@ -93,8 +104,8 @@ class Ship(object):
 
 class You(Ship):
 	imgname = "you"
-	vmax = 24
-	a = 12
+	vmax = 4
+	a = 2
 	hp = 10
 	maxhp = 10
 	fadeable = False
@@ -117,6 +128,15 @@ class Mothership(Ship):
 
 	def within(self, (x, y)):
 		return (x - self.x) ** 2 + (y - self.y) ** 2 <= self.radius ** 2
+
+
+class Baron(Ship):
+	imgname = "baron"
+	fadeable = False
+
+class Supply(Ship):
+	imgname = "supply"
+	fadeable = False
 
 class Rock(Ship):
 	imgname = "rock"

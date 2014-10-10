@@ -50,16 +50,16 @@ class Gun(Weapon):
 		return dx * vx + dy * vy > 0.9 * d * v
 
 class YouLaser(Laser):
-	reach = 2
+	reach = 4
 	color = 255, 255, 0
 
 class YouDrill(Laser):
-	reach = 0.5
+	reach = 1
 	color = 255, 255, 255
 
 # The weapon for things that explode when they hit something.
 class Trigger(Weapon):
-	reach = 0.1
+	reach = 0.4
 	damage = 1
 	cooldown = 0
 

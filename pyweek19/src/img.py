@@ -110,8 +110,8 @@ def getimg(imgname, angle = 0, scale = 1.0, alpha = 1.0, bad = False):
 			alphas *= alpha
 		else:
 			cache[key] = img0 = getimg(imgname, angle, scale, alpha).copy()
-			pixels = pygame.surfarray.pixels_(img0)
-			pixels[:,:,1:2] *= 0.1
+			pixels = pygame.surfarray.pixels3d(img0)
+			pixels[:,:,1:3] *= 0.1
 	return cache[key]
 
 def draw(imgname, screenpos, angle = None, scale = 1.0, alpha = 1.0, bad = False):

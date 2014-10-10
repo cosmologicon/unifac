@@ -25,7 +25,6 @@ class Part(object):
 		inputs = [(x0 + dx, y0 + dy, x1 + dx, y1 + dy) for x0, y0, x1, y1 in self.inputs]
 		outputs = [(x0 + dx, y0 + dy, x1 + dx, y1 + dy) for x0, y0, x1, y1 in self.outputs]
 		p = Part(self.name, blocks, inputs, outputs)
-		p.ismodule = self.ismodule
 		return p
 
 	def nearest(self, (x, y)):
@@ -54,14 +53,25 @@ class Part(object):
 
 class Conduit(Part):
 	ismodule = False
-	def __init__(self, oedges, rot = 0):
+	def __init__(self, oedges, rot = 0, p0 = (0, 0)):
+		self.p0 = p0
 		self.oedges = oedges
 		self.rot = rot
 		name = "conduit-%s" % ("".join(map(str, oedges)))
-		blocks = [(0, 0)]
-		inputs = [offset(rot) + (0, 0)]
-		outputs = [(0, 0) + offset((rot + oedge) % 4) for oedge in oedges]
+		blocks = [p0]
+		inputs = [offset(rot, p0) + p0]
+		outputs = [p0 + offset((rot + oedge) % 4, p0) for oedge in oedges]
 		Part.__init__(self, name, blocks, inputs, outputs)
+
+	def draw(self, screenpos0, blocksize, bad = False):
+		x0, y0 = screenpos0
+		x0 += (self.p0[0] + 0.5) * blocksize
+		y0 += (self.p0[1] + 0.5) * blocksize
+		img.draw(self.name, (x0, y0), scale = blocksize / 64, angle = -90 * self.rot, bad = bad)
+
+	def shift(self, (dx, dy)):
+		dx0, dy0 = self.p0
+		return Conduit(self.oedges, self.rot, (dx + dx0, dy + dy0))
 
 	def rotate(self, n = 1):
 		return Conduit(self.oedges, (self.rot + n) % 4)
