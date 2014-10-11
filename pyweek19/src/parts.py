@@ -48,6 +48,12 @@ class Part(object):
 		py = int(y0 + blocksize * self.center[1])
 		img.drawtext(self.name, 14, center = (px, py))
 
+	def drawoutline(self, screenpos0, blocksize):
+		x0, y0 = screenpos0
+		px = int(x0 + blocksize * self.center[0])
+		py = int(y0 + blocksize * self.center[1])
+		pygame.draw.circle(vista.screen, (255, 0, 255), (px, py), 4)
+
 	def contains(self, (x, y)):
 		return (int(x), int(y)) in self.blocks
 

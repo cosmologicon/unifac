@@ -187,6 +187,34 @@ class Drone(Rock):
 			slug = Slug(self, (vslug * math.sin(self.zeta), vslug * math.cos(self.zeta)))
 			state.state.ships.append(slug)
 
+class SeekerDrone(Drone):
+	imgname = "drone"
+	hp = 1
+	drillable = False
+	laserable = True
+	shootsyou = False
+	shoottime = 0.7
+
+	def __init__(self, pos):
+		Drone.__init__(self, pos)
+		self.t = 0
+		self.zeta = random.uniform(0, math.tau)
+
+	def makeweapons(self):
+		return []
+
+	def think(self, dt):
+		Rock.think(self, dt)
+		return
+		self.t += dt
+		if self.t > self.shoottime:
+			self.t -= self.shoottime
+			self.zeta += math.tau / 1.618033988749895
+			vslug = 0.5
+			slug = Slug(self, (vslug * math.sin(self.zeta), vslug * math.cos(self.zeta)))
+			state.state.ships.append(slug)
+
+
 class Guard(Ship):
 	imgname = "guard"
 	hp = 3

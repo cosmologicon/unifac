@@ -1,5 +1,5 @@
 import cPickle
-import settings, ships, things, quest, parts, starmap
+import settings, ships, things, quest, parts, starmap, sound
 
 starmap.init()
 
@@ -22,15 +22,12 @@ class State(object):
 			self.you,
 			self.mother,
 		]
-		self.things = [
-#			things.Planet((10, 0)),
-#			things.Sun((0, 15)),
-			things.Sun(starmap.ps["angel0"]),
-			things.Sun(starmap.ps["angel1"]),
-			things.Sun(starmap.ps["angel2"]),
-			things.Sun(starmap.ps["angel3"]),
-			things.Sun(starmap.ps["angel4"]),
-		]
+		self.things = []
+		for tname, p in starmap.ps.items():
+			if tname.startswith("angel"):
+				self.things.append(things.Sun(p))
+			if tname.startswith("planet"):
+				self.things.append(things.Planet(p))
 #		for _ in range(4):
 #			self.ships.append(ships.Guard(self.things[0]))
 		self.effects = []
@@ -48,7 +45,11 @@ class State(object):
 			parts.Conduit((1,2)).rotate(1).shift((0, 2)),
 			parts.Module("engine").shift((1, 2)),
 			parts.Module("laser").shift((0, 1)),
+			parts.Module("drill").shift((3, 0)),
 		]
+		self.available = ["engine", "drill", "laser"]
+		self.unlocked = ["engine", "drill"]
+		self.unused = { modulename: 0 for modulename in settings.modulecosts }
 		# self.modules is a list of placed module names
 		# self.powered maps module names to powered-up state
 		# self.hookup maps hooked up module name to the supply numbers that feed it.
@@ -149,8 +150,6 @@ class State(object):
 				if self.toort > settings.oortdamagetime:
 					self.you.takedamage(1)
 					self.toort = 0
-			
-			
 
 	def drawviewport(self):
 		import vista, img
@@ -170,6 +169,27 @@ class State(object):
 				img.worlddraw("arrow", pos, angle = angle)
 
 
+	def unlock(self, modulename):
+		if modulename not in self.available or modulename in self.unlocked:
+			return
+		cost = settings.modulecosts[modulename]
+		if self.bank < cost:
+			sound.play("cantbuy")
+			return
+		self.unlocked.append(modulename)
+		self.unused[modulename] = 1
+		self.bank -= cost
+		sound.play("buy")
+
+	def buy(self, cname):
+		cost = settings.modulecosts[cname]
+		if self.bank < cost:
+			sound.play("cantbuy")
+			return
+		self.unused[cname] += 1
+		self.bank -= cost
+		sound.play("buy")
+
 	def canaddpart(self, part):
 		takenblocks = set(b for p in self.parts for b in p.blocks)
 		return set(part.blocks).isdisjoint(takenblocks)
@@ -177,6 +197,7 @@ class State(object):
 	def addpart(self, part):
 		self.parts.append(part)
 		self.sethookup()
+		self.unused[part.name] -= 1
 
 	def sethookup(self):
 		powered = {
@@ -199,13 +220,14 @@ class State(object):
 
 	def partat(self, block):
 		for part in self.parts:
-			if block in part.blocks:
+			if tuple(block) in part.blocks:
 				return part
 		return None
 
 	def removepart(self, part):
 		self.parts.remove(part)
 		self.sethookup()
+		self.unused[part.name] += 1
 
 state = State()
 state.quests.append(quest.IntroQuest())

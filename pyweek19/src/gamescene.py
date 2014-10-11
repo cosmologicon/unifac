@@ -1,13 +1,15 @@
 import pygame
-import vista, state, button, scene, buildscene, dialog, img, settings
+import vista, state, button, scene, buildscene, dialog, img, settings, sound
 
 apart = {
 	"mother": False,
 }
+shroud = None
 
 def init():
 	makebuttons()
 	apart["mother"] = False
+	sound.playmusic("travel")
 
 buttons = []
 def makebuttons():
@@ -45,6 +47,20 @@ def think(dt, events, mpos):
 	else:
 		apart["mother"] = True
 
+	global shroud
+	if shroud:
+		alpha = shroud.get_alpha()
+		alpha = int(alpha - 200 * dt)
+		if alpha <= 0:
+			shroud = None
+		else:
+			shroud.set_alpha(alpha)
+
+def setshroud(color, alpha = 255):
+	global shroud
+	shroud = pygame.Surface(settings.ssize).convert()
+	shroud.set_alpha(alpha)
+
 
 def draw():
 	state.state.drawviewport()
@@ -64,5 +80,7 @@ def draw():
 		pos = settings.statpos[0], int(settings.statpos[1] + j * 1.2 * settings.statfontsize)
 		img.drawtext(text, fontsize = settings.statfontsize, topleft = pos)
 	dialog.draw()
+	if shroud:
+		vista.screen.blit(shroud, (0, 0))
 
 
