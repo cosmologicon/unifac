@@ -1,4 +1,5 @@
-import dialog, state, gamescene, buildscene, scene, starmap, bosses
+import random, math
+import dialog, state, gamescene, buildscene, scene, starmap, bosses, vista
 
 class Quest(object):
 	def complete(self):
@@ -68,5 +69,19 @@ class Boss1Quest(Quest):
 			self.complete()
 
 
+class SeekerQuest(Quest):
+	def __init__(self):
+		self.seeker = state.state.seeker
+		state.state.things.append(state.state.seeker)
+	
+	def think(self, dt):
+		if random.random() * 5 < dt:
+			theta = random.uniform(0, math.tau)
+			x = vista.x0 + settings.fadedistance * math.sin(theta)
+			y = vista.y0 + settings.fadedistance * math.cos(theta)
+			seekerdrone = ships.SeekerDrone((x, y), self.seeker)
+			state.state.ships.append(seekerdrone)
+
+			
 
 
