@@ -1,0 +1,8 @@
+var world = {
+	init: function () {
+	
+	},
+
+}
+
+
