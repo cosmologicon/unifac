@@ -1,5 +1,5 @@
 var terrain = {
-	size: 200,
+	size: 120,
 	init: function () {
 		this.img = document.createElement("canvas")
 		this.img.width = this.img.height = this.size
@@ -21,6 +21,8 @@ var terrain = {
 					var color = this.getcolor(h)
 					color.push(255)
 					var shade = this.getshade(x, y, z)
+					if (h > 0) shade *= this.getgrad(x, y, z)
+					//if (h > 0) shade *= UFX.random(0.7, 1.3)
 				}
 				data[j++] = color[0] * shade
 				data[j++] = color[1] * shade
@@ -62,8 +64,14 @@ var terrain = {
 	getshade: function (x, y, z) {
 		return clamp(0.4 * (-x - y + z + 1), 0.1, 0.5) * clamp(4 * z, 0, 1)
 	},
+	getgrad: function (x, y, z) {
+		var h = 0.0001
+		var dn = this.getheight(x - h, y - h, z + h) - this.getheight(x + h, y + h, z - h)
+		return 1 - 0.01 * dn / h
+	},
 	draw: function () {
-		UFX.draw("drawimage", this.img, -this.size / 2, -this.size / 2)
+		var scale = 1 / (this.size / 2)
+		UFX.draw("[ z", scale, scale, "drawimage", this.img, -this.size / 2, -this.size / 2, "]")
 	},
 }
 

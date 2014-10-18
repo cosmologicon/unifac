@@ -11,10 +11,11 @@ UFX.maximize.onadjust = function (canvas, width, height) {
 	sy = height
 }
 UFX.maximize.fill(canvas, "total")
-UFX.scene.init()
+UFX.scene.init({ minfps: 10, maxfps: 60 })
 UFX.scene.push("play")
 UFX.key.init()
 
+world.init()
 terrain.init()
 
 
