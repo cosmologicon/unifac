@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<title>0h game jam</title>
+
+<script src="../UFX/src/Thing.js"></script>
+<script src="../UFX/src/maximize.js"></script>
+<script src="../UFX/src/ticker.js"></script>
+<script src="../UFX/src/scene.js"></script>
+<script src="../UFX/src/key.js"></script>
+<script src="../UFX/src/mouse.js"></script>
+<script src="../UFX/src/Thing.js"></script>
+<script src="../UFX/src/draw.js"></script>
+<script src="../UFX/src/noise.js"></script>
+<script src="../UFX/src/random.js"></script>
+<script src="../UFX/src/texture.js"></script>
+<script src="../UFX/src/resource.js"></script>
+<canvas id=canvas></canvas>
+<script>
+var canvas = document.getElementById("canvas")
+var context = canvas.getContext("2d")
+UFX.maximize.fill(canvas, "total")
+UFX.scene.init()
+UFX.mouse.init(canvas)
+UFX.key.init()
+UFX.draw.setcontext(context)
+UFX.resource.loadwebfonts("Viga", "Contrail One")
+UFX.resource.onload = function () {
+	UFX.scene.push({ think: think })
+}
+UFX.resource.load({
+	get: "get.ogg"
+})
+
+var sx, sy
+function setfont(size) {
+	context.font = Math.ceil(size * sy / 14) + "px 'Contrail One'"
+}
+function think(dt) {
+	sx = canvas.width
+	sy = canvas.height
+
+	UFX.draw("fs black f0")
+	setfont(1)
+	UFX.draw("textalign left textbaseline top fs white ft 0h~game~jam 10 10")
+}
+
+</script>
+
