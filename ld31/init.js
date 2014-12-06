@@ -44,15 +44,26 @@ UFX.scenes.play = {
 		this.you = new You(10, 10)
 		this.mals = []
 		this.bullets = []
+		this.portals = [
+			new Portal(this.ground, 10, "hub", "roger")
+		]
 	},
 	thinkargs: function (dt) {
 		return [dt, UFX.key.state()]
 	},
 	think: function (dt, kstate) {
-		if (UFX.random.flip(dt)) {
+		if (state.place == "roger" && UFX.random.flip(dt)) {
 			this.mals.push(new Waver())
 		}
 		this.you.control(kstate)
+		if (kstate.down.down && this.you.parent) {
+			for (var j = 0 ; j < this.portals.length ; ++j) {
+				var portal = this.portals[j]
+				if (portal.goesto() && portal.nearby(this.you)) {
+					state.place = portal.goesto()
+				}
+			}
+		}
 		
 		function think(obj) {
 			obj.think(dt)
@@ -60,6 +71,7 @@ UFX.scenes.play = {
 		this.blocks.forEach(think)
 		this.mals.forEach(think)
 		this.bullets.forEach(think)
+		this.portals.forEach(think)
 		think(this.you)
 		var blocks = this.blocks, bullets = this.bullets
 		this.you.constrain(blocks)
@@ -83,6 +95,7 @@ UFX.scenes.play = {
 			context.restore()
 		}
 		this.blocks.forEach(draw)
+		this.portals.forEach(draw)
 		this.mals.forEach(draw)
 		this.bullets.forEach(draw)
 		draw(this.you)
@@ -93,8 +106,9 @@ UFX.scenes.play = {
 		}
 
 		if (settings.DEBUG) {
-			UFX.draw("[ font " + fH(1) + "px~'Viga' fs white textalign left textbaseline bottom")
+			UFX.draw("[ font " + fH(0.3) + "px~'Viga' fs white textalign left textbaseline bottom")
 			context.fillText(UFX.ticker.getrates(), fH(0.2), sy - fH(0.2))
+			context.fillText("Location: " + state.place, fH(0.2), sy - fH(0.6))
 			UFX.draw("]")
 		}
 	},

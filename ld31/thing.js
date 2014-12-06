@@ -74,6 +74,17 @@ var ParentBound = {
 	},
 }
 
+var ParentStuck = {
+	construct: function (args) {
+		this.parent = args.parent
+		this.dx = args.dx === undefined ? this.parent.dx / 2 : args.dx
+	},
+	think: function (dt) {
+		this.x = this.dx + this.parent.x
+		this.y = this.parent.y
+	},
+}
+
 var FacesDirection = {
 	init: function () {
 		this.facingright = true
