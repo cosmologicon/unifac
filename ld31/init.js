@@ -7,6 +7,8 @@ if (settings.DEBUG) {
 }
 
 var canvas = document.getElementById("canvas")
+canvas.width = 640
+canvas.height = 360
 var context = canvas.getContext("2d")
 UFX.draw.setcontext(context)
 
@@ -16,64 +18,53 @@ UFX.maximize.onadjust = function (canvas, csx, csy) {
 	sy = csy
 }
 function fH(n) {
-	return Math.ceil(Math.min(sx, sy) / 16 * n)
+	return Math.ceil(sy / 16 * n)
 }
-UFX.maximize.fill(canvas, "total")
+function f(n) {
+	return Math.ceil(sy / 24 * n)
+}
+UFX.maximize.fill(canvas, "aspect")
 UFX.scene.init({ ups: 120, maxupf: 20 })
-UFX.mouse.init(canvas)
-UFX.mouse.capture.wheel = true
-UFX.mouse.qclick = true
-UFX.touch.active = false
-canvas.ontouchstart = function (event) {
-	UFX.touch.active = true
-	UFX.touch.init(canvas)
-	UFX.mouse.active = false
-	canvas.ontouchstart = function () {}
-}
+UFX.key.init()
 UFX.resource.loadwebfonts("Viga")
 
 UFX.resource.onload = function () {
-	UFX.scene.push("test")
+	UFX.scene.push("play")
 }
 
 
-UFX.scenes.test = {
+UFX.scenes.play = {
 	start: function () {
-		this.spots = []
+		this.blocks = []
+		this.blocks.push(new Platform(5, 5, 10))
+		this.blocks.push(new Platform(0, 0, 10))
+		this.blocks[1].vx = 1
+		this.blocks[1].vy = 2
+		this.you = new You(10, 10)
 	},
 	thinkargs: function (dt) {
-		var mstate = UFX.mouse.active ? UFX.mouse.state() : null
-		var tstate = UFX.touch.active ? UFX.touch.state() : null
-		return [dt, mstate, tstate]
+		return [dt, UFX.key.state()]
 	},
-	think: function (dt, mstate, tstate) {
-		if (mstate) {
-			if (mstate.left.down) {
-				this.spots.push({
-					pos: mstate.left.down,
-					t: 1,
-					color: UFX.random.color(),
-				})
-			}
+	think: function (dt, kstate) {
+		function think(obj) {
+			obj.think(dt)
 		}
-		if (tstate) {
-			var spots = this.spots
-			tstate.tap.forEach(function (event) {
-				spots.push({
-					pos: event.pos,
-					t: 1,
-					color: UFX.random.color(),
-				})
-			})
-		}
-		this.spots.forEach(function (spot) { spot.t -= dt })
-		this.spots = this.spots.filter(function (spot) { return spot.t > 0 })
+		this.blocks.forEach(think)
+		think(this.you)
+		this.you.resolveparent(this.blocks)
 	},
 	draw: function () {
 		UFX.draw("fs #222 f0")
-		this.spots.forEach(function (spot) {
-			UFX.draw("fs", spot.color, "b o", spot.pos, fH(0.5), "f")
-		})
+		var z = sy / 24
+		UFX.draw("[ t", 0, sy, "z", z, -z)
+		function draw(obj) {
+			context.save()
+			obj.draw()
+			context.restore()
+		}
+		this.blocks.forEach(draw)
+		draw(this.you)
+		UFX.draw("]")
 		if (settings.DEBUG) {
 			UFX.draw("[ font " + fH(1) + "px~'Viga' fs white textalign left textbaseline bottom")
 			context.fillText(UFX.ticker.getrates(), fH(0.2), sy - fH(0.2))
