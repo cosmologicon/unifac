@@ -1,6 +1,6 @@
 var audio = {
 	init: function () {
-		this.context = new webkitAudioContext()
+		this.context = new (window.AudioContext || window.webkitAudioContext)()
 		this.master = this.context.createGain()
 		this.master.connect(this.context.destination)
 		this.sines = {}
