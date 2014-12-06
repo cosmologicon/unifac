@@ -7,8 +7,8 @@ if (settings.DEBUG) {
 }
 
 var canvas = document.getElementById("canvas")
-canvas.width = 640
-canvas.height = 360
+canvas.width = settings.w
+canvas.height = settings.h
 var context = canvas.getContext("2d")
 UFX.draw.setcontext(context)
 
@@ -21,10 +21,10 @@ function fH(n) {
 	return Math.ceil(sy / 16 * n)
 }
 function f(n) {
-	return Math.ceil(sy / 24 * n)
+	return Math.ceil(sy / settings.h * n)
 }
 UFX.maximize.fill(canvas, "aspect")
-UFX.scene.init({ ups: 120, maxupf: 20 })
+UFX.scene.init({ ups: 60, maxupf: 12 })
 UFX.key.init()
 UFX.resource.loadwebfonts("Viga")
 
@@ -35,23 +35,43 @@ UFX.resource.onload = function () {
 
 UFX.scenes.play = {
 	start: function () {
-		this.blocks = []
+		this.ground = new Platform(-1, 1, settings.w + 2)
+		this.blocks = [this.ground]
 		this.blocks.push(new Platform(5, 5, 10))
 		this.blocks.push(new Platform(0, 0, 10))
-		this.blocks[1].vx = 1
-		this.blocks[1].vy = 2
+		this.blocks[2].vx = 1
+		this.blocks[2].vy = 2
 		this.you = new You(10, 10)
+		this.mals = []
+		this.bullets = []
 	},
 	thinkargs: function (dt) {
 		return [dt, UFX.key.state()]
 	},
 	think: function (dt, kstate) {
+		if (UFX.random.flip(dt)) {
+			this.mals.push(new Waver())
+		}
+		this.you.control(kstate)
+		
 		function think(obj) {
 			obj.think(dt)
 		}
 		this.blocks.forEach(think)
+		this.mals.forEach(think)
+		this.bullets.forEach(think)
 		think(this.you)
-		this.you.resolveparent(this.blocks)
+		var blocks = this.blocks, bullets = this.bullets
+		this.you.constrain(blocks)
+		this.mals.forEach(function (mal) { mal.constrain(blocks) })
+		this.mals.forEach(function (mal) { mal.collide(bullets) })
+		this.bullets.forEach(function (bullet) { bullet.constrain(blocks) })
+		
+		function unfaded(obj) {
+			return !obj.faded
+		}
+		this.mals = this.mals.filter(unfaded)
+		this.bullets = this.bullets.filter(unfaded)
 	},
 	draw: function () {
 		UFX.draw("fs #222 f0")
@@ -63,8 +83,15 @@ UFX.scenes.play = {
 			context.restore()
 		}
 		this.blocks.forEach(draw)
+		this.mals.forEach(draw)
+		this.bullets.forEach(draw)
 		draw(this.you)
 		UFX.draw("]")
+		for (var j = 0 ; j < state.maxhp ; ++j) {
+			UFX.draw("ss white fs", j < state.hp ? "red" : "black", "lw", f(0.04),
+				"fsr", f(0.55 * j + 0.1), f(0.1), f(0.35), f(0.8))
+		}
+
 		if (settings.DEBUG) {
 			UFX.draw("[ font " + fH(1) + "px~'Viga' fs white textalign left textbaseline bottom")
 			context.fillText(UFX.ticker.getrates(), fH(0.2), sy - fH(0.2))
