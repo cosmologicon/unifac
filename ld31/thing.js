@@ -108,6 +108,14 @@ var FacesDirection = {
 	},
 }
 
+var TiltsInAir = {
+	draw: function () {
+		if (!this.parent) {
+			UFX.draw("r", 0.05 * this.vy)
+		}
+	},
+}
+
 var ScreenBound = {
 	constrain: function (parents) {
 		if (this.x <= 0) {
@@ -149,9 +157,18 @@ var MultiJump = {
 var KeyControl = {
 	construct: function (args) {
 	},
-	control: function (kstate) {
-		var vx = (kstate.pressed.left ? -1 : 0) + (kstate.pressed.right ? 1 : 0)
-		this.vx = vx * 4
+	control: function (kstate, dt) {
+		var dx = (kstate.pressed.left ? -1 : 0) + (kstate.pressed.right ? 1 : 0)
+		if (dx * this.vx < 0) {
+			this.vx += settings.decel * dx * dt
+		} else if (dx) {
+			this.vx += settings.ax * dx * dt
+		} else if (this.vx > 0) {
+			this.vx = Math.max(0, this.vx - settings.friction * dt)
+		} else if (this.vx < 0) {
+			this.vx = Math.min(0, this.vx + settings.friction * dt)
+		}
+		this.vx = clamp(this.vx, -settings.vxmax, settings.vxmax)
 		if (kstate.down.up && this.canleap()) this.leap()
 		
 		if (kstate.down.space) {
@@ -162,7 +179,7 @@ var KeyControl = {
 	},
 	leap: function () {
 		this.parent = null
-		this.vy = 6
+		this.vy = settings.leapvy
 	},
 }
 
@@ -175,6 +192,22 @@ var Moves = {
 	think: function (dt) {
 		this.x += dt * this.vx
 		this.y += dt * this.vy
+	},
+}
+
+var SnakesAbout = {
+	construct: function (args) {
+		this.theta = 0
+		this.omega = 1
+		this.v0 = 2
+	},
+	think: function (dt) {
+		if (UFX.random.flip(0.2 * dt)) this.omega = -this.omega
+		this.theta += this.omega * dt
+		var dx = 1.4 * (this.x - settings.w / 2) / settings.w
+		var dy = 1.4 * (this.y - settings.h / 2) / settings.h
+		this.vx = this.v0 * (Math.sin(this.theta) - dx)
+		this.vy = this.v0 * (Math.cos(this.theta) - dy)
 	},
 }
 
@@ -211,10 +244,25 @@ var Blocks = {
 var PlatformDraw = {
 	construct: function (args) {
 		this.dx = args.dx
-		this.color = UFX.random.color()
+		this.color = "#" + UFX.random.choice("789") + UFX.random.choice("456") + UFX.random.choice("123")
 	},
 	draw: function () {
-		UFX.draw("ss", this.color, "lw 0.2 b m 0 0 l", this.dx, "0 s")
+		UFX.draw("t", -this.x, -this.y)
+		function xform(x, y, z) {
+			return [x + 0.01 * z * (settings.w/2 - x) / 2, y + 0.1 * z]
+		}
+		UFX.draw("fs", this.color, "b",
+			"m", xform(this.x, this.y, 0),
+			"l", xform(this.x + this.dx, this.y, 0),
+			"l", xform(this.x + this.dx, this.y, -4),
+			"l", xform(this.x, this.y, -4),
+		"f")
+		UFX.draw("fs #642 (",
+			"m", xform(this.x, this.y, -4),
+			"l", xform(this.x + this.dx, this.y, -4),
+			"l", xform(this.x + this.dx, this.y - 0.4, -4),
+			"l", xform(this.x, this.y - 0.4, -4),
+		") f")
 	},
 }
 
@@ -234,6 +282,16 @@ var CircleDraw = {
 	},
 	draw: function () {
 		UFX.draw("fs", this.color, "b o 0 0", this.r, "f")
+	},
+}	
+
+var DrawFlash = {
+	construct: function (args) {
+		this.r = args.r || 0.2
+	},
+	draw: function () {
+		var color = this.t * 8 % 2 > 1 ? "red" : "blue"
+		UFX.draw("fs", color, "b o 0 0", this.r, "f")
 	},
 }	
 
@@ -299,6 +357,19 @@ var VulnerableToBullets = {
 		}
 	},
 }
+var InvulnerableToBullets = {
+	init: function (rhit) {
+		this.rhit = rhit || 0.3
+	},
+	collide: function (bullets) {
+		for (var j = 0 ; j < bullets.length ; ++j) {
+			var dx = this.x - bullets[j].x, dy = this.y - bullets[j].y
+			if (dx * dx + dy * dy < this.rhit * this.rhit) {
+				bullets[j].die()
+			}
+		}
+	},
+}
 
 function Block(x, y, dx, dy) {
 	this.construct({
@@ -330,9 +401,16 @@ Platform.prototype = UFX.Thing()
 	.addcomp(ProvidesPlatform)
 
 function You(x, y) {
+	var path = [
+		"z 0.06 0.06 b o 0 1 5 lw 0.3 fs #AAF ss black f s",
+		"( m -6 4 q 1 4 1 0 l 5 -1 l 4 -5 q -5 -5 -6 4 ) fs red f s",
+		"b o -4 -2 4 fs gray f s",
+		"b o 4 -3.5 2.5 f s",
+	]
 	this.construct({
 		x: x,
 		y: y,
+		path: path,
 	})
 }
 You.prototype = UFX.Thing()
@@ -342,10 +420,11 @@ You.prototype = UFX.Thing()
 	.addcomp(Moves)
 	.addcomp(Falls)
 	.addcomp(FacesDirection)
+	.addcomp(TiltsInAir)
 	.addcomp(TakesDamage)
 	.addcomp(VulnerableToBullets)
 	.addcomp(MultiJump)
-	.addcomp(CircleDraw)
+	.addcomp(DrawPath)
 	.addcomp(KeyControl)
 
 
