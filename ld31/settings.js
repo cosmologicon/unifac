@@ -1,10 +1,10 @@
 var settings = {
-	gamename: "LD31",
+	gamename: "All the World",
 	savename: "LD31save",
 	DEBUG: window.location.href.indexOf("DEBUG") > -1,
 	
-	h: 24,  // Logical height/width of gameplay area
-	w: 32,
+	h: 15,  // Logical height/width of gameplay area
+	w: 24,
 	g: 10,  // Acceleration due to gravity
 }
 if (window.location.href.indexOf("RESET") > -1) {
