@@ -10,6 +10,10 @@ var background = {
 		this.t = 0
 		this.flasht = 0
 		this.drops = []
+		
+		this.nightsky = UFX.texture.nightsky({ size: 512 })
+		this.stone = UFX.texture.stone({ size: 512 })
+		this.roughshade = UFX.texture.roughshade({ size: 512 })
 	},
 	think: function (dt) {
 		if (state.place != this.current) {
@@ -38,7 +42,7 @@ var background = {
 		this.drops = this.drops.filter(function (drop) { return t0 - drop.t < 0.5 })
 	},
 	draw: function () {
-		if (this.f) {
+		if (this.f && this.last != "intro") {
 			UFX.draw("[ drawimage0", this.get(this.last), "alpha", 1 - this.f, "drawimage0",
 				this.get(this.current), "]")
 		} else {
@@ -53,14 +57,17 @@ var background = {
 		if (this.flasht && this.flasht * 10 % 2 > 1) UFX.draw("fs white f0")
 	},
 	scenes: {
-		"hub": "day",
 		"lex": "day",
+		"cain": "night",
 		"roger": "dungeon",
 		"tanya": "dungeon",
 		"eli": "dungeon",
-		"polly": "night",
-		"sally": "night",
-		"pilar": "rain",
+		"sally": "dungeon",
+		"polly": "rain",
+		"pilar": "day",
+		carmen: "night",
+		dana: "space",
+		meg: "rain",
 	},
 	get: function (name) {
 		name = this.scenes[name] || name
@@ -94,15 +101,39 @@ var background = {
 			case "rain":
 				fillwith(this.get("night"))
 				break
+			case "space":
+				fillwith(this.nightsky)
+				break
 			case "dungeon":
-				fillwith(UFX.texture.stone({ size: 512 }))
-				fillwith(UFX.texture.roughshade({ size: 512 }))
+				fillwith(this.stone)
+				fillwith(this.roughshade)
 				break
 			default:
 				UFX.draw(con, "fs #222 f0")
 				break
 		}
 		return surf
+	},
+	drawcurtain: function () {
+		if (this.last != "intro" || this.f == 0) return
+		UFX.draw("[ t 0", -sy * (1 - this.f), "( m", sx, "0 l 0 0 l 0", sy)
+		for (var j = 0 ; j <= 10 ; ++j) {
+			var x0 = j * sx / 10, x1 = x0 + sx / 20, x2 = x1 + sx / 20, dy = sx / 80
+			UFX.draw("q", x1, sy + dy, x2, sy)
+		}
+		UFX.draw(") fs #800 f ]")
+	},
+	drawtitle: function () {
+		UFX.draw("[ textalign center textbaseline middle font " + fH(2) + "px~Viga fs white")
+		context.fillText(settings.gamename, sx/2, sy/3)
+		UFX.draw("font " + fH(1) + "px~Viga fs white")
+		context.fillText("by Christopher Night", sx/2, sy/2)
+		UFX.draw("]")
+	},
+	drawsubtitle: function (text) {
+		UFX.draw("[ textalign center textbaseline middle font " + fH(1) + "px~Viga fs white")
+		context.fillText(text, sx/2, 2*sy/3)
+		UFX.draw("]")
 	},
 }
 

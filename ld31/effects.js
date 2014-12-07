@@ -43,7 +43,7 @@ var DrawPortal = {
 		}
 	},
 	nearby: function (who) {
-		return who.parent === this.parent && Math.abs(who.x - this.x) < 0.5
+		return who.parent === this.parent && Math.abs(who.x - this.x) < 1
 	},
 	draw: function () {
 		if (!this.goesto()) return
@@ -52,7 +52,7 @@ var DrawPortal = {
 			var phi = shard.phi0 + t * shard.omega
 			return [shard.x0 + shard.r * Math.sin(phi), shard.y0 + shard.r * Math.cos(phi)]
 		})
-		UFX.draw("alpha 0.15")
+		UFX.draw("alpha 0.25")
 		for (var j = 0 ; j < ps.length ; j += 2) {
 			UFX.draw("fs", this.shards[j].color, "b m 0 0 l", ps[j], "l", ps[j+1], "f")
 		}
@@ -70,6 +70,7 @@ var Dangles = {
 		this.y = this.y1
 		this.swing = 0.5
 		this.vx = 0
+		this.vy = 0
 		this.omega = UFX.random(2, 3)
 	},
 	think: function (dt) {
@@ -121,6 +122,16 @@ var UnleashesBoss = {
 	},
 }
 
+var KillsBoss = {
+	die: function () {
+		var boss = UFX.scenes.play.boss
+		if (boss) {
+			boss.takedamage(1)
+			state.bombs[this.place] = false
+		}
+	}
+}
+
 function Bullet(x, y, vx, vy) {
 	this.construct({
 		x: x,
@@ -159,7 +170,33 @@ EvilBullet.prototype = UFX.Thing()
 	.addcomp(Falls, 4)
 	.addcomp(CausesDamage, 1)
 	.addcomp(HitsPlatforms)
+	.addcomp(DrawFlash)
+
+function Meteor() {
+	var vx = 1, vy = -4
+	var x = UFX.random(settings.w), y = UFX.random(settings.h)
+	while (y < settings.h) {
+		x -= vx
+		y -= vy
+	}
+	this.construct({
+		x: x,
+		y: y,
+		vx: vx,
+		vy: vy,
+		r: 0.3,
+		color: "blue",
+	})
+}
+Meteor.prototype = UFX.Thing()
+	.addcomp(Ticks)
+	.addcomp(LastPos)
+	.addcomp(WorldBound)
+	.addcomp(Moves)
+	.addcomp(CausesDamage, 1)
+	.addcomp(HitsPlatforms)
 	.addcomp(CircleDraw)
+	.addcomp(ScreenAlive)
 
 
 function Portal(parent, dx, place0, place1) {
@@ -186,7 +223,8 @@ function DanglingDecoration(x0, y0, path, places) {
 		path: path,
 		places: places,
 	})
-	this.think(0)
+	this.x = this.x0
+	this.y = this.y1
 }
 DanglingDecoration.prototype = UFX.Thing()
 	.addcomp(Ticks)
@@ -211,6 +249,8 @@ function Talisman(place) {
 		places: [place],
 	})
 	this.bossname = place
+	this.x = this.x0
+	this.y = this.y1
 }
 Talisman.prototype = UFX.Thing()
 	.addcomp(Ticks)
@@ -224,4 +264,35 @@ Talisman.prototype = UFX.Thing()
 	.addcomp(DrawPath)
 	.addcomp(UnleashesBoss)
 
+function Bomb(place) {
+	var path = [
+		"[ r 0.2 fs",
+		UFX.draw.radgrad(-1, -1, 0, -1, -1, 2, 0, "#333", 1, "black"),
+		"b o 0 0 1 f",
+		"z 0.05 -0.05 textalign center textbaseline middle font 10px~Viga fs white",
+		"ft BOSS 0 -5 ft KILLER 0 5",
+		"]"
+	]
+	this.construct({
+		x0: settings.w / 2,
+		y0: settings.h / 2,
+		path: path,
+		places: [place],
+		r: 1,
+	})
+	this.place = place
+	this.x = this.x0
+	this.y = this.y1
+}
+Bomb.prototype = UFX.Thing()
+	.addcomp(Ticks)
+	.addcomp(WorldBound)
+	.addcomp(Moves)
+	.addcomp(TakesDamage, 10)
+	.addcomp(VulnerableToBullets, 1)
+	.addcomp(Dangles)
+	.addcomp(OnStage)
+	.addcomp(FadesOffstage)
+	.addcomp(DrawPath)
+	.addcomp(KillsBoss)
 
