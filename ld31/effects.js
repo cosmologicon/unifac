@@ -119,6 +119,7 @@ var UnleashesBoss = {
 		UFX.scenes.play.bossname = this.bossname
 		UFX.scenes.play.boss = new bosstypes[this.bossname](this.x, this.y)
 		UFX.scenes.play.mals.push(UFX.scenes.play.boss)
+		playmusic("yellow")
 	},
 }
 
@@ -131,6 +132,45 @@ var KillsBoss = {
 		}
 	}
 }
+
+var Grows = {
+	draw: function () {
+		var z = this.t / this.lifetime
+		UFX.draw("z", z, z)
+	}
+}
+
+var FadesAway = {
+	draw: function () {
+		UFX.draw("alpha", clamp(1 - this.t / this.lifetime, 0, 1))
+	},
+}
+
+var Respawns = {
+	construct: function (args) {
+		this.n = args.n
+		this.spawned = this.n == 0
+	},
+	think: function (dt) {
+		if (this.t > 0.25 && !this.spawned) {
+			this.spawned = true
+			addeffect(new Megaboom(this.n - 1))
+		}
+	},
+}
+
+var MegaboomsOnDeath = {
+	die: function () {
+		addeffect(new Megaboom())
+	}
+}
+
+var HealsOnDeath = {
+	die: function () {
+		UFX.scenes.play.you.hp = state.maxhp
+	},
+}
+
 
 function Bullet(x, y, vx, vy) {
 	this.construct({
@@ -150,7 +190,7 @@ Bullet.prototype = UFX.Thing()
 	.addcomp(Falls)
 	.addcomp(CausesDamage, 1)
 	.addcomp(HitsPlatforms)
-	.addcomp(CircleDraw)
+	.addcomp(DrawBullet)
 
 function EvilBullet(x, y, vx, vy) {
 	this.construct({
@@ -195,9 +235,34 @@ Meteor.prototype = UFX.Thing()
 	.addcomp(Moves)
 	.addcomp(CausesDamage, 1)
 	.addcomp(HitsPlatforms)
-	.addcomp(CircleDraw)
+	.addcomp(DrawFlash)
 	.addcomp(ScreenAlive)
+	.addcomp(SmokesOnDeath)
+	.addcomp(SoundOnDeath)
 
+function Hopper() {
+	var vx = 0, vy = UFX.random(8, 14)
+	var x = UFX.random(settings.w), y = -1
+	this.construct({
+		x: x,
+		y: y,
+		vx: vx,
+		vy: vy,
+		r: 0.3,
+		color: "blue",
+	})
+}
+Hopper.prototype = UFX.Thing()
+	.addcomp(Ticks)
+	.addcomp(LastPos)
+	.addcomp(WorldBound)
+	.addcomp(Moves)
+	.addcomp(Falls, 4)
+	.addcomp(CausesDamage, 1)
+	.addcomp(HitsPlatforms)
+	.addcomp(DrawFlash)
+	.addcomp(SmokesOnDeath)
+	.addcomp(SoundOnDeath)
 
 function Portal(parent, dx, place0, place1) {
 	this.construct({
@@ -256,13 +321,15 @@ Talisman.prototype = UFX.Thing()
 	.addcomp(Ticks)
 	.addcomp(WorldBound)
 	.addcomp(Moves)
-	.addcomp(TakesDamage, 2)
-	.addcomp(VulnerableToBullets)
+	.addcomp(TakesDamage, 10)
+	.addcomp(VulnerableToBullets, 0.8)
 	.addcomp(Dangles)
 	.addcomp(OnStage)
 	.addcomp(FadesOffstage)
 	.addcomp(DrawPath)
 	.addcomp(UnleashesBoss)
+	.addcomp(MegaboomsOnDeath)
+	.addcomp(HealsOnDeath)
 
 function Bomb(place) {
 	var path = [
@@ -295,4 +362,67 @@ Bomb.prototype = UFX.Thing()
 	.addcomp(FadesOffstage)
 	.addcomp(DrawPath)
 	.addcomp(KillsBoss)
+	.addcomp(MegaboomsOnDeath)
+	.addcomp(HealsOnDeath)
+
+function Smoke(x, y) {
+	this.construct({
+		x: x,
+		y: y,
+		vx: 0,
+		vy: 0,
+		color: "gray",
+		r: 1,
+	})
+}
+Smoke.prototype = UFX.Thing()
+	.addcomp(Ticks)
+	.addcomp(Lifetime, 0.5)
+	.addcomp(WorldBound)
+	.addcomp(Moves)
+	.addcomp(Grows, 1)
+	.addcomp(FadesAway)
+	.addcomp(CircleDraw)
+
+function Smoke(x, y) {
+	this.construct({
+		x: x,
+		y: y,
+		vx: 0,
+		vy: 0,
+		color: "gray",
+		r: 1,
+	})
+}
+Smoke.prototype = UFX.Thing()
+	.addcomp(Ticks)
+	.addcomp(Lifetime, 0.5)
+	.addcomp(WorldBound)
+	.addcomp(Moves)
+	.addcomp(Grows, 1)
+	.addcomp(FadesAway)
+	.addcomp(CircleDraw)
+
+function Megaboom(n) {
+	if (n === undefined) n = 10
+	this.construct({
+		x: UFX.random(settings.w),
+		y: UFX.random(settings.h),
+		vx: 0,
+		vy: 0,
+		color: "red",
+		r: 10,
+		n: n,
+	})
+	playsound("splash")
+}
+Megaboom.prototype = UFX.Thing()
+	.addcomp(Ticks)
+	.addcomp(Lifetime, 0.8)
+	.addcomp(WorldBound)
+	.addcomp(Moves)
+	.addcomp(Grows, 1)
+	.addcomp(Respawns)
+	.addcomp(FadesAway)
+	.addcomp(CircleDraw)
 

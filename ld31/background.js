@@ -43,8 +43,12 @@ var background = {
 	},
 	draw: function () {
 		if (this.f && this.last != "intro") {
-			UFX.draw("[ drawimage0", this.get(this.last), "alpha", 1 - this.f, "drawimage0",
-				this.get(this.current), "]")
+			if (this.current == "intro") {
+				UFX.draw("[ drawimage0", this.get(this.last), "]")
+			} else {
+				UFX.draw("[ drawimage0", this.get(this.last), "alpha", 1 - this.f, "drawimage0",
+					this.get(this.current), "]")
+			}
 		} else {
 			UFX.draw("drawimage0", this.get(this.current))
 		}
@@ -115,8 +119,15 @@ var background = {
 		return surf
 	},
 	drawcurtain: function () {
-		if (this.last != "intro" || this.f == 0) return
-		UFX.draw("[ t 0", -sy * (1 - this.f), "( m", sx, "0 l 0 0 l 0", sy)
+		var f
+		if (this.last == "intro" && this.f) {
+			f = this.f
+		} else if (this.current == "intro") {
+			f = 1 - this.f
+		} else {
+			return
+		}
+		UFX.draw("[ t 0", -sy * (1 - f), "( m", sx, "0 l 0 0 l 0", sy)
 		for (var j = 0 ; j <= 10 ; ++j) {
 			var x0 = j * sx / 10, x1 = x0 + sx / 20, x2 = x1 + sx / 20, dy = sx / 80
 			UFX.draw("q", x1, sy + dy, x2, sy)
@@ -124,14 +135,16 @@ var background = {
 		UFX.draw(") fs #800 f ]")
 	},
 	drawtitle: function () {
-		UFX.draw("[ textalign center textbaseline middle font " + fH(2) + "px~Viga fs white")
+		UFX.draw("[ textalign center textbaseline middle font " + fH(2) + "px~'Berkshire~Swash' fs white",
+			"sh black", fH(0.07), fH(0.07), 0)
 		context.fillText(settings.gamename, sx/2, sy/3)
-		UFX.draw("font " + fH(1) + "px~Viga fs white")
+		UFX.draw("font " + fH(1) + "px~'Berkshire~Swash' fs white")
 		context.fillText("by Christopher Night", sx/2, sy/2)
 		UFX.draw("]")
 	},
 	drawsubtitle: function (text) {
-		UFX.draw("[ textalign center textbaseline middle font " + fH(1) + "px~Viga fs white")
+		UFX.draw("[ textalign center textbaseline middle font " + fH(1) + "px~'Berkshire~Swash' fs white",
+			"sh black", fH(0.07), fH(0.07), 0)
 		context.fillText(text, sx/2, 2*sy/3)
 		UFX.draw("]")
 	},

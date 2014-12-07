@@ -1,6 +1,6 @@
 var state = {
-	njump: 2,
-	maxhp: 10,
+	njump: settings.EASY ? 4 : 2,
+	maxhp: settings.EASY ? 20 : 6,
 	place: "lex",
 	donebosses: {},
 	bombs: {
