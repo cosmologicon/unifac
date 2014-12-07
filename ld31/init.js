@@ -43,10 +43,18 @@ UFX.scenes.play = {
 		this.blocks[2].vy = 2
 		this.you = new You(10, 10)
 		this.mals = []
-		this.bullets = []
+		this.boss = null
+		this.bullets = []  // hurts mals
+		this.hazards = []  // hurts player
 		this.portals = [
-			new Portal(this.ground, 10, "hub", "roger")
+			new Portal(this.ground, 10, "hub", "roger"),
+			new Portal(this.ground, 15, "hub", "tanya"),
 		]
+		this.decorations = [
+			new DanglingDecoration(16, settings.h - 10, "b o 0 0 2 fs yellow f", ["tanya"]),
+			new DanglingDecoration(12, settings.h - 8, "b o -1 0 1 o 1 0 1 o 0 0.5 1 fs white f", ["hub"]),
+		]
+		this.effects = []
 	},
 	thinkargs: function (dt) {
 		return [dt, UFX.key.state()]
@@ -61,6 +69,9 @@ UFX.scenes.play = {
 				var portal = this.portals[j]
 				if (portal.goesto() && portal.nearby(this.you)) {
 					state.place = portal.goesto()
+					if (bosstypes[state.place] && !state.donebosses[state.place] && !this.boss) {
+						this.mals.push(new Talisman(state.place))
+					}
 				}
 			}
 		}
@@ -71,37 +82,51 @@ UFX.scenes.play = {
 		this.blocks.forEach(think)
 		this.mals.forEach(think)
 		this.bullets.forEach(think)
+		this.hazards.forEach(think)
 		this.portals.forEach(think)
+		this.decorations.forEach(think)
 		think(this.you)
 		var blocks = this.blocks, bullets = this.bullets
 		this.you.constrain(blocks)
 		this.mals.forEach(function (mal) { mal.constrain(blocks) })
 		this.mals.forEach(function (mal) { mal.collide(bullets) })
+		this.you.collide(this.hazards)
 		this.bullets.forEach(function (bullet) { bullet.constrain(blocks) })
+		this.hazards.forEach(function (bullet) { bullet.constrain(blocks) })
+		
 		
 		function unfaded(obj) {
 			return !obj.faded
 		}
 		this.mals = this.mals.filter(unfaded)
 		this.bullets = this.bullets.filter(unfaded)
+		this.effects = this.effects.filter(unfaded)
+		this.hazards = this.hazards.filter(unfaded)
+		
+		if (this.boss && this.boss.faded) {
+			state.beatboss(this.bossname)
+		}
 	},
 	draw: function () {
 		UFX.draw("fs #222 f0")
-		var z = sy / 24
+		var z = sy / settings.h
 		UFX.draw("[ t", 0, sy, "z", z, -z)
 		function draw(obj) {
 			context.save()
 			obj.draw()
 			context.restore()
 		}
+		this.decorations.forEach(draw)
 		this.blocks.forEach(draw)
 		this.portals.forEach(draw)
 		this.mals.forEach(draw)
-		this.bullets.forEach(draw)
 		draw(this.you)
+		this.bullets.forEach(draw)
+		this.hazards.forEach(draw)
+		this.effects.forEach(draw)
 		UFX.draw("]")
 		for (var j = 0 ; j < state.maxhp ; ++j) {
-			UFX.draw("ss white fs", j < state.hp ? "red" : "black", "lw", f(0.04),
+			UFX.draw("ss white fs", j < this.you.hp ? "red" : "black", "lw", f(0.04),
 				"fsr", f(0.55 * j + 0.1), f(0.1), f(0.35), f(0.8))
 		}
 

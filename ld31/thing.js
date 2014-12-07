@@ -85,6 +85,16 @@ var ParentStuck = {
 	},
 }
 
+var OnStage = {
+	construct: function (args) {
+		this.places = {}
+		for (var j = 0 ; j < args.places.length ; ++j) this.places[args.places[j]] = true
+	},
+	isonstage: function () {
+		return this.places[state.place]
+	},
+}
+
 var FacesDirection = {
 	init: function () {
 		this.facingright = true
@@ -92,6 +102,9 @@ var FacesDirection = {
 	think: function (dt) {
 		if (this.vx > 0) this.facingright = true
 		if (this.vx < 0) this.facingright = false
+	},
+	draw: function () {
+		if (!this.facingright) UFX.draw("hflip")
 	},
 }
 
@@ -166,9 +179,12 @@ var Moves = {
 }
 
 var Falls = {
+	init: function (g) {
+		this.g = g || settings.g
+	},
 	think: function (dt) {
 		if (!this.parent) {
-			this.vy -= dt * settings.g
+			this.vy -= dt * this.g
 		}
 	},
 }
@@ -202,6 +218,15 @@ var PlatformDraw = {
 	},
 }
 
+var DrawPath = {
+	construct: function (args) {
+		this.path = args.path
+	},
+	draw: function () {
+		UFX.draw(this.path)
+	},
+}
+
 var CircleDraw = {
 	construct: function (args) {
 		this.color = args.color || UFX.random.color()
@@ -225,6 +250,53 @@ var ProvidesPlatform = {
 	constrainchild: function (child) {
 		child.y = this.y
 		child.vy = this.vy
+	},
+}
+
+var TakesDamage = {
+	init: function (hp0) {
+		this.hp0 = hp0 || 1
+		this.flashtime = 0.5
+		this.tflash = 0
+	},
+	construct: function (args) {
+		this.hp0 = args.hp0 || this.hp0
+		this.hp = this.hp0
+		this.alive = true
+	},
+	takedamage: function (dhp) {
+		if (this.tflash) return
+		this.hp -= dhp
+		if (this.hp <= 0) this.die()
+		this.tflash = this.flashtime
+	},
+	die: function () {
+		this.faded = true
+	},
+	think: function (dt) {
+		if (this.tflash) {
+			this.tflash = Math.max(0, this.tflash - dt)
+		}
+	},
+	draw: function () {
+		if (this.tflash && this.tflash * 14 % 2 > 1) {
+			UFX.draw("alpha 0")
+		}
+	},
+}
+
+var VulnerableToBullets = {
+	init: function (rhit) {
+		this.rhit = rhit || 0.3
+	},
+	collide: function (bullets) {
+		for (var j = 0 ; j < bullets.length ; ++j) {
+			var dx = this.x - bullets[j].x, dy = this.y - bullets[j].y
+			if (dx * dx + dy * dy < this.rhit * this.rhit) {
+				bullets[j].die()
+				this.takedamage(bullets[j].dhp)
+			}
+		}
 	},
 }
 
@@ -270,6 +342,8 @@ You.prototype = UFX.Thing()
 	.addcomp(Moves)
 	.addcomp(Falls)
 	.addcomp(FacesDirection)
+	.addcomp(TakesDamage)
+	.addcomp(VulnerableToBullets)
 	.addcomp(MultiJump)
 	.addcomp(CircleDraw)
 	.addcomp(KeyControl)

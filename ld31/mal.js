@@ -1,32 +1,13 @@
-var TakesDamage = {
-	init: function (hp0) {
-		this.hp0 = hp0 || 1
+var FiresPeriodically = {
+	init: function (firetime) {
+		this.tfire = 0
+		this.firetime = firetime
 	},
-	construct: function (args) {
-		this.hp0 = args.hp0 || this.hp0
-		this.hp = this.hp0
-		this.alive = true
-	},
-	takedamage: function (dhp) {
-		this.hp -= dhp
-		if (this.hp <= 0) this.die()
-	},
-	die: function () {
-		this.faded = true
-	},
-}
-
-var VulnerableToBullets = {
-	init: function (rhit) {
-		this.rhit = rhit || 0.3
-	},
-	collide: function (bullets) {
-		for (var j = 0 ; j < bullets.length ; ++j) {
-			var dx = this.x - bullets[j].x, dy = this.y - bullets[j].y
-			if (dx * dx + dy * dy < this.rhit * this.rhit) {
-				bullets[j].die()
-				this.takedamage(bullets[j].dhp)
-			}
+	think: function (dt) {
+		this.tfire += dt
+		if (this.tfire >= this.firetime) {
+			this.tfire -= this.firetime
+			this.fire()
 		}
 	},
 }
@@ -43,6 +24,16 @@ var MovesWavey = {
 	},
 }
 
+var ShootsAround = {
+	fire: function () {
+		for (var j = 0 ; j < 6 ; ++j) {
+			var theta = tau * j / 6, S = Math.sin(theta), C = Math.cos(theta)
+			UFX.scenes.play.hazards.push(
+				new EvilBullet(this.x + C * this.r, this.y + S * this.r, 4 * C, 4 * S)
+			)
+		}
+	},
+}
 
 function Waver() {
 	var right = UFX.random.flip()
@@ -62,5 +53,28 @@ Waver.prototype = UFX.Thing()
 	.addcomp(CircleDraw)
 	.addcomp(TakesDamage)
 	.addcomp(VulnerableToBullets)
+
+function RotoShooter(x, y) {
+	this.construct({
+		x: x,
+		y: y,
+		r: 0.6,
+	})
+}
+RotoShooter.prototype = UFX.Thing()
+	.addcomp(WorldBound)
+	.addcomp(Moves)
+	.addcomp(TakesDamage, 10)
+	.addcomp(CircleDraw)
+	.addcomp(FiresPeriodically, 2)
+	.addcomp(ShootsAround)
+	.addcomp(VulnerableToBullets)
+
+var bosstypes = {
+	roger: RotoShooter,
+}
+
+
+
 
 
