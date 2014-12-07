@@ -173,13 +173,14 @@ var KeyControl = {
 		
 		if (kstate.down.space) {
 			UFX.scenes.play.bullets.push(
-				new Bullet(this.x, this.y, 10 * (this.facingright ? 1 : -1), 1)
+				new Bullet(this.x, this.y, 20 * (this.facingright ? 1 : -1), 3)
 			)
 		}
 	},
 	leap: function () {
 		this.parent = null
 		this.vy = settings.leapvy
+		playsound("jump")
 	},
 }
 
@@ -285,6 +286,15 @@ var CircleDraw = {
 	},
 }	
 
+var DrawBullet = {
+	construct: function (args) {
+		this.r = args.r || 0.2
+	},
+	draw: function () {
+		UFX.draw("fs black ss white b o 0 0", this.r, "lw 0.02 f s")
+	},
+}	
+
 var DrawFlash = {
 	construct: function (args) {
 		this.r = args.r || 0.2
@@ -353,10 +363,30 @@ var VulnerableToBullets = {
 			if (dx * dx + dy * dy < this.rhit * this.rhit) {
 				bullets[j].die()
 				this.takedamage(bullets[j].dhp)
+				if (this.hp > 0) {
+					addeffect(new Smoke(bullets[j].x, bullets[j].y))
+					playsound("hurt")
+				}
 			}
 		}
 	},
 }
+
+var SmokesOnDeath = {
+	die: function () {
+		addeffect(new Smoke(this.x, this.y))
+	},
+}
+
+var SoundOnDeath = {
+	init: function (soundname) {
+		this.deathsoundname = soundname || "hurt"
+	},
+	die: function () {
+		playsound(this.deathsoundname)
+	},
+}
+
 var InvulnerableToBullets = {
 	init: function (rhit) {
 		this.rhit = rhit || 0.3
@@ -366,6 +396,7 @@ var InvulnerableToBullets = {
 			var dx = this.x - bullets[j].x, dy = this.y - bullets[j].y
 			if (dx * dx + dy * dy < this.rhit * this.rhit) {
 				bullets[j].die()
+				playsound("dink")
 			}
 		}
 	},

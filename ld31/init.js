@@ -30,7 +30,35 @@ UFX.key.init()
 UFX.key.remaparrows(true)
 UFX.key.remap({ enter: "space" })
 UFX.key.watchlist = "up down left right space".split(" ")
-UFX.resource.loadwebfonts("Viga")
+UFX.resource.loadwebfonts("Viga", "Berkshire Swash")
+UFX.resource.load({
+	die: "die.ogg",
+	dink: "dink.ogg",
+	hurt: "hurt.ogg",
+	jump: "jump.ogg",
+	portal: "portal.ogg",
+	splash: "splash.ogg",
+	knight: "knight.ogg",
+	yellow: "yellow.ogg",
+})
+function playsound(soundname) {
+	UFX.resource.sounds[soundname].play()
+}
+var music = null
+function playmusic(musicname) {
+	if (musicname == music) return
+	if (music) {
+		UFX.resource.sounds[music].pause()
+	}
+	var m = UFX.resource.sounds[musicname]
+	if (m) {
+		m.volume = 0.5
+		m.loop = true
+		m.currentTime = 0
+		m.play()
+	}
+	music = musicname
+}
 
 UFX.resource.onloading = function (f) {
 	UFX.scenes.load.f = f
@@ -40,9 +68,9 @@ UFX.resource.onload = function () {
 }
 
 UFX.scenes.load = {
-	start: function () {
+	start: function (loaded) {
 		this.f = 0
-		this.loaded = false
+		this.loaded = loaded
 	},
 	think: function (dt) {
 		var kstate = UFX.key.state()
@@ -62,11 +90,20 @@ UFX.scenes.load = {
 }
 UFX.scene.push("load")
 
+UFX.scenes.youwin = {
+	draw: function () {
+		UFX.draw("fs #A00 f0")
+		background.drawtitle()
+		background.drawsubtitle("You win! Congratulations.")
+	},
+}
+UFX.scene.push("load")
 
 UFX.scenes.play = {
 	start: function () {
 		resetstate()
 		background.current = "intro"
+		playmusic("knight")
 		this.ground = new Platform(-1, 1, settings.w + 2)
 		this.blocks = [
 			this.ground,
@@ -78,7 +115,7 @@ UFX.scenes.play = {
 			new Platform(4, 13, 5),
 			new Platform(3, 8, 3),
 		]
-		this.you = new You(10, 10)
+		this.you = new You(12, 10)
 		this.you.hp = state.maxhp
 		this.mals = []
 		this.boss = null
@@ -133,11 +170,19 @@ UFX.scenes.play = {
 	},
 	think: function (dt, kstate) {
 		if (background.scenes[state.place] == "day") {
-			if (UFX.random.flip(0.2 * dt)) {
+			if (UFX.random.flip(0.5 * dt)) {
 				this.mals.push(new Waver())
 			}
+		} else if (background.scenes[state.place] == "rain") {
+			if (UFX.random.flip(0.2 * dt)) {
+				this.mals.push(new BallLightning())
+			}
+		} else if (background.scenes[state.place] == "night") {
+			if (UFX.random.flip(1 * dt)) {
+				this.hazards.push(new Hopper())
+			}
 		} else if (background.scenes[state.place] == "space") {
-			if (UFX.random.flip(0.6 * dt)) {
+			if (UFX.random.flip(2 * dt)) {
 				this.hazards.push(new Meteor())
 			}
 		}
@@ -147,6 +192,7 @@ UFX.scenes.play = {
 				var portal = this.portals[j]
 				if (portal.goesto() && portal.nearby(this.you)) {
 					state.place = portal.goesto()
+					playsound("portal")
 					if (bosstypes[state.place] && !state.donebosses[state.place] && !this.boss) {
 						this.mals.push(new Talisman(state.place))
 					}
@@ -162,10 +208,12 @@ UFX.scenes.play = {
 		}
 		this.blocks.forEach(think)
 		this.mals.forEach(think)
+		if (this.boss && this.boss.hp == 1) this.boss.think(dt)
 		this.bullets.forEach(think)
 		this.hazards.forEach(think)
 		this.portals.forEach(think)
 		this.decorations.forEach(think)
+		this.effects.forEach(think)
 		think(this.you)
 		var blocks = this.blocks, bullets = this.bullets
 		this.you.constrain(blocks)
@@ -184,10 +232,15 @@ UFX.scenes.play = {
 		this.effects = this.effects.filter(unfaded)
 		this.hazards = this.hazards.filter(unfaded)
 		
-		if (this.boss && this.boss.faded) {
-			state.beatboss(this.bossname)
-		}
 		background.think(dt)
+		if (this.you.faded || (this.boss && this.boss.faded)) {
+			state.place = "intro"
+			background.think(0)
+			if (background.f <= 0) {
+				UFX.scene.swap(this.you.faded ? "load" : "youwin", true)
+				playmusic()
+			}
+		}
 	},
 	draw: function () {
 		background.draw()
@@ -203,7 +256,7 @@ UFX.scenes.play = {
 		this.blocks.forEach(draw)
 		this.portals.forEach(draw)
 		this.mals.forEach(draw)
-		draw(this.you)
+		if (!this.you.faded) draw(this.you)
 		this.bullets.forEach(draw)
 		this.hazards.forEach(draw)
 		this.effects.forEach(draw)
@@ -233,4 +286,9 @@ UFX.scenes.play = {
 		}
 	},
 }
+
+function addeffect(effect) {
+	UFX.scenes.play.effects.push(effect)
+}
+
 

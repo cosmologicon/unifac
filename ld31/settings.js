@@ -2,6 +2,7 @@ var settings = {
 	gamename: "All the World",
 	savename: "LD31save",
 	DEBUG: window.location.href.indexOf("DEBUG") > -1,
+	EASY: window.location.href.indexOf("EASY") > -1,
 	
 	h: 15,  // Logical height/width of gameplay area
 	w: 24,
