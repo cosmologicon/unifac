@@ -29,12 +29,33 @@ var LeadsSomewhere = {
 }
 
 var DrawPortal = {
+	construct: function (args) {
+		this.shards = []
+		while (this.shards.length < 16) {
+			this.shards.push({
+				x0: UFX.random(-0.3, 0.3),
+				y0: UFX.random(0.6, 1),
+				r: UFX.random(0.2, 0.4),
+				omega: UFX.random(1, 2) * UFX.random.choice([-1, 1]),
+				phi0: UFX.random(tau),
+				color: UFX.random.color(),
+			})
+		}
+	},
 	nearby: function (who) {
 		return who.parent === this.parent && Math.abs(who.x - this.x) < 0.5
 	},
 	draw: function () {
 		if (!this.goesto()) return
-		UFX.draw("fs rgba(255,255,255,0.2) b m 0 0 l -0.5 1 l 0.3 0.7 f")
+		var t = this.t
+		var ps = this.shards.map(function (shard) {
+			var phi = shard.phi0 + t * shard.omega
+			return [shard.x0 + shard.r * Math.sin(phi), shard.y0 + shard.r * Math.cos(phi)]
+		})
+		UFX.draw("alpha 0.15")
+		for (var j = 0 ; j < ps.length ; j += 2) {
+			UFX.draw("fs", this.shards[j].color, "b m 0 0 l", ps[j], "l", ps[j+1], "f")
+		}
 	},
 }
 
@@ -49,6 +70,7 @@ var Dangles = {
 		this.y = this.y1
 		this.swing = 0.5
 		this.vx = 0
+		this.omega = UFX.random(2, 3)
 	},
 	think: function (dt) {
 		if (this.isonstage()) {
@@ -64,7 +86,7 @@ var Dangles = {
 				this.y = this.y0
 			}
 			this.swing *= 1 - 0.2 * dt
-			this.x = this.x0 + this.swing * Math.sin(2.5 * this.t)
+			this.x = this.x0 + this.swing * Math.sin(this.omega * this.t)
 		} else {
 			if (this.y == this.y0 && this.vy == 0) {
 				this.vy = -2
@@ -79,7 +101,8 @@ var Dangles = {
 		}
 	},
 	draw: function () {
-		UFX.draw("ss brown lw 0.1 b m 0 0 l", this.x0 - this.x, this.y1 - this.y, "s")
+		UFX.draw("b m 0 0 l", this.x0 - this.x, this.y1 - this.y, "ss #642 lw 0.14 s ss #852 lw 0.07 s")
+		UFX.draw("r", (this.x - this.x0) / Math.max(this.y1 - this.y, 0.1))
 	},
 }
 
@@ -179,6 +202,7 @@ function Talisman(place) {
 		"fr -1 -1 2 2 ]",
 		"b m -0.5 1.2 l 0.5 1.2 m -0.6 0 l 0.6 0 m -0.5 -1.2 l 0.5 -1.2",
 		"ss #444 lw 0.2 s ss #666 lw 0.07 s",
+		"b o 0 0 0.2 fs #004 ss #00B f s",
 	]
 	this.construct({
 		x0: settings.w / 2,
