@@ -64,16 +64,17 @@ Plot issues as I see them:
 * Plot dump at Act 5 should be introduced throughout the story.
 * What exactly is St. Pancras?
 * Why does Hornchurch need the Charing Cross to open the tomb of St. Pancras?
+* If he gets the cross at the end of Act 1, why does wait until the beginning of act 5 to do it?
 * What exactly do the Charing Cross and the King's Cross actually do?
 * Why is Portland so reluctant to use the King's Cross in a moment of crisis?
-* If he gets the cross at the end of Act 1, why does wait until the beginning of act 5 to do it?
-* What did they Chalfront and Latimer gain from the coup?
+* What did Chalfront and Latimer gain from the coup?
 * What is the nature of the power Camden uses to defeat St. Pancras?
 * Ending battles feel cramped. (More of a gameplay issue, but could require plot changes.)
 * There's a ton of effectively empty dialogue. This could be replaced with stuff to advance plot.
 * For a game called Robot Underground, there's not much of an underground movement
 * Rescuing Baby Goodge sideplot seems pretty tacked on.
 * And unjustified. Who is Hyde and why would it kidnap a baby?
+* The conflict between Gospel and Hammersmith over Putney never gets developed or resolved.
 
 Tropes I think the story could use:
 * Heel->face turn (Gospel is a good candidate - Victoria could also start out loyal to the Church.)
@@ -97,11 +98,12 @@ Things that would help fit the Hero's Journey
 What have you heard about St. Pancras, Camden?
 Um... that he gave his life such that we might join him in Perivale when our last backup expires?
 Ha, yes, that's what you were told as a child. And maybe it's true, we'll find out in the next life.
-But Pancras did not travel to this land as a saviour. He came seeking treasure.
+But reality is more nuanced. Pancras did not travel to this land as a saviour. He came seeking treasure.
 Treasure? Like bismuth and technitium?
 Something greater. Holy relics of immense power. The Charing Cross is but one.
 The details were lost to history, until recently... thanks to Angel and her crew.
 If their evidence holds true, the scope of Pancras's campaign was matched only by its cruelty.
+They claim that the lives of many robots were lost in his quest for power.
 The Church has long downplayed this chapter in Pancras's life, but this new evidence is hard to ignore.
 And now, finding the Charing Cross right where Pancras claims to have left it....
 You can see why Hornchurch would be concerned.
@@ -109,7 +111,7 @@ You can see why Hornchurch would be concerned.
 
 So that's why Chalfont and Latimer stole the Cross? To protect the legacy of St. Pancras?
 You have to remember that the Church is already having a public image crisis.
-If people lost their faith in St. Pancras, support for the Church could crumble overnight.
+If robots lost their faith in St. Pancras, support for the Church could crumble overnight.
 Still, seems a bit extreme, doesn't it? They're risking everything by framing Putney.
 If they were found out, the scandal would be equally disastrous.
 No, there must be something else.
@@ -125,7 +127,7 @@ In some, he is driven mad.
 There is a legend, condemned by the Church of course, of how Pancras died.
 It's said that he went mad, sending his crew on more and more dangerous missions.
 When they protested he would declare himself master of life and death.
-They finally mutinied, but the combined force of 100 robots could not destroy him.
+They finally mutinied, but the combined force of 256 robots could not destroy him.
 It was all they could do to throw him into a deep pit and fill it over. He was buried alive.
 His burial site became cursed, and from it great monsters emerged.
 That place is said to lie in the deepest reaches of the Outer Zones.
@@ -203,6 +205,7 @@ Idea for multiple playable characters
   * Camden: the classic hero's journey, finding his courage
   * Victoria: coming of age, stepping up as ruler
 * Putney needs more of a personality than Camden Lite. Really sarcastic, maybe?
+  * Maybe Putney's storyline can be extremely dark, and the goofy face he puts on in front of other robots is his defense mechanism for dealing with the really traumatic stuff he's seen.
 * Your sweetheart can be any of the other three protagonists
 
 
