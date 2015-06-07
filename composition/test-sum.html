@@ -1,0 +1,49 @@
+<!doctype html>
+<style>
+th, td { background: rgba(0,0,0,0.1) ; text-align: center ; padding: 0.1em 0.3em }
+</style>
+<table>
+<tr><th><th><th>phase<th>relative power when<br>combined with Sound 0
+<tr><td>Sound 0<td><input id=sound0 type=checkbox checked disabled></input><td>0<td>-
+<tr><td>Sound 1<td><input id=sound1 type=checkbox></input><td>0<td>4
+<tr><td>Sound 2<td><input id=sound2 type=checkbox></input><td>tau/4<td>2
+<tr><td>Sound 3<td><input id=sound3 type=checkbox></input><td>tau/3<td>1
+<tr><td>Sound 4<td><input id=sound4 type=checkbox></input><td>tau/2<td>0
+</table>
+<p><button onclick="play()">Play</button>
+<script>
+var tau = 2 * Math.PI
+var freq = 261.6
+var ctx = new webkitAudioContext()
+var master = ctx.createGainNode()
+master.gain.value = 0.4
+master.connect(ctx.destination)
+
+var gains = []
+for (var i = 0 ; i < 5 ; ++i) {
+	var o = ctx.createOscillator()
+	o.frequency.value = freq
+	var phi = [0, 0, tau/4, tau/3, tau/2][i]
+	o.setPeriodicWave(ctx.createPeriodicWave(
+		new Float32Array([0, Math.cos(phi)]),
+		new Float32Array([0, Math.sin(phi)])
+	))
+	o.start(1)
+	var gain = ctx.createGainNode()
+	gain.gain.value = 0
+	o.connect(gain)
+	gain.connect(master)
+	gains.push(gain)
+}
+
+function play() {
+	var t0 = ctx.currentTime
+	for (var i = 0 ; i < 5 ; ++i) {
+		gains[i].gain.value = 0
+		if (document.getElementById("sound" + i).checked) {
+			gains[i].gain.setValueAtTime(1, t0)
+			gains[i].gain.linearRampToValueAtTime(0, t0 + 1)
+		}
+	}
+}
+</script>

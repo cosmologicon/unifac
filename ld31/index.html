@@ -1,0 +1,22 @@
+<!doctype html>
+<meta name=viewport content="width=device-width, user-scalable=no">
+<title>All the World</title>
+<canvas id=canvas></canvas>
+<script src="UFX.js"></script>
+
+<script src="settings.js"></script>
+<script src="state.js"></script>
+<script src="thing.js"></script>
+<script src="mal.js"></script>
+<script src="effects.js"></script>
+<script src="background.js"></script>
+<script src="init.js"></script>
+
+<!-- make:
+cat ../UFX/src/*.js > UFX.js
+rsync -r index.html *.js *.ogg "night@night.xen.prgmr.com:/var/www/ld31/v0"
+
+cd /var/www/ld31
+for d in `ls v0` ; do ln -s v0/$d $d ; done
+-->
+

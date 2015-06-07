@@ -114,7 +114,7 @@ var state = {
 		var h = this.hsectors[sx + "," + sy]
 		if (h) {
 			if (this.done["rescue" + h.name]) return
-			hx = h.x, hy = h.y + 1
+			var hx = h.x, hy = h.y + 1
 			this.bosses[h.name] = []
 			if (h.name == "semt") {
 				for (var j = 0 ; j < 9 ; ++j) {

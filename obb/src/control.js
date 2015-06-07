@@ -57,6 +57,7 @@ var controlstate = {
 			var branches = UFX.random.choice(["1", "2", "3", "4", "5", "13", "14", "23", "24", "25", "34", "35"])
 			this.stalkoptions[jstalkoption] = "stalk" + jsystem + branches
 		}
+		blobscape.addshape(this.stalkoptions[jstalkoption])
 	},
 	// Call this once per frame, passing in dt and input.
 	// Will return an object with all relevant state.
