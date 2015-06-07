@@ -144,20 +144,32 @@ UFX.scenes.play = {
 		]
 		var sunpath = "( m 0.000 1.400 l 0.410 1.128 l 0.900 1.072 l 1.039 0.600 l 1.379 0.243 l 1.182 -0.208 l 1.212 -0.700 l 0.771 -0.919 l 0.479 -1.316 l 0.000 -1.200 l -0.479 -1.316 l -0.771 -0.919 l -1.212 -0.700 l -1.182 -0.208 l -1.379 0.243 l -1.039 0.600 l -0.900 1.072 l -0.410 1.128 ) fs yellow ss black lw 0.05 f s b o 0 0 1.1 f s"
 		var moonpath = ["r 0.6 ( a 0.5 0 1", tau/6, tau*5/6, "aa 1.5 0 1", tau*4/6, tau*2/6, ") ss black lw 0.1 s fs white f"]
-		var cloudpath = ["b o -1 0 1 o 1 0 1 o 0 0.5 1 ss black lw 0.1 s fs white f"]
+		var cloudpath = ["b o -0.8 0 0.9 o 0.8 0.1 0.9 o -0.1 0.6 0.8 o -0.2 -0.5 0.8 ss black lw 0.1 s fs white b o -0.8 0 0.9 f b o 0.8 0.1 0.9 f b o -0.1 0.6 0.8 f b o -0.2 -0.5 0.8 f"]
 		var planetpath = [
 			"[ r -0.2 b o 0 0 1 fs purple f",
 			"[ z 2 0.5 lw 0.3 ss orange b o 0 0 1 s ]",
 			"tr -2 0 4 4 clip b o 0 0 1 fs purple f ]",
 		]
+		var planetpath2 = [
+			"[ r 0.6 b o 0 0 1 fs green f",
+			"[ z 2 0.5 lw 0.3 ss cyan b o 0 0 1 s ]",
+			"tr -2 0 4 4 clip b o 0 0 1 fs green f ]",
+		]
 		this.decorations = [
 			new DanglingDecoration(20, 13, sunpath, ["lex", "pilar"]),
 			new DanglingDecoration(16, 9, moonpath, ["cain", "carmen"]),
-			new DanglingDecoration(3, 10, ["r 0.6 z 0.3 0.3 (", starps, ") ss black lw 0.1 s fs #FFA f"], ["cain", "carmen"]),
+			new DanglingDecoration(2, 12, ["r 0.6 z 0.3 0.3 (", starps, ") ss black lw 0.1 s fs #FFA f"], ["cain", "carmen"]),
+			new DanglingDecoration(7, 10, ["r 0.6 z 0.3 0.3 (", starps, ") ss black lw 0.1 s fs #FAA f"], ["cain", "carmen"]),
+			new DanglingDecoration(18, 13, ["r 0.6 z 0.3 0.3 (", starps, ") ss black lw 0.1 s fs #AAF f"], ["cain", "carmen"]),
 			new DanglingDecoration(6, 10, planetpath, ["dana"]),
+			new DanglingDecoration(15, 7, planetpath2, ["dana"]),
+			new DanglingDecoration(4, 4, ["r 0.6 z 0.3 0.3 (", starps, ") ss black lw 0.1 s fs #FAA f"], ["dana"]),
+			new DanglingDecoration(10, 5, ["r 0.6 z 0.3 0.3 (", starps, ") ss black lw 0.1 s fs #AAF f"], ["dana"]),
 			new DanglingDecoration(11, 11, ["r 0.6 z 0.3 0.3 (", starps, ") ss black lw 0.1 s fs #FAF f"], ["cain", "carmen", "dana"]),
 			new DanglingDecoration(22, 12, ["r 0.6 z 0.3 0.3 (", starps, ") ss black lw 0.1 s fs #AFF f"], ["cain", "carmen", "dana"]),
 			new DanglingDecoration(21, 12, cloudpath, ["polly", "meg"]),
+			new DanglingDecoration(16, 8, cloudpath, ["polly", "meg"]),
+			new DanglingDecoration(4, 11, cloudpath, ["polly", "meg"]),
 			new DanglingDecoration(9, 10, cloudpath, ["polly", "meg", "lex", "pilar"]),
 			new DanglingDecoration(8, 8, windowpath, ["sally", "tanya", "roger", "eli"]),
 			new DanglingDecoration(16, 8, windowpath, ["sally", "tanya", "roger", "eli"]),
@@ -252,7 +264,7 @@ UFX.scenes.play = {
 			context.restore()
 		}
 		this.decorations.forEach(draw)
-		UFX.draw("[ fs black alpha 0.3 fr 0 0", settings.w, settings.h, "]")
+		UFX.draw("[ fs black alpha 0.25 fr 0 0", settings.w, settings.h, "]")
 		this.blocks.forEach(draw)
 		this.portals.forEach(draw)
 		this.mals.forEach(draw)
@@ -275,6 +287,10 @@ UFX.scenes.play = {
 			;["f11: fullscreen", "down: scene change", "up: double jump", "space/enter: shoot"].forEach(function (text, j) {
 				context.fillText(text, sx - fH(0.2), sy - fH(0.2 + 0.6 * j))
 			})
+		}
+		if (settings.EASY && state.place != "intro") {
+			UFX.draw("[ font " + fH(1) + "px~'Viga' textalign center textbaseline bottom fs yellow sh black", fH(0.05), fH(0.05), 0,
+				"t", sx/2, sy * 0.98, "ft0", state.place, "]")
 		}
 		background.drawcurtain()
 
