@@ -23,7 +23,6 @@ uniform vec2 ps[2];
 uniform float ks[2], Ls[2], ns[2];
 
 uniform float lanewidth;
-uniform float borderwidth;  // relative to lane width
 uniform float alpha0, alpha1;
 
 varying vec2 tcoord;
@@ -59,7 +58,7 @@ void main(void) {
 	vec3 qf = abs(q0.x) < abs(q1.x) ? q0 : q1;
 	float v = qf.x, wL = qf.y, lambda = qf.z;
 	float vnorm = abs(2.0 * v / lanewidth);
-	float r = abs(vnorm - 1.0) < borderwidth ? 1.0 : 0.0, g = 0.5, b = 0.5;
+	float r = clamp(vnorm / 2.0, 0.0, 1.0), g = 0.5, b = 0.5;
 	if (vnorm < 1.0) {
 		g = 0.5 + 0.5 * cos(lambda);
 		b = 0.5 + 0.5 * sin(lambda);

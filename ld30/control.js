@@ -115,10 +115,11 @@ var control = {
 	
 	end: function (pos) {
 		if (!this.buildstart) return
-		var b = state.thingat(view.togame(pos[0], pos[1]))
+		var gpos = view.togame(pos[0], pos[1])
+		var p = this.nearest([this.buildstart.x, this.buildstart.y], gpos).map(Math.round)
+		var b = state.thingat(p)
 		if (b && b !== this.buildstart) {
-			var p = view.togame(pos[0], pos[1])
-			if (state.canbuild(this.buildstart, Math.round(p[0]), Math.round(p[1]))) {
+			if (state.canbuild(this.buildstart, p[0], p[1])) {
 				state.joinworlds(this.buildstart, b)
 				audio.build()
 			} else {

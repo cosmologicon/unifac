@@ -1,0 +1,29 @@
+function clamp(x,a,b){return b===undefined?x>a?a:x<-a?-a:x:x>b?b:x<a?a:x}
+var tau = 6.283185307179586
+window.onerror = function (error, url, line) {
+    document.body.innerHTML = "<p>Error in: "+url+"<p>line "+line+"<pre>"+error+"</pre>"
+}
+
+var canvas = document.getElementById("canvas")
+var context = canvas.getContext("2d")
+UFX.draw.setcontext(context)
+
+UFX.maximize.fill(canvas, "total")
+UFX.scene.init({ minups: 5, maxups: 120 })
+UFX.mouse.init(canvas)
+UFX.mouse.capture.wheel = true
+UFX.mouse.qclick = true
+UFX.touch.active = false
+canvas.ontouchstart = function (event) {
+	UFX.touch.active = true
+	UFX.touch.init(canvas)
+	UFX.mouse.active = false
+	canvas.ontouchstart = function () {}
+}
+UFX.resource.loadwebfonts("Viga")
+
+
+control.init()
+state.init()
+audio.init()
+

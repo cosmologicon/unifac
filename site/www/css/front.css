@@ -3,7 +3,7 @@ section {
 	color: inherit;
 	border: thin rgba(255,255,255,0.3) outset;
 	width: 80%;
-	max-width: 50em;
+	max-width: 35em;
 	margin: 0 auto 1em;
 	cursor: pointer;
 	padding: 0.7em 0;

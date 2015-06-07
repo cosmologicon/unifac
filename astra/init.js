@@ -73,7 +73,7 @@ UFX.scenes.reset = {
 }
 
 var loadf = 0
-UFX.scene.init()
+UFX.scene.init({ ups: 60, maxupf: 6 })
 UFX.scene.push("title")
 
 UFX.resource.onloading = function (f) {

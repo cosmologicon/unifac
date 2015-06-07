@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Totally Flips</title>
+<link href='http://fonts.googleapis.com/css?family=Boogaloo' rel='stylesheet' type='text/css'>
+<style>
+body {
+    background: black; color: white;
+    font-family: 'Boogaloo';
+    font-size: 140%;
+}
+h1 {
+    font-size: 160%;
+    margin: 0.5em auto 0;
+}
+h2 {
+    margin: 0 auto 0;
+    font-size: 120%;
+}
+* {
+    margin: auto;
+    text-align: center;
+}
+p {
+    margin: 1em auto 1em;
+}
+#canvasbox {
+    position: relative;
+}
+</style>
+
+<script src="game.js"></script>
+
+<body>
+<table>
+<tr><td style="padding-right: 20px ; width: 20em">
+<h1>Totally Flips</h1>
+<h2>by Christopher Night</h2>
+<h2>Universe Factory Games</h2>
+<h2>music by Mary Bichner</h2>
+
+<p>Chrome preferred
+<p>Created in 48 hours for the Bacon Game Jam, August 2012
+<p>Use your Matter-Reversing Gun to guide the ball to the goal. Click to flip objects or pieces of objects horizontally.
+
+<p><input id=playmusic name=playmusic type=checkbox checked onclick="setmusic()"> Play music</input>
+<input id=playsound name=playsound type=checkbox checked> Play sound</input>
+
+<td>
+<canvas id=canvas style="border: medium gray outset"></canvas>
+
+</table>
+
+<script>
+var canvas = document.getElementById("canvas")
+canvas.width = settings.sx ; canvas.height = settings.sy
+var context = canvas.getContext("2d")
+
+window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||  
+                               window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
+UFX.mouse.init(canvas)
+UFX.key.init()
+UFX.key.qup = false
+UFX.key.qdown = true
+UFX.key.watchlist = "F1 F2 F3".split(" ")
+
+var music = null
+function setmusic() {
+    if (music) music.volume = document.getElementById("playmusic").checked ? 0.5 : 0
+}
+function playsound(soundname) {
+    if (document.getElementById("playsound").checked) {
+        UFX.resource.sounds[soundname].play()
+    }
+}
+UFX.draw.setcontext(context)
+UFX.resource.onload = function () {
+    music = UFX.resource.sounds.music
+    setmusic()
+    music.loop = true
+    music.play()
+    UFX.resource.sounds.tick = UFX.resource.Multisound(UFX.resource.sounds.tick, 6)
+    UFX.resource.sounds.tick.volume = 0.2
+    UFX.resource.sounds.click = UFX.resource.Multisound(UFX.resource.sounds.click, 6)
+    UFX.scene.init()
+    UFX.scene.push(GameScene)
+}
+UFX.resource.load({music: "sfx/music.ogg", success: "sfx/success.ogg", fail: "sfx/fail.ogg",
+                    tick: "sfx/tick.ogg", click: "sfx/click.ogg"})
+UFX.resource.loadwebfonts("Slackey", "Kameron")
+
+//UFX.scene.recording = true
+//UFX.scene.replaying = true
+//UFX.scene.record = JSON.parse(localStorage.twondyrecord)
+
+</script>
+
+

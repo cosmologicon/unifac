@@ -285,7 +285,6 @@ var stalkpanel = Panel({
 			controlstate.jselectedstalk = jclick
 			controlstate.selectedshape = controlstate.stalkoptions[jclick]
 			state.sethighlight(controlstate.selectedshape)
-			blobscape.addshape(controlstate.selectedshape)
 		}
 	},
 	handletap: function (cevent) {
