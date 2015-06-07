@@ -58,6 +58,20 @@ var Falls = {
 	},
 }
 
+var Rises = {
+	init: function () {
+		this.x = 0
+		this.y = 0
+		this.vy = 1
+	},
+	think: function (dt) {
+		this.y += dt * this.vy
+	},
+	draw: function () {
+		UFX.draw("t", this.x, this.y)
+	},
+}
+
 var Fades = {
 	draw: function () {
 		UFX.draw("alpha", 1 - this.t / this.lifetime)
@@ -68,6 +82,15 @@ var Grows = {
 	draw: function () {
 		var scale = this.t / this.lifetime
 		UFX.draw("z", scale, scale)
+	},
+}
+
+var Spins = {
+	think: function (dt) {
+		this.beta += this.zeta * dt
+	},
+	draw: function () {
+		UFX.draw("r", this.beta)
 	},
 }
 
@@ -85,7 +108,8 @@ var Impacts = {
 
 var DrawCircle = {
 	draw: function () {
-		UFX.draw("b o", 0, 0, this.size, "fs white f")
+		UFX.draw("z", this.size, this.size)
+		terrain.drawasteroid(this.jaimg)
 	},
 }
 
@@ -95,12 +119,17 @@ function Asteroid(theta, height) {
 	this.height = height
 	this.vx = UFX.random(-1, 1)
 	this.vy = UFX.random(1, 2)
-	this.size = UFX.random(0.06, 0.12)
+	this.size = UFX.random(0.12, 0.2)
 	this.alive = true
+	this.jaimg = UFX.random.rand(terrain.naimg)
+	this.beta = UFX.random(tau)
+	this.zeta = UFX.random(-5, 5)
+	this.think(0)
 }
 Asteroid.prototype = UFX.Thing()
 	.addcomp(SpaceBound)
 	.addcomp(Descends)
+	.addcomp(Spins)
 	.addcomp(DrawCircle)
 	.addcomp(Splodes)
 	.addcomp(Impacts)
@@ -110,6 +139,7 @@ function Splosion(theta) {
 	this.theta = theta
 	this.size = 0.3
 	this.alive = true
+	this.jaimg = UFX.random.rand(terrain.naimg)
 }
 Splosion.prototype = UFX.Thing()
 	.addcomp(Ticks)
@@ -119,4 +149,23 @@ Splosion.prototype = UFX.Thing()
 	.addcomp(Fades)
 	.addcomp(Grows)
 	.addcomp(DrawCircle)
+
+function Smoke(theta, x, y) {
+	if (!(this instanceof Smoke)) return new Smoke(theta, x, y)
+	this.theta = theta
+	this.x = x
+	this.y = y
+	this.size = 0.3
+	this.alive = true
+	this.jaimg = UFX.random.rand(terrain.naimg)
+}
+Smoke.prototype = UFX.Thing()
+	.addcomp(Ticks)
+	.addcomp(Lifetime, 0.4)
+	.addcomp(SpaceBound)
+	.addcomp(Rises)
+	.addcomp(Fades)
+	.addcomp(Grows)
+	.addcomp(DrawCircle)
+
 

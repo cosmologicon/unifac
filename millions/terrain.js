@@ -1,5 +1,7 @@
 var terrain = {
-	size: 120,
+	size: 400,
+	asize: 80,
+	naimg: 8,
 	init: function () {
 		this.img = document.createElement("canvas")
 		this.img.width = this.img.height = this.size
@@ -31,6 +33,41 @@ var terrain = {
 			}
 		}
 		this.img.getContext("2d").putImageData(idata, 0, 0)
+
+
+		this.aimgs = []
+		for (var k = 0 ; k < this.naimg ; ++k) {
+			var x0 = UFX.random(50), y0 = UFX.random(50)
+			this.aimg = document.createElement("canvas")
+			this.aimg.width = this.aimg.height = this.asize
+			var R = this.asize * 0.47
+			var idata = context.createImageData(this.asize, this.asize)
+			var data = idata.data
+			for (var px = 0, j = 0 ; px < this.asize ; ++px) {
+				for (var py = 0 ; py < this.asize ; ++py) {
+					var x = (px - this.asize / 2) / R
+					var y = (py - this.asize / 2) / R
+					var d = 0.6 + 0.6 * UFX.noise([2 * x + x0, 2 * y + y0, 13.7])
+					var z2 = 1 - x * x - y * y - d
+					if (z2 < 0) {
+						var color = [0, 0, 0, 0]
+						var shade = 0
+					} else {
+						var z = Math.sqrt(z2)
+						var h = this.getheight(x + x0, y + y0, z)
+						var c = 120 + 100 * h
+						var color = [c, c, c, 255]
+						var shade = this.getshade(x, y, z)
+					}
+					data[j++] = color[0] * shade
+					data[j++] = color[1] * shade
+					data[j++] = color[2] * shade
+					data[j++] = color[3]
+				}
+			}
+			this.aimg.getContext("2d").putImageData(idata, 0, 0)
+			this.aimgs.push(this.aimg)
+		}
 	},
 	getheight: function (x, y, z) {
 		var h = 0, f0 = 3.21, df = 1.876
@@ -73,5 +110,14 @@ var terrain = {
 		var scale = 1 / (this.size / 2)
 		UFX.draw("[ z", scale, scale, "drawimage", this.img, -this.size / 2, -this.size / 2, "]")
 	},
+	drawasteroid: function (j) {
+		var scale = 1 / (this.asize / 2)
+		UFX.draw("[ z", scale, scale, "drawimage", this.aimgs[j], -this.asize / 2, -this.asize / 2, "]")
+	},
+}
+
+if (window.location.search.indexOf("lowres") > -1) {
+	terrain.size = 100
+	terrain.asize = 30
 }
 
