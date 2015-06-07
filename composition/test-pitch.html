@@ -1,0 +1,149 @@
+<!doctype html>
+<button onclick="generate(o);generate(o2)">generate</button>
+<button onclick="play()">play</button>
+<p><button onclick="playpiano()">play piano</button>
+<input id=npfreq type=range min=1 max=10># frequencies</input>
+<p><button onclick="playguitar()">play guitar</button>
+<input id=ngfreq type=range min=1 max=10># frequencies</input>
+<script>
+var ctx = new webkitAudioContext()
+var o = ctx.createOscillator()
+o.frequency.value = 110
+//o.type = "triangle"
+
+function generate(o) {
+	var real = [0, 0.1], imag = [0, 0]
+	for (var j = 0 ; j < 10 ; ++j) {
+		var r = Math.random() / (1 + j), theta = Math.random() * 10000
+		real.push(r * Math.cos(theta))
+		imag.push(r * Math.sin(theta))
+	}
+	var w = ctx.createPeriodicWave(
+		new Float32Array(real),
+		new Float32Array(imag)
+	)
+	o.setPeriodicWave(w)
+}
+generate(o)
+
+var o2 = ctx.createOscillator()
+o2.frequency.value = 110
+generate(o2)
+
+var g = ctx.createGainNode()
+o.connect(g)
+g.connect(ctx.destination)
+
+var g2 = ctx.createGainNode()
+o2.connect(g2)
+g2.connect(ctx.destination)
+
+o.start(0)
+o2.start(0)
+g.gain.value = 0
+g2.gain.value = 0
+
+function play() {
+	var t0 = ctx.currentTime
+	g.gain.setValueAtTime(1, t0)
+	g2.gain.setValueAtTime(0, t0)
+	g.gain.linearRampToValueAtTime(0, t0 + 0.4)
+	g2.gain.linearRampToValueAtTime(1, t0 + 0.4)
+	g2.gain.linearRampToValueAtTime(0, t0 + 1)
+}
+
+var ts = [0, 0.05, 0.1, 0.15, 0.2, 0.4, 0.6, 0.8, 0.9, 1, 1.1, 1.2, 1.4]
+var pcs = [
+	[0.493, 0.33, 0.267, 0.244, 0.225, 0.16, 0.136, 0.106, 0.097, 0.074, 0.04, 0.006, 0.0],
+	[0.388, 0.52, 0.506, 0.465, 0.433, 0.303, 0.211, 0.153, 0.127, 0.093, 0.027, 0.002, 0.0],
+	[0.092, 0.192, 0.19, 0.167, 0.151, 0.114, 0.075, 0.042, 0.038, 0.028, 0.008, 0.001, 0.0],
+	[0.08, 0.049, 0.057, 0.053, 0.044, 0.023, 0.023, 0.013, 0.015, 0.009, 0.005, 0.001, 0.0],
+	[0.042, 0.039, 0.06, 0.048, 0.043, 0.031, 0.011, 0.011, 0.012, 0.013, 0.002, 0.001, 0.0],
+	[0.028, 0.019, 0.027, 0.021, 0.017, 0.011, 0.011, 0.009, 0.006, 0.005, 0.002, 0.001, 0.0],
+	[0.034, 0.043, 0.039, 0.033, 0.03, 0.014, 0.014, 0.01, 0.006, 0.002, 0.0, 0.0, 0.0],
+	[0.002, 0.002, 0.002, 0.001, 0.0, 0.003, 0.001, 0.001, 0.002, 0.001, 0.0, 0.0, 0.0],
+	[0.006, 0.002, 0.002, 0.001, 0.001, 0.002, 0.001, 0.0, 0.001, 0.001, 0.0, 0.0, 0.0],
+	[0.004, 0.006, 0.002, 0.003, 0.001, 0.002, 0.001, 0.001, 0.001, 0.001, 0.0, 0.0, 0.0],
+	[0.001, 0.002, 0.002, 0.001, 0.002, 0.002, 0.0, 0.0, 0.001, 0.001, 0.0, 0.0, 0.0],
+	[0.002, 0.003, 0.002, 0.001, 0.002, 0.002, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.0],
+	[0.001, 0.002, 0.001, 0.001, 0.001, 0.001, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.0],
+]
+
+var po = [], pg = []
+for (var i = 0 ; i < pcs.length ; ++i) {
+	po.push(ctx.createOscillator())
+	po[i].frequency.value = 261.6 * (i + 1)
+	po[i].type = "sine"
+	pg.push(ctx.createGainNode())
+	po[i].connect(pg[i])
+	pg[i].connect(ctx.destination)
+	pg[i].gain.value = 0
+	po[i].start(0)
+}
+
+var gcs = [
+	[0.388, 0.338, 0.307, 0.289, 0.251, 0.17, 0.12, 0.077, 0.062, 0.052, 0.045, 0.038, 0.026],
+	[0.471, 0.442, 0.34, 0.296, 0.264, 0.126, 0.074, 0.032, 0.022, 0.021, 0.018, 0.011, 0.007],
+	[0.334, 0.195, 0.144, 0.086, 0.025, 0.018, 0.012, 0.002, 0.003, 0.003, 0.002, 0.001, 0.001],
+	[0.04, 0.037, 0.017, 0.022, 0.023, 0.017, 0.01, 0.007, 0.004, 0.002, 0.002, 0.002, 0.001],
+	[0.011, 0.017, 0.013, 0.005, 0.012, 0.004, 0.002, 0.002, 0.002, 0.001, 0.001, 0.0, 0.0],
+	[0.007, 0.01, 0.002, 0.004, 0.01, 0.003, 0.001, 0.002, 0.002, 0.0, 0.001, 0.001, 0.0],
+	[0.041, 0.046, 0.031, 0.029, 0.027, 0.014, 0.005, 0.003, 0.002, 0.002, 0.001, 0.001, 0.0],
+	[0.013, 0.015, 0.009, 0.006, 0.007, 0.003, 0.001, 0.001, 0.001, 0.001, 0.0, 0.0, 0.0],
+	[0.007, 0.014, 0.009, 0.005, 0.007, 0.002, 0.0, 0.001, 0.001, 0.001, 0.0, 0.0, 0.0],
+	[0.006, 0.006, 0.005, 0.003, 0.003, 0.002, 0.0, 0.001, 0.001, 0.001, 0.0, 0.0, 0.0],
+	[0.005, 0.004, 0.004, 0.003, 0.003, 0.002, 0.0, 0.001, 0.001, 0.001, 0.0, 0.0, 0.0],
+	[0.002, 0.002, 0.001, 0.002, 0.003, 0.001, 0.0, 0.001, 0.001, 0.0, 0.0, 0.0, 0.0],
+	[0.003, 0.005, 0.001, 0.0, 0.004, 0.001, 0.0, 0.001, 0.001, 0.0, 0.0, 0.0, 0.0],
+	[0.005, 0.003, 0.001, 0.002, 0.003, 0.001, 0.0, 0.001, 0.001, 0.0, 0.0, 0.0, 0.0],
+	[0.009, 0.003, 0.003, 0.002, 0.002, 0.001, 0.0, 0.001, 0.0, 0.0, 0.0, 0.0, 0.0],
+	[0.01, 0.004, 0.001, 0.002, 0.003, 0.001, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+	[0.004, 0.002, 0.001, 0.001, 0.002, 0.001, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+	[0.002, 0.003, 0.002, 0.0, 0.002, 0.001, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+]
+var go = [], gg = []
+for (var i = 0 ; i < gcs.length ; ++i) {
+	go.push(ctx.createOscillator())
+	go[i].frequency.value = 164.8 * (i + 1) * (1 + 0.004 * (2 * Math.random() - 1))
+	go[i].type = "sine"
+	gg.push(ctx.createGainNode())
+	go[i].connect(gg[i])
+	gg[i].connect(ctx.destination)
+	gg[i].gain.value = 0
+	go[i].start(0)
+}
+
+function playpiano() {
+	var nfreq = document.getElementById("npfreq").valueAsNumber
+	var t0 = ctx.currentTime
+	for (var ti = 0 ; ti < ts.length ; ++ti) {
+		var t = ts[ti]
+		for (var ci = 0 ; ci < nfreq ; ++ci) {
+			var c = pcs[ci][ti]
+			pg[ci].gain.linearRampToValueAtTime(c, t0 + t)
+		}
+	}
+}
+function playguitar() {
+	var nfreq = document.getElementById("ngfreq").valueAsNumber
+	var t0 = ctx.currentTime
+	for (var ti = 0 ; ti < ts.length ; ++ti) {
+		var t = ts[ti] * 3.2
+		for (var ci = 0 ; ci < nfreq ; ++ci) {
+			var c = gcs[ci][ti]
+			gg[ci].gain.linearRampToValueAtTime(c * 0.25, t0 + t)
+		}
+	}
+	for (var ci = 0 ; ci < nfreq ; ++ci) {
+		gg[ci].gain.linearRampToValueAtTime(0, t0 + 5)
+	}
+}
+
+document.getElementById("npfreq").max = pcs.length
+document.getElementById("npfreq").value = pcs.length
+document.getElementById("ngfreq").max = gcs.length
+document.getElementById("ngfreq").value = gcs.length
+
+</script>
+
+
