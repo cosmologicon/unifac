@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<title>Robot Underground</title>
+<style type="text/css">
+@font-face {
+    font-family: "Hockey";
+    src: url(data/fonts/hockey.ttf) format("truetype");
+}
+</style>
+<script id="2d-vertex-shader" type="x-shader/x-vertex">
+// (x,y) position
+attribute vec2 pos;
+// texture coordinate
+attribute vec2 tcoord;
+// 3x3 transformation matrix for position (x,y,1) -> (x',y',0)
+uniform mat3 xform;
+
+// to pass the texture coordinate to the fragment shader
+varying vec2 vtcoord;
+
+void main(void) {
+    gl_Position = vec4(xform * vec3(pos, 1.0), 1.0);
+    vtcoord = tcoord;
+}
+</script>
+<script id="2d-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+// texture fraction: 0 = use color, 1 = use texture
+uniform float tfac;
+// texture itself
+uniform sampler2D sampler;
+// rgba colour
+uniform vec4 colour;
+
+// passed in from vertex shader
+varying vec2 vtcoord;
+
+void main(void) {
+    gl_FragColor = texture2D(sampler, vtcoord) * tfac + colour * (1.0 - tfac);
+}
+</script>
+<h1>Robot Underground</h1>
+<p>This game requires a modern browser with JavaScript and
+<a href="http://get.webgl.org/">webGL</a> enabled. If the game does not run properly for you,
+please try Chrome or Firefox.
+<p>
+<canvas id="loadcanvas" style="background:black;display:none"></canvas>
+<canvas id="canvas" style="background:black;display:none;cursor:none"></canvas>
+<form id="DEBUG" style="display:none">
+<label><input type="checkbox" onchange="DEBUG.skipcutscenes=this.checked"/>Skip cutscenes</label>
+<label><input type="checkbox" onchange="DEBUG.onehit=this.checked"/>One-hit kills</label>
+<label><input type="checkbox" onchange="DEBUG.killme=this.checked"/>Kill me</label>
+<label><input type="checkbox" onchange="DEBUG.areamode=this.checked"/>Show area scripts</label>
+<label><input type="checkbox" onchange="DEBUG.entitycircle=this.checked"/>Entity circles</label>
+<label><input type="checkbox" onchange="DEBUG.textblock=this.checked;text.clear()"/>Text blocks</label>
+</form>
+
+<script src="UFX.js"></script>
+<script src="game.js"></script>
+
