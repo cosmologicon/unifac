@@ -1,14 +1,56 @@
 from __future__ import division
 import math, pygame, random
-import ships, state, vista
+import ships, state, vista, sound, effects
 
-class Boss1(ships.Ship):
+
+class Boss(ships.Ship):
 	fadeable = False
-	radius = 2
-	hp = 10
-	imgname = "boss1"
+	radius = 3
+	
 	def __init__(self, pos):
 		ships.Ship.__init__(self, pos)
+		self.corpse = effects.Corpse(self)
+		self.hp = self.maxhp
+
+	def die(self):
+		ships.Ship.die(self)
+		state.state.effects.append(self.corpse)
+		sound.play("bossdie")
+
+class Boss1(Boss):
+	maxhp = 20
+	imgname = "boss1"
+	shoottime = 1
+	a = 10
+	vmax = 2
+	
+	def __init__(self, pos):
+		Boss.__init__(self, pos)
+		self.pos0 = pos
+		self.t = 0
+		self.tmove = 0
+		self.laserable = True
+		self.zeta = 0
+
+	def think(self, dt):
+		self.t += dt
+		while self.t > self.shoottime:
+			self.t -= self.shoottime
+			self.zeta += math.tau / 1.618
+			self.launchslug(6, self.zeta)
+			self.launchslug(6, self.zeta + math.tau / 3)
+			self.launchslug(6, self.zeta + 2 * math.tau / 3)
+			sound.play("shoot")
+		if self.target is None or math.sqrt((self.x - self.target[0]) ** 2 + (self.y - self.target[1]) ** 2) < 1:
+			self.pickrandomtarget(self.pos0, 6)
+		Boss.think(self, dt)
+
+"""
+class Boss2(Boss):
+	maxhp = 10
+	imgname = "boss2"
+	def __init__(self, pos):
+		Boss.__init__(self, pos)
 		self.t = 0
 		self.tmove = 0
 		self.laserable = True
@@ -26,9 +68,9 @@ class Boss1(ships.Ship):
 				self.pickrandomtarget(self.pos0)
 				self.tmove = 0
 		self.imgname = "boss1" if self.target or self.tmove + 2 < self.movetime else "red"
-		ships.Ship.think(self, dt)
+		Boss.think(self, dt)
 #		self.laserable = not any(escort.hp > 0 for escort in self.escorts)
-	
+"""	
 
 
 class Boss2Escort(ships.Ship):

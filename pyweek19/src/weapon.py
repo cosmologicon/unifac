@@ -1,10 +1,11 @@
 import math
-import state, effects
+import state, effects, sound
 
 class Weapon(object):
 	cooldown = 1
 	reach = 4
 	damage = 1
+	soundname = None
 	
 	def __init__(self, parent):
 		self.parent = parent
@@ -22,10 +23,14 @@ class Weapon(object):
 
 	def fire(self, target):
 		self.tcool = self.cooldown
+		if self.soundname:
+			sound.play(self.soundname)
 
 class Laser(Weapon):
-	reach = 2
+	reach = 4
 	color = 255, 0, 0
+	soundname = "laser"
+	cooldown = 5
 
 	def fire(self, target):
 		Weapon.fire(self, target)
@@ -33,8 +38,9 @@ class Laser(Weapon):
 		state.state.effects.append(effects.Laser(self.parent, target, self.color))
 
 class Gun(Weapon):
-	reach = 5
+	reach = 8
 	damage = 5
+	soundname = "shot"
 
 	def fire(self, target):
 		Weapon.fire(self, target)
@@ -50,21 +56,30 @@ class Gun(Weapon):
 		return dx * vx + dy * vy > 0.9 * d * v
 
 class YouLaser(Laser):
-	reach = 4
+	reach = 6
 	color = 255, 255, 0
+	cooldown = 1
 
 class YouDrill(Laser):
 	reach = 1
 	color = 255, 255, 255
+	soundname = "drill"
+	damage = 10
+	cooldown = 0.1
+
+	def fire(self, target):
+		Weapon.fire(self, target)
+		target.takedamage(self.damage)
+
 
 # The weapon for things that explode when they hit something.
 class Trigger(Weapon):
 	reach = 0.4
 	damage = 1
 	cooldown = 0
+	soundname = "boom"
 
 	def fire(self, target):
-		print "trigger"
 		Weapon.fire(self, target)
 		target.takedamage(self.damage)
 		self.parent.die()

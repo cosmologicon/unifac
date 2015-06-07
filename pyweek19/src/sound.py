@@ -15,16 +15,21 @@ def load(sname):
 		sounds[sname] = pygame.mixer.Sound(filename)
 
 def play(sname):
-	print "Missing sound:", sname
+	load(sname)
+	if not sounds[sname]:
+		return
+	sounds[sname].play()
 
 def playmusic(sname):
 	global music
 	load(sname)
 	if not sounds[sname]:
 		return
+	if sounds[sname] is music:
+		return
 	if music:
 		music.fadeout(500)
 	music = sounds[sname]
-	music.play(-1)
+	music.play(-1, 0, 500)
 
 

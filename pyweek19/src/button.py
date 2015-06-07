@@ -1,22 +1,23 @@
 import pygame
-import vista, state
+import vista, state, img
 
 class Button(object):
-	fonts = {}
-	def __init__(self, name, rect, fontsize = 22, text = None):
+	def __init__(self, name, rect, fontsize = 22, fontname = "viga", bcolor = (0, 0, 255, 100), color = (255, 255, 255), text = None):
 		self.name = name
 		self.text = text or name
+		self.color = color
+		self.bcolor = bcolor
 		self.rect = pygame.Rect(rect)
-		if fontsize not in Button.fonts:
-			Button.fonts[fontsize] = pygame.font.Font(None, fontsize)
 		self.fontsize = fontsize
+		self.fontname = fontname
 		self.makeimg()
 
 	def makeimg(self):
 		self.img = pygame.Surface(self.rect.size).convert_alpha()
-		self.img.fill((0,0,255,100))
-		t = self.fonts[self.fontsize].render(self.text, True, (255, 255, 255))
-		self.img.blit(t, t.get_rect(center = self.img.get_rect().center))
+		self.img.fill(self.bcolor)
+		timg = img.gettext(" \n%s\n " % self.text, self.fontsize, self.color, (0, 0, 0, 0), self.fontname)
+		p = self.img.get_rect().move(0, -self.fontsize // 6).center
+		self.img.blit(timg, timg.get_rect(center = p))
 
 	def within(self, screenpos):
 		return self.rect.collidepoint(screenpos)

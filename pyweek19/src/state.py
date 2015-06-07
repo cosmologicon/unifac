@@ -1,5 +1,6 @@
-import cPickle
-import settings, ships, things, quest, parts, starmap, sound
+import cPickle, pygame
+import settings, ships, things, quest, parts, starmap, sound, bosses, scene, buildscene
+from settings import F
 
 starmap.init()
 
@@ -10,6 +11,7 @@ class State(object):
 		if settings.quickstart:
 			self.you.vmax *= 6
 			self.you.a *= 6
+			self.you.laser.damage *= 1000
 			self.bank += 1000
 		self.mother = ships.Mothership(starmap.ps["mother"])
 		self.baron = ships.Baron((0, 0))
@@ -25,7 +27,14 @@ class State(object):
 		self.things = []
 		for tname, p in starmap.ps.items():
 			if tname.startswith("angel"):
-				self.things.append(things.Sun(p))
+				t = things.Sun(p)
+				setattr(self, tname, t)
+				if tname != "angel5":
+					if tname == "angel4":
+						t.collapsed = True
+					self.things.append(t)
+				else:
+					t.showsup = False
 			if tname.startswith("planet"):
 				self.things.append(things.Planet(p))
 #		for _ in range(4):
@@ -39,26 +48,55 @@ class State(object):
 		]
 		# iedges for active power supplies
 		self.supplies = {
-			1: (-1, 2, 0, 2),
+			1: (-1, 3, 0, 3),
 		}
 		self.parts = [
-			parts.Conduit((1,2)).rotate(1).shift((0, 2)),
-			parts.Module("engine").shift((1, 2)),
-			parts.Module("laser").shift((0, 1)),
-			parts.Module("drill").shift((3, 0)),
+			parts.Conduit((2,)).rotate(3).shift((3, 1)),
+			parts.Module("engine").shift((0, 3)),
+			parts.Module("drill").shift((1, 1)),
 		]
-		self.available = ["engine", "drill", "laser"]
+		self.available = ["engine", "drill", "laser", "scope"]
 		self.unlocked = ["engine", "drill"]
 		self.unused = { modulename: 0 for modulename in settings.modulecosts }
+		self.unused["conduit-1"] = 2
+		self.unused["conduit-2"] = 2
+		self.unused["conduit-3"] = 2
+		self.unused["conduit-12"] = 1
 		# self.modules is a list of placed module names
 		# self.powered maps module names to powered-up state
 		# self.hookup maps hooked up module name to the supply numbers that feed it.
 		self.sethookup()
-		print self.hookup
 		self.burnfactor = 0
 		self.oortfactor = 0
 		self.tburn = 0
 		self.toort = 0
+		self.tfuel = 0
+		
+		# dialogue
+		self.played = set()
+		self.playing = []
+		self.tline = 0
+		
+		self.starssurveyed = 0
+
+	def startnextact(self):
+		act = len(self.supplies)
+		if act == 1:
+			self.supplies[2] = (4, 2, 3, 2)
+			self.available.append("turbo")
+			self.available.append("heatshield")
+			self.available.append("deflector")
+			self.quests.append(Act2Quest())
+		elif act == 2:
+			self.available.append("hyperdrive")
+			self.supplies[3] = (-1, 1, 0, 1)
+			for c in "012346789":
+				self.interests.append("angel" + c)
+			self.things.append(self.angel5)
+			self.quests.append(Act3Quest())
+		self.you.x, self.you.y = self.mother.x, self.mother.y
+		scene.push(buildscene)
+
 
 	def handlebutton(self, buttonname):
 		if buttonname in self.modules:
@@ -66,36 +104,67 @@ class State(object):
 			return True
 
 	def toggleactive(self, modulename):
-		self.active[modulename] = not self.active[modulename]
+		if modulename in self.hookup:
+			self.active[modulename] = not self.active[modulename]
+			for omname in self.hookup:
+				if omname != modulename and set(self.hookup[modulename]) & set(self.hookup[omname]):
+					self.active[omname] = False
+
+	def cango(self):
+		return "engine" in self.hookup or "turbo" in self.hookup or "hyperdrive" in self.hookup
 
 	def think(self, dt):
 		import random, math, vista
 		self.bossmode = self.boss is not None and self.boss.distfromyou() < settings.fadedistance
+		if self.bossmode and not self.boss.corpse.alive:
+			self.startnextact()
 		if not self.bossmode:
-			if random.random() * 0.2 < dt:
+			if random.random() * 1 < dt:
 				theta = random.uniform(0, math.tau)
 				x = vista.x0 + settings.fadedistance * math.sin(theta)
 				y = vista.y0 + settings.fadedistance * math.cos(theta)
 				self.ships.append(ships.Rock((x, y)))
-			if random.random() * 0.2 < dt:
+			if random.random() * 1 < dt:
 				theta = random.uniform(0, math.tau)
 				x = vista.x0 + settings.fadedistance * math.sin(theta)
 				y = vista.y0 + settings.fadedistance * math.cos(theta)
 				self.ships.append(ships.Drone((x, y)))
-		if not self.active["engine"]:
+		if self.active["hyperdrive"]:
+			if self.you.target:
+				self.tfuel += dt
+				if self.tfuel > 2:
+					self.bank = max(self.bank - 1, 0)
+			self.you.vmax = 20
+			self.you.a = 10
+		elif self.active["turbo"]:
+			self.you.vmax = 8
+			self.you.a = 4
+		elif self.active["engine"]:
+			self.you.vmax = 4
+			self.you.a = 2
+		else:
 			self.you.allstop()
 		if self.active["drill"] and self.you.drill.canfire():
 			for s in self.ships:
-				if s.drillable and self.you.drillable.canreach(s):
+				if s.drillable and self.you.drill.canreach(s):
 					self.you.drill.fire(s)
+					if s.hp <= 0:
+						self.bank += s.value
+						sound.play("getmoney")
 		if self.active["laser"] and self.you.laser.canfire():
 			for s in self.ships:
 				if s.laserable and self.you.laser.canreach(s):
 					self.you.laser.fire(s)
+					if s.hp <= 0:
+						self.bank += s.value
+						sound.play("getmoney")
 		if self.active["gun"] and self.you.gun.canfire():
 			for s in self.ships:
 				if s.laserable and self.you.gun.canreach(s):
 					self.you.gun.fire(s)
+					if s.hp <= 0:
+						self.bank += s.worth
+						sound.play("getmoney")
 		for s in self.ships:
 			if s.shootsyou:
 				for w in s.weapons:
@@ -150,6 +219,20 @@ class State(object):
 				if self.toort > settings.oortdamagetime:
 					self.you.takedamage(1)
 					self.toort = 0
+		if self.active["scope"]:
+			for t in self.things:
+				if t.nearyou():
+					if t.surveyed:
+						self.alerts.append("Survey complete.")
+					else:
+						t.tsurvey += dt
+						self.alerts.append("Survey in progress... %d%%" % int(t.tsurvey * 10))
+						if t.tsurvey > 10:
+							t.surveyed = True
+							if isinstance(t, things.Sun):
+								self.starssurveyed += 1
+							sound.play("getmoney")
+							self.bank += t.value
 
 	def drawviewport(self):
 		import vista, img
@@ -167,6 +250,41 @@ class State(object):
 			if not vista.isvisible((obj.x, obj.y), obj.radius - 1):
 				pos, angle = vista.indpos((obj.x, obj.y))
 				img.worlddraw("arrow", pos, angle = angle)
+				img.drawtext(settings.inames[iname], F(20), (0, 255, 255), fontname = "teko", center = vista.worldtoscreen(pos))
+
+	def drawmainmap(self):
+		import vista, img
+		vista.drawmainoort()
+		scale = settings.grect.width / (2 * starmap.rx)
+		for t in self.things:
+			if t.surveyed:
+				px, py = vista.worldtomainmap((t.x, t.y))
+				r = int(scale * t.radius)
+				pygame.draw.circle(vista.screen, (200, 200, 200), (px, py), r)
+		for iname in self.interests:
+			obj = getattr(self, iname)
+			if isinstance(obj, things.Sun):
+				pass
+			px, py = vista.worldtomainmap((obj.x, obj.y))
+#			pygame.draw.circle(vista.screen, (200, 200, 200), (px, py), F(10), 1)
+			img.drawtext(settings.inames[iname], F(12), fontname = "teko", center = (px, py))
+		px, py = vista.worldtomainmap((self.you.x, self.you.y))
+		img.drawtext("YOU", F(12), fontname = "teko", color = (255, 200, 0), center = (px, py))
+		img.drawtext("Surveyed planets and stars", F(24), fontname = "viga", center = F(240, 20))
+
+
+	def drawnavmap(self):
+		import vista, img
+		vista.drawnavoort()
+		for t in self.things:
+			if not t.showsup:
+				continue
+			p = vista.worldtonav((t.x, t.y))
+			r = t.radius * settings.nscale
+			color = (200, 200, 200) if t.surveyed else (50, 50, 50)
+			pygame.draw.circle(vista.navmap, color, p, r)
+		pygame.draw.rect(vista.navmap, (128, 128, 128), vista.navmap.get_rect(), 2)
+		vista.screen.blit(vista.navmap, settings.nrect)
 
 
 	def unlock(self, modulename):
@@ -229,8 +347,10 @@ class State(object):
 		self.sethookup()
 		self.unused[part.name] += 1
 
-state = State()
-state.quests.append(quest.IntroQuest())
+	def removeall(self):
+		for part in list(self.parts):
+			self.removepart(part)
+
 
 def save():
 	cPickle.dump(state, open("savegame.pkl", "wb"))
@@ -242,4 +362,14 @@ def load():
 def canload():
 	import os.path
 	return os.path.exists("savegame.pkl")
+
+def reset():
+	global state
+	state = State()
+	state.quests.append(quest.IntroQuest())
+
+reset()
+
+if canload():
+	load()
 

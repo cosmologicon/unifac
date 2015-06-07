@@ -8,6 +8,8 @@ cache = {}
 def getfont(fontsize, fontname):
 	key = fontsize, fontname
 	if key not in cache:
+		if fontname is not None:
+			fontname = "fonts/%s.ttf" % fontname
 		cache[key] = pygame.font.Font(fontname, fontsize)
 	return cache[key]
 
@@ -52,7 +54,10 @@ def gettext(text, fontsize, color, bcolor, fontname, anchor = 0.5, linespace = N
 	if key in cache:
 		return cache[key]
 	if linespace is None:
-		linespace = 0.8
+		linespace = {
+			None: 0.8,
+			"jockey": 1,
+		}.get(fontname, 1)
 	font = getfont(fontsize, fontname)
 	texts = text.splitlines() if maxwidth is None else wrap_multi_line(text, font, maxwidth)
 	img0s = [font.render(text, True, color) for text in texts]

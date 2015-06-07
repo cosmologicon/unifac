@@ -39,6 +39,26 @@ colors = [
 	(0.6, 50, 50, 50),
 ]
 
+colors = [
+	(-0.4, 40, 0, 0),
+	(0.4, 80, 0, 80),
+]
+
+colors = [
+	(-0.4, 140, 140, 140),
+	(-0.1, 0, 0, 100),
+	(0.1, 140, 140, 140),
+	(0.4, 0, 0, 100),
+]
+
+colors = [
+	(-0.4, 40, 40, 40),
+	(-0.1, 180, 180, 0),
+	(0.1, 40, 40, 40),
+	(0.4, 180, 180, 0),
+]
+
+
 colors.insert(0, (-999,) + colors[0][1:])
 colors.append((999,) + colors[-1][1:])
 
@@ -62,7 +82,7 @@ for px in range(psize):
 		d = min(max((x - y + z) * 0.2 + 0.5, 0), 1)
 		img.set_at((px, py), map(int, getcolor(n, d)))
 
-pygame.image.save(img, "data/planet.png")
+pygame.image.save(img, "data/planet-4.png")
 screen.blit(img, (0, 0))
 pygame.display.set_caption("done")
 pygame.display.flip()
