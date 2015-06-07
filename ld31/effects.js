@@ -56,6 +56,10 @@ var DrawPortal = {
 		for (var j = 0 ; j < ps.length ; j += 2) {
 			UFX.draw("fs", this.shards[j].color, "b m 0 0 l", ps[j], "l", ps[j+1], "f")
 		}
+		if (settings.EASY) {
+			UFX.draw("[ textalign center textbaseline bottom alpha 1 t 0 1 z 0.05 -0.05",
+				"font 11px~'Viga' fs white sh black 1 1 0 ft0", this.goesto(), "]")
+		}
 	},
 }
 
