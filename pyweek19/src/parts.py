@@ -1,6 +1,7 @@
 from __future__ import division
-import pygame
+import pygame, random
 import settings, vista, img
+from settings import F
 
 def offset(edge, p0 = (0, 0)):
 	x0, y0 = p0
@@ -19,6 +20,8 @@ class Part(object):
 		self.center = (max(xs) + min(xs) + 1) / 2, (max(ys) + min(ys) + 1) / 2
 		self.inputs = list(inputs)
 		self.outputs = list(outputs)
+		self.color = random.randint(100, 200), random.randint(100, 200), random.randint(100, 200)
+		self.dull = tuple(c // 2 for c in self.color)
 
 	def shift(self, (dx, dy)):
 		blocks = [(x + dx, y + dy) for x, y in self.blocks]
@@ -35,15 +38,26 @@ class Part(object):
 		dy = clamp(int(round(y - self.center[1])), ymin, ymax)
 		return self.shift((dx, dy))
 
-	def draw(self, screenpos0, blocksize, bad = False):
+	def draw(self, screenpos0, blocksize, bad = False, on = True):
 		x0, y0 = screenpos0
-		d = int(blocksize * 0.1)
+		d = int(blocksize * 0.03)
 		for x, y in self.blocks:
 			px = x0 + blocksize * x + d
 			py = y0 + blocksize * y + d
 			rect = px, py, blocksize - 2 * d, blocksize - 2 * d
-			color = (100, 0, 0) if bad else self.color
+			color = (100, 0, 0) if bad else self.color if on else self.dull
 			vista.screen.fill(color, rect)
+		for ix0, iy0, ix1, iy1 in self.inputs:
+			dx, dy = ix1 - ix0, iy1 - iy0
+			rot = {
+				(0, 1): 180,
+				(1, 0): -90,
+				(0, -1): 0,
+				(-1, 0): 90,
+			}[(dx, dy)]
+			pos = int(x0 + (ix1 + 0.5) * blocksize), int(y0 + (iy1 + 0.5) * blocksize)
+			img.draw("outflow", pos, scale = blocksize / 64, angle = rot)
+
 		px = int(x0 + blocksize * self.center[0])
 		py = int(y0 + blocksize * self.center[1])
 		img.drawtext(self.name, 14, center = (px, py))
@@ -52,7 +66,7 @@ class Part(object):
 		x0, y0 = screenpos0
 		px = int(x0 + blocksize * self.center[0])
 		py = int(y0 + blocksize * self.center[1])
-		pygame.draw.circle(vista.screen, (255, 0, 255), (px, py), 4)
+		pygame.draw.circle(vista.screen, (255, 0, 255), (px, py), int(1.3 * blocksize), F(2))
 
 	def contains(self, (x, y)):
 		return (int(x), int(y)) in self.blocks
@@ -69,7 +83,7 @@ class Conduit(Part):
 		outputs = [p0 + offset((rot + oedge) % 4, p0) for oedge in oedges]
 		Part.__init__(self, name, blocks, inputs, outputs)
 
-	def draw(self, screenpos0, blocksize, bad = False):
+	def draw(self, screenpos0, blocksize, bad = False, on = True):
 		x0, y0 = screenpos0
 		x0 += (self.p0[0] + 0.5) * blocksize
 		y0 += (self.p0[1] + 0.5) * blocksize

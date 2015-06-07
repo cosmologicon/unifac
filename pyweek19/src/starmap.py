@@ -1,7 +1,7 @@
-import cPickle
+import cPickle, pygame
 
 def init():
-	global ps, oortdata, scale, rx, ry
+	global ps, oortdata, scale, rx, ry, oortmap
 	obj = cPickle.load(open("data/starmap.pkl", "rb"))
 	ps, oortdata, scale, rx, ry = obj
 

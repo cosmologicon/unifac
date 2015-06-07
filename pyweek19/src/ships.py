@@ -1,4 +1,4 @@
-import math, random
+import math, random, pygame
 import vista, img, settings, weapon, state, effects
 
 class Ship(object):
@@ -12,6 +12,8 @@ class Ship(object):
 	hp = 1
 	iname = None
 	radius = 1  # for drawing purposes
+	scale0 = 1
+	value = 1
 
 	def __init__(self, pos = (0, 0)):
 		self.x, self.y = self.pos0 = pos
@@ -84,7 +86,7 @@ class Ship(object):
 	def draw(self):
 		if not vista.isvisible((self.x, self.y), self.radius):
 			return
-		img.worlddraw(self.imgname, (self.x, self.y), angle = self.angle)
+		img.worlddraw(self.imgname, (self.x, self.y), angle = self.angle, scale = self.scale0)
 
 	def distfromyou(self):
 		dx, dy = self.x - state.state.you.x, self.y - state.state.you.y
@@ -109,22 +111,49 @@ class You(Ship):
 	hp = 10
 	maxhp = 10
 	fadeable = False
+	def __init__(self, pos):
+		Ship.__init__(self, pos)
+		self.t = 0
+		self.corpse = effects.Corpse(self)
+
+	def think(self, dt):
+		Ship.think(self, dt)
+		self.t += dt
 
 	def makeweapons(self):
 		self.laser = weapon.YouLaser(self)
+		self.drill = weapon.YouDrill(self)
 		self.gun = weapon.Gun(self)
-		return [self.laser, self.gun]
+		return [self.drill, self.laser, self.gun]
 
 	def draw(self):
 		Ship.draw(self)
 		if self.target:
-			img.worlddraw("target", self.target)
+			img.worlddraw("target", self.target, angle = self.t * 200 % 360)
+
+	def takedamage(self, damage):
+		Ship.takedamage(self, damage)
+		import gamescene
+		gamescene.setshroud((255, 0, 0), 70)
+
+	def die(self):
+		state.state.effects.append(self.corpse)
+		Ship.die(self)
 
 class Mothership(Ship):
 	imgname = "mother"
 	fadeable = False
-	radius = 1
+	radius = 2.5
 	iname = "mother"
+	t = 0
+	
+	def think(self, dt):
+		self.t += dt
+		self.angle = self.t * 30 % 360
+		if random.random() * 4 < dt:
+			v = random.uniform(-1, 1), random.uniform(-1, 1)
+			state.state.effects.append(effects.Explosion(self, v))
+		Ship.think(self, dt)
 
 	def within(self, (x, y)):
 		return (x - self.x) ** 2 + (y - self.y) ** 2 <= self.radius ** 2
@@ -143,8 +172,9 @@ class Rock(Ship):
 	hp = 1
 	drillable = True
 	laserable = False
-	vmin = 0.2
-	vmax = 0.5
+	vmin = 0.8
+	vmax = 2
+	value = 1
 
 	def __init__(self, pos):
 		Ship.__init__(self, pos)
@@ -153,10 +183,14 @@ class Rock(Ship):
 		self.vx = self.v * math.sin(theta)
 		self.vy = self.v * math.cos(theta)
 		self.orient()
+		self.t = 0
 
 	def think(self, dt):
+		self.t += dt
 		self.x += self.vx * dt
 		self.y += self.vy * dt
+		self.angle = 0
+		self.imgname = "Asteroid-A-10-%02d" % ((self.t * 20 // 2 * 2) % 60)
 		if self.hp <= 0:
 			self.die()
 
@@ -167,25 +201,18 @@ class Drone(Rock):
 	laserable = True
 	shootsyou = True
 	shoottime = 0.7
-
-	def __init__(self, pos):
-		Rock.__init__(self, pos)
-		self.t = 0
-		self.zeta = random.uniform(0, math.tau)
+	value = 3
 
 	def makeweapons(self):
 		return [weapon.Laser(self)]
 
 	def think(self, dt):
-		Rock.think(self, dt)
-		return
-		self.t += dt
-		if self.t > self.shoottime:
-			self.t -= self.shoottime
-			self.zeta += math.tau / 1.618033988749895
-			vslug = 0.5
-			slug = Slug(self, (vslug * math.sin(self.zeta), vslug * math.cos(self.zeta)))
-			state.state.ships.append(slug)
+		self.x += self.vx * dt
+		self.y += self.vy * dt
+		if self.hp <= 0:
+			self.die()
+		for w in self.weapons:
+			w.think(dt)
 
 class SeekerDrone(Drone):
 	imgname = "drone"
@@ -194,25 +221,32 @@ class SeekerDrone(Drone):
 	laserable = True
 	shootsyou = False
 	shoottime = 0.7
+	vmin = 2
+	vmax = 2
+	scale0 = 0.7
+	diedistance = 5
+	value = 1
 
-	def __init__(self, pos):
+	def __init__(self, pos, home):
 		Drone.__init__(self, pos)
-		self.t = 0
-		self.zeta = random.uniform(0, math.tau)
+		self.home = home
+		dx = home.x - self.x
+		dy = home.y - self.y
+		d = math.sqrt(dx ** 2 + dy ** 2)
+		self.vx = self.vmax * dx / d
+		self.vy = self.vmax * dy / d
 
 	def makeweapons(self):
 		return []
 
 	def think(self, dt):
 		Rock.think(self, dt)
-		return
-		self.t += dt
-		if self.t > self.shoottime:
-			self.t -= self.shoottime
-			self.zeta += math.tau / 1.618033988749895
-			vslug = 0.5
-			slug = Slug(self, (vslug * math.sin(self.zeta), vslug * math.cos(self.zeta)))
-			state.state.ships.append(slug)
+		dx = home.x - self.x
+		dy = home.y - self.y
+		d = math.sqrt(dx ** 2 + dy ** 2)
+		if d < self.diedistance:
+			state.state.ships.remove(self)
+		
 
 
 class Guard(Ship):
@@ -280,5 +314,10 @@ class Slug(Ship):
 		
 	def makeweapons(self):
 		return [weapon.Trigger(self)]
+
+	def draw(self):
+		screenpos = vista.worldtoscreen((self.x, self.y))
+		r = int(0.3 * vista.scale)
+		pygame.draw.circle(vista.screen, (100, 100, 100), screenpos, r)
 	
 

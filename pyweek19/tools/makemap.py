@@ -19,22 +19,29 @@ pygame.font.init()
 oort = pygame.Surface(mapsize).convert_alpha()
 
 oops = [
-	(-40, 60, 60),
-	(40, 30, 50),
-	(10, -40, 70),
+	(-40, 60, 65),
+	(40, 30, 45),
+	(10, -40, 60),
+	(60, -50, 30),
+	(50, 30, 30),
+	(-50, -70, 45),
 ]
 
 oortdata = {}
 for px in range(mapsize[0]):
 	for py in range(mapsize[1]):
 		x, y = toworld((px, py))
-		d = min(math.sqrt((x - ax) ** 2 + (y - ay) ** 2) / r for ax, ay, r in oops)
-		alpha = min(max((d - 1) / 0.5, 0), 1)
+		ds = [math.sqrt((x - ax) ** 2 + (y - ay) ** 2) / r for ax, ay, r in oops]
+		d = sum(math.exp(-d ** 2) for d in ds)
+#		d = min(math.sqrt((x - ax) ** 2 + (y - ay) ** 2) / r for ax, ay, r in oops)
+		alpha = min(max((0.2 - d) / 0.1, 0), 1)
 		oortdata[(px, py)] = alpha
-		color = 0, 255, 0, int(alpha * 255)
+		color = 0, 255, 0, int(alpha * 40)
 		oort.set_at((px, py), color)
 
 screen.blit(oort, (0, 0))
+pygame.display.flip()
+pygame.image.save(screen, "data/oort.png")
 
 acenter = 30, 20
 R = 55
@@ -49,8 +56,13 @@ ps = { "angel%s" % j: p for j, p in enumerate(starps) }
 ps["start"] = 40, -70
 ps["mother"] = -40, 40
 ps["baron1"] = 40, 32
-ps["supply"] = -20, -43
-ps["seekers"] = -180, 120
+ps["baron2"] = 33, -90
+ps["baron3"] = -90, 10
+ps["baron4"] = -160, -150
+ps["mabina"] = -20, -43
+ps["seeker"] = -180, 120
+ps["supply"] = -52, 82
+ps["boss2"] = 30, -10
 
 f = pygame.font.Font(None, 11)
 for name, (x, y) in ps.items():
@@ -65,11 +77,11 @@ for x, y in starps:
 	pygame.draw.circle(screen, (255, 255, 255), (px, py), int(4 * scale))
 
 jplanet = 0
-while len(ps) < 80:
+while len(ps) < 200:
 	theta = random.uniform(0, tau)
-	r = random.uniform(0, 1) * rx
+	r = random.uniform(0, 1) * random.uniform(0, 1) * rx
 	x, y = r * math.sin(theta), r * math.cos(theta)
-	if min((x - sx) ** 2 + (y - sy) ** 2 for sx, sy in ps.values()) < 20 ** 2:
+	if min((x - sx) ** 2 + (y - sy) ** 2 for sx, sy in ps.values()) < 12 ** 2:
 		continue
 	ps["planet%s" % jplanet] = x, y
 	jplanet += 1

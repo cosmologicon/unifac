@@ -4,14 +4,17 @@ import state, img, vista
 class Explosion(object):
 	imgname = "boom"
 	lifetime = 1
-	def __init__(self, parent):
+	def __init__(self, parent, v = (0, 0)):
 		self.x, self.y = parent.x, parent.y
+		self.vx, self.vy = v
 		self.t = 0
 		self.imgname = "smoke%s" % random.choice(range(4))
 		self.angle = random.uniform(0, math.tau)
 	
 	def think(self, dt):
 		self.t += dt
+		self.x += dt * self.vx
+		self.y += dt * self.vy
 		if self.t > self.lifetime:
 			state.state.effects.remove(self)
 			
@@ -21,7 +24,7 @@ class Explosion(object):
 		img.worlddraw(self.imgname, (self.x, self.y), self.angle, scale = scale, alpha = alpha)
 
 class Laser(object):
-	lifetime = 0.1
+	lifetime = 0.4
 
 	def __init__(self, obj0, obj1, color):
 		self.obj0, self.obj1 = obj0, obj1
@@ -67,4 +70,34 @@ class Bullet(object):
 		screenpos = vista.worldtoscreen((self.x, self.y))
 		r = int(self.r * vista.scale)
 		pygame.draw.circle(vista.screen, self.color, screenpos, r)
+
+class Corpse(object):
+	lifetime = 3
+	def __init__(self, who):
+		self.who = who
+		self.t = 0
+		self.angle = who.angle
+		self.omega = random.choice([-1, 1]) * 200
+		self.alive = True
+
+	def think(self, dt):
+		self.t += dt
+		self.x, self.y = self.who.x, self.who.y
+		self.angle += dt * self.omega
+		if random.random() * 0.1 < dt:
+			v = random.uniform(-3, 3), random.uniform(-3, 3)
+			state.state.effects.append(Explosion(self, v))
+		self.alive = self.t < self.lifetime
+		if not self.alive:
+			state.state.effects.remove(self)
+	
+	def draw(self):
+		if not self.alive:
+			return
+		scale = 1 + 2 * self.t / self.lifetime
+		alpha = 1 - self.t / self.lifetime
+		img.worlddraw(self.who.imgname, (self.x, self.y), self.angle, scale = scale, alpha = alpha)
+		
+
+
 
