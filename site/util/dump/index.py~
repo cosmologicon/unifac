@@ -1,0 +1,82 @@
+"""
+Util tool to dump random JSON to a database with minimal effort.
+
+Usage in JavaScript:
+
+var req = new XMLHttpRequest()
+req.open("POST", "http://universefactory.net/tools/dump/", true)
+req.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+req.send("project=myprojectname&data=" + encodeURIComponent(JSON.stringify(data)))
+
+
+To deploy:
+
+scp site/util/dump/index.py "night@night.xen.prgmr.com:/var/www/tools/dump"
+
+Creating the table:
+
+sqlite /var/data/dump.db
+
+CREATE TABLE dump (
+	timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+	project TEXT,
+	useragent TEXT,
+	data TEXT
+);
+
+sudo chown www-data:www-data /var/data/dump.db
+
+Test:
+
+http://universefactory.net/tools/dump/?project=test&data=%5B1%2C2%2C3%5D
+
+
+"""
+
+import os, sqlite3, sys, cgi
+
+dbfilename = "/var/data/dump.db"
+
+# Object to access the database with
+class DB(object):
+	def __enter__(self):
+		self.db = sqlite3.connect(dbfilename)
+		self.c = self.db.cursor()
+		return self
+	def query(self, qstring, params = ()):
+		return self.c.execute(qstring, params).fetchall()
+	def queryone(self, qstring, params = ()):
+		return self.c.execute(qstring, params).fetchone()
+	def querysingle(self, qstring, params = ()):
+		ans = self.queryone(qstring, params)
+		return ans and ans[0]
+	def __exit__(self, typ, val, tb):
+		if not tb:
+			self.db.commit()
+		self.db.close()
+
+sys.stderr = sys.stdout
+print("Content-type: text/plain\n\n")
+form = cgi.FieldStorage()
+form = { field: form.getfirst(field) for field in form }
+useragent = os.environ["HTTP_USER_AGENT"]
+project = form.get("project", "")
+data = form.get("data")
+
+print("project: " + project)
+print("user agent: " + useragent)
+print("data size: " + str(len(data)))
+
+if not data:
+	exit()
+if len(data) > 1e6 or len(project) > 1e3 or len(useragent) > 1e4:
+	exit()
+if os.path.getsize(dbfilename) > 1000000000:  # ! GB
+	print("database full")
+	exit()
+
+with DB() as db:
+	qstring = "INSERT INTO dump (project, useragent, data) VALUES (?, ?, ?)"
+	values = project, useragent, data
+	db.query(qstring, values)
+
