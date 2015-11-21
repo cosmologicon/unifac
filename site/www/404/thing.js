@@ -52,6 +52,39 @@ var WorldBound = {
 	},
 }
 
+var HasBlockers = {
+	setspec: function (spec) {
+		this.blockers = spec.blockers || []
+	},
+	getspec: function (spec) {
+		spec.blockers = this.blockers
+	},
+	addblocker: function (thing) {
+		this.blockers.push(thing.id)
+	},
+	canclick: function () {
+		return !this.blockers.some(function (id) { return state.things[id].blocks() })
+	},
+	onclick: function () {
+		this.blockers.forEach(function (id) { state.things[id].ontargetclick() })
+	},
+}
+
+var CanBlock = {
+	setspec: function (spec) {
+		this.target = spec.target || null
+	},
+	getspec: function (spec) {
+		spec.target = this.target
+	},
+	block: function (thing) {
+		this.target = thing.id
+		thing.addblocker(this)
+	},
+	ontargetclick: function () {
+	},
+}
+
 var Round = {
 	init: function (r0, color0) {
 		this.r0 = r0 || 10
@@ -97,9 +130,11 @@ var HasText = {
 
 var HasCounter = {
 	setspec: function (spec) {
-		this.n = spec.n || 10
+		this.n0 = spec.n0 || 10
+		this.n = "n" in spec ? spec.n : this.n0
 	},
 	getspec: function (spec) {
+		spec.n0 = this.n0
 		spec.n = this.n
 	},
 	think: function (dt) {
@@ -119,6 +154,15 @@ var Decrements = {
 	},
 }
 
+var BlocksOnNonzero = {
+	blocks: function () {
+		return this.n > 0
+	},
+	ontargetclick: function () {
+		this.n = this.n0
+	},
+}
+
 // THING TYPES
 
 UFX.Thing()
@@ -130,10 +174,21 @@ UFX.Thing()
 UFX.Thing()
 	.addcomp(RegisterType, "decrementer")
 	.addcomp(WorldBound)
+	.addcomp(HasBlockers)
 	.addcomp(Round, 10)
 	.addcomp(HasText)
 	.addcomp(HasCounter)
 	.addcomp(Decrements)
+
+UFX.Thing()
+	.addcomp(RegisterType, "decblocker")
+	.addcomp(WorldBound)
+	.addcomp(HasBlockers)
+	.addcomp(Round, 10)
+	.addcomp(HasText)
+	.addcomp(HasCounter)
+	.addcomp(Decrements)
+	.addcomp([CanBlock, BlocksOnNonzero])
 
 
 

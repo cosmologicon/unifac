@@ -18,8 +18,9 @@ UFX.scene.push("play")
 
 UFX.scenes.play = {
 	start: function () {
-		state.addthing({ type: "decrementer", x: 0, y: 0, r: 20, n: 404, tcolor: "white" })
-		state.addthing({ type: "decrementer", x: 20, y: 30, r: 12, n: 10 })
+		var b404 = state.addthing({ type: "decrementer", x: 0, y: 0, r: 20, n0: 404, tcolor: "white" })
+		var b2 = state.addthing({ type: "decblocker", x: 20, y: 30, r: 12, n0: 10 })
+		b2.block(b404)
 	},
 	think: function (dt, jthink, nthink) {
 		if (jthink == 0) control.think(dt * nthink)
