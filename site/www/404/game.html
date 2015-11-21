@@ -18,10 +18,13 @@ UFX.scene.push("play")
 
 UFX.scenes.play = {
 	start: function () {
-		var button404 = state.addthing({ type: "button", x: 0, y: 0, r: 20 })
+		state.addthing({ type: "decrementer", x: 0, y: 0, r: 20, n: 404, tcolor: "white" })
+		state.addthing({ type: "decrementer", x: 20, y: 30, r: 12, n: 10 })
 	},
 	think: function (dt, jthink, nthink) {
 		if (jthink == 0) control.think(dt * nthink)
+		function think(obj) { obj.think(dt) }
+		state.thinglist.forEach(think)
 	},
 	thingat: function (pos) {
 		for (var j = 0 ; j < state.thinglist.length ; ++j) {
@@ -30,12 +33,16 @@ UFX.scenes.play = {
 		}
 		return null
 	},
-	ondown: function (event) {
+	onclick: function (event) {
 		var thing = this.thingat(event.pos)
-		if (thing) console.log(thing)
+		if (thing && thing.onclick) thing.onclick()
+	},
+	ondrag: function (event) {
+		camera.scoot(event.dmpos)
 	},
 	draw: function () {
 		UFX.draw("fs cyan f0")
+		camera.drawstars()
 
 		context.save()
 		camera.look()

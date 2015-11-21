@@ -11,7 +11,14 @@
 
 
 var control = {
+	ddrag: 5,  // distance in pixels before a click becomes a drag
+	tdrag: 0.3,  // time in seconds before a click becomes a drag
 	reset: function () {
+		this.isdown = false  // the mouse is currently being held down
+		this.tdown = 0  // time that mouse has been held down
+		this.dragging = false  // the mouse has been held down long enough to be dragging
+		this.mpos0 = null  // screen position when mouse was first held down
+		this.dragmpos = null  // screen position of last drag update
 	},
 	// Fire an event to be handled by the current scene, if a handler exists.
 	fire: function (ename, event) {
@@ -25,6 +32,29 @@ var control = {
 		var pos = camera.togame(mpos)
 		if (mstate.left.down) {
 			this.fire("down", { pos: pos })
+			this.isdown = true
+			this.mpos0 = mpos
+			this.dragmpos = mpos
+		}
+		if (this.isdown) {
+			this.tdown += dt
+			if (!this.dragging) {
+				var dx = mpos[0] - this.mpos0[0], dy = mpos[1] - this.mpos0[1]
+				if (dx * dx + dy * dy > this.ddrag * this.ddrag) this.dragging = true
+				if (this.tdown > this.tdrag) this.dragging = true
+			}
+		}
+		if (this.dragging) {
+			var dx = mpos[0] - this.dragmpos[0], dy = mpos[1] - this.dragmpos[1]
+			this.fire("drag", { dmpos: [dx, dy] })
+			this.dragmpos = mpos
+		}
+		if (this.isdown && mstate.left.up) {
+			if (this.dragging) {
+			} else {
+				this.fire("click", { pos: pos })
+			}
+			this.reset()
 		}
 	},
 }

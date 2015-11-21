@@ -9,6 +9,8 @@
 // Components should have a setspec method, which copies the relevant portions from a spec object,
 // along with a corresponding getspec method, which sets the relevant portions on the spec object.
 
+// If a component needs a type-specific default, it can be set in the component's init method.
+
 // Things should not hold references to other things directly, as these may be invalidated during a
 // save/load cycle. Instead store the thing's id, and refer to it using state.things[id].
 
@@ -17,6 +19,7 @@
 function makething(spec) {
 	var thing = Object.create(thingprotos[spec.type])
 	thing.setspec(spec)
+	thing.think(0)
 	return thing
 }
 var thingprotos = {}
@@ -71,12 +74,59 @@ var Round = {
 	},
 }
 
+var HasText = {
+	init: function (text0, tcolor0) {
+		this.text0 = text0 || 0
+		this.tcolor = tcolor0 || "black"
+	},
+	setspec: function (spec) {
+		this.text = spec.text || this.text0
+		this.tcolor = spec.tcolor || this.tcolor
+	},
+	getspec: function (spec) {
+		spec.text = this.text
+		spec.tcolor = this.tcolor
+	},
+	draw: function () {
+		var s = 0.14 * this.r / Math.max(this.text.length, 2)
+		UFX.draw("tab center middle z", s, s, "fs", this.tcolor,
+			"font 18px~bold~sans-serif ft0", this.text)
+	},
+}
+
+var HasCounter = {
+	setspec: function (spec) {
+		this.n = spec.n || 10
+	},
+	getspec: function (spec) {
+		spec.n = this.n
+	},
+	think: function (dt) {
+		this.text = "" + this.n
+	},
+}
+
+var Decrements = {
+	onclick: function () {
+		this.n = Math.max(this.n - 1, 0)
+	},
+}
+
 // THING TYPES
 
 UFX.Thing()
 	.addcomp(RegisterType, "button")
 	.addcomp(WorldBound)
 	.addcomp(Round, 10)
+	.definemethod("think")
+
+UFX.Thing()
+	.addcomp(RegisterType, "decrementer")
+	.addcomp(WorldBound)
+	.addcomp(Round, 10)
+	.addcomp(HasText)
+	.addcomp(HasCounter)
+	.addcomp(Decrements)
 
 
 
