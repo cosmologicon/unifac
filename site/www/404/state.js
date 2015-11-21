@@ -6,32 +6,38 @@ var state = {
 	reset: function () {
 		this.things = {}
 		this.thinglist = []
-		this.nextid = 0
+		this.nextid = 1
 	},
-	save: function (gamename) {
+	get: function () {
 		var obj = {
 			nextid: this.nextid,
 			thingspecs: {},
+			camera: camera.getstate(),
 		}
 		for (var id in this.things) {
 			obj.thingspecs[id] = { id: id }
 			this.things[id].getspec(obj.thingspecs[id])
 		}
-		localStorage[gamename] = obj
+		return JSON.stringify(obj)
+	},
+	set: function (state) {
+		this.reset()
+		var obj = JSON.parse(state)
+		this.nextid = obj.nextid
+		for (var id in obj.thingspecs) this.addthing(obj.thingspecs[id])
+		this.thinglist.sort(function (t0, t1) { return t0.id - t1.id })
+		camera.setstate(obj.camera)
+	},
+	save: function (gamename) {
+		localStorage[gamename] = this.get()
 	},
 	load: function (gamename) {
-		this.reset()
-		var obj = JSON.parse(localStorage[gamename])
-		this.nextid = obj.nextid
-		for (var id in obj.things) this.addthing(obj.things[id])
-		this.thinglist.sort(function (t0, t1) { return t0.id - t1.id })
+		this.set(localStorage[gamename])
 	},
 
 	addthing: function (spec) {
 		var thing = makething(spec)
-		if (!("id" in spec)) {
-			thing.id = this.nextid++
-		}
+		thing.id = "id" in spec ? spec.id : this.nextid++
 		this.things[thing.id] = thing
 		this.thinglist.push(thing)
 		return thing

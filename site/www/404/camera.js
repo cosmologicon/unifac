@@ -7,6 +7,18 @@ var camera = {
 		this.y0 = 0
 		this.R = 100  // half-radius of the screen in game units
 	},
+	setstate: function (obj) {
+		this.x0 = obj.x0
+		this.y0 = obj.y0
+		this.R = obj.R
+	},
+	getstate: function () {
+		return {
+			x0: this.x0,
+			y0: this.y0,
+			R: this.R,
+		}
+	},
 	// Pixels per game unit
 	scale: function () {
 		var s = Math.min(canvas.width, canvas.height)

@@ -21,6 +21,10 @@ UFX.scenes.play = {
 		var b404 = state.addthing({ type: "decrementer", x: 0, y: 0, r: 20, n0: 404, tcolor: "white" })
 		var b2 = state.addthing({ type: "decblocker", x: 20, y: 30, r: 12, n0: 10 })
 		b2.block(b404)
+		var a1 = state.addthing({ type: "autoclicker", x: -50, y: 10 })
+		a1.settarget(b404)
+		var a2 = state.addthing({ type: "autoclicker", x: 50, y: -10, tclick: 0.5, text: "2/s" })
+		a2.settarget(b2)
 	},
 	think: function (dt, jthink, nthink) {
 		if (jthink == 0) control.think(dt * nthink)

@@ -12,7 +12,8 @@
 // If a component needs a type-specific default, it can be set in the component's init method.
 
 // Things should not hold references to other things directly, as these may be invalidated during a
-// save/load cycle. Instead store the thing's id, and refer to it using state.things[id].
+// save/load cycle. Instead store the thing's id, and refer to it using state.things[id]. Thing ids
+// are always truthy, so 0 or null can be used to refer to no thing.
 
 "use strict"
 
@@ -83,6 +84,57 @@ var CanBlock = {
 	},
 	ontargetclick: function () {
 	},
+	draw: function () {
+		if (this.target) {
+			var obj = state.things[this.target]
+			UFX.draw("b m 0 0 l", obj.x - this.x, obj.y - this.y, "lw 4 ss red s")
+		}
+	},
+}
+
+var AutoAct = {
+	init: function (tclick0) {
+		this.tclick0 = tclick0 || 1
+	},
+	setspec: function (spec) {
+		this.t = spec.t || 0
+		this.tclick = spec.tclick || this.tclick0
+	},
+	getspec: function (spec) {
+		spec.t = this.t
+		spec.tclick = this.tclick
+	},
+	think: function (dt) {
+		this.t += dt
+		while (this.t > this.tclick) {
+			this.act()
+			this.t -= this.tclick
+		}
+	},
+}
+
+var ClicksTarget = {
+	setspec: function (spec) {
+		this.target = spec.target || null
+	},
+	getspec: function (spec) {
+		spec.target = this.target
+	},
+	settarget: function (thing) {
+		this.target = thing.id
+	},
+	act: function () {
+		var obj = state.things[this.target]
+		if (!obj) return
+		if (obj.canclick && !obj.canclick()) return
+		obj.onclick()
+	},
+	draw: function () {
+		if (this.target) {
+			var obj = state.things[this.target]
+			UFX.draw("b m 0 0 l", obj.x - this.x, obj.y - this.y, "lw 2 ss blue s")
+		}
+	},
 }
 
 var Round = {
@@ -123,8 +175,8 @@ var HasText = {
 	},
 	draw: function () {
 		var s = 0.14 * this.r / Math.max(this.text.length, 2)
-		UFX.draw("tab center middle z", s, s, "fs", this.tcolor,
-			"font 18px~bold~sans-serif ft0", this.text)
+		UFX.draw("[ tab center middle z", s, s, "fs", this.tcolor,
+			"font 18px~bold~sans-serif ft0", this.text, "]")
 	},
 }
 
@@ -189,6 +241,14 @@ UFX.Thing()
 	.addcomp(HasCounter)
 	.addcomp(Decrements)
 	.addcomp([CanBlock, BlocksOnNonzero])
+
+UFX.Thing()
+	.addcomp(RegisterType, "autoclicker")
+	.addcomp(WorldBound)
+	.addcomp(Round, 8)
+	.addcomp(HasText, "1/s")
+	.addcomp(AutoAct, 1)
+	.addcomp(ClicksTarget)
 
 
 
