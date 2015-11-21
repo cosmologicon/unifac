@@ -56,6 +56,7 @@ var Round = {
 	init: function (r0, color0) {
 		this.r0 = r0 || 10
 		this.color0 = color0 || "gray"
+		this.setmethodmode("canclick", "every")
 	},
 	setspec: function (spec) {
 		this.r = spec.r || this.r0
@@ -107,8 +108,14 @@ var HasCounter = {
 }
 
 var Decrements = {
+	canclick: function () {
+		return this.n > 0
+	},
 	onclick: function () {
-		this.n = Math.max(this.n - 1, 0)
+		this.n -= 1
+		if (!this.n) this.onempty()
+	},
+	onempty: function () {
 	},
 }
 

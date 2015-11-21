@@ -19,6 +19,7 @@ var control = {
 		this.dragging = false  // the mouse has been held down long enough to be dragging
 		this.mpos0 = null  // screen position when mouse was first held down
 		this.dragmpos = null  // screen position of last drag update
+		this.pointed = null  // object currently pointed at, for cursor purposes
 	},
 	// Fire an event to be handled by the current scene, if a handler exists.
 	fire: function (ename, event) {
@@ -30,6 +31,7 @@ var control = {
 		var mpos = mstate.pos
 		if (!mpos) return
 		var pos = camera.togame(mpos)
+		this.pointed = this.thingat(pos)
 		if (mstate.left.down) {
 			this.fire("down", { pos: pos })
 			this.isdown = true
@@ -52,10 +54,17 @@ var control = {
 		if (this.isdown && mstate.left.up) {
 			if (this.dragging) {
 			} else {
-				this.fire("click", { pos: pos })
+				this.fire("click", { thing: this.pointed })
 			}
 			this.reset()
 		}
+	},
+	thingat: function (pos) {
+		for (var j = 0 ; j < state.thinglist.length ; ++j) {
+			var thing = state.thinglist[j]
+			if (thing.collide && thing.collide(pos)) return thing
+		}
+		return null
 	},
 }
 control.reset()

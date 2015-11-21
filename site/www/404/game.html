@@ -26,16 +26,12 @@ UFX.scenes.play = {
 		function think(obj) { obj.think(dt) }
 		state.thinglist.forEach(think)
 	},
-	thingat: function (pos) {
-		for (var j = 0 ; j < state.thinglist.length ; ++j) {
-			var thing = state.thinglist[j]
-			if (thing.collide && thing.collide(pos)) return thing
-		}
-		return null
-	},
 	onclick: function (event) {
-		var thing = this.thingat(event.pos)
-		if (thing && thing.onclick) thing.onclick()
+		var thing = event.thing
+		if (thing && thing.onclick) {
+			if (thing.canclick && !thing.canclick()) return
+			thing.onclick()
+		}
 	},
 	ondrag: function (event) {
 		camera.scoot(event.dmpos)
@@ -49,6 +45,12 @@ UFX.scenes.play = {
 		function draw(obj) { context.save() ; obj.draw() ; context.restore() }
 		state.thinglist.forEach(draw)
 		context.restore()
+		
+		canvas.style.cursor =
+			control.dragging ? "move" :
+			control.pointed === null ? "default" :
+			control.pointed.canclick && control.pointed.canclick() ? "pointer" :
+			"no-drop"
 	},
 }
 
