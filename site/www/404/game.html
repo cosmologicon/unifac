@@ -1,7 +1,9 @@
 <!DOCTYPE html>
+<title>404</title>
 <script src="http://ufx.space/UFX.js"></script>
 <script src="state.js"></script>
 <script src="camera.js"></script>
+<script src="control.js"></script>
 <script src="thing.js"></script>
 <canvas id=canvas></canvas>
 <script>
@@ -9,6 +11,7 @@
 var canvas = document.getElementById("canvas")
 var context = canvas.getContext("2d")
 UFX.maximize.fill(canvas, "total")
+UFX.mouse.init(canvas)
 UFX.draw.setcontext(context)
 UFX.scene.init({ minups: 5, maxups: 120 })
 UFX.scene.push("play")
@@ -17,7 +20,19 @@ UFX.scenes.play = {
 	start: function () {
 		var button404 = state.addthing({ type: "button", x: 0, y: 0, r: 20 })
 	},
-	think: function (dt) {
+	think: function (dt, jthink, nthink) {
+		if (jthink == 0) control.think(dt * nthink)
+	},
+	thingat: function (pos) {
+		for (var j = 0 ; j < state.thinglist.length ; ++j) {
+			var thing = state.thinglist[j]
+			if (thing.collide && thing.collide(pos)) return thing
+		}
+		return null
+	},
+	ondown: function (event) {
+		var thing = this.thingat(event.pos)
+		if (thing) console.log(thing)
 	},
 	draw: function () {
 		UFX.draw("fs cyan f0")

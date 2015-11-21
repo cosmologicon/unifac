@@ -62,6 +62,10 @@ var Round = {
 		spec.r = this.r
 		spec.color = this.color
 	},
+	collide: function (pos) {
+		var dx = this.x - pos[0], dy = this.y - pos[1]
+		return dx * dx + dy * dy <= this.r * this.r
+	},
 	draw: function () {
 		UFX.draw("b o 0 0", this.r, "fs", this.color, "f")
 	},
