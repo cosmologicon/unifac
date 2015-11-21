@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <script src="http://ufx.space/UFX.js"></script>
 <script src="state.js"></script>
+<script src="camera.js"></script>
 <script src="thing.js"></script>
 <canvas id=canvas></canvas>
 <script>
@@ -20,6 +21,12 @@ UFX.scenes.play = {
 	},
 	draw: function () {
 		UFX.draw("fs cyan f0")
+
+		context.save()
+		camera.look()
+		function draw(obj) { context.save() ; obj.draw() ; context.restore() }
+		state.thinglist.forEach(draw)
+		context.restore()
 	},
 }
 
