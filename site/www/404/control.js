@@ -5,15 +5,21 @@
 
 // Events are as follows:
 
-// click: mouseup when the mouse hasn't moved too far or been held too long
-//    properties: 
+// move: fired every frame
 // down: mouse button begins to be held down
+// click: mouseup when a drag state has not been reached
+// drag: event fired every tick while a drag state is occurring
+// drop: mouseup when a drag state is reached
+
+// Pseudodrag occurs when a thing is clicked that cannot be clicked but can be dragged from. This
+// emulates a drag state. A pseudodrag ends when a click occurs (which is then treated as a drop).
 
 
 var control = {
 	ddrag: 5,  // distance in pixels before a click becomes a drag
 	tdrag: 0.3,  // time in seconds before a click becomes a drag
 	reset: function () {
+		this.pos = null  // current game position of pointer
 		this.isdown = false  // the mouse is currently being held down
 		this.tdown = 0  // time that mouse has been held down
 		this.dragging = false  // the mouse has been held down long enough to be dragging
@@ -32,9 +38,10 @@ var control = {
 		var mpos = mstate.pos
 		if (!mpos) return
 		var pos = camera.togame(mpos)
+		this.pos = pos
 		this.pointed = this.thingat(pos)
 		if (mstate.left.down) {
-			this.fire("down", { pos: pos })
+			this.fire("down", { pos: pos, thing: this.pointed })
 			this.isdown = true
 			this.mpos0 = mpos
 			this.dragmpos = mpos

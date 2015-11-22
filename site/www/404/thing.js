@@ -78,11 +78,17 @@ var HasBlockers = {
 }
 
 var SettableTarget = {
+	init: function () {
+		this.setmethodmode("cantarget", "every")
+	},
 	setspec: function (spec) {
 		this.target = spec.target || null
 	},
 	getspec: function (spec) {
 		spec.target = this.target
+	},
+	cantarget: function (thing) {
+		return true
 	},
 	settarget: function (thing) {
 		this.target = thing.id
@@ -94,6 +100,20 @@ var SettableTarget = {
 			var obj = state.things[this.target]
 			UFX.draw("b m 0 0 l", obj.x - this.x, obj.y - this.y, "lw 2 ss blue s")
 		}
+	},
+}
+
+var CantClick = {
+	init: function () {
+		this.unclickable = true  // not clickable even in principle
+	},
+	canclick: function () {
+		return false
+	},
+}
+var CantDrag = {
+	candrag: function () {
+		return false
 	},
 }
 
@@ -109,7 +129,7 @@ var DragToRetarget = {
 		this.dragpos = pos
 	},
 	ondrop: function (thing) {
-		if (thing) this.settarget(thing)
+		if (thing && this.cantarget(thing)) this.settarget(thing)
 		this.dragpos = null
 	},
 	settarget: function (thing) {
@@ -145,6 +165,9 @@ var AutoAct = {
 }
 
 var ClicksTarget = {
+	cantarget: function (thing) {
+		return !thing.unclickable
+	},
 	act: function () {
 		var obj = state.things[this.target]
 		if (!obj) return
@@ -254,6 +277,7 @@ UFX.Thing()
 	.addcomp(Round, 10)
 	.addcomp(HasText)
 	.addcomp(Decrements)
+	.addcomp(CantDrag)
 
 UFX.Thing()
 	.addcomp(RegisterType, "decblocker")
@@ -263,6 +287,7 @@ UFX.Thing()
 	.addcomp(HasText)
 	.addcomp(Decrements)
 	.addcomp([SettableTarget, CanBlock, BlocksOnNonzero])
+	.addcomp(CantDrag)
 
 UFX.Thing()
 	.addcomp(RegisterType, "autoclicker")
@@ -271,6 +296,7 @@ UFX.Thing()
 	.addcomp(HasText, "1/s")
 	.addcomp(AutoClicksTarget)
 	.addcomp(DragToRetarget)
+	.addcomp(CantClick)
 
 
 

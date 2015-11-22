@@ -25,20 +25,45 @@ UFX.scenes.play = {
 		a1.settarget(b404)
 		var a2 = state.addthing({ type: "autoclicker", x: 50, y: -10, tclick: 0.5, text: "2/s" })
 		a2.settarget(b2)
+
+		// Object of pseudodrags.
+		this.pdragthing = null
 	},
 	think: function (dt, jthink, nthink) {
-		if (jthink == 0) control.think(dt * nthink)
+		if (jthink == 0) {
+			control.think(dt * nthink)
+			if (this.pdragthing && control.pos) {
+				this.ondrag({ thing: this.pdragthing, pos: control.pos })
+			}
+		}
 		function think(obj) { obj.think(dt) }
 		state.thinglist.forEach(think)
 	},
+	onmove: function (event) {
+		if (this.pdragthing) {
+			this.ondrag({ thing: this.pdragthing, pos: event.pos })
+		}
+	},
 	onclick: function (event) {
 		var thing = event.thing
-		if (thing && thing.onclick) {
-			if (thing.canclick && !thing.canclick()) return
-			thing.onclick()
+		if (this.pdragthing) {
+			this.ondrop({ dragthing: this.pdragthing, dropthing: thing })
+			this.pdragthing = null
+		} else if (thing) {
+			if (thing.canclick && !thing.canclick()) {
+				if (thing.candrag && thing.candrag()) {
+					this.pdragthing = thing
+				}
+			} else {
+				if (thing.onclick) thing.onclick()
+			}
 		}
 	},
 	ondrag: function (event) {
+		if (event.thing && event.thing !== this.pdragthing) {
+			this.ondrop({ dragthing: this.pdragthing, dropthing: null })
+			this.pdragthing = null
+		}
 		if (event.thing && event.thing.candrag && event.thing.candrag() && event.thing.ondrag) {
 			event.thing.ondrag(event.pos)
 		} else {
