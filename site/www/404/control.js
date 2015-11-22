@@ -20,6 +20,7 @@ var control = {
 		this.mpos0 = null  // screen position when mouse was first held down
 		this.dragmpos = null  // screen position of last drag update
 		this.pointed = null  // object currently pointed at, for cursor purposes
+		this.dragthing = null  // object currently being dragged from, if any
 	},
 	// Fire an event to be handled by the current scene, if a handler exists.
 	fire: function (ename, event) {
@@ -37,6 +38,7 @@ var control = {
 			this.isdown = true
 			this.mpos0 = mpos
 			this.dragmpos = mpos
+			this.dragthing = this.pointed
 		}
 		if (this.isdown) {
 			this.tdown += dt
@@ -48,11 +50,12 @@ var control = {
 		}
 		if (this.dragging) {
 			var dx = mpos[0] - this.dragmpos[0], dy = mpos[1] - this.dragmpos[1]
-			this.fire("drag", { dmpos: [dx, dy] })
+			this.fire("drag", { dmpos: [dx, dy], thing: this.dragthing, pos: pos })
 			this.dragmpos = mpos
 		}
 		if (this.isdown && mstate.left.up) {
 			if (this.dragging) {
+				this.fire("drop", { dragthing: this.dragthing, dropthing: this.pointed })
 			} else {
 				this.fire("click", { thing: this.pointed })
 			}

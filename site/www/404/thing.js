@@ -63,31 +63,62 @@ var HasBlockers = {
 	addblocker: function (thing) {
 		this.blockers.push(thing.id)
 	},
+	blocked: function () {
+		return this.blockers.some(function (id) { return state.things[id].blocks() })
+	},
 	canclick: function () {
-		return !this.blockers.some(function (id) { return state.things[id].blocks() })
+		return !this.blocked()
+	},
+	candrag: function () {
+		return !this.blocked()
 	},
 	onclick: function () {
 		this.blockers.forEach(function (id) { state.things[id].ontargetclick() })
 	},
 }
 
-var CanBlock = {
+var SettableTarget = {
 	setspec: function (spec) {
 		this.target = spec.target || null
 	},
 	getspec: function (spec) {
 		spec.target = this.target
 	},
-	block: function (thing) {
+	settarget: function (thing) {
 		this.target = thing.id
-		thing.addblocker(this)
 	},
 	ontargetclick: function () {
 	},
 	draw: function () {
 		if (this.target) {
 			var obj = state.things[this.target]
-			UFX.draw("b m 0 0 l", obj.x - this.x, obj.y - this.y, "lw 4 ss red s")
+			UFX.draw("b m 0 0 l", obj.x - this.x, obj.y - this.y, "lw 2 ss blue s")
+		}
+	},
+}
+
+var DragToRetarget = {
+	init: function () {
+		this.setmethodmode("candrag", "every")
+	},
+	candrag: function () {
+		return true
+	},
+	ondrag: function (pos) {
+		this.target = null
+		this.dragpos = pos
+	},
+	ondrop: function (thing) {
+		if (thing) this.settarget(thing)
+		this.dragpos = null
+	},
+	settarget: function (thing) {
+		this.dragpos = null
+	},
+	draw: function () {
+		if (this.dragpos) {
+			UFX.draw("b m 0 0 l", this.dragpos[0] - this.x, this.dragpos[1] - this.y,
+				"lw 2 ss yellow s")
 		}
 	},
 }
@@ -114,28 +145,15 @@ var AutoAct = {
 }
 
 var ClicksTarget = {
-	setspec: function (spec) {
-		this.target = spec.target || null
-	},
-	getspec: function (spec) {
-		spec.target = this.target
-	},
-	settarget: function (thing) {
-		this.target = thing.id
-	},
 	act: function () {
 		var obj = state.things[this.target]
 		if (!obj) return
 		if (obj.canclick && !obj.canclick()) return
 		obj.onclick()
 	},
-	draw: function () {
-		if (this.target) {
-			var obj = state.things[this.target]
-			UFX.draw("b m 0 0 l", obj.x - this.x, obj.y - this.y, "lw 2 ss blue s")
-		}
-	},
 }
+
+var AutoClicksTarget = [AutoAct, SettableTarget, ClicksTarget]
 
 var Round = {
 	init: function (r0, color0) {
@@ -194,7 +212,7 @@ var HasCounter = {
 	},
 }
 
-var Decrements = {
+var Decrements = [HasCounter, {
 	canclick: function () {
 		return this.n > 0
 	},
@@ -203,6 +221,12 @@ var Decrements = {
 		if (!this.n) this.onempty()
 	},
 	onempty: function () {
+	},
+}]
+
+var CanBlock = {
+	settarget: function (thing) {
+		thing.addblocker(this)
 	},
 }
 
@@ -229,7 +253,6 @@ UFX.Thing()
 	.addcomp(HasBlockers)
 	.addcomp(Round, 10)
 	.addcomp(HasText)
-	.addcomp(HasCounter)
 	.addcomp(Decrements)
 
 UFX.Thing()
@@ -238,17 +261,16 @@ UFX.Thing()
 	.addcomp(HasBlockers)
 	.addcomp(Round, 10)
 	.addcomp(HasText)
-	.addcomp(HasCounter)
 	.addcomp(Decrements)
-	.addcomp([CanBlock, BlocksOnNonzero])
+	.addcomp([SettableTarget, CanBlock, BlocksOnNonzero])
 
 UFX.Thing()
 	.addcomp(RegisterType, "autoclicker")
 	.addcomp(WorldBound)
 	.addcomp(Round, 8)
 	.addcomp(HasText, "1/s")
-	.addcomp(AutoAct, 1)
-	.addcomp(ClicksTarget)
+	.addcomp(AutoClicksTarget)
+	.addcomp(DragToRetarget)
 
 
 

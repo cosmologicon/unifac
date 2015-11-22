@@ -20,7 +20,7 @@ UFX.scenes.play = {
 	start: function () {
 		var b404 = state.addthing({ type: "decrementer", x: 0, y: 0, r: 20, n0: 404, tcolor: "white" })
 		var b2 = state.addthing({ type: "decblocker", x: 20, y: 30, r: 12, n0: 10 })
-		b2.block(b404)
+		b2.settarget(b404)
 		var a1 = state.addthing({ type: "autoclicker", x: -50, y: 10 })
 		a1.settarget(b404)
 		var a2 = state.addthing({ type: "autoclicker", x: 50, y: -10, tclick: 0.5, text: "2/s" })
@@ -39,7 +39,17 @@ UFX.scenes.play = {
 		}
 	},
 	ondrag: function (event) {
-		camera.scoot(event.dmpos)
+		if (event.thing && event.thing.candrag && event.thing.candrag() && event.thing.ondrag) {
+			event.thing.ondrag(event.pos)
+		} else {
+			camera.scoot(event.dmpos)
+		}
+	},
+	ondrop: function (event) {
+		var dragthing = event.dragthing, dropthing = event.dropthing
+		if (dragthing && dragthing.candrag && dragthing.candrag() && dragthing.ondrop) {
+			dragthing.ondrop(dropthing)
+		}
 	},
 	draw: function () {
 		UFX.draw("fs cyan f0")
@@ -49,13 +59,21 @@ UFX.scenes.play = {
 		camera.look()
 		function draw(obj) { context.save() ; obj.draw() ; context.restore() }
 		state.thinglist.forEach(draw)
+
+		if (control.isdragging && control.dragtarget) {
+			if (control.dragtarget.candrag && control.dragtarget.candrag()) {
+				
+			}
+		}
+
 		context.restore()
 		
 		canvas.style.cursor =
 			control.dragging ? "move" :
 			control.pointed === null ? "default" :
 			control.pointed.canclick && control.pointed.canclick() ? "pointer" :
-			"no-drop"
+			control.pointed.candrag && control.pointed.candrag() ? "move" :
+			"not-allowed"
 	},
 }
 
