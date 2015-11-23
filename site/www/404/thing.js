@@ -37,6 +37,9 @@ var RegisterType = {
 	getspec: function (spec) {
 		spec.type = this.type
 	},
+	die: function () {
+		state.removething(this)
+	},
 }
 
 var WorldBound = {
@@ -62,6 +65,9 @@ var HasBlockers = {
 	},
 	addblocker: function (thing) {
 		this.blockers.push(thing.id)
+	},
+	removeblocker: function (thing) {
+		this.blockers = this.blockers.filter(function (b) { return b !== thing.id })
 	},
 	blocked: function () {
 		return this.blockers.some(function (id) { return state.things[id].blocks() })
@@ -248,9 +254,21 @@ var Decrements = [HasCounter, {
 	},
 }]
 
+// Dies when reaching 0 for the first time.
+var SingleDecrements = [Decrements, {
+	onempty: function () {
+		this.die()
+	},
+}]
+
 var CanBlock = {
 	settarget: function (thing) {
 		thing.addblocker(this)
+	},
+	die: function () {
+		if (state.things[this.target]) {
+			state.things[this.target].removeblocker(this)
+		}
 	},
 }
 
@@ -307,8 +325,19 @@ UFX.Thing()
 	.addcomp(CantDrag)
 
 UFX.Thing()
+	.addcomp(RegisterType, "consumeblocker")
+	.addcomp(WorldBound)
+	.addcomp(HasBlockers)
+	.addcomp(Round, 10)
+	.addcomp(HasText)
+	.addcomp(SingleDecrements)
+	.addcomp([SettableTarget, CanBlock, BlocksOnNonzero])
+	.addcomp(CantDrag)
+
+UFX.Thing()
 	.addcomp(RegisterType, "autoclicker")
 	.addcomp(WorldBound)
+	.addcomp(HasBlockers)
 	.addcomp(Round, 8)
 	.addcomp(HasText, "1/s")
 	.addcomp(AutoClicksTarget)
