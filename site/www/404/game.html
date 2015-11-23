@@ -2,6 +2,7 @@
 <title>404</title>
 <script src="http://ufx.space/UFX.js"></script>
 <script src="state.js"></script>
+<script src="unlock.js"></script>
 <script src="camera.js"></script>
 <script src="control.js"></script>
 <script src="thing.js"></script>
@@ -18,13 +19,7 @@ UFX.scene.push("play")
 
 UFX.scenes.play = {
 	start: function () {
-		var b404 = state.addthing({ type: "decrementer", x: 0, y: 0, r: 20, n0: 404, tcolor: "white" })
-		var b2 = state.addthing({ type: "decblocker", x: 20, y: 30, r: 12, n0: 10 })
-		b2.settarget(b404)
-		var a1 = state.addthing({ type: "autoclicker", x: -50, y: 10 })
-		a1.settarget(b404)
-		var a2 = state.addthing({ type: "autoclicker", x: 50, y: -10, tclick: 0.5, text: "2/s" })
-		a2.settarget(b2)
+		state.addthing({ type: "mainbutton", id: "main", x: 0, y: 0, n0: 404 })
 
 		// Object of pseudodrags.
 		this.pdragthing = null
@@ -78,7 +73,7 @@ UFX.scenes.play = {
 	},
 	draw: function () {
 		UFX.draw("fs cyan f0")
-		camera.drawstars()
+		//camera.drawstars()
 
 		context.save()
 		camera.look()

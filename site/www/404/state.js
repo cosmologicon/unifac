@@ -25,7 +25,7 @@ var state = {
 		var obj = JSON.parse(state)
 		this.nextid = obj.nextid
 		for (var id in obj.thingspecs) this.addthing(obj.thingspecs[id])
-		this.thinglist.sort(function (t0, t1) { return t0.id - t1.id })
+		this.thinglist.sort()
 		camera.setstate(obj.camera)
 	},
 	save: function (gamename) {

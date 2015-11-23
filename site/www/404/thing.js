@@ -143,23 +143,24 @@ var DragToRetarget = {
 	},
 }
 
+// Calls this.act() once every second (or however long tact is)
 var AutoAct = {
-	init: function (tclick0) {
-		this.tclick0 = tclick0 || 1
+	init: function (tact0) {
+		this.tact0 = tact0 || 1
 	},
 	setspec: function (spec) {
 		this.t = spec.t || 0
-		this.tclick = spec.tclick || this.tclick0
+		this.tact = spec.tact || this.tact0
 	},
 	getspec: function (spec) {
 		spec.t = this.t
-		spec.tclick = this.tclick
+		spec.tact = this.tact
 	},
 	think: function (dt) {
 		this.t += dt
-		while (this.t > this.tclick) {
+		while (this.t > this.tact) {
 			this.act()
-			this.t -= this.tclick
+			this.t -= this.tact
 		}
 	},
 }
@@ -262,6 +263,12 @@ var BlocksOnNonzero = {
 	},
 }
 
+var UnlocksOnDecrement = {
+	onclick: function () {
+		unlock(this.n)
+	},
+}
+
 // THING TYPES
 
 UFX.Thing()
@@ -278,6 +285,16 @@ UFX.Thing()
 	.addcomp(HasText)
 	.addcomp(Decrements)
 	.addcomp(CantDrag)
+
+UFX.Thing()
+	.addcomp(RegisterType, "mainbutton")
+	.addcomp(WorldBound)
+	.addcomp(HasBlockers)
+	.addcomp(Round, 28)
+	.addcomp(HasText)
+	.addcomp(Decrements)
+	.addcomp(CantDrag)
+	.addcomp(UnlocksOnDecrement)
 
 UFX.Thing()
 	.addcomp(RegisterType, "decblocker")
