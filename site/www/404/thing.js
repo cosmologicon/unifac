@@ -42,6 +42,18 @@ var RegisterType = {
 	},
 }
 
+var KeepsTime = {
+	setspec: function (spec) {
+		this.t = spec.t || 0
+	},
+	getspec: function (spec) {
+		spec.t = this.t
+	},
+	think: function (dt) {
+		this.t += dt
+	},
+}
+
 var WorldBound = {
 	setspec: function (spec) {
 		this.x = spec.x || 0
@@ -56,21 +68,24 @@ var WorldBound = {
 	},
 }
 
-var HasBlockers = {
+var Targetable = {
 	setspec: function (spec) {
-		this.blockers = spec.blockers || []
+		this.targeters = spec.targeters || []
 	},
 	getspec: function (spec) {
-		spec.blockers = this.blockers
+		spec.targeters = this.targeters
 	},
-	addblocker: function (thing) {
-		this.blockers.push(thing.id)
+	addtargeter: function (thing) {
+		this.targeters.push(thing.id)
 	},
-	removeblocker: function (thing) {
-		this.blockers = this.blockers.filter(function (b) { return b !== thing.id })
+	removetargeter: function (thing) {
+		this.targeters = this.targeters.filter(function (id) { return id !== thing.id })
 	},
 	blocked: function () {
-		return this.blockers.some(function (id) { return state.things[id].blocks() })
+		return this.targeters.some(function (id) {
+			var thing = state.things[id]
+			return thing.blocks && thing.blocks()
+		})
 	},
 	canclick: function () {
 		return !this.blocked()
@@ -79,7 +94,10 @@ var HasBlockers = {
 		return !this.blocked()
 	},
 	onclick: function () {
-		this.blockers.forEach(function (id) { state.things[id].ontargetclick() })
+		this.targeters.forEach(function (id) { state.things[id].ontargetclick(this) }.bind(this))
+	},
+	die: function () {
+		this.targeters.forEach(function (id) { state.things[id].ontargetdie(this) }.bind(this))
 	},
 }
 
@@ -98,13 +116,19 @@ var SettableTarget = {
 	},
 	settarget: function (thing) {
 		this.target = thing.id
+		thing.addtargeter(this)
 	},
 	ontargetclick: function () {
+	},
+	ontargetdie: function () {
+		this.target = null
 	},
 	draw: function () {
 		if (this.target) {
 			var obj = state.things[this.target]
-			UFX.draw("b m 0 0 l", obj.x - this.x, obj.y - this.y, "lw 2 ss blue s")
+			var dx = obj.x - this.x, dy = obj.y - this.y, dr = Math.sqrt(dx * dx + dy * dy)
+			UFX.draw("[ lw 2 ss blue r", Math.atan2(-dx, dy), "b m 0 0 l 0", dr,
+				"m -3", dr - 8, "l 0", dr, "l 3", dr - 8, "s ]")
 		}
 	},
 }
@@ -155,18 +179,18 @@ var AutoAct = {
 		this.tact0 = tact0 || 1
 	},
 	setspec: function (spec) {
-		this.t = spec.t || 0
+		this.acttime = spec.acttime || 0
 		this.tact = spec.tact || this.tact0
 	},
 	getspec: function (spec) {
-		spec.t = this.t
+		spec.acttime = this.acttime
 		spec.tact = this.tact
 	},
 	think: function (dt) {
-		this.t += dt
-		while (this.t > this.tact) {
+		this.acttime += dt
+		while (this.acttime > this.tact) {
 			this.act()
-			this.t -= this.tact
+			this.acttime -= this.tact
 		}
 	},
 }
@@ -263,11 +287,11 @@ var SingleDecrements = [Decrements, {
 
 var CanBlock = {
 	settarget: function (thing) {
-		thing.addblocker(this)
+		thing.addtargeter(this)
 	},
 	die: function () {
 		if (state.things[this.target]) {
-			state.things[this.target].removeblocker(this)
+			state.things[this.target].removetargeter(this)
 		}
 	},
 }
@@ -298,7 +322,7 @@ UFX.Thing()
 UFX.Thing()
 	.addcomp(RegisterType, "decrementer")
 	.addcomp(WorldBound)
-	.addcomp(HasBlockers)
+	.addcomp(Targetable)
 	.addcomp(Round, 10)
 	.addcomp(HasText)
 	.addcomp(Decrements)
@@ -307,7 +331,7 @@ UFX.Thing()
 UFX.Thing()
 	.addcomp(RegisterType, "mainbutton")
 	.addcomp(WorldBound)
-	.addcomp(HasBlockers)
+	.addcomp(Targetable)
 	.addcomp(Round, 28)
 	.addcomp(HasText)
 	.addcomp(Decrements)
@@ -317,7 +341,7 @@ UFX.Thing()
 UFX.Thing()
 	.addcomp(RegisterType, "decblocker")
 	.addcomp(WorldBound)
-	.addcomp(HasBlockers)
+	.addcomp(Targetable)
 	.addcomp(Round, 10)
 	.addcomp(HasText)
 	.addcomp(Decrements)
@@ -327,7 +351,7 @@ UFX.Thing()
 UFX.Thing()
 	.addcomp(RegisterType, "consumeblocker")
 	.addcomp(WorldBound)
-	.addcomp(HasBlockers)
+	.addcomp(Targetable)
 	.addcomp(Round, 10)
 	.addcomp(HasText)
 	.addcomp(SingleDecrements)
@@ -337,7 +361,7 @@ UFX.Thing()
 UFX.Thing()
 	.addcomp(RegisterType, "autoclicker")
 	.addcomp(WorldBound)
-	.addcomp(HasBlockers)
+	.addcomp(Targetable)
 	.addcomp(Round, 8)
 	.addcomp(HasText, "1/s")
 	.addcomp(AutoClicksTarget)

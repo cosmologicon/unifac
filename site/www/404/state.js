@@ -6,11 +6,9 @@ var state = {
 	reset: function () {
 		this.things = {}
 		this.thinglist = []
-		this.nextid = 1
 	},
 	get: function () {
 		var obj = {
-			nextid: this.nextid,
 			thingspecs: {},
 			camera: camera.getstate(),
 		}
@@ -23,7 +21,6 @@ var state = {
 	set: function (state) {
 		this.reset()
 		var obj = JSON.parse(state)
-		this.nextid = obj.nextid
 		for (var id in obj.thingspecs) this.addthing(obj.thingspecs[id])
 		this.thinglist.sort()
 		camera.setstate(obj.camera)
@@ -34,10 +31,14 @@ var state = {
 	load: function (gamename) {
 		this.set(localStorage[gamename])
 	},
-
+	randomid: function () {
+		do var id = UFX.random.word()
+		while (id in this.things)
+		return id
+	},
 	addthing: function (spec) {
 		var thing = makething(spec)
-		thing.id = "id" in spec ? spec.id : this.nextid++
+		thing.id = "id" in spec ? spec.id : this.randomid()
 		this.things[thing.id] = thing
 		this.thinglist.push(thing)
 		return thing
