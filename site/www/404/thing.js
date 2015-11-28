@@ -123,13 +123,8 @@ var SettableTarget = {
 	ontargetdie: function () {
 		this.target = null
 	},
-	draw: function () {
-		if (this.target) {
-			var obj = state.things[this.target]
-			var dx = obj.x - this.x, dy = obj.y - this.y, dr = Math.sqrt(dx * dx + dy * dy)
-			UFX.draw("[ lw 2 ss blue r", Math.atan2(-dx, dy), "b m 0 0 l 0", dr,
-				"m -3", dr - 8, "l 0", dr, "l 3", dr - 8, "s ]")
-		}
+	die: function () {
+		if (this.target) state.things[this.target].removetargeter(this)
 	},
 }
 
@@ -165,11 +160,12 @@ var DragToRetarget = {
 	settarget: function (thing) {
 		this.dragpos = null
 	},
-	draw: function () {
-		if (this.dragpos) {
-			UFX.draw("b m 0 0 l", this.dragpos[0] - this.x, this.dragpos[1] - this.y,
-				"lw 2 ss yellow s")
-		}
+	drawfront: function () {
+		if (!this.dragpos) return
+		var target = { x: this.dragpos[0], y: this.dragpos[1], r: 0 }
+		drawing.linkage(this, target)
+		drawing.base(this, target)
+		drawing.arrowhead(this, target)
 	},
 }
 
@@ -205,6 +201,14 @@ var ClicksTarget = {
 		if (obj.canclick && !obj.canclick()) return
 		obj.onclick()
 	},
+	drawback: function () {
+		if (this.target) drawing.linkage(this, state.things[this.target])
+	},
+	drawfront: function () {
+		if (!this.target) return
+		drawing.base(this, state.things[this.target])
+		drawing.arrowhead(this, state.things[this.target])
+	},
 }
 
 var AutoClicksTarget = [AutoAct, SettableTarget, ClicksTarget]
@@ -212,7 +216,7 @@ var AutoClicksTarget = [AutoAct, SettableTarget, ClicksTarget]
 var Round = {
 	init: function (r0, color0) {
 		this.r0 = r0 || 10
-		this.color0 = color0 || "gray"
+		this.color0 = color0 || "#44f"
 		this.setmethodmode("canclick", "every")
 	},
 	setspec: function (spec) {
@@ -228,27 +232,29 @@ var Round = {
 		return dx * dx + dy * dy <= this.r * this.r
 	},
 	draw: function () {
-		UFX.draw("b o 0 0", this.r, "fs", this.color, "f")
+		drawing.disk({ r: this.r, color: this.color, })
 	},
 }
 
 var HasText = {
 	init: function (text0, tcolor0) {
 		this.text0 = text0 || 0
-		this.tcolor = tcolor0 || "black"
+		this.tcolor = tcolor0 || "white"
 	},
 	setspec: function (spec) {
 		this.text = spec.text || this.text0
 		this.tcolor = spec.tcolor || this.tcolor
+		this.tocolor = spec.tocolor || "black"
 	},
 	getspec: function (spec) {
 		spec.text = this.text
 		spec.tcolor = this.tcolor
+		spec.tocolor = this.tocolor
 	},
 	draw: function () {
 		var s = 0.14 * this.r / Math.max(this.text.length, 2)
-		UFX.draw("[ tab center middle z", s, s, "fs", this.tcolor,
-			"font 18px~bold~sans-serif ft0", this.text, "]")
+		UFX.draw("[ tab center middle z", s, s, "fs", this.tcolor, "ss", this.tocolor,
+			"font 18px~bold~'Bigshot~One' lw 1.2 sft", this.text, "0 0 ]")
 	},
 }
 
@@ -286,12 +292,15 @@ var SingleDecrements = [Decrements, {
 }]
 
 var CanBlock = {
-	settarget: function (thing) {
-		thing.addtargeter(this)
+	drawback: function () {
+		if (this.target) {
+			drawing.linkage(this, state.things[this.target])
+		}
 	},
-	die: function () {
-		if (state.things[this.target]) {
-			state.things[this.target].removetargeter(this)
+	drawfront: function () {
+		if (this.target) {
+			drawing.base(this, state.things[this.target])
+			drawing.clasp(this, state.things[this.target], { open: !this.blocks() })
 		}
 	},
 }
@@ -311,6 +320,14 @@ var UnlocksOnDecrement = {
 	},
 }
 
+var GhostOnDisable = {
+	draw: function () {
+		if (this.canclick && this.canclick()) return
+		if (this.candrag && this.candrag()) return
+		drawing.ghost({ r: this.r })
+	},
+}
+
 // THING TYPES
 
 UFX.Thing()
@@ -325,6 +342,7 @@ UFX.Thing()
 	.addcomp(Targetable)
 	.addcomp(Round, 10)
 	.addcomp(HasText)
+	.addcomp(GhostOnDisable)
 	.addcomp(Decrements)
 	.addcomp(CantDrag)
 
@@ -334,6 +352,7 @@ UFX.Thing()
 	.addcomp(Targetable)
 	.addcomp(Round, 28)
 	.addcomp(HasText)
+	.addcomp(GhostOnDisable)
 	.addcomp(Decrements)
 	.addcomp(CantDrag)
 	.addcomp(UnlocksOnDecrement)
@@ -345,6 +364,7 @@ UFX.Thing()
 	.addcomp(Round, 10)
 	.addcomp(HasText)
 	.addcomp(Decrements)
+	.addcomp(GhostOnDisable)
 	.addcomp([SettableTarget, CanBlock, BlocksOnNonzero])
 	.addcomp(CantDrag)
 
@@ -354,6 +374,7 @@ UFX.Thing()
 	.addcomp(Targetable)
 	.addcomp(Round, 10)
 	.addcomp(HasText)
+	.addcomp(GhostOnDisable)
 	.addcomp(SingleDecrements)
 	.addcomp([SettableTarget, CanBlock, BlocksOnNonzero])
 	.addcomp(CantDrag)
@@ -362,8 +383,9 @@ UFX.Thing()
 	.addcomp(RegisterType, "autoclicker")
 	.addcomp(WorldBound)
 	.addcomp(Targetable)
-	.addcomp(Round, 8)
+	.addcomp(Round, 14)
 	.addcomp(HasText, "1/s")
+	.addcomp(GhostOnDisable)
 	.addcomp(AutoClicksTarget)
 	.addcomp(DragToRetarget)
 	.addcomp(CantClick)

@@ -1,9 +1,11 @@
 <!DOCTYPE html>
+<link href='https://fonts.googleapis.com/css?family=Bangers|Luckiest+Guy|Chelsea+Market|Slackey|Skranji|Spicy+Rice|Chicle|Bigshot+One' rel='stylesheet' type='text/css'>
 <title>404</title>
 <script src="http://ufx.space/UFX.js"></script>
 <script src="state.js"></script>
 <script src="unlock.js"></script>
 <script src="camera.js"></script>
+<script src="drawing.js"></script>
 <script src="control.js"></script>
 <script src="thing.js"></script>
 <canvas id=canvas></canvas>
@@ -77,8 +79,17 @@ UFX.scenes.play = {
 
 		context.save()
 		camera.look()
-		function draw(obj) { context.save() ; obj.draw() ; context.restore() }
-		state.thinglist.forEach(draw)
+		function drawmethod(methodname) {
+			return function (obj) {
+				if (!obj[methodname]) return
+				context.save()
+				obj[methodname]()
+				context.restore()
+			}
+		}
+		state.thinglist.forEach(drawmethod("drawback"))
+		state.thinglist.forEach(drawmethod("draw"))
+		state.thinglist.forEach(drawmethod("drawfront"))
 
 		if (control.isdragging && control.dragtarget) {
 			if (control.dragtarget.candrag && control.dragtarget.candrag()) {
