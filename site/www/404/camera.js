@@ -49,6 +49,17 @@ var camera = {
 		this.x0 -= dmpos[0] / s
 		this.y0 -= dmpos[1] / s
 	},
+	recenter: function (dt) {
+		var rmax = Math.max.apply(Math, state.thinglist.map(function (thing) {
+			return Math.sqrt(thing.x * thing.x + thing.y * thing.y) + thing.r
+		}))
+		rmax = Math.max(rmax - 0.92 * this.R, 0)
+		var r = Math.sqrt(this.x0 * this.x0 + this.y0 * this.y0)
+		if (r <= rmax) return
+		var f = (rmax + (r - rmax) * Math.exp(-12 * dt)) / r
+		this.x0 *= f
+		this.y0 *= f
+	},
 	
 	drawstars: function () {
 		if (!this.stars) {

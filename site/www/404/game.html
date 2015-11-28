@@ -35,6 +35,7 @@ UFX.scenes.play = {
 		}
 		function think(obj) { obj.think(dt) }
 		state.thinglist.forEach(think)
+		if (!control.dragging || control.dragthing) camera.recenter(dt)
 	},
 	onmove: function (event) {
 		if (this.pdragthing) {
